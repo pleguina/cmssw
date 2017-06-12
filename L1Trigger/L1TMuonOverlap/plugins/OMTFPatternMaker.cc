@@ -79,7 +79,7 @@ void OMTFPatternMaker::beginRun(edm::Run const& run, edm::EventSetup const& iSet
   
   ///Clear existing GoldenPatterns
   if(!mergeXMLFiles){
-    const std::map<Key,GoldenPattern*> & theGPs = myOMTF->getPatterns();
+    const std::map<Key, IGoldenPattern*> & theGPs = myOMTF->getPatterns();
     for(auto itGP: theGPs) itGP.second->reset();
   }  
 }
@@ -96,7 +96,7 @@ void OMTFPatternMaker::endJob(){
 
   if(makeGoldenPatterns && !makeConnectionsMaps){
     myWriter->initialiseXMLDocument("OMTF");
-    const std::map<Key,GoldenPattern*> & myGPmap = myOMTF->getPatterns();
+    const std::map<Key, IGoldenPattern*> & myGPmap = myOMTF->getPatterns();
     for(auto itGP: myGPmap){
       if(!itGP.second->hasCounts()) continue;
       itGP.second->normalise(nPdfAddrBits);
@@ -120,8 +120,8 @@ void OMTFPatternMaker::endJob(){
       ////
       if(itGP.first.thePtCode==iPt && 
 	 itGP.first.theCharge==theConfig.getParameter<int>("charge")){ 
-	std::cout<<*itGP.second<<std::endl;      
-	myWriter->writeGPData(*itGP.second, dummyGP, dummyGP, dummyGP);
+	//std::cout<<*itGP.second<<std::endl;
+	myWriter->writeGPData(*((GoldenPattern*)itGP.second), dummyGP, dummyGP, dummyGP);
       }
     }
     std::string fName = "GPs.xml";
@@ -151,9 +151,9 @@ void OMTFPatternMaker::endJob(){
 
     std::string fName = "OMTF";
     myWriter->initialiseXMLDocument(fName);
-    const std::map<Key,GoldenPattern*> & myGPmap = myOMTF->getPatterns();
+    const std::map<Key, IGoldenPattern*> & myGPmap = myOMTF->getPatterns();
     for(auto itGP: myGPmap){
-      myWriter->writeGPData(*itGP.second,*dummy, *dummy, *dummy);
+      myWriter->writeGPData(*((GoldenPattern*)itGP.second),*dummy, *dummy, *dummy);
     }
     fName = "GPs.xml";
     myWriter->finaliseXMLDocument(fName);
@@ -173,7 +173,7 @@ void OMTFPatternMaker::endJob(){
 /////////////////////////////////////////////////////
 void OMTFPatternMaker::writeMergedGPs(){
   
-  const std::map<Key,GoldenPattern*> & myGPmap = myOMTF->getPatterns();
+  const std::map<Key, IGoldenPattern*> & myGPmap = myOMTF->getPatterns();
 
   GoldenPattern *dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
   dummy->reset();
@@ -182,23 +182,23 @@ void OMTFPatternMaker::writeMergedGPs(){
   Key aKey = Key(0, iPtMin, 1);
   while(myGPmap.find(aKey)!=myGPmap.end()){
 
-    GoldenPattern *aGP1 = myGPmap.find(aKey)->second;
+    GoldenPattern *aGP1 = (GoldenPattern*)(myGPmap.find(aKey)->second);
     GoldenPattern *aGP2 = dummy;
     GoldenPattern *aGP3 = dummy;
     GoldenPattern *aGP4 = dummy;
 
     ++aKey.thePtCode;
     while(myGPmap.find(aKey)==myGPmap.end() && aKey.thePtCode<=401) ++aKey.thePtCode;    
-    if(aKey.thePtCode<=401 && myGPmap.find(aKey)!=myGPmap.end()) aGP2 =  myGPmap.find(aKey)->second;
+    if(aKey.thePtCode<=401 && myGPmap.find(aKey)!=myGPmap.end()) aGP2 =  (GoldenPattern*)(myGPmap.find(aKey)->second);
 
     if(aKey.thePtCode>71){
       ++aKey.thePtCode;
       while(myGPmap.find(aKey)==myGPmap.end() && aKey.thePtCode<=401) ++aKey.thePtCode;    
-      if(aKey.thePtCode<=401 && myGPmap.find(aKey)!=myGPmap.end()) aGP3 =  myGPmap.find(aKey)->second;
+      if(aKey.thePtCode<=401 && myGPmap.find(aKey)!=myGPmap.end()) aGP3 =  (GoldenPattern*)(myGPmap.find(aKey)->second);
 
       ++aKey.thePtCode;
       while(myGPmap.find(aKey)==myGPmap.end() && aKey.thePtCode<=401) ++aKey.thePtCode;    
-      if(aKey.thePtCode<=401 && myGPmap.find(aKey)!=myGPmap.end()) aGP4 =  myGPmap.find(aKey)->second;
+      if(aKey.thePtCode<=401 && myGPmap.find(aKey)!=myGPmap.end()) aGP4 = (GoldenPattern*)(myGPmap.find(aKey)->second);
     }
     ++aKey.thePtCode;
     while(myGPmap.find(aKey)==myGPmap.end() && aKey.thePtCode<=401) ++aKey.thePtCode;    
@@ -207,22 +207,22 @@ void OMTFPatternMaker::writeMergedGPs(){
     ///Write the opposite charge.
     Key aTmpKey = aGP1->key();
     aTmpKey.theCharge = -1;
-    if(myGPmap.find(aTmpKey)!=myGPmap.end()) aGP1 =  myGPmap.find(aTmpKey)->second;
+    if(myGPmap.find(aTmpKey)!=myGPmap.end()) aGP1 =  (GoldenPattern*)(myGPmap.find(aTmpKey)->second);
     else aGP1 = dummy;
 
     aTmpKey = aGP2->key();
     aTmpKey.theCharge = -1;
-    if(myGPmap.find(aTmpKey)!=myGPmap.end()) aGP2 =  myGPmap.find(aTmpKey)->second;
+    if(myGPmap.find(aTmpKey)!=myGPmap.end()) aGP2 =  (GoldenPattern*)(myGPmap.find(aTmpKey)->second);
     else aGP2 = dummy;
 
     aTmpKey = aGP3->key();
     aTmpKey.theCharge = -1;
-    if(myGPmap.find(aTmpKey)!=myGPmap.end()) aGP3 =  myGPmap.find(aTmpKey)->second;
+    if(myGPmap.find(aTmpKey)!=myGPmap.end()) aGP3 =  (GoldenPattern*)(myGPmap.find(aTmpKey)->second);
     else aGP3 = dummy;
 
     aTmpKey = aGP4->key();
     aTmpKey.theCharge = -1;
-    if(myGPmap.find(aTmpKey)!=myGPmap.end()) aGP4 =  myGPmap.find(aTmpKey)->second;
+    if(myGPmap.find(aTmpKey)!=myGPmap.end()) aGP4 =  (GoldenPattern*)(myGPmap.find(aTmpKey)->second);
     else aGP4 = dummy;
     
     myWriter->writeGPData(*aGP1,*aGP2, *aGP3, *aGP4);

@@ -171,11 +171,13 @@ void OMTFConfiguration::configure(const L1TMuonOverlapParams *omtfParams){
 std::ostream & operator << (std::ostream &out, const OMTFConfiguration & aConfig){
 
 
-  out<<"nLayers(): "<<aConfig.nLayers()
-     <<" nHitsPerLayer(): "<<aConfig.nHitsPerLayer()
-     <<" nRefLayers(): "<<aConfig.nRefLayers()
-     <<" nPdfAddrBits: "<<aConfig.nPdfAddrBits()
-     <<" nPdfValBits: "<<aConfig.nPdfValBits()
+  out<<"nLayers(): "<<aConfig.nLayers()<<std::endl
+     <<" nHitsPerLayer(): "<<aConfig.nHitsPerLayer()<<std::endl
+     <<" nRefLayers(): "<<aConfig.nRefLayers()<<std::endl
+     <<" nPdfAddrBits: "<<aConfig.nPdfAddrBits()<<std::endl
+     <<" nPdfValBits: "<<aConfig.nPdfValBits()<<std::endl
+	   <<" nPhiBins(): "<<aConfig.nPhiBins()<<std::endl
+	   <<" nPdfAddrBits(): "<<aConfig.nPdfAddrBits()<<std::endl
      <<std::endl;
 
   for(unsigned int iProcessor = 0;iProcessor<aConfig.nProcessors(); ++iProcessor){

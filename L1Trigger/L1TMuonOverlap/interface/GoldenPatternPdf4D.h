@@ -1,5 +1,5 @@
-#ifndef OMTF_GoldenPattern_H
-#define OMTF_GoldenPattern_H
+#ifndef OMTF_GoldenPatternPdf4D_H
+#define OMTF_GoldenPatternPdf4D_H
 
 #include <vector>
 #include <ostream>
@@ -15,15 +15,15 @@ class OMTFConfiguration;
 // Golden Pattern
 //////////////////////////////////
 
-class GoldenPattern : public IGoldenPattern {
+class GoldenPatternPdf4D : public IGoldenPattern {
 
 public:
   //
-  // GoldenPatterns methods
+  // GoldenPatternPdf4Ds methods
   //
-  GoldenPattern(const Key & aKey, const OMTFConfiguration * omtfConfig) : IGoldenPattern(aKey, omtfConfig), theKey(aKey), myOmtfConfig(omtfConfig){}
+  GoldenPatternPdf4D(const Key & aKey, const OMTFConfiguration * omtfConfig) : IGoldenPattern(aKey, omtfConfig), theKey(aKey), myOmtfConfig(omtfConfig){}
 
-  virtual ~GoldenPattern() {};
+  virtual ~GoldenPatternPdf4D() {};
 
   virtual Key key() const {return theKey;}
 
@@ -31,13 +31,15 @@ public:
 
   virtual const vector2D & getMeanDistPhi() const {return meanDistPhi;}
 
-  virtual const vector3D & getPdf() const {return pdfAllRef;}
+  virtual const vector4D & getPdf() const {return pdfAllRef;}
 
-  virtual void setPdf(const vector3D & aPdf){  pdfAllRef = aPdf; }
+  virtual void setPdf(const vector4D & aPdf){  pdfAllRef = aPdf; }
 
   virtual int meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB = 0) const { return meanDistPhi[iLayer][iRefLayer];}
 
-  virtual int pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) const {return pdfAllRef[iLayer][iRefLayer][iBin];}
+  virtual int pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) const {
+    return pdfAllRef[iLayer][iRefLayer][refLayerPhiB][iBin];
+  }
 
   ///Process single measurement layer with a single ref layer
   ///Method should be thread safe
@@ -47,7 +49,7 @@ public:
       const OMTFinput::vector1D & layerHits,
       int refLayerPhiB = 0);
 
-  friend std::ostream & operator << (std::ostream &out, const GoldenPattern & aPattern);
+  friend std::ostream & operator << (std::ostream &out, const GoldenPatternPdf4D & aPattern);
 
   ///Add a single count to the relevant pdf bin in three dimensions
   virtual void addCount(unsigned int iRefLayer,
@@ -81,8 +83,9 @@ private:
   ///Distributions for all reference layers
   ///First index: measurement layer number
   ///Second index: refLayer number
-  ///Third index: pdf bin number within layer 
-  vector3D pdfAllRef;
+  ///Third index: pdf bin number of the phiB of the reference layer - if it is DT layer
+  ///Fourth index: pdf bin number within layer
+  vector4D pdfAllRef;
 
   ///Mean positions in each layer
   ///First index: measurement layer number 
@@ -93,7 +96,7 @@ private:
   ///Used for making the patterns
   vector2D meanDistPhiCounts;
 
-  const OMTFConfiguration  * myOmtfConfig;
+  const OMTFConfiguration* myOmtfConfig;
 
 };
 //////////////////////////////////

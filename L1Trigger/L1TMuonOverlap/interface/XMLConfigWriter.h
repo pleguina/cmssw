@@ -13,7 +13,7 @@
 class GoldenPattern;
 class OMTFConfiguration;
 class OMTFinput;
-class OMTFResult;
+class GoldenPatternResult;
 class AlgoMuon;
 namespace l1t {class RegionalMuonCand; }
 struct Key;
@@ -51,7 +51,7 @@ class XMLConfigWriter{
   void writeResultsData(xercesc::DOMElement *aTopElement,
 			unsigned int iRegion,
 			const Key& aKey,
-			const OMTFResult & aResult);
+			const GoldenPatternResult & aResult);
 
   void writeGPData(const GoldenPattern & aGP);
 

@@ -7,7 +7,7 @@
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 
-#include "L1Trigger/L1TMuonOverlap/interface/OMTFResult.h"
+#include <L1Trigger/L1TMuonOverlap/interface/GoldenPatternResult.h>
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessor.h"
 #include "L1Trigger/L1TMuonOverlap/interface/AlgoMuon.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GhostBuster.h"
@@ -51,7 +51,7 @@ class OMTFSorter{
   ///The output tuple contains (nHitsMax, pdfValMax, refPhi, refLayer, hitsWord, refEta)
   ///hitsWord codes number of layers hit: hitsWord= sum 2**iLogicLayer,
   ///where sum runs over layers which were hit
-  AlgoMuon sortSingleResult(const OMTFResult & aResult);
+  //AlgoMuon findBestSingleGpResult(const GoldenPatternResult & aResult); //TODO should be in GoldenPatters
 
 
   unsigned int nPhiBins;
