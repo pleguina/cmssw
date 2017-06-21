@@ -2,6 +2,7 @@
 #define AlgoMuon_H
 
 #include <L1Trigger/L1TMuonOverlap/interface/GoldenPatternResult.h>
+#include <L1Trigger/L1TMuonOverlap/interface/IGoldenPattern.h>
 #include <ostream>
 
 class AlgoMuon{
@@ -10,19 +11,19 @@ class AlgoMuon{
   
   // AlgoMuon() : pt(-1.), eta(99.), phi(9999.), disc(-999), bx(0), q(-1), charge(99), refLayer(-1), hits(0) {} // the old one version 
   AlgoMuon() : m_disc(-999), m_phi(9999), m_eta(99), m_refLayer(-1), m_firedLayerBits(0), m_q(-1), m_bx(0), m_pt(-1), m_charge(99) {}
-  AlgoMuon(int disc=-999, int phi=9999, int eta=99, int refLayer=-1, 
+/*  AlgoMuon(int disc=-999, int phi=9999, int eta=99, int refLayer=-1,
               int hits=0, int q=-1, int bx=0, int pt=-1, int charge=99):
               m_disc(disc), m_phi(phi), m_eta(eta), m_refLayer(refLayer), 
               m_firedLayerBits(hits), m_q(q), m_bx(bx), m_pt(pt), m_charge(charge), 
-              m_patNumb(999), m_rhitNumb(999) {}
+              m_patNumb(999), m_rhitNumb(999) {}*/
 
-  AlgoMuon(const GoldenPatternResult gpResult):
+  AlgoMuon(const GoldenPatternResult& gpResult, const Key& gpKey, unsigned int refHitNumber):
               m_disc(gpResult.getPdfWeigtSum()), m_phi(gpResult.getPhi()), m_eta(gpResult.getEta()),
               m_refLayer(gpResult.getRefLayer()),
               m_firedLayerBits(gpResult.getFiredLayerBits()), m_q(gpResult.getFiredLayerCnt()),
-              m_bx(0), m_pt(-1), m_charge(99),
+              m_bx(0), m_pt(gpKey.thePtCode), m_charge(gpKey.theCharge),
               m_phiRHit(gpResult.getRefHitPhi()),
-              m_patNumb(999), m_rhitNumb(999) {}
+              m_patNumb(gpKey.theNumber), m_rhitNumb(refHitNumber) {}
 
   int getDisc() const { return m_disc; }
   int getPhi()  const { return m_phi; }

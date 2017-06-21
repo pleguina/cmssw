@@ -36,81 +36,59 @@
 }*/
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-AlgoMuon OMTFSorter::sortRefHitResults(const OMTFProcessor::resultsMap & aResultsMap,
+AlgoMuon OMTFSorter::sortRefHitResults(unsigned int iRefHit, const std::vector<IGoldenPattern*>& gPatterns,
 					  int charge){
 
-  unsigned int pdfValMax = 0;
-  unsigned int nHitsMax = 0;
-  unsigned int hitsWord = 0;
-  int refPhi = 9999;
-  int refEta = 999;
-  int refLayer = -1;
-  int refPhiRHit = 9999;
-  Key bestKey;
-
+  IGoldenPattern* bestGP = gPatterns[0]; //the GoldenPattern with the best result for this iRefHit
 //  std::cout <<" ====== sortRefHitResults: " << std::endl;
-  for(auto& itKey: aResultsMap) {
-    if(!itKey.second.isValid())
+
+  bool foundBest = false;
+  for(auto& itGP: gPatterns) {
+    if(!itGP->getResults().at(iRefHit).isValid())
       continue;
 
-    if(charge!=0 && itKey.first.theCharge!=charge) continue; //charge==0 means ignore charge
-    AlgoMuon val = AlgoMuon(itKey.second);//was sortSingleResult(itKey.second);
-    ///Accept only candidates with >2 hits
-    if(val.getQ() < 3) continue;
+    if(charge!=0 && itGP->key().theCharge != charge)
+      continue; //charge==0 means ignore charge
 
-    if(val.getQ() > (int)nHitsMax){
-      nHitsMax = val.getQ();
-      pdfValMax = val.getDisc();
-      refPhi = val.getPhi();
-      refEta = val.getEta();
-      refLayer = val.getRefLayer();
-      hitsWord = val.getFiredLayerBits();
-      refPhiRHit = val.getPhiRHit();
-      bestKey = itKey.first;
+    ///Accept only candidates with >2 hits
+    if(itGP->getResults().at(iRefHit).getFiredLayerCnt() < 3) //TODO - move 3 to the configuration??
+      continue;
+
+    if(itGP->getResults().at(iRefHit).getFiredLayerCnt() > bestGP->getResults().at(iRefHit).getFiredLayerCnt() ){
+      bestGP = itGP;
+      foundBest = true;
       //std::cout <<" sorter, byQual, now best is: "<<bestKey << " RefLayer "<<itKey.second.getRefLayer()<<" FiredLayerCn "<<itKey.second.getFiredLayerCnt()<<std::endl;
     }
-    else if(val.getQ() == (int)nHitsMax && val.getDisc() > (int)pdfValMax){
-      pdfValMax = val.getDisc();
-      refPhi = val.getPhi();
-      refEta = val.getEta();
-      refLayer = val.getRefLayer();
-      hitsWord = val.getFiredLayerBits();
-      refPhiRHit = val.getPhiRHit(); 
-      bestKey = itKey.first;
-      //std::cout <<" sorter, byDisc, now best is: "<<bestKey << " "<<itKey.second.getRefLayer()<<" FiredLayerCn "<<itKey.second.getFiredLayerCnt()<< std::endl;
-    }
-    else if(val.getQ() == (int)nHitsMax && val.getDisc() == (int)pdfValMax && itKey.first.number() < bestKey.number()) { 
-//      itKey.first.thePtCode < bestKey.thePtCode){
-      pdfValMax = val.getDisc();
-      refPhi = val.getPhi();
-      refEta = val.getEta();
-      refLayer = val.getRefLayer();
-      hitsWord = val.getFiredLayerBits();
-      refPhiRHit = val.getPhiRHit(); 
-      bestKey = itKey.first;
-      //std::cout <<" sorter, byNumb, now best is: "<<bestKey << " "<<itKey.second.getRefLayer()<<" FiredLayerCn "<<itKey.second.getFiredLayerCnt()<< std::endl;
+    else if(itGP->getResults().at(iRefHit).getFiredLayerCnt() == bestGP->getResults().at(iRefHit).getFiredLayerCnt() ) {
+      if(itGP->getResults().at(iRefHit).getPdfWeigtSum() > bestGP->getResults().at(iRefHit).getPdfWeigtSum()) {
+        //if the PdfWeigtSum is equal, we take the GP with the lower number, i.e. lower pt = check if this is ok for physics FIXME (KB)
+        bestGP = itGP;
+        foundBest = true;
+        //std::cout <<" sorter, byDisc, now best is: "<<bestKey << " "<<itKey.second.getRefLayer()<<" FiredLayerCn "<<itKey.second.getFiredLayerCnt()<< std::endl;
+      }
     }
   }
 
-  AlgoMuon candidate(pdfValMax, refPhi, refEta, refLayer, 
-                        hitsWord, nHitsMax, 0, 
-                        bestKey.thePtCode, bestKey.theCharge);
-
-  candidate.setPhiRHit(refPhiRHit); // for backward compatibility
-  candidate.setPatternNumber(bestKey.number());
-
-  //std::cout<<__FUNCTION__<<" line "<<__LINE__ <<" return: " << candidate << std::endl;
-  return candidate;
+  if(foundBest) {
+     AlgoMuon candidate(bestGP->getResults().at(iRefHit), bestGP->key(), iRefHit);
+     //std::cout<<__FUNCTION__<<" line "<<__LINE__ <<" return: " << candidate << std::endl;
+     return candidate;
+  }
+  else {
+    AlgoMuon candidate;
+    candidate.setRefHitNumber(iRefHit);
+    return candidate;
+  }
 }
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-void OMTFSorter::sortRefHitResults(const std::vector<OMTFProcessor::resultsMap> & procResults,
+void OMTFSorter::sortRefHitResults(const std::vector<IGoldenPattern*>& gPatterns,
               std::vector<AlgoMuon> & refHitCands,
               int charge){
   
 //  for(auto itRefHit: procResults) refHitCands.push_back(sortRefHitResults(itRefHit,charge));
-  for (unsigned int iRefHit = 0 ; iRefHit < procResults.size(); iRefHit++) {
-    AlgoMuon mu = sortRefHitResults( procResults[iRefHit],charge);
+  for (unsigned int iRefHit = 0 ; iRefHit < gPatterns.at(0)->getResults().size(); iRefHit++) {
+    AlgoMuon mu = sortRefHitResults(iRefHit, gPatterns, charge);
     mu.setRefHitNumber(iRefHit);
     refHitCands.push_back(mu);
   }
@@ -172,7 +150,7 @@ std::vector<l1t::RegionalMuonCand> OMTFSorter::candidates(unsigned int iProcesso
     trackAddr[2] = myCand.getDisc();
     candidate.setTrackAddress(trackAddr);
     candidate.setTFIdentifiers(iProcessor,mtfType);
-    if (candidate.hwPt())  result.push_back(candidate); 
+    if (candidate.hwPt() >= 0)  result.push_back(candidate);
   }
   return result;
 }

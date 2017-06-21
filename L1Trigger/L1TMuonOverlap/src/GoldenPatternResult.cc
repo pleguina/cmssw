@@ -6,14 +6,20 @@
 
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
 
+
+////////////////////////////////////////////
+////////////////////////////////////////////
+GoldenPatternResult::GoldenPatternResult(const OMTFConfiguration * omtfConfig): myOmtfConfig(omtfConfig)  {
+  if(myOmtfConfig)
+    reset();
+}
+
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 void GoldenPatternResult::configure(const OMTFConfiguration * omtfConfig) {
-
   myOmtfConfig = omtfConfig;
-
+  assert(myOmtfConfig != 0);
   reset();
-
 }
 ////////////////////////////////////////////
 ////////////////////////////////////////////

@@ -22,7 +22,7 @@ class OMTFProcessor {
 
  public:
 
-  typedef std::map<Key,GoldenPatternResult> resultsMap;
+  //typedef std::map<Key,GoldenPatternResult> resultsMap;
 
   OMTFProcessor() {
     myOmtfConfig = 0;
@@ -42,11 +42,12 @@ class OMTFProcessor {
   ///Input data is represented by hits in logic layers expressed in local coordinates
   ///Vector index: number of the ref hit (from 0 to nTestRefHits i.e. 4)
   ///Map key: GoldenPattern key
-  const std::vector<OMTFProcessor::resultsMap> & processInput(unsigned int iProcessor,
+  //const std::vector<OMTFProcessor::resultsMap> &
+  const void processInput(unsigned int iProcessor,
 							      const OMTFinput & aInput);
 
-  ///Return map of GoldenPatterns
-  const std::map<Key, IGoldenPattern*> & getPatterns() const;
+  ///Return vector of GoldenPatterns
+  const std::vector<IGoldenPattern*> & getPatterns() const;
 
   ///Fill counts for a GoldenPattern of this
   ///processor unit. Pattern key is selcted according 
@@ -94,13 +95,13 @@ class OMTFProcessor {
 				    unsigned int iLayer,
 				    const OMTFinput::vector1D & layerHits);
 
-  ///Map holding Golden Patterns
-  std::map<Key, IGoldenPattern*> theGPs;
+  ///vector holding Golden Patterns
+  std::vector<IGoldenPattern*> theGPs;
 
   ///Map holding results on current event data
   ///for each GP. 
   ///Reference hit number is isued as a vector index.
-  std::vector<OMTFProcessor::resultsMap> myResults;
+  //std::vector<OMTFProcessor::resultsMap> myResults;
 
   ///Configuration of the algorithm. This object
   ///does not contain the patterns data.

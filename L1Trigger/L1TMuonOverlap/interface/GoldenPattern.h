@@ -21,11 +21,11 @@ public:
   //
   // GoldenPatterns methods
   //
-  GoldenPattern(const Key & aKey, const OMTFConfiguration * omtfConfig) : IGoldenPattern(aKey, omtfConfig), theKey(aKey), myOmtfConfig(omtfConfig){}
+  GoldenPattern(const Key & aKey) : IGoldenPattern(aKey) {}
+
+  GoldenPattern(const Key & aKey, const OMTFConfiguration * omtfConfig) : IGoldenPattern(aKey, omtfConfig) {}
 
   virtual ~GoldenPattern() {};
-
-  virtual Key key() const {return theKey;}
 
   virtual void setMeanDistPhi(const vector2D & aMeanDistPhi){ meanDistPhi = aMeanDistPhi; }
 
@@ -74,10 +74,6 @@ public:
   virtual bool hasCounts();
 
 private:
-
-  ///Pattern kinematical identification (iEta,iPt,iCharge)
-  Key theKey;
-
   ///Distributions for all reference layers
   ///First index: measurement layer number
   ///Second index: refLayer number
@@ -92,9 +88,6 @@ private:
   ///Vector holding number of counts.
   ///Used for making the patterns
   vector2D meanDistPhiCounts;
-
-  const OMTFConfiguration  * myOmtfConfig;
-
 };
 //////////////////////////////////
 //////////////////////////////////

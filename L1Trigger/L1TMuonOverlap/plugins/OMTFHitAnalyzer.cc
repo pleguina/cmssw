@@ -140,10 +140,10 @@ void OMTFHitAnalyzer::endJob(){
 
   if(makeGoldenPatterns && !makeConnectionsMaps) {
     myWriter->initialiseXMLDocument("OMTF");
-    const std::map<Key, IGoldenPattern*> & myGPmap = myOMTF->getPatterns();
+    const std::vector<IGoldenPattern*> & myGPmap = myOMTF->getPatterns();
     for(auto itGP: myGPmap){
-      if(!itGP.second->hasCounts()) continue;
-      itGP.second->normalise(nPdfAddrBits);
+      if(!itGP->hasCounts()) continue;
+      itGP->normalise(nPdfAddrBits);
     }
 
 
@@ -175,11 +175,11 @@ void OMTFHitAnalyzer::endJob(){
         for(unsigned int iRefLayer=0; iRefLayer<myOMTFConfig->nRefLayers(); ++iRefLayer) {
           std::ostrstream histName;
 
-          histName<<"ipt_"<<itGP.first.thePtCode<<"_ch"<<itGP.first.theCharge<<"_layer_"<<iLayer<<"_refLayer_"<<iRefLayer<<" ";
+          histName<<"ipt_"<<itGP->key().thePtCode<<"_ch"<<itGP->key().theCharge<<"_layer_"<<iLayer<<"_refLayer_"<<iRefLayer<<" ";
 
-          GoldenPatternPdf4D* gp4D = (static_cast<GoldenPatternPdf4D*>(itGP.second));
+          GoldenPatternPdf4D* gp4D = (static_cast<GoldenPatternPdf4D*>(itGP));
           unsigned int refLayerPhiBSize = gp4D->getPdf()[iLayer][iRefLayer].size();
-          unsigned int layerPhiSize = (static_cast<GoldenPatternPdf4D*>(itGP.second))->getPdf()[iLayer][iRefLayer][0].size();
+          unsigned int layerPhiSize = (static_cast<GoldenPatternPdf4D*>(itGP))->getPdf()[iLayer][iRefLayer][0].size();
           cout<<"creating hist "<<histName.str()<<" refLayerPhiBSize "<<refLayerPhiBSize<<" layerPhiSize "<<layerPhiSize<<std::endl;
 
           if(refLayerPhiBSize == 1 ) {

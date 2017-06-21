@@ -132,11 +132,11 @@ void OMTFReconstruction::getProcessorCandidates(unsigned int iProcessor, l1t::tf
                 iProcessor, mtfType);
   int flag = m_InputMaker.getFlag();
   
-  const std::vector<OMTFProcessor::resultsMap> & results = m_OMTF->processInput(iProcessor,input);
+  m_OMTF->processInput(iProcessor,input);
 
   std::vector<AlgoMuon> algoCandidates;
 
-  m_Sorter.sortRefHitResults(results, algoCandidates);  
+  m_Sorter.sortRefHitResults(m_OMTF->getPatterns(), algoCandidates);
 
   // perform GB 
   m_GhostBuster.select(algoCandidates); 
@@ -151,12 +151,11 @@ void OMTFReconstruction::getProcessorCandidates(unsigned int iProcessor, l1t::tf
   }
   
   //dump to XML
-  writeResultToXML(iProcessor, mtfType,  input, results, candMuons);
+  writeResultToXML(iProcessor, mtfType,  input, candMuons);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void OMTFReconstruction::writeResultToXML(unsigned int iProcessor,  l1t::tftype mtfType,  const OMTFinput &input, 
-               const std::vector<OMTFProcessor::resultsMap> & results,
+void OMTFReconstruction::writeResultToXML(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
                const std::vector<l1t::RegionalMuonCand> & candMuons ){
 
   int endcap =  (mtfType == l1t::omtf_neg) ? -1 : ( ( mtfType == l1t::omtf_pos) ? +1 : 0 );
@@ -167,13 +166,13 @@ void OMTFReconstruction::writeResultToXML(unsigned int iProcessor,  l1t::tftype 
     xercesc::DOMElement * aProcElement = m_Writer->writeEventData(aTopElement, board, input);
     for(unsigned int iRefHit=0;iRefHit<m_OMTFConfig->nTestRefHits();++iRefHit){
       ///Dump only regions, where a candidate was found
-      AlgoMuon algoMuon = m_Sorter.sortRefHitResults(results[iRefHit],0);//charge=0 means ignore charge
-      if(algoMuon.getPt()) {
+      AlgoMuon algoMuon = m_Sorter.sortRefHitResults(iRefHit, m_OMTF->getPatterns(), 0);//charge=0 means ignore charge
+      if(algoMuon.isValid()) {
         m_Writer->writeAlgoMuon(aProcElement,iRefHit,algoMuon);
-        if(dumpDetailedResultToXML){
+/*        if(dumpDetailedResultToXML){
           for(auto & itKey: results[iRefHit])
             m_Writer->writeResultsData(aProcElement, iRefHit, itKey.first,itKey.second);
-        }
+        }*/
       }
     }
     for (auto & candMuon :  candMuons) m_Writer->writeCandMuon(aProcElement, candMuon);

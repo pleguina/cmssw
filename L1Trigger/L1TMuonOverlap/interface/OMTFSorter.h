@@ -18,7 +18,7 @@ class OMTFSorter{
 
   void setNphiBins(unsigned int phiBins) { nPhiBins = phiBins;}
 
-  void sortRefHitResults(const std::vector<OMTFProcessor::resultsMap> & procResults,
+  void sortRefHitResults(const std::vector<IGoldenPattern*>& gPatterns,
         std::vector<AlgoMuon> & refHitCleanCands,
         int charge=0);
 
@@ -33,7 +33,7 @@ class OMTFSorter{
   ///Select candidate with highest number of hit layers
   ///Then select a candidate with largest likelihood value and given charge
   ///as we allow two candidates with opposite charge from single 10deg region
-  AlgoMuon sortRefHitResults(const OMTFProcessor::resultsMap & aResultsMap,
+  AlgoMuon sortRefHitResults(unsigned int iRefHit, const std::vector<IGoldenPattern*>& gPatterns,
 				int charge=0);
 
  private:

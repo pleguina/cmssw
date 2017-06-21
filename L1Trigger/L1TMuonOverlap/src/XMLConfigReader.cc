@@ -273,7 +273,7 @@ std::unique_ptr<GoldenPattern> XMLConfigReader::buildGP(DOMElement* aGPElement,
     pdf3D.assign(aConfig.nLayers(),pdf2D);
 
     Key aKey(iEta,iPt,iCharge, aGPNumber);
-    auto aGP = std::make_unique<GoldenPattern>(aKey,static_cast<const OMTFConfiguration*>(nullptr));
+    auto aGP = std::make_unique<GoldenPattern>(aKey);
     aGP->setMeanDistPhi(meanDistPhi2D);
     aGP->setPdf(pdf3D);
     return aGP;
@@ -312,7 +312,7 @@ std::unique_ptr<GoldenPattern> XMLConfigReader::buildGP(DOMElement* aGPElement,
   }
 
   Key aKey(iEta,iPt,iCharge, aGPNumber);
-  auto aGP = std::make_unique<GoldenPattern>(aKey,static_cast<const OMTFConfiguration*>(nullptr));
+  auto aGP = std::make_unique<GoldenPattern>(aKey);
   aGP->setMeanDistPhi(meanDistPhi2D);
   aGP->setPdf(pdf3D);
 

@@ -4,7 +4,9 @@
 #include <vector>
 #include <ostream>
 
+#include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternResult.h"
 
 class OMTFConfigMaker;
 class OMTFProcessor;
@@ -52,9 +54,12 @@ class IGoldenPattern {
   typedef std::pair<int,bool> layerResult;
 
   //
-  // GoldenPatterns methods
+  // IGoldenPatterns methods
   //
-  IGoldenPattern(const Key & aKey, const OMTFConfiguration * omtfConfig) : theKey(aKey), myOmtfConfig(omtfConfig) {}
+  IGoldenPattern(const Key & aKey) : theKey(aKey), myOmtfConfig(0) {}
+
+  IGoldenPattern(const Key & aKey, const OMTFConfiguration * omtfConfig) : theKey(aKey), myOmtfConfig(omtfConfig),
+      results(myOmtfConfig->nTestRefHits(), GoldenPatternResult(omtfConfig)) {}
 
   virtual ~IGoldenPattern() {}
   
@@ -104,12 +109,18 @@ class IGoldenPattern {
   ///Check if the GP has any counts in any of referecne layers;
   virtual bool hasCounts() = 0;
 
- private:
+  std::vector<GoldenPatternResult>& getResults() {
+    return results;
+  }
+
+ protected:
 
   ///Pattern kinematical identification (iEta,iPt,iCharge)
   Key theKey;
 
-  const OMTFConfiguration  * myOmtfConfig;
+  const OMTFConfiguration* myOmtfConfig;
+
+  std::vector<GoldenPatternResult> results;
 
 };
 //////////////////////////////////

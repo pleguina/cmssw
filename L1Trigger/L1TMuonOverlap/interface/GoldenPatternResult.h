@@ -115,6 +115,9 @@ public:
   GoldenPatternResult(): refLayer(-2), pdfWeights(8, 0), myOmtfConfig(0)  {
   };
 
+  //dont use this in the pattern construction, since the myOmtfConfig is null then
+  GoldenPatternResult(const OMTFConfiguration* omtfConfig);
+
   void configure(const OMTFConfiguration * omtfConfig);
 
   /*  const GoldenPatternResults::vector2D & getResults() const {return results;}
