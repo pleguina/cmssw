@@ -18,7 +18,6 @@
 #include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinputMaker.h"
-#include "L1Trigger/L1TMuonOverlap/interface/OMTFSorter.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GhostBuster.h"
 
 class L1TMuonOverlapParams;
@@ -65,6 +64,7 @@ class OMTFReconstruction {
   
     //FIXME do it better
     void writeResultToXML(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &myInput, 
+      const std::vector<AlgoMuon>& algoCandidates,
       const std::vector<l1t::RegionalMuonCand> & candMuons);
 
 
@@ -73,8 +73,6 @@ class OMTFReconstruction {
   ///OMTF objects
     OMTFConfiguration   *m_OMTFConfig;
     OMTFinputMaker       m_InputMaker;
-    OMTFSorter           m_Sorter;
-    OMTFGhostBuster      m_GhostBuster;
     OMTFProcessor       *m_OMTF;    
   ///
     xercesc::DOMElement *aTopElement;

@@ -2,12 +2,20 @@
 #include <iomanip>
 #include <cmath>
 
+#include <TF1.h>
+
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternPdf4D.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
 
+
+////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+GoldenPatternPdf4D::GoldenPatternPdf4D(const Key & aKey, const OMTFConfiguration * omtfConfig) : IGoldenPattern(aKey, omtfConfig),
+  theKey(aKey), myOmtfConfig(omtfConfig) {
+}
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
 IGoldenPattern::layerResult GoldenPatternPdf4D::process1Layer1RefLayer(unsigned int iRefLayer,
@@ -57,17 +65,19 @@ void GoldenPatternPdf4D::addCount(unsigned int iRefLayer,
     int refLayerPhiB) {
 
   int nHitsInLayer = 0;
-  int phiDist = exp2(myOmtfConfig->nPdfAddrBits());//=128
-  for(auto itHit: layerHits){
-    if(itHit>=(int)myOmtfConfig->nPhiBins()) continue; //why it can ever happened???
-    if(abs(itHit-phiRefHit)<phiDist) phiDist = itHit-phiRefHit;
+  int phiDist = 1<<myOmtfConfig->nPdfAddrBits();//=128
+  for(auto itHit: layerHits) {
+    if(itHit >= (int)myOmtfConfig->nPhiBins())
+      continue; //why it can ever happened???
+    if(abs(itHit-phiRefHit) < phiDist)
+      phiDist = itHit-phiRefHit;
     ++nHitsInLayer;
   }
   ///For making the patterns take events with a single hit in each layer
   if(nHitsInLayer>1 || nHitsInLayer==0) return;
 
   if(pdfAllRef[iLayer][iRefLayer].size()  > 1) //the ref layer is bending layer, so the it is possible that refLayerPhiB != 0
-    refLayerPhiB = refLayerPhiB + exp2(myOmtfConfig->nPdfAddrBits()-1);
+    refLayerPhiB = refLayerPhiB + (1<<(myOmtfConfig->nPdfAddrBits()-1));
   if(refLayerPhiB < 0 || (unsigned int)refLayerPhiB >= pdfAllRef[iLayer][iRefLayer].size() ) {
     edm::LogError("GoldenPatternPdf4D::addCount ")<<"iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" refLayerPhiB "<<refLayerPhiB
         <<" out of bounds. pdfAllRef[iLayer][iRefLayer].size() "<<pdfAllRef[iLayer][iRefLayer].size();
@@ -93,7 +103,13 @@ void GoldenPatternPdf4D::addCount(unsigned int iRefLayer,
   if((int)iLayer == myOmtfConfig->getRefToLogicNumber()[iRefLayer])
     ++meanDistPhiCounts[iLayer][iRefLayer];
 
-  ++pdfAllRef[iLayer][iRefLayer][refLayerPhiB][phiDistShift];
+  pdfAllRef[iLayer][iRefLayer].at(refLayerPhiB).at(phiDistShift)++;
+
+/*  if(linearFitters.at(iLayer).at(iRefLayer) != 0 ) {
+    double refLayerPhiB_d = refLayerPhiB;
+    linearFitters.at(iLayer).at(iRefLayer)->AddPoint(&refLayerPhiB_d, phiDistShift);
+    //std::cout<<__FUNCTION__<<" "<<refLayerPhiB_d<<" "<<phiDistShift<<std::endl;
+  }*/
 }
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
@@ -154,20 +170,31 @@ void GoldenPatternPdf4D::reset(){
   meanDistPhi = meanDistPhi2D;
   meanDistPhiCounts = meanDistPhi2D;
 
-  IGoldenPattern::vector1D pdf1D(exp2(myOmtfConfig->nPdfAddrBits()));
+  unsigned int nBins = exp2(myOmtfConfig->nPdfAddrBits());
+  IGoldenPattern::vector1D pdf1D(nBins);
   //IGoldenPattern::vector2D pdf2D(myOmtfConfig->nRefLayers());
   IGoldenPattern::vector3D pdf3D(myOmtfConfig->nRefLayers());
   //GoldenPatternPdf4D::vector4D pdf4D(myOmtfConfig->nLayers());
 
-  std::cout<<"GoldenPatternPdf4D::reset() myOmtfConfig->nPdfAddrBits() "<<myOmtfConfig->nPdfAddrBits()<<" exp2(myOmtfConfig->nPdfAddrBits()) "<<exp2(myOmtfConfig->nPdfAddrBits())<<std::endl;
+  std::cout<<"GoldenPatternPdf4D::reset() myOmtfConfig->nPdfAddrBits() "<<myOmtfConfig->nPdfAddrBits()<<" nBins "<<nBins<<std::endl;
   std::cout<<"GoldenPatternPdf4D::reset() myOmtfConfig->nLayers() "<<myOmtfConfig->nLayers()<<" myOmtfConfig->nRefLayers()  "<<myOmtfConfig->nRefLayers()<<std::endl;
 
+  linearFitters.assign(myOmtfConfig->nLayers(), std::vector<TLinearFitter*>(myOmtfConfig->nRefLayers(), 0) );
+  linearFits.assign(myOmtfConfig->nLayers(), std::vector<TF1*>(myOmtfConfig->nRefLayers(), 0) );;
+
   pdfAllRef.assign(myOmtfConfig->nLayers(), pdf3D);
-  for (unsigned int iLayer=0; iLayer<pdfAllRef.size(); ++iLayer){
-    for (unsigned int iRefLayer=0; iRefLayer<pdfAllRef[0].size(); ++iRefLayer){
+  for (unsigned int iLayer=0; iLayer<pdfAllRef.size(); ++iLayer) {
+    for (unsigned int iRefLayer=0; iRefLayer<pdfAllRef[0].size(); ++iRefLayer) {
       int refLayerLogicNumber = myOmtfConfig->getRefToLogicNumber()[iRefLayer];
       if(myOmtfConfig->getBendingLayers().count(refLayerLogicNumber+1) != 0) {//ref leyer is DT layer with banding
-        pdfAllRef[iLayer][iRefLayer].assign(exp2(myOmtfConfig->nPdfAddrBits()), pdf1D);
+        pdfAllRef[iLayer][iRefLayer].assign(nBins, pdf1D);
+
+        linearFitters[iLayer][iRefLayer] = new TLinearFitter();
+        linearFitters[iLayer][iRefLayer]->StoreData(kTRUE);
+        std::ostringstream ostr;
+        ostr<<"fit_lay_"<<iLayer<<"_refLay_"<<iRefLayer;
+        linearFits[iLayer][iRefLayer] = new TF1(ostr.str().c_str(), "pol1", 0, nBins);
+        linearFitters[iLayer][iRefLayer]->SetFormula(linearFits[iLayer][iRefLayer]->GetFormula());
       }
       else {
         pdfAllRef[iLayer][iRefLayer].assign(1, pdf1D);
@@ -179,7 +206,50 @@ void GoldenPatternPdf4D::reset(){
 }
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
-void GoldenPatternPdf4D::normalise(unsigned int nPdfAddrBits){
+void GoldenPatternPdf4D::normalise(unsigned int nPdfAddrBits) {
+    std::cout<<__FUNCTION__<<" "<<key()<<std::endl;
+/*    for(unsigned int iLayer = 0; iLayer < linearFitters.size(); iLayer++) {
+      for(unsigned int iRefLayer=0; iRefLayer < linearFitters.at(iLayer).size(); iRefLayer++) {
+        if(linearFitters.at(iLayer).at(iRefLayer) != 0 ) {
+          int res = linearFitters.at(iLayer).at(iRefLayer)->Eval();
+          std::cout<<"iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" linearFitter result "<<res;
+          if(res == 0) {
+            std::cout<<linearFits[iLayer][iRefLayer]->GetParName(0)<<" "<<linearFits[iLayer][iRefLayer]->GetParameter(0)<<" ";
+            std::cout<<linearFits[iLayer][iRefLayer]->GetParName(1)<<" "<<linearFits[iLayer][iRefLayer]->GetParameter(1);
+          }
+          std::cout<<std::endl;
+        }
+      }
+    }*/
+
+    for(unsigned int iLayer = 0; iLayer < linearFitters.size(); iLayer++) {
+      for(unsigned int iRefLayer=0; iRefLayer < linearFitters.at(iLayer).size(); iRefLayer++) {
+        if(linearFitters.at(iLayer).at(iRefLayer) != 0 ) {
+          for(unsigned int iRefLayerPhiB = 0; iRefLayerPhiB < pdfAllRef[iLayer][iRefLayer].size(); iRefLayerPhiB++) {
+            double sum_p = 0;
+            double sum_p_x = 0;
+            for(unsigned int iLayerPhi=0; iLayerPhi < pdfAllRef[iLayer][iRefLayer][iRefLayerPhiB].size(); iLayerPhi++) {
+              sum_p += pdfAllRef[iLayer][iRefLayer][iRefLayerPhiB][iLayerPhi];
+              sum_p_x += pdfAllRef[iLayer][iRefLayer][iRefLayerPhiB][iLayerPhi] * iLayerPhi;
+            }
+
+            if(sum_p > 50) {
+              double meanPhi = sum_p_x/sum_p;
+              double x = iRefLayerPhiB;
+              linearFitters.at(iLayer).at(iRefLayer)->AddPoint(&x, meanPhi);
+            }
+          }
+
+          int res = linearFitters.at(iLayer).at(iRefLayer)->Eval();
+          std::cout<<"iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" linearFitter result "<<res;
+          if(res == 0) {
+            std::cout<<linearFits[iLayer][iRefLayer]->GetParName(0)<<" "<<linearFits[iLayer][iRefLayer]->GetParameter(0)<<" ";
+            std::cout<<linearFits[iLayer][iRefLayer]->GetParName(1)<<" "<<linearFits[iLayer][iRefLayer]->GetParameter(1);
+          }
+          std::cout<<std::endl;
+        }
+      }
+    }
 ///not needed here
 /*  for (unsigned int iRefLayer=0;iRefLayer<pdfAllRef[0].size();++iRefLayer) {
     for (unsigned int iLayer=0;iLayer<pdfAllRef.size();++iLayer) {

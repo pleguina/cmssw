@@ -9,7 +9,7 @@
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-GoldenPatternResult::GoldenPatternResult(const OMTFConfiguration * omtfConfig): myOmtfConfig(omtfConfig)  {
+GoldenPatternResult::GoldenPatternResult(const OMTFConfiguration * omtfConfig):  valid(false), myOmtfConfig(omtfConfig) {
   if(myOmtfConfig)
     reset();
 }
@@ -62,6 +62,7 @@ void GoldenPatternResult::addResult(unsigned int iRefLayer,
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 void GoldenPatternResult::reset() {
+  valid = false;
   refLayer = -1;
   pdfWeights.assign(myOmtfConfig->nLayers(), 0);
   phi = 1024;
@@ -100,6 +101,9 @@ void GoldenPatternResult::finalise() {
     if(!myOmtfConfig->getBendingLayers().count(iLogicLayer))
       firedLayerCnt += (val>0);
   }
+
+  valid = true;
+  //by default result becomes valid here, but can be overwritten later
 }
 
 ////////////////////////////////////////////

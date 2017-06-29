@@ -14,6 +14,8 @@
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
 #include <L1Trigger/L1TMuonOverlap/interface/GoldenPatternResult.h>
 #include "L1Trigger/RPCTrigger/interface/RPCConst.h"
+#include "L1Trigger/L1TMuonOverlap/interface/OMTFSorter.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GhostBuster.h"
 
 #include "SimDataFormats/Track/interface/SimTrack.h"
 ///////////////////////////////////////////////
@@ -39,6 +41,9 @@ bool OMTFProcessor::configure(const OMTFConfiguration * omtfConfig,
   resetConfiguration();
 
   myOmtfConfig = omtfConfig;
+
+  setSorter(new OMTFSorter()); //initialize with the default sorter
+  setGhostBuster(new GhostBuster()); //initialize with the default sorter
 
   //myResults.assign(myOmtfConfig->nTestRefHits(),OMTFProcessor::resultsMap());
 
@@ -285,9 +290,7 @@ const void OMTFProcessor::processInput(unsigned int iProcessor,
     }*/
 
     for(auto& itGP: theGPs) {
-      for(auto& result : itGP->getResults()) {
-        result.finalise();
-      }
+      itGP->finalise();
     }
   }
 
@@ -343,6 +346,7 @@ void OMTFProcessor::fillCounts(unsigned int iProcessor,
   myStr<<aInput<<std::endl;
   edm::LogInfo("OMTF processor")<<myStr.str();
 
+  //std::cout<<__FUNCTION__<<":"<<__LINE__<<" muon iPt "<<iPt<<" theCharge "<<theCharge<<std::endl;
   for(unsigned int iLayer=0;iLayer<myOmtfConfig->nLayers();++iLayer){
 
     const OMTFinput::vector1D & layerHits = aInput.getLayerData(iLayer);
@@ -366,19 +370,93 @@ void OMTFProcessor::fillCounts(unsigned int iProcessor,
         }
       }
 
+
       unsigned int iRegion = aRefHitDef.iRegion;
       if(myOmtfConfig->getBendingLayers().count(iLayer))
         phiRef = 0;
       const OMTFinput::vector1D restrictedLayerHits = restrictInput(iProcessor, iRegion, iLayer,layerHits);
       for(auto& itGP: theGPs){
-        if(itGP->key().theCharge != theCharge)  //TODO it was in the orginal code, i commented it out, check why
-          continue;
+/*        if(itGP->key().theCharge != theCharge)  //TODO it was in the orginal code, i commented it out, check why
+          continue;*/
         if(itGP->key().thePtCode != iPt)
           continue;
         itGP->addCount(aRefHitDef.iRefLayer, iLayer, phiRef, restrictedLayerHits, refLayerPhiB);
+        //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iLayer "<<iLayer<<" refLayerPhiB "<<refLayerPhiB<<std::endl;
       }
     }
   }
 }
-////////////////////////////////////////////
-////////////////////////////////////////////
+
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+bool OMTFProcessor::checkHitPatternValidity(unsigned int hits){
+
+  ///FIXME: read the list from configuration so this can be controlled at runtime.
+  std::vector<unsigned int> badPatterns = {99840, 34304, 3075, 36928, 12300, 98816, 98944, 33408, 66688, 66176, 7171, 20528, 33856, 35840, 4156, 34880};
+
+  for(auto aHitPattern: badPatterns){
+    if(hits==aHitPattern) return false;
+  }
+
+  return true;
+}
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+
+std::vector<AlgoMuon> OMTFProcessor::sortResults(int charge) {
+  std::vector<AlgoMuon> algoCandidates;
+  sorter->sortResults(getPatterns(), algoCandidates, charge);
+  return algoCandidates;
+}
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+std::vector<l1t::RegionalMuonCand> OMTFProcessor::getFinalcandidates(unsigned int iProcessor, l1t::tftype mtfType, const std::vector<AlgoMuon> & algoCands)
+{
+
+  std::vector<l1t::RegionalMuonCand> result;
+
+  for(auto myCand: algoCands){
+    l1t::RegionalMuonCand candidate;
+    candidate.setHwPt(myCand.getPt());
+    candidate.setHwEta(myCand.getEta());
+
+    int phiValue = myCand.getPhi();
+    if(phiValue>= int(myOmtfConfig->nPhiBins()) )
+      phiValue -= myOmtfConfig->nPhiBins();
+    ///conversion factor from OMTF to uGMT scale: 5400/576
+//    phiValue/=9.375;
+    phiValue *= (437./pow(2,12));    // ie. use as in hw: 9.3729977
+    candidate.setHwPhi(phiValue);
+
+    candidate.setHwSign(myCand.getCharge()<0 ? 1:0  );
+    candidate.setHwSignValid(1);
+
+    unsigned int quality = checkHitPatternValidity(myCand.getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3)
+                                                                     : 0 | (1 << 2);
+    if (    abs(myCand.getEta()) == 115
+        && (    static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000001110000000").to_ulong()
+             || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000001110000000").to_ulong()
+             || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000000110000000").to_ulong()
+             || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000001100000000").to_ulong()
+             || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000001010000000").to_ulong()
+           )
+       ) quality =4;
+
+//  if (abs(myCand.getEta()) == 121) quality = 4;
+    if (abs(myCand.getEta()) == 121) quality = 0; // changed on request from HI
+
+    candidate.setHwQual (quality);
+
+    std::map<int, int> trackAddr;
+    trackAddr[0] = myCand.getFiredLayerBits();
+    trackAddr[1] = myCand.getRefLayer();
+    trackAddr[2] = myCand.getDisc();
+    candidate.setTrackAddress(trackAddr);
+    candidate.setTFIdentifiers(iProcessor,mtfType);
+    if (candidate.hwPt() >= 0)  result.push_back(candidate);
+  }
+  return result;
+}
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+

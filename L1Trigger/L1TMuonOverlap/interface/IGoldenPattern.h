@@ -113,6 +113,9 @@ class IGoldenPattern {
     return results;
   }
 
+  ///last step of the event processing, before sorting and ghost busting
+  virtual void finalise() = 0;
+
  protected:
 
   ///Pattern kinematical identification (iEta,iPt,iCharge)

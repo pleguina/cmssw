@@ -12,6 +12,8 @@ public:
   typedef std::vector<unsigned int> vector1D;
 
 private:
+  bool valid;
+
   //number of the layer from which the reference hit originated
   int refLayer;
 
@@ -41,7 +43,11 @@ public:
   void reset();
 
   bool isValid() const {
-    return (refLayer >= 0);
+    return valid;
+  }
+
+  void setValid(bool valid) {
+    this->valid = valid;
   }
 
   void set(int refLayer, unsigned int phi, unsigned int eta, unsigned int refHitPhi,

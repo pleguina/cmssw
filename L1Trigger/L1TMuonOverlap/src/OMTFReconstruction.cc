@@ -71,8 +71,6 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
 
   m_OMTFConfig->configure(omtfParams);
   m_OMTF->configure(m_OMTFConfig, omtfParams);
-  m_GhostBuster.setNphiBins(m_OMTFConfig->nPhiBins());
-  m_Sorter.setNphiBins(m_OMTFConfig->nPhiBins());
 
   m_InputMaker.initialize(iSetup, m_OMTFConfig);
 
@@ -134,28 +132,23 @@ void OMTFReconstruction::getProcessorCandidates(unsigned int iProcessor, l1t::tf
   
   m_OMTF->processInput(iProcessor,input);
 
-  std::vector<AlgoMuon> algoCandidates;
-
-  m_Sorter.sortRefHitResults(m_OMTF->getPatterns(), algoCandidates);
-
+  std::vector<AlgoMuon> algoCandidates =  m_OMTF->sortResults();
   // perform GB 
-  m_GhostBuster.select(algoCandidates); 
-
+  std::vector<AlgoMuon> gbCandidates =  m_OMTF->ghostBust(algoCandidates);
   // fill RegionalMuonCand colleciton
-  std::vector<l1t::RegionalMuonCand> candMuons = m_Sorter.candidates(iProcessor, mtfType, algoCandidates);
+  std::vector<l1t::RegionalMuonCand> candMuons = m_OMTF->getFinalcandidates(iProcessor, mtfType, gbCandidates);
 
   //fill outgoing collection
   for (auto & candMuon :  candMuons) {
      candMuon.setHwQual( candMuon.hwQual() | flag);         //FIXME temporary debug fix
      omtfCandidates.push_back(bx, candMuon);
   }
-  
   //dump to XML
-  writeResultToXML(iProcessor, mtfType,  input, candMuons);
+  writeResultToXML(iProcessor, mtfType,  input, algoCandidates, candMuons);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void OMTFReconstruction::writeResultToXML(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
+void OMTFReconstruction::writeResultToXML(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input, const std::vector<AlgoMuon>& algoCandidates,
                const std::vector<l1t::RegionalMuonCand> & candMuons ){
 
   int endcap =  (mtfType == l1t::omtf_neg) ? -1 : ( ( mtfType == l1t::omtf_pos) ? +1 : 0 );
@@ -166,7 +159,7 @@ void OMTFReconstruction::writeResultToXML(unsigned int iProcessor, l1t::tftype m
     xercesc::DOMElement * aProcElement = m_Writer->writeEventData(aTopElement, board, input);
     for(unsigned int iRefHit=0;iRefHit<m_OMTFConfig->nTestRefHits();++iRefHit){
       ///Dump only regions, where a candidate was found
-      AlgoMuon algoMuon = m_Sorter.sortRefHitResults(iRefHit, m_OMTF->getPatterns(), 0);//charge=0 means ignore charge
+      const AlgoMuon& algoMuon = algoCandidates.at(iRefHit);//charge=0 means ignore charge
       if(algoMuon.isValid()) {
         m_Writer->writeAlgoMuon(aProcElement,iRefHit,algoMuon);
 /*        if(dumpDetailedResultToXML){

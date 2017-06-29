@@ -300,7 +300,7 @@ void XMLConfigWriter::writeResultsData(xercesc::DOMElement *aTopElement,
     const Key & aKey,
     const GoldenPatternResult & aResult){
 
-/*  std::ostringstream stringStr;
+  std::ostringstream stringStr;
   ///Write GP key parameters
   xercesc::DOMElement* aGP = theDoc->createElement(_toDOMS("GP"));
   stringStr.str("");
@@ -341,7 +341,7 @@ void XMLConfigWriter::writeResultsData(xercesc::DOMElement *aTopElement,
     }
     if(aRefLayer->getChildNodes()->getLength()) aGP->appendChild(aRefLayer);
   }
-  if(aGP->getChildNodes()->getLength()) aTopElement->appendChild(aGP); */
+  if(aGP->getChildNodes()->getLength()) aTopElement->appendChild(aGP);
 }
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////

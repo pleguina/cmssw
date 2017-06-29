@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <ostream>
+#include "TLinearFitter.h"
+#include "TF1.h"
 
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
 #include "L1Trigger/L1TMuonOverlap/interface/IGoldenPattern.h"
@@ -21,7 +23,7 @@ public:
   //
   // GoldenPatternPdf4Ds methods
   //
-  GoldenPatternPdf4D(const Key & aKey, const OMTFConfiguration * omtfConfig) : IGoldenPattern(aKey, omtfConfig), theKey(aKey), myOmtfConfig(omtfConfig){}
+  GoldenPatternPdf4D(const Key & aKey, const OMTFConfiguration * omtfConfig);
 
   virtual ~GoldenPatternPdf4D() {};
 
@@ -72,8 +74,14 @@ public:
   ///expressed in ingerer MicroGMT scale: 1.1/2.61*240 = 101
   virtual int propagateRefPhi(int phiRef, int etaRef, unsigned int iRefLayer);
 
+  virtual void finalise() {} ;
+
   ///Check if the GP has any counts in any of referecne layers;
   virtual bool hasCounts();
+
+  const std::vector<std::vector<TF1*> >& getLinearFits() const {
+    return linearFits;
+  }
 
 private:
 
@@ -97,6 +105,12 @@ private:
   vector2D meanDistPhiCounts;
 
   const OMTFConfiguration* myOmtfConfig;
+
+  ///fitter for fitting a line to the refPhi_b - phi distribution for each layer
+  ///First index: measurement layer number
+  ///Second index: refLayer number
+  std::vector<std::vector<TLinearFitter*> > linearFitters;
+  std::vector<std::vector<TF1*> > linearFits;
 
 };
 //////////////////////////////////

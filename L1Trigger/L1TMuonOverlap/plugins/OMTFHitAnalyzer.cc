@@ -124,7 +124,7 @@ void OMTFHitAnalyzer::beginRun(edm::Run const& run, edm::EventSetup const& iSetu
   configureProcesor(myOMTFConfig, omtfParams, myOMTF, ptCode, charge);
   //myOMTFConfigMaker = new OMTFConfigMaker(myOMTFConfig);
 
-  std::cout<<"myOMTFConfig "<<*myOMTFConfig;
+  std::cout<<"OMTFHitAnalyzer::beginRun: myOMTFConfig "<<*myOMTFConfig;
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -199,6 +199,10 @@ void OMTFHitAnalyzer::endJob(){
               }
             }
             h2->Write();
+
+            if(gp4D->getLinearFits()[iLayer][iRefLayer]) {
+              gp4D->getLinearFits()[iLayer][iRefLayer]->Write();
+            }
           }
         }
       }
@@ -333,7 +337,7 @@ void OMTFHitAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& e
         else
           ostr<<"     ";
       }
-      ostr<<"\n";
+      ostr<<std::endl;
     }
     if(wasHit) {
       //std::cout<<"iProcessor "<<iProcessor<<std::endl<<ostr.str()<<std::endl;
