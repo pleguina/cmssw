@@ -164,7 +164,6 @@ void OMTFConfiguration::configure(const L1TMuonOverlapParams *omtfParams){
   }
 
   initCounterMatrices();
-  
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
@@ -276,3 +275,36 @@ uint32_t OMTFConfiguration::getLayerNumber(uint32_t rawId) const {
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
+OMTFConfiguration::PatternPt OMTFConfiguration::getPatternPtRange(unsigned int patNum) const {
+  PatternPt patternPt;
+  int charge = rawParams.chargeLUT()->data(patNum);
+  if(rawParams.ptLUT()->data(patNum) == 0)
+    return patternPt;
+
+  patternPt.ptFrom = hwPtToGev(rawParams.ptLUT()->data(patNum));
+
+  while(true) { //to skip the empty patterns with pt=0 and patterns with oposite charge
+    patNum++;
+    if(patNum == nGoldenPatterns())
+      break;
+    if(rawParams.ptLUT()->data(patNum) != 0 && rawParams.chargeLUT()->data(patNum) == charge)
+      break;
+  }
+
+  if(patNum == nGoldenPatterns())
+    patternPt.ptTo = 10000; //inf
+  else
+    patternPt.ptTo = hwPtToGev(rawParams.ptLUT()->data(patNum));
+
+  return patternPt;
+}
+
+unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
+  for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
+    if(pt >= getPatternPtRange(iPat).ptFrom &&
+       pt  < getPatternPtRange(iPat).ptTo   &&
+       charge == rawParams.chargeLUT()->data(iPat) )
+      return iPat;
+  }
+  return  0;
+}

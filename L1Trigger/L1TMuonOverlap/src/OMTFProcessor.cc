@@ -13,7 +13,6 @@
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
 #include <L1Trigger/L1TMuonOverlap/interface/GoldenPatternResult.h>
-#include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFSorter.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GhostBuster.h"
 
@@ -54,6 +53,7 @@ bool OMTFProcessor::configure(const OMTFConfiguration * omtfConfig,
   const l1t::LUT* meanDistPhiLUT =  omtfPatterns->meanDistPhiLUT();
 
   unsigned int nGPs = myOmtfConfig->nGoldenPatterns();
+  edm::LogInfo("MTFProcessor::configure")<<"myOmtfConfig->nGoldenPatterns() "<<nGPs<<std::endl;
   unsigned int address = 0;
   unsigned int iEta, iPt;
   int iCharge;
@@ -89,12 +89,13 @@ bool OMTFProcessor::configure(const OMTFConfiguration * omtfConfig,
       pdf3D[iLayer] = pdf2D;
     }
     Key aKey(iEta,iPt,iCharge,iGP);
-
+    edm::LogInfo("MTFProcessor::configure")<<"adding pattern "<<aKey<<" "<<myOmtfConfig->getPatternPtRange(iGP).ptFrom<<" - "<<myOmtfConfig->getPatternPtRange(iGP).ptTo<<" GeV"<<std::endl;
     GoldenPattern *aGP = new GoldenPattern(aKey, myOmtfConfig);
     aGP->setMeanDistPhi(meanDistPhi2D);
     aGP->setPdf(pdf3D);
     addGP(aGP);    
   }
+
   return true;
 }
 ///////////////////////////////////////////////
@@ -255,13 +256,15 @@ const void OMTFProcessor::processInput(unsigned int iProcessor,
       unsigned int iRegion = aRefHitDef.iRegion;
 
       if(myOmtfConfig->getBendingLayers().count(iLayer)) //this iLayer is a banding layer
-        phiRef = 0;  //then in the delta_phi one obtains simply the iLayer phi
+        phiRef = 0;  //then in the delta_phi in process1Layer1RefLayer one obtains simply the iLayer phi
 
       const OMTFinput::vector1D restrictedLayerHits = restrictInput(iProcessor, iRegion, iLayer,layerHits);
       //std::cout<<"iLayer "<<iLayer<<" refHitNum "<<myOmtfConfig->nTestRefHits()-nTestedRefHits-1<<" iRefHit "<<iRefHit;
       //std::cout<<" nTestedRefHits "<<nTestedRefHits<<" aRefHitDef "<<aRefHitDef<<std::endl;
 
       for(auto& itGP: theGPs) {
+        if(itGP->key().thePt == 0) //empty pattern
+          continue;
         GoldenPattern::layerResult aLayerResult = itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer,iLayer,
             phiRef,
             restrictedLayerHits);
@@ -326,13 +329,17 @@ void OMTFProcessor::fillCounts(unsigned int iProcessor,
     const OMTFinput & aInput,
     const SimTrack* aSimMuon) {
 
+  std::ostringstream myStr;
   int theCharge = (abs(aSimMuon->type()) == 13) ? aSimMuon->type()/-13 : 0; 
-  unsigned int  iPt =  RPCConst::iptFromPt(aSimMuon->momentum().pt());
+  myStr<<"aSimMuon->momentum().pt() "<<aSimMuon->momentum().pt()<<" theCharge "<<theCharge<<std::endl;
+/*  unsigned int  iPt =  RPCConst::iptFromPt(aSimMuon->momentum().pt());
+  myStr<<"line "<<__LINE__<<" iPt "<<iPt<<" theCharge "<<theCharge<<std::endl;
   ///Stupid conersion. Have to go through PAC pt scale, as we later
   ///shift resulting pt code by +1
   iPt+=1;
   if(iPt>31) iPt=200*2+1;
   else iPt = RPCConst::ptFromIpt(iPt)*2.0+1;//MicroGMT has 0.5 GeV step size, with lower bin edge  (uGMT_pt_code - 1)*step_size
+  myStr<<"line "<<__LINE__<<" iPt "<<iPt<<std::endl;*/
   //////
 
   //////////////////////////////////////  
@@ -340,7 +347,7 @@ void OMTFProcessor::fillCounts(unsigned int iProcessor,
   if(refHitsBits.none())
     return;
 
-  std::ostringstream myStr;
+
   myStr<<"iProcessor: "<<iProcessor<<std::endl;
   myStr<<"Input: ------------"<<std::endl;
   myStr<<aInput<<std::endl;
@@ -375,12 +382,16 @@ void OMTFProcessor::fillCounts(unsigned int iProcessor,
       if(myOmtfConfig->getBendingLayers().count(iLayer))
         phiRef = 0;
       const OMTFinput::vector1D restrictedLayerHits = restrictInput(iProcessor, iRegion, iLayer,layerHits);
-      for(auto& itGP: theGPs){
+      for(auto& itGP: theGPs) {
 /*        if(itGP->key().theCharge != theCharge)  //TODO it was in the orginal code, i commented it out, check why
           continue;*/
-        if(itGP->key().thePtCode != iPt)
-          continue;
-        itGP->addCount(aRefHitDef.iRefLayer, iLayer, phiRef, restrictedLayerHits, refLayerPhiB);
+
+        if(aSimMuon->momentum().pt() >= myOmtfConfig->getPatternPtRange(itGP->key().number()).ptFrom &&
+           aSimMuon->momentum().pt() < myOmtfConfig->getPatternPtRange(itGP->key().number()).ptTo    &&
+           itGP->key().theCharge == theCharge ) {
+          itGP->addCount(aRefHitDef.iRefLayer, iLayer, phiRef, restrictedLayerHits, refLayerPhiB);
+          break;
+        }
         //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iLayer "<<iLayer<<" refLayerPhiB "<<refLayerPhiB<<std::endl;
       }
     }

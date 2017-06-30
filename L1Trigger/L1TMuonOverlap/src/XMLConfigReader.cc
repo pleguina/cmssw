@@ -92,7 +92,7 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapP
     for(auto it: aGPs){
       if(type=="iCharge") out = it->key().theCharge==-1 ? 0:1;
       if(type=="iEta") out = it->key().theEtaCode;
-      if(type=="iPt") out = it->key().thePtCode;
+      if(type=="iPt") out = it->key().thePt;
       if(type=="meanDistPhi"){
 	for(unsigned int iLayer = 0;iLayer<(unsigned) aConfig.nLayers();++iLayer){
 	  for(unsigned int iRefLayer=0;iRefLayer<(unsigned) aConfig.nRefLayers();++iRefLayer){

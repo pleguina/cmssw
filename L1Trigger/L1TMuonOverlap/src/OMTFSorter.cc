@@ -16,10 +16,9 @@
 AlgoMuon OMTFSorter::sortRefHitResults(unsigned int iRefHit, const std::vector<IGoldenPattern*>& gPatterns,
 					  int charge){
 
-  IGoldenPattern* bestGP = gPatterns[0]; //the GoldenPattern with the best result for this iRefHit
+  IGoldenPattern* bestGP = 0; //the GoldenPattern with the best result for this iRefHit
 //  std::cout <<" ====== sortRefHitResults: " << std::endl;
 
-  bool foundBest = false;
   for(auto& itGP: gPatterns) {
     if(!itGP->getResults().at(iRefHit).isValid())
       continue;
@@ -31,22 +30,23 @@ AlgoMuon OMTFSorter::sortRefHitResults(unsigned int iRefHit, const std::vector<I
     if(itGP->getResults().at(iRefHit).getFiredLayerCnt() < 3) //TODO - move 3 to the configuration??
       continue;
 
-    if(itGP->getResults().at(iRefHit).getFiredLayerCnt() > bestGP->getResults().at(iRefHit).getFiredLayerCnt() ){
+    if(bestGP == 0) {
       bestGP = itGP;
-      foundBest = true;
+    }
+    else if(itGP->getResults().at(iRefHit).getFiredLayerCnt() > bestGP->getResults().at(iRefHit).getFiredLayerCnt() ){
+      bestGP = itGP;
       //std::cout <<" sorter, byQual, now best is: "<<bestKey << " RefLayer "<<itKey.second.getRefLayer()<<" FiredLayerCn "<<itKey.second.getFiredLayerCnt()<<std::endl;
     }
     else if(itGP->getResults().at(iRefHit).getFiredLayerCnt() == bestGP->getResults().at(iRefHit).getFiredLayerCnt() ) {
       if(itGP->getResults().at(iRefHit).getPdfWeigtSum() > bestGP->getResults().at(iRefHit).getPdfWeigtSum()) {
         //if the PdfWeigtSum is equal, we take the GP with the lower number, i.e. lower pt = check if this is ok for physics FIXME (KB)
         bestGP = itGP;
-        foundBest = true;
         //std::cout <<" sorter, byDisc, now best is: "<<bestKey << " "<<itKey.second.getRefLayer()<<" FiredLayerCn "<<itKey.second.getFiredLayerCnt()<< std::endl;
       }
     }
   }
 
-  if(foundBest) {
+  if(bestGP) {
      AlgoMuon candidate(bestGP->getResults().at(iRefHit), bestGP->key(), iRefHit);
      //std::cout<<__FUNCTION__<<" line "<<__LINE__ <<" return: " << candidate << std::endl;
      return candidate;

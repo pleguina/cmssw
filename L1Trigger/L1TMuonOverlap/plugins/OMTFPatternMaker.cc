@@ -119,7 +119,7 @@ void OMTFPatternMaker::endJob(){
       if(iPt>31) iPt = 200*2+1;
       else iPt = RPCConst::ptFromIpt(iPt)*2.0+1;//MicroGMT has 0.5 GeV step size, with lower bin edge  (uGMT_pt_code - 1)*step_size
       ////
-      if(itGP->key().thePtCode==iPt &&
+      if(itGP->key().thePt==iPt &&
 	 itGP->key().theCharge==theConfig.getParameter<int>("charge")){
 	//std::cout<<*itGP.second<<std::endl;
 	myWriter->writeGPData(*((GoldenPattern*)itGP), dummyGP, dummyGP, dummyGP);

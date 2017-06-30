@@ -21,7 +21,7 @@ class AlgoMuon{
               m_disc(gpResult.getPdfWeigtSum()), m_phi(gpResult.getPhi()), m_eta(gpResult.getEta()),
               m_refLayer(gpResult.getRefLayer()),
               m_firedLayerBits(gpResult.getFiredLayerBits()), m_q(gpResult.getFiredLayerCnt()),
-              m_bx(0), m_pt(gpKey.thePtCode), m_charge(gpKey.theCharge),
+              m_bx(0), m_pt(gpKey.thePt), m_charge(gpKey.theCharge),
               m_phiRHit(gpResult.getRefHitPhi()),
               m_patNumb(gpKey.theNumber), m_rhitNumb(refHitNumber) {}
 

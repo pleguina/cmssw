@@ -76,8 +76,8 @@ void GoldenPatternPdf4D::addCount(unsigned int iRefLayer,
   ///For making the patterns take events with a single hit in each layer
   if(nHitsInLayer>1 || nHitsInLayer==0) return;
 
-  if(pdfAllRef[iLayer][iRefLayer].size()  > 1) //the ref layer is bending layer, so the it is possible that refLayerPhiB != 0
-    refLayerPhiB = refLayerPhiB + (1<<(myOmtfConfig->nPdfAddrBits()-1));
+  if(pdfAllRef[iLayer][iRefLayer].size()  > 1) //the ref layer is bending layer, so it is possible that refLayerPhiB != 0
+    refLayerPhiB = refLayerPhiB + (1<<(myOmtfConfig->nPdfAddrBits()-1)); //to have only positive values
   if(refLayerPhiB < 0 || (unsigned int)refLayerPhiB >= pdfAllRef[iLayer][iRefLayer].size() ) {
     edm::LogError("GoldenPatternPdf4D::addCount ")<<"iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" refLayerPhiB "<<refLayerPhiB
         <<" out of bounds. pdfAllRef[iLayer][iRefLayer].size() "<<pdfAllRef[iLayer][iRefLayer].size();
@@ -89,7 +89,7 @@ void GoldenPatternPdf4D::addCount(unsigned int iRefLayer,
   if(phiDist<=-(int)myOmtfConfig->nPhiBins()/2) phiDist+=(int)myOmtfConfig->nPhiBins();
 
   ///Shift phidist, so 0 is at the middle of the range
-  int phiDistShift=phiDist+exp2(myOmtfConfig->nPdfAddrBits()-1);
+  int phiDistShift=phiDist + (1<<(myOmtfConfig->nPdfAddrBits()-1));
 
   ///Check if phiDist is within pdf range
   ///in -64 +63 U2 code

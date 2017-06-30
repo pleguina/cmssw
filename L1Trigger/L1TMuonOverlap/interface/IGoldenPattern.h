@@ -17,27 +17,31 @@ class OMTFConfiguration;
 struct Key {
 
 Key(int iEta=99, unsigned int iPt=0, int iCharge= 0, unsigned int iNumber=999): 
-  theEtaCode(iEta), thePtCode(iPt), theCharge(iCharge), theNumber(iNumber) {}
+  theEtaCode(iEta), thePt(iPt), theCharge(iCharge), theNumber(iNumber) {}
     
   inline bool operator< (const Key & o) const {return (theNumber < o.theNumber);}
    
   bool operator==(const Key& o) const {
     //return theNumber==o.theNumber;
-    return theEtaCode==o.theEtaCode && thePtCode==o.thePtCode && theCharge==o.theCharge && theNumber==o.theNumber;
+    return theEtaCode==o.theEtaCode && thePt==o.thePt && theCharge==o.theCharge && theNumber==o.theNumber;
   }
   
   friend std::ostream & operator << (std::ostream &out, const Key & o) {
-    out << "Key_"<<o.theNumber<<": (eta="<<o.theEtaCode<<", pt="<<o.thePtCode<<", charge="<<o.theCharge<<")";
+    out << "Key_"<<o.theNumber<<": (eta="<<o.theEtaCode<<", pt="<<o.thePt<<", charge="<<o.theCharge<<")";
     return out;
   }
 
   unsigned int number() const {return theNumber;}
 
   int theEtaCode;
-  unsigned int thePtCode; 
+  unsigned int thePt; //hardware pt, ptInGeV = (thePt-1) * 0.5GeV, where ptInGeV denotes the lover edge of the pt range cover by this pattern
   int          theCharge;
   unsigned int theNumber;
 
+  ///in GeV
+  double ptRangeFrom() const;
+  ///in GeV
+  double ptRangeTo() const;
  };
 //////////////////////////////////
 // Golden Pattern

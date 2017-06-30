@@ -16,10 +16,10 @@ IGoldenPattern::layerResult GoldenPattern::process1Layer1RefLayer(unsigned int i
     const OMTFinput::vector1D & layerHits,
     int refLayerPhiB){
 
-  IGoldenPattern::layerResult aResult;
+  IGoldenPattern::layerResult aResult; //0, 0
 
   int phiMean = meanDistPhi[iLayer][iRefLayer];
-  int phiDist = exp2(myOmtfConfig->nPdfAddrBits());
+  int phiDist = 1<<(myOmtfConfig->nPdfAddrBits());
   ///Select hit closest to the mean of probability 
   ///distribution in given layer
   for(auto itHit: layerHits){
@@ -28,10 +28,10 @@ IGoldenPattern::layerResult GoldenPattern::process1Layer1RefLayer(unsigned int i
   }
    
   ///Check if phiDist is within pdf range -63 +63 
-  if(abs(phiDist)>(exp2(myOmtfConfig->nPdfAddrBits()-1) -1)) return aResult;
+  if(abs(phiDist)>( (1<<(myOmtfConfig->nPdfAddrBits()-1)) -1)) return aResult;
 
   ///Shift phidist, so 0 is at the middle of the range
-  phiDist+=exp2(myOmtfConfig->nPdfAddrBits()-1);
+  phiDist+=1<<(myOmtfConfig->nPdfAddrBits()-1);
 
   int pdfVal = pdfAllRef[iLayer][iRefLayer][phiDist];
 

@@ -16,6 +16,8 @@
 #include "L1Trigger/L1TMuonOverlap/interface/XMLConfigWriter.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternPdf4D.h"
 
+#include "L1Trigger/RPCTrigger/interface/RPCConst.h"
+
 #include "SimDataFormats/Track/interface/SimTrack.h"
 
 #include "Math/VectorUtil.h"
@@ -43,6 +45,8 @@ g4SimTrackSrc(cfg.getParameter<edm::InputTag>("g4SimTrackSrc")){
   mergeXMLFiles = theConfig.getParameter<bool>("mergeXMLFiles");
 
   myOMTFConfig = 0;
+
+  ptDist = new TH1I("ptDist", "ptDist", 200, -0.5, 200-0.5);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -55,7 +59,7 @@ OMTFHitAnalyzer::~OMTFHitAnalyzer(){
 }
 /////////////////////////////////////////////////////
 void OMTFHitAnalyzer::configureProcesor(const OMTFConfiguration * omtfConfig,
-    const L1TMuonOverlapParams* omtfPatterns, OMTFProcessor* omtfProc, unsigned int ptCode, int charge) {
+    const L1TMuonOverlapParams* omtfPatterns, OMTFProcessor* omtfProc, unsigned int ptCode, int charge, unsigned int patNum) {
   omtfProc->configure(myOMTFConfig);
 
   //myResults.assign(omtfConfig->nTestRefHits(),OMTFProcessor::resultsMap()); FIXME is it needed???
@@ -84,7 +88,7 @@ void OMTFHitAnalyzer::configureProcesor(const OMTFConfiguration * omtfConfig,
     }
   }*/
 
-  Key aKey(iEta,iPt,iCharge, 0);
+  Key aKey(iEta,iPt,iCharge, patNum);
   std::cout<<"adding GoldenPatternPdf4D "<<aKey<<std::endl;
   GoldenPatternPdf4D *aGP = new GoldenPatternPdf4D(aKey, omtfConfig);
   aGP->reset();
@@ -119,9 +123,14 @@ void OMTFHitAnalyzer::beginRun(edm::Run const& run, edm::EventSetup const& iSetu
   omtfParamsMutable.setGeneralParams(generalParams);
 
   myOMTFConfig->configure(&omtfParamsMutable);
-  int ptCode = theConfig.getParameter<int>("ptCode");
+  int ptCode = theConfig.getParameter<int>("ptCode"); //assuming that here the legay PAC pt code is given
   int charge = theConfig.getParameter<int>("charge");
-  configureProcesor(myOMTFConfig, omtfParams, myOMTF, ptCode, charge);
+
+  //converting to the uGMT ptCode
+  double pt = RPCConst::ptFromIpt(ptCode);
+  unsigned int patNum = myOMTFConfig->getPatternNum(pt, charge);
+  ptCode = omtfParams->ptLUT()->data(patNum );
+  configureProcesor(myOMTFConfig, omtfParams, myOMTF, ptCode, charge, patNum);
   //myOMTFConfigMaker = new OMTFConfigMaker(myOMTFConfig);
 
   std::cout<<"OMTFHitAnalyzer::beginRun: myOMTFConfig "<<*myOMTFConfig;
@@ -154,28 +163,25 @@ void OMTFHitAnalyzer::endJob(){
     omtfParamsMutable.setGeneralParams(generalParams);
     myOMTFConfig->configure(&omtfParamsMutable);*/
 
-    std::ostrstream fileName;
-    fileName<<"bendinfDistr_ptCode"<<theConfig.getParameter<int>("ptCode")
-        <<"_ch"<<theConfig.getParameter<int>("charge")<<".root";
-    TFile* outfile = new TFile(fileName.str(), "RECREATE");
+    std::ostringstream fileName;
+    fileName<<"bendingDistr_ptCode_"<<theConfig.getParameter<int>("ptCode")
+        <<"_ch_"<<theConfig.getParameter<int>("charge")<<".root";
+
+    cout<<"out fileName"<<fileName.str()<<endl;
+    TFile* outfile = new TFile(fileName.str().c_str(), "RECREATE");
+    cout<<"out fileName "<<fileName.str()<<" outfile->GetName() "<<outfile->GetName()<<endl;
+    ptDist->Write();
     for(auto itGP: myGPmap) {
-      ////
-      unsigned int iPt = theConfig.getParameter<int>("ptCode")+1;
-      if(iPt>31)
-        iPt = 200*2+1;
-      else
-        iPt = RPCConst::ptFromIpt(iPt)*2.0+1;//MicroGMT has 0.5 GeV step size, with lower bin edge  (uGMT_pt_code - 1)*step_size
-      ////
-      /*      if(itGP.first.thePtCode==iPt &&
+       /*      if(itGP.first.thePtCode==iPt &&
           itGP.first.theCharge==theConfig.getParameter<int>("charge")) {
         //std::cout<<*itGP.second<<std::endl; FIXME
         myWriter->writeGPData(*((GoldenPattern*)(itGP.second)), dummyGP, dummyGP, dummyGP);
       }*/
       for(unsigned int iLayer = 0; iLayer<myOMTFConfig->nLayers(); ++iLayer) {
         for(unsigned int iRefLayer=0; iRefLayer<myOMTFConfig->nRefLayers(); ++iRefLayer) {
-          std::ostrstream histName;
+          std::ostringstream histName;
 
-          histName<<"ipt_"<<itGP->key().thePtCode<<"_ch"<<itGP->key().theCharge<<"_layer_"<<iLayer<<"_refLayer_"<<iRefLayer<<" ";
+          histName<<"ipt_"<<itGP->key().thePt<<"_ch"<<itGP->key().theCharge<<"_layer_"<<iLayer<<"_refLayer_"<<iRefLayer<<" ";
 
           GoldenPatternPdf4D* gp4D = (static_cast<GoldenPatternPdf4D*>(itGP));
           unsigned int refLayerPhiBSize = gp4D->getPdf()[iLayer][iRefLayer].size();
@@ -183,16 +189,17 @@ void OMTFHitAnalyzer::endJob(){
           cout<<"creating hist "<<histName.str()<<" refLayerPhiBSize "<<refLayerPhiBSize<<" layerPhiSize "<<layerPhiSize<<std::endl;
 
           if(refLayerPhiBSize == 1 ) {
-            TH1F *h1 = new TH1F(histName.str(), histName.str(), layerPhiSize, -0.5, layerPhiSize-0.5);
+            TH1F *h1 = new TH1F(histName.str().c_str(), histName.str().c_str(), layerPhiSize, -0.5, layerPhiSize-0.5);
             for(unsigned int iLayerPhi=0; iLayerPhi < layerPhiSize; iLayerPhi++) {
               h1->Fill(iLayerPhi, gp4D->getPdf()[iLayer][iRefLayer][0][iLayerPhi]);
             }
             h1->Write();
           }
           else {
-            TH2F *h2 = new TH2F(histName.str(), histName.str(), refLayerPhiBSize, -0.5, refLayerPhiBSize-0.5,
+            TH2F *h2 = new TH2F(histName.str().c_str(), histName.str().c_str(), refLayerPhiBSize, -0.5, refLayerPhiBSize-0.5,
                 layerPhiSize, -0.5, layerPhiSize-0.5);
-
+            h2->GetXaxis()->SetTitle("refLayerPhiB");
+            h2->GetYaxis()->SetTitle("layerDelatPhi");
             for(unsigned int iRefLayerPhiB = 0; iRefLayerPhiB < refLayerPhiBSize; iRefLayerPhiB++) {
               for(unsigned int iLayerPhi=0; iLayerPhi < layerPhiSize; iLayerPhi++) {
                 h2->Fill(iRefLayerPhiB, iLayerPhi, gp4D->getPdf()[iLayer][iRefLayer][iRefLayerPhiB][iLayerPhi]);
@@ -287,6 +294,8 @@ void OMTFHitAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& e
   //std::cout<<"new event ";
   //cout<<"aSimMuon->momentum().pt "<<aSimMuon->momentum().pt()<<std::endl;
 
+  ptDist->Fill(aSimMuon->momentum().pt());
+
   myInputMaker->initialize(evSetup, myOMTFConfig);
 
   edm::Handle<L1MuDTChambPhContainer> dtPhDigis;
@@ -324,7 +333,7 @@ void OMTFHitAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& e
       myOMTF->fillCounts(iProcessor, myInput, aSimMuon);
 
 
-    std::ostrstream ostr;
+    std::ostringstream ostr;
     bool wasHit = false;
     for(unsigned int iLayer=0; iLayer < myOMTFConfig->nLayers(); ++iLayer){
       const OMTFinput::vector1D& layerHits = myInput.getLayerData(iLayer, false);

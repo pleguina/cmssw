@@ -17,6 +17,8 @@
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 
+#include <TH1.h>
+
 class OMTFProcessor;
 class OMTFConfiguration;
 class OMTFConfigMaker;
@@ -49,7 +51,7 @@ public:
 
 private:
   void configureProcesor(const OMTFConfiguration * omtfConfig,
-      const L1TMuonOverlapParams* omtfPatterns, OMTFProcessor* omtfProc, unsigned int ptCode, int charge);
+      const L1TMuonOverlapParams* omtfPatterns, OMTFProcessor* omtfProc, unsigned int ptCode, int charge, unsigned int patNum);
 
   const SimTrack *findSimMuon(const edm::Event &ev, const edm::EventSetup &es, const SimTrack *previous=0);
 
@@ -77,6 +79,8 @@ private:
   xercesc::DOMElement *aTopElement;
   OMTFConfigMaker *myOMTFConfigMaker;
   XMLConfigWriter *myWriter;
+
+  TH1I* ptDist;
 
 }; 
 

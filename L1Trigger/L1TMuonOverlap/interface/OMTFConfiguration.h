@@ -133,7 +133,22 @@ class OMTFConfiguration{
 
   const vector4D & getMeasurements4D() const {return measurements4D;}
   const vector4D & getMeasurements4Dref() const {return measurements4Dref;}
+
+  ///uGMT pt scale conversion
+  double hwPtToGev(unsigned int hwPt) const {
+    return (hwPt - 1.) * 0.5;
+  }
+
+  ///pattern pt range in Gev
+  struct PatternPt {
+    double ptFrom = 0;
+    double ptTo = 0;
+  };
   
+  PatternPt getPatternPtRange(unsigned int patNum) const;
+
+  unsigned int getPatternNum(double pt, int charge) const;
+
   friend std::ostream & operator << (std::ostream &out, const OMTFConfiguration & aConfig);
 
  private:
