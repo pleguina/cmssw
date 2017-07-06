@@ -110,14 +110,15 @@ bool OMTFProcessor::addGP(IGoldenPattern *aGP){
   }*/
 
   //FIXME - should we also check the pt, charge and eta???
-  if(theGPs.size() != aGP->key().theNumber) {
+/*  if(theGPs.size() != aGP->key().theNumber) {
     throw cms::Exception("Corrupted Golden Patterns data")
     <<"OMTFProcessor::addGP(...) "
     <<" theGPs.size() != aGP->key().theNumber: "
     <<aGP->key()<<std::endl;
   }
   //else theGPs[aGP->key()] = new GoldenPattern(*aGP);
-  else theGPs.push_back(aGP);
+  else */
+    theGPs.push_back(aGP);
 
   for(auto & itResult: aGP->getResults()){
     itResult.configure(myOmtfConfig);

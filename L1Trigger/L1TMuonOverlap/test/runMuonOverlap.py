@@ -7,14 +7,16 @@ import commands
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
-process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1)
+process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1000)
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
 
 process.source = cms.Source('PoolSource',
  #fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/g/gflouris/public/SingleMuPt6180_noanti_10k_eta1.root')
- fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_15_p_1_1_qtl.root')
+ #fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_15_p_1_1_qtl.root')
  #fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_5_p_1_1_Meh.root')
-                           )
+ #fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_7_p_1_1_DkC.root')
+  fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_18_p_1_1_2KD.root')
+                          )
 	                    
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
 
@@ -34,7 +36,7 @@ process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
       cms.PSet(record = cms.string('L1TMuonOverlapParamsRcd'),
                data = cms.vstring('L1TMuonOverlapParams'))
                    ),
-   verbose = cms.untracked.bool(True)
+   verbose = cms.untracked.bool(False)
 )
 
 
