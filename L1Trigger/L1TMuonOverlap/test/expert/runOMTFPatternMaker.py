@@ -80,7 +80,7 @@ for aFile in fileList:
     process.source.fileNames.append('file:'+aFile)
 '''
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000000))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10))
 
 ###TEST
 '''
@@ -119,8 +119,8 @@ process.omtfPatternMaker = cms.EDAnalyzer("OMTFPatternMaker",
                                           srcCSC = cms.InputTag('simCscTriggerPrimitiveDigis','MPCSORTED'),
                                           srcRPC = cms.InputTag('simMuonRPCDigis'),                                              
                                           g4SimTrackSrc = cms.InputTag('g4SimHits'),
-                                          makeGoldenPatterns = cms.bool(True),
-                                          mergeXMLFiles = cms.bool(False),
+                                          makeGoldenPatterns = cms.bool(False),
+                                          mergeXMLFiles = cms.bool(True),
                                           makeConnectionsMaps = cms.bool(False),                                      
                                           dropRPCPrimitives = cms.bool(False),                                    
                                           dropDTPrimitives = cms.bool(False),                                    
@@ -132,7 +132,8 @@ process.omtfPatternMaker = cms.EDAnalyzer("OMTFPatternMaker",
                                               patternsXMLFiles = cms.VPSet(                                       
                                                   cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00020007.xml")),
                                               ),
-                                              configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x00020005.xml"),
+                                              #configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x00020005.xml"),
+                                              configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0004.xml"),
                                           )
 )
 

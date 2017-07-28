@@ -65,8 +65,7 @@ class OMTFProcessor {
 
   ///Average patterns. Use same meanDistPhi for two
   ///patterns neighboring in pt code.
-  ///Averaging is made saparately fo each charge
-  void averagePatterns(int charge);
+  void averagePatterns();
   
   ///Add GoldenPattern to pattern map.
   ///If GP key already exists in map, a new entry is ignored

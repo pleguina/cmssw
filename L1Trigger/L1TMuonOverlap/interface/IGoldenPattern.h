@@ -77,6 +77,8 @@ class IGoldenPattern {
 
   //void setPdf(const vector3D & aPdf){  pdfAllRef = aPdf; }
 
+  //virtual const vector2D & getMeanDistPhi() const = 0;
+
   virtual int meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB = 0) const = 0;
 
   virtual int pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) const = 0;

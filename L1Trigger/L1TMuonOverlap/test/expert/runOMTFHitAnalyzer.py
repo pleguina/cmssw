@@ -4,7 +4,7 @@ import os
 import sys
 import commands
 
-verbose = False
+verbose = True
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
@@ -83,8 +83,8 @@ for aFile in fileList:
     process.source.fileNames.append('file:'+aFile)
 '''
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100))
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100))
 
 ###TEST
 '''

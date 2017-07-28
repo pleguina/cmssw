@@ -112,7 +112,7 @@ void OMTFPatternMaker::endJob(){
     generalParams[L1TMuonOverlapParams::GENERAL_ADDRBITS] = nPdfAddrBits;
     omtfParamsMutable.setGeneralParams(generalParams);
     myOMTFConfig->configure(&omtfParamsMutable);
-    
+
     for(auto itGP: myGPmap){
       ////
       unsigned int iPt = theConfig.getParameter<int>("ptCode")+1;
@@ -120,15 +120,15 @@ void OMTFPatternMaker::endJob(){
       else iPt = RPCConst::ptFromIpt(iPt)*2.0+1;//MicroGMT has 0.5 GeV step size, with lower bin edge  (uGMT_pt_code - 1)*step_size
       ////
       if(itGP->key().thePt==iPt &&
-	 itGP->key().theCharge==theConfig.getParameter<int>("charge")){
-	//std::cout<<*itGP.second<<std::endl;
-	myWriter->writeGPData(*((GoldenPattern*)itGP), dummyGP, dummyGP, dummyGP);
+          itGP->key().theCharge==theConfig.getParameter<int>("charge")){
+        //std::cout<<*itGP.second<<std::endl;
+        myWriter->writeGPData(*((GoldenPattern*)itGP), dummyGP, dummyGP, dummyGP);
       }
     }
     std::string fName = "GPs.xml";
     myWriter->finaliseXMLDocument(fName);        
   }
-  
+
   if(makeConnectionsMaps && !makeGoldenPatterns){
     myWriter->initialiseXMLDocument("OMTF");    
     std::string fName = "Connections.xml";
@@ -163,8 +163,7 @@ void OMTFPatternMaker::endJob(){
     ///4x merging
     fName = "OMTF";
     myWriter->initialiseXMLDocument(fName);
-    myOMTF->averagePatterns(-1);
-    myOMTF->averagePatterns(1);
+    myOMTF->averagePatterns();
     writeMergedGPs();
     fName = "GPs_4x.xml";
     myWriter->finaliseXMLDocument(fName);
@@ -173,13 +172,13 @@ void OMTFPatternMaker::endJob(){
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFPatternMaker::writeMergedGPs(){
-/*  FIXME - how the hell it works???
-  const std::vector<IGoldenPattern*> & myGPmap = myOMTF->getPatterns();
+  //FIXME - how the hell it works???
+  const std::vector<IGoldenPattern*> & myGPs = myOMTF->getPatterns();
 
   GoldenPattern *dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
   dummy->reset();
 
-  unsigned int iPtMin = 9;
+  /*unsigned int iPtMin = 9;
   Key aKey = Key(0, iPtMin, 1);
   while(std::find(myGPmap.begin(), myGPmap.end(), aKey) != myGPmap.end()){
 
@@ -227,8 +226,21 @@ void OMTFPatternMaker::writeMergedGPs(){
     else aGP4 = dummy;
     
     myWriter->writeGPData(*aGP1,*aGP2, *aGP3, *aGP4);
-    }*/
+  }*/
+
+
+  OMTFConfiguration::vector2D mergedPartters = myOMTFConfig->getMergedPartters();
+  for(unsigned int iGroup = 0; iGroup < mergedPartters.size(); iGroup++) {
+    std::vector<GoldenPattern*> gps(4, dummy);
+    for(unsigned int i = 0; i < mergedPartters[iGroup].size(); i++) {
+      GoldenPattern* gp = dynamic_cast<GoldenPattern*>(myGPs.at(mergedPartters[iGroup][i]));
+      gps[i] =  gp;
+    }
+    myWriter->writeGPData(*gps[0],*gps[1], *gps[2], *gps[3]);
+  }
+
 }
+
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFPatternMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& evSetup){

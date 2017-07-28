@@ -283,7 +283,7 @@ OMTFConfiguration::PatternPt OMTFConfiguration::getPatternPtRange(unsigned int p
 
   patternPt.ptFrom = hwPtToGev(rawParams.ptLUT()->data(patNum));
 
-  while(true) { //to skip the empty patterns with pt=0 and patterns with oposite charge
+  while(true) { //to skip the empty patterns with pt=0 and patterns with opposite charge
     patNum++;
     if(patNum == nGoldenPatterns())
       break;
@@ -307,4 +307,15 @@ unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
       return iPat;
   }
   return  0;
+}
+
+OMTFConfiguration::vector2D OMTFConfiguration::getMergedPartters() const {
+  unsigned int mergedCnt = 4;
+  vector2D mergedPartters(nGoldenPatterns()/mergedCnt, vector1D());
+  for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
+    if(rawParams.ptLUT()->data(iPat) != 0) {
+      mergedPartters[iPat/mergedCnt].push_back(iPat);
+    }
+  }
+  return mergedPartters;
 }

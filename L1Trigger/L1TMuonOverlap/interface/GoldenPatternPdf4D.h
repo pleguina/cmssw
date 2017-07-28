@@ -9,8 +9,6 @@
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
 #include "L1Trigger/L1TMuonOverlap/interface/IGoldenPattern.h"
 
-class OMTFConfigMaker;
-class OMTFProcessor;
 class OMTFConfiguration;
 
 //////////////////////////////////

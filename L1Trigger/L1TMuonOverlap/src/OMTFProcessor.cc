@@ -128,9 +128,8 @@ bool OMTFProcessor::addGP(IGoldenPattern *aGP){
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
-void  OMTFProcessor::averagePatterns(int charge){
-/* FIXME
-  Key aKey(0, 9, charge);
+void  OMTFProcessor::averagePatterns(){
+/*  Key aKey(0, 9, charge);
 
   while(theGPs.find(aKey)!=theGPs.end()){
 
@@ -191,6 +190,39 @@ void  OMTFProcessor::averagePatterns(int charge){
       shiftGP(aGP4,meanDistPhi, meanDistPhi4);   
     }
   }*/
+
+  OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPartters();
+  for(unsigned int iGroup = 0; iGroup < mergedPartters.size(); iGroup++) {
+    if(mergedPartters[iGroup].size() > 1) {
+
+      GoldenPattern* gp = dynamic_cast<GoldenPattern*>(theGPs.at(mergedPartters[iGroup][0]));
+      if(gp == 0)
+        throw cms::Exception("OMTFProcessor::averagePatterns works only for GoldenPatter");
+
+      GoldenPattern::vector2D meanDistPhi = gp->getMeanDistPhi();
+
+      for(unsigned int i = 1; i < mergedPartters[iGroup].size(); i++) {
+        GoldenPattern* gp = static_cast<GoldenPattern*>(theGPs.at( mergedPartters[iGroup][i]));
+        for(unsigned int iLayer=0; iLayer<myOmtfConfig->nLayers(); ++iLayer) {
+          for(unsigned int iRefLayer=0; iRefLayer<myOmtfConfig->nRefLayers(); ++iRefLayer) {
+            meanDistPhi[iLayer][iRefLayer] += gp->getMeanDistPhi()[iLayer][iRefLayer];
+          }
+        }
+      }
+
+      for(unsigned int iLayer=0; iLayer<myOmtfConfig->nLayers(); ++iLayer) {
+        for(unsigned int iRefLayer=0; iRefLayer<myOmtfConfig->nRefLayers(); ++iRefLayer) {
+          meanDistPhi[iLayer][iRefLayer] /= mergedPartters[iGroup].size();
+        }
+      }
+
+      for(unsigned int i = 0; i < mergedPartters[iGroup].size(); i++) {
+        GoldenPattern* gp = static_cast<GoldenPattern*>(theGPs.at( mergedPartters[iGroup][i]));
+        shiftGP(gp, meanDistPhi, gp->getMeanDistPhi());
+        gp->setMeanDistPhi(meanDistPhi);
+      }
+    }
+  }
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
@@ -207,7 +239,8 @@ void OMTFProcessor::shiftGP(GoldenPattern *aGP,
   for(unsigned int iLayer=0;iLayer<myOmtfConfig->nLayers();++iLayer){
     for(unsigned int iRefLayer=0;iRefLayer<myOmtfConfig->nRefLayers();++iRefLayer){
       indexShift = meanDistPhiOld[iLayer][iRefLayer] - meanDistPhiNew[iLayer][iRefLayer];
-      for(unsigned int iPdfBin=0;iPdfBin<nPdfBins;++iPdfBin) pdfAllRef[iLayer][iRefLayer][iPdfBin] = 0;
+      for(unsigned int iPdfBin=0;iPdfBin<nPdfBins;++iPdfBin)
+        pdfAllRef[iLayer][iRefLayer][iPdfBin] = 0;
       for(unsigned int iPdfBin=0;iPdfBin<nPdfBins;++iPdfBin){
         if((int)(iPdfBin)+indexShift>=0 && iPdfBin+indexShift<nPdfBins)
           pdfAllRef[iLayer][iRefLayer][iPdfBin+indexShift] = aGP->pdfValue(iLayer, iRefLayer, iPdfBin);
