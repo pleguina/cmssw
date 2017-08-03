@@ -7,7 +7,7 @@
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
 
 #include "L1Trigger/L1TMuonOverlap/plugins/OMTFPatternMaker.h"
-#include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessor.h"
+#include "L1Trigger/L1TMuonOverlap/interface/PdfGeneratorProcessor.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinputMaker.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
@@ -80,7 +80,7 @@ void OMTFPatternMaker::beginRun(edm::Run const& run, edm::EventSetup const& iSet
   
   ///Clear existing GoldenPatterns
   if(!mergeXMLFiles){
-    const std::vector<IGoldenPattern*> & theGPs = myOMTF->getPatterns();
+    const std::vector<GoldenPattern*> & theGPs = myOMTF->getPatterns();
     for(auto itGP: theGPs) itGP->reset();
   }  
 }
@@ -89,7 +89,7 @@ void OMTFPatternMaker::beginRun(edm::Run const& run, edm::EventSetup const& iSet
 void OMTFPatternMaker::beginJob(){
 
     myOMTFConfig = new OMTFConfiguration();
-    myOMTF = new OMTFProcessor();
+    myOMTF = new PdfGeneratorProcessor();
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////  
@@ -97,7 +97,7 @@ void OMTFPatternMaker::endJob(){
 
   if(makeGoldenPatterns && !makeConnectionsMaps){
     myWriter->initialiseXMLDocument("OMTF");
-    const std::vector<IGoldenPattern*> & myGPmap = myOMTF->getPatterns();
+    const std::vector<GoldenPattern*> & myGPmap = myOMTF->getPatterns();
     for(auto itGP: myGPmap){
       if(!itGP->hasCounts()) continue;
       itGP->normalise(nPdfAddrBits);
@@ -152,7 +152,7 @@ void OMTFPatternMaker::endJob(){
 
     std::string fName = "OMTF";
     myWriter->initialiseXMLDocument(fName);
-    const std::vector<IGoldenPattern*> & myGPmap = myOMTF->getPatterns();
+    const std::vector<GoldenPattern*> & myGPmap = myOMTF->getPatterns();
     for(auto itGP: myGPmap){
       myWriter->writeGPData(*((GoldenPattern*)itGP),*dummy, *dummy, *dummy);
     }
@@ -169,11 +169,11 @@ void OMTFPatternMaker::endJob(){
     myWriter->finaliseXMLDocument(fName);
   }  
 }
+
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFPatternMaker::writeMergedGPs(){
-  //FIXME - how the hell it works???
-  const std::vector<IGoldenPattern*> & myGPs = myOMTF->getPatterns();
+  const std::vector<GoldenPattern*> & myGPs = myOMTF->getPatterns();
 
   GoldenPattern *dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
   dummy->reset();

@@ -8,7 +8,6 @@
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
 
 #include "L1Trigger/L1TMuonOverlap/plugins/OMTFHitAnalyzer.h"
-#include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessor.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinputMaker.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
@@ -59,8 +58,8 @@ OMTFHitAnalyzer::~OMTFHitAnalyzer(){
 }
 /////////////////////////////////////////////////////
 void OMTFHitAnalyzer::configureProcesor(const OMTFConfiguration * omtfConfig,
-    const L1TMuonOverlapParams* omtfPatterns, OMTFProcessor* omtfProc, unsigned int ptCode, int charge, unsigned int patNum) {
-  omtfProc->configure(myOMTFConfig);
+    const L1TMuonOverlapParams* omtfPatterns, unsigned int ptCode, int charge, unsigned int patNum) {
+  myOMTF->setConfigurataion(myOMTFConfig);
 
   //myResults.assign(omtfConfig->nTestRefHits(),OMTFProcessor::resultsMap()); FIXME is it needed???
 
@@ -92,7 +91,7 @@ void OMTFHitAnalyzer::configureProcesor(const OMTFConfiguration * omtfConfig,
   std::cout<<"adding GoldenPatternPdf4D "<<aKey<<std::endl;
   GoldenPatternPdf4D *aGP = new GoldenPatternPdf4D(aKey, omtfConfig);
   aGP->reset();
-  omtfProc->addGP(aGP);
+  myOMTF->addGP(aGP);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -130,7 +129,7 @@ void OMTFHitAnalyzer::beginRun(edm::Run const& run, edm::EventSetup const& iSetu
   double pt = RPCConst::ptFromIpt(ptCode);
   unsigned int patNum = myOMTFConfig->getPatternNum(pt, charge);
   ptCode = omtfParams->ptLUT()->data(patNum );
-  configureProcesor(myOMTFConfig, omtfParams, myOMTF, ptCode, charge, patNum);
+  configureProcesor(myOMTFConfig, omtfParams, ptCode, charge, patNum);
   //myOMTFConfigMaker = new OMTFConfigMaker(myOMTFConfig);
 
   std::cout<<"OMTFHitAnalyzer::beginRun: myOMTFConfig "<<*myOMTFConfig;
@@ -140,7 +139,7 @@ void OMTFHitAnalyzer::beginRun(edm::Run const& run, edm::EventSetup const& iSetu
 void OMTFHitAnalyzer::beginJob(){
 
   myOMTFConfig = new OMTFConfiguration();
-  myOMTF = new OMTFProcessor();
+  myOMTF = new Pdf4DGeneratorProcessor();
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////  
@@ -149,11 +148,14 @@ void OMTFHitAnalyzer::endJob(){
 
   if(makeGoldenPatterns && !makeConnectionsMaps) {
     myWriter->initialiseXMLDocument("OMTF");
-    const std::vector<IGoldenPattern*> & myGPmap = myOMTF->getPatterns();
+    const std::vector<GoldenPatternPdf4D*> & myGPmap = myOMTF->getPatterns();
+/*
     for(auto itGP: myGPmap){
-      if(!itGP->hasCounts()) continue;
+      if(!itGP->hasCounts())
+        continue;
       itGP->normalise(nPdfAddrBits);
     }
+*/
 
 
     ///Put back default value of the pdf width.
@@ -183,15 +185,14 @@ void OMTFHitAnalyzer::endJob(){
 
           histName<<"ipt_"<<itGP->key().thePt<<"_ch"<<itGP->key().theCharge<<"_layer_"<<iLayer<<"_refLayer_"<<iRefLayer<<" ";
 
-          GoldenPatternPdf4D* gp4D = (static_cast<GoldenPatternPdf4D*>(itGP));
-          unsigned int refLayerPhiBSize = gp4D->getPdf()[iLayer][iRefLayer].size();
+          unsigned int refLayerPhiBSize = itGP->getPdf()[iLayer][iRefLayer].size();
           unsigned int layerPhiSize = (static_cast<GoldenPatternPdf4D*>(itGP))->getPdf()[iLayer][iRefLayer][0].size();
           cout<<"creating hist "<<histName.str()<<" refLayerPhiBSize "<<refLayerPhiBSize<<" layerPhiSize "<<layerPhiSize<<std::endl;
 
           if(refLayerPhiBSize == 1 ) {
             TH1F *h1 = new TH1F(histName.str().c_str(), histName.str().c_str(), layerPhiSize, -0.5, layerPhiSize-0.5);
             for(unsigned int iLayerPhi=0; iLayerPhi < layerPhiSize; iLayerPhi++) {
-              h1->Fill(iLayerPhi, gp4D->getPdf()[iLayer][iRefLayer][0][iLayerPhi]);
+              h1->Fill(iLayerPhi, itGP->getPdf()[iLayer][iRefLayer][0][iLayerPhi]);
             }
             h1->Write();
           }
@@ -202,14 +203,10 @@ void OMTFHitAnalyzer::endJob(){
             h2->GetYaxis()->SetTitle("layerDelatPhi");
             for(unsigned int iRefLayerPhiB = 0; iRefLayerPhiB < refLayerPhiBSize; iRefLayerPhiB++) {
               for(unsigned int iLayerPhi=0; iLayerPhi < layerPhiSize; iLayerPhi++) {
-                h2->Fill(iRefLayerPhiB, iLayerPhi, gp4D->getPdf()[iLayer][iRefLayer][iRefLayerPhiB][iLayerPhi]);
+                h2->Fill(iRefLayerPhiB, iLayerPhi, itGP->getPdf()[iLayer][iRefLayer][iRefLayerPhiB][iLayerPhi]);
               }
             }
             h2->Write();
-
-            if(gp4D->getLinearFits()[iLayer][iRefLayer]) {
-              gp4D->getLinearFits()[iLayer][iRefLayer]->Write();
-            }
           }
         }
       }

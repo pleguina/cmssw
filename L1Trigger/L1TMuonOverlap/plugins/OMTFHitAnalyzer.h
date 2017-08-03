@@ -17,9 +17,11 @@
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 
+#include "L1Trigger/L1TMuonOverlap/interface/ProcessorBase.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternPdf4D.h"
+
 #include <TH1.h>
 
-class OMTFProcessor;
 class OMTFConfiguration;
 class OMTFConfigMaker;
 class OMTFinputMaker;
@@ -50,8 +52,10 @@ public:
   virtual void analyze(const edm::Event&, const edm::EventSetup&);  
 
 private:
+  typedef ProcessorBase<GoldenPatternPdf4D> Pdf4DGeneratorProcessor;
+
   void configureProcesor(const OMTFConfiguration * omtfConfig,
-      const L1TMuonOverlapParams* omtfPatterns, OMTFProcessor* omtfProc, unsigned int ptCode, int charge, unsigned int patNum);
+      const L1TMuonOverlapParams* omtfPatterns, unsigned int ptCode, int charge, unsigned int patNum);
 
   const SimTrack *findSimMuon(const edm::Event &ev, const edm::EventSetup &es, const SimTrack *previous=0);
 
@@ -74,7 +78,7 @@ private:
   ///OMTF objects
   OMTFConfiguration *myOMTFConfig;
   OMTFinputMaker *myInputMaker;
-  OMTFProcessor *myOMTF;
+  Pdf4DGeneratorProcessor* myOMTF;
   ///
   xercesc::DOMElement *aTopElement;
   OMTFConfigMaker *myOMTFConfigMaker;

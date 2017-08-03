@@ -3,8 +3,6 @@
 
 #include <vector>
 #include <ostream>
-#include "TLinearFitter.h"
-#include "TF1.h"
 
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
 #include "L1Trigger/L1TMuonOverlap/interface/IGoldenPattern.h"
@@ -29,7 +27,7 @@ public:
 
   virtual void setMeanDistPhi(const vector2D & aMeanDistPhi){ meanDistPhi = aMeanDistPhi; }
 
-  virtual const vector2D & getMeanDistPhi() const {return meanDistPhi;}
+  //virtual const vector2D & getMeanDistPhi() const {return meanDistPhi;}
 
   virtual const vector4D & getPdf() const {return pdfAllRef;}
 
@@ -41,13 +39,15 @@ public:
     return pdfAllRef[iLayer][iRefLayer][refLayerPhiB][iBin];
   }
 
-  ///Process single measurement layer with a single ref layer
-  ///Method should be thread safe
-  virtual IGoldenPattern::layerResult process1Layer1RefLayer(unsigned int iRefLayer,
-      unsigned int iLayer,
-      const int refPhi,
-      const OMTFinput::vector1D & layerHits,
-      int refLayerPhiB = 0);
+  virtual void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB = 0) {
+    //meanDistPhi[iLayer][iRefLayer] = value;
+  }
+
+  virtual void setPdfValue(int value, unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) {
+    pdfAllRef[iLayer][iRefLayer][refLayerPhiB][iBin] = value;
+  }
+
+
 
   friend std::ostream & operator << (std::ostream &out, const GoldenPatternPdf4D & aPattern);
 
@@ -60,26 +60,6 @@ public:
 
   ///Reset contents of all data vectors, keeping the vectors size
   virtual void reset();
-
-  ///Normalise event counts in mean dist phi, and pdf vectors to get
-  ///the real values of meand dist phi and probability.
-  ///The pdf width is passed to this method, since the width stored in
-  ///configuration is extended during the pattern making phase.
-  virtual void normalise(unsigned int nPdfAddrBits);
-
-  ///Propagate phi from given reference layer to MB2 or ME2
-  ///ME2 is used if eta of reference hit is larger than 1.1
-  ///expressed in ingerer MicroGMT scale: 1.1/2.61*240 = 101
-  virtual int propagateRefPhi(int phiRef, int etaRef, unsigned int iRefLayer);
-
-  virtual void finalise() {} ;
-
-  ///Check if the GP has any counts in any of referecne layers;
-  virtual bool hasCounts();
-
-  const std::vector<std::vector<TF1*> >& getLinearFits() const {
-    return linearFits;
-  }
 
 private:
 
@@ -101,15 +81,6 @@ private:
   ///Vector holding number of counts.
   ///Used for making the patterns
   vector2D meanDistPhiCounts;
-
-  const OMTFConfiguration* myOmtfConfig;
-
-  ///fitter for fitting a line to the refPhi_b - phi distribution for each layer
-  ///First index: measurement layer number
-  ///Second index: refLayer number
-  std::vector<std::vector<TLinearFitter*> > linearFitters;
-  std::vector<std::vector<TF1*> > linearFits;
-
 };
 //////////////////////////////////
 //////////////////////////////////

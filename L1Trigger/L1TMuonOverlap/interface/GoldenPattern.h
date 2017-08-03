@@ -21,21 +21,33 @@ public:
   //
   GoldenPattern(const Key & aKey) : IGoldenPattern(aKey) {}
 
-  GoldenPattern(const Key & aKey, const OMTFConfiguration * omtfConfig) : IGoldenPattern(aKey, omtfConfig) {}
+  GoldenPattern(const Key & aKey, const OMTFConfiguration * omtfConfig) : IGoldenPattern(aKey, omtfConfig) {
+    reset();
+  }
 
   virtual ~GoldenPattern() {};
 
-  virtual void setMeanDistPhi(const vector2D & aMeanDistPhi){ meanDistPhi = aMeanDistPhi; }
+  virtual void setMeanDistPhi(const vector3D & aMeanDistPhi){ meanDistPhi = aMeanDistPhi; }
 
-  virtual const vector2D & getMeanDistPhi() const {return meanDistPhi;}
+  virtual const vector3D & getMeanDistPhi() const {return meanDistPhi;}
 
   virtual const vector3D & getPdf() const {return pdfAllRef;}
 
   virtual void setPdf(const vector3D & aPdf){  pdfAllRef = aPdf; }
 
-  virtual int meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB = 0) const { return meanDistPhi[iLayer][iRefLayer];}
+  virtual int meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB = 0) const;
 
   virtual int pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) const {return pdfAllRef[iLayer][iRefLayer][iBin];}
+
+
+  virtual void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, int paramIndex = 0) {
+    meanDistPhi[iLayer][iRefLayer][paramIndex] = value;
+  }
+
+
+  virtual void setPdfValue(int value, unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) {
+    pdfAllRef[iLayer][iRefLayer][iBin] = value;
+  }
 
   ///Process single measurement layer with a single ref layer
   ///Method should be thread safe
@@ -84,7 +96,8 @@ private:
   ///Mean positions in each layer
   ///First index: measurement layer number 
   ///Second index: refLayer number
-  vector2D meanDistPhi;
+  ///Third index: index = 0 - a0, index = 1 - a1 for the linear fit meanDistPhi = a0 + a1 * phi_b
+  vector3D meanDistPhi;
 
   ///Vector holding number of counts.
   ///Used for making the patterns

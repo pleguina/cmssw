@@ -5,11 +5,12 @@
  *      Author: kbunkow
  */
 
-#include "L1Trigger/L1TMuonOverlap/interface/ISorter.h"
+#include <L1Trigger/L1TMuonOverlap/interface/SorterBase.h>
 
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-void ISorter::sortResults(const std::vector<IGoldenPattern*>& gPatterns,
+/*
+void SorterBase::sortResults(const std::vector<IGoldenPattern*>& gPatterns,
               std::vector<AlgoMuon> & refHitCands,
               int charge) {
 
@@ -20,3 +21,4 @@ void ISorter::sortResults(const std::vector<IGoldenPattern*>& gPatterns,
     refHitCands.push_back(mu);
   }
 }
+*/

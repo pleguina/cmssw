@@ -378,10 +378,16 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP){
     aLayer->setAttribute(_toDOMS("nOfPhis"), _toDOMS(stringStr.str()));
     for(unsigned int iRefLayer=0;iRefLayer<myOMTFConfig->nRefLayers();++iRefLayer){
       aRefLayer = theDoc->createElement(_toDOMS("RefLayer"));
-      int meanDistPhi = aGP.meanDistPhiValue(iLayer,iRefLayer);	       
+      int meanDistPhi0 = aGP.getMeanDistPhi()[iLayer][iRefLayer][0];
       stringStr.str("");
-      stringStr<<meanDistPhi;
-      aRefLayer->setAttribute(_toDOMS("meanDistPhi"), _toDOMS(stringStr.str()));
+      stringStr<<meanDistPhi0;
+      aRefLayer->setAttribute(_toDOMS("meanDistPhi0"), _toDOMS(stringStr.str()));
+
+      int meanDistPhi1 = aGP.getMeanDistPhi()[iLayer][iRefLayer][1];
+      stringStr.str("");
+      stringStr<<meanDistPhi1;
+      aRefLayer->setAttribute(_toDOMS("meanDistPhi1"), _toDOMS(stringStr.str()));
+
       int selDistPhi = 0;
       stringStr.str("");
       stringStr<<selDistPhi;
@@ -449,13 +455,12 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
     for(unsigned int iRefLayer=0;iRefLayer<myOMTFConfig->nRefLayers();++iRefLayer){
       xercesc::DOMElement* aRefLayer = theDoc->createElement(_toDOMS("RefLayer"));
 
-      int meanDistPhi = aGP1.meanDistPhiValue(iLayer,iRefLayer);	       
-      setAttribute(aRefLayer, "meanDistPhi", meanDistPhi);
+      int meanDistPhi0 = aGP1.getMeanDistPhi()[iLayer][iRefLayer][0];
+      setAttribute(aRefLayer, "meanDistPhi0", meanDistPhi0);
 
-      //int meanDistPhi2 = aGP2.meanDistPhiValue(iLayer,iRefLayer);	       
-      //stringStr.str("");
-      //stringStr<<meanDistPhi2;
-      //aRefLayer->setAttribute(_toDOMS("meanDistPhi2"), _toDOMS(stringStr.str()));
+      int meanDistPhi1 = aGP1.getMeanDistPhi()[iLayer][iRefLayer][1];
+      setAttribute(aRefLayer, "meanDistPhi1", meanDistPhi1);
+
 
       int selDistPhi = 0;
       setAttribute(aRefLayer, "selDistPhi", selDistPhi);

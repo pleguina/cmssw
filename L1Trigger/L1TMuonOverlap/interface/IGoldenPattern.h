@@ -83,6 +83,11 @@ class IGoldenPattern {
 
   virtual int pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) const = 0;
 
+  virtual void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, int paramIndex = 0) = 0;
+
+  virtual void setPdfValue(int value, unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) = 0;
+
+  /*
   ///Process single measurement layer with a single ref layer
   ///Method should be thread safe
   virtual IGoldenPattern::layerResult process1Layer1RefLayer(unsigned int iRefLayer,
@@ -115,12 +120,13 @@ class IGoldenPattern {
   ///Check if the GP has any counts in any of referecne layers;
   virtual bool hasCounts() = 0;
 
+  ///last step of the event processing, before sorting and ghost busting
+  virtual void finalise() = 0;
+  */
+
   std::vector<GoldenPatternResult>& getResults() {
     return results;
   }
-
-  ///last step of the event processing, before sorting and ghost busting
-  virtual void finalise() = 0;
 
  protected:
 
