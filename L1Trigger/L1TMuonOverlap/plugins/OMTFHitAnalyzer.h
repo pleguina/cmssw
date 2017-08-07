@@ -67,8 +67,6 @@ private:
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> inputTokenCSC;
   edm::EDGetTokenT<RPCDigiCollection> inputTokenRPC;
   edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimHit;
-
-  void writeMergedGPs();
   
   bool makeConnectionsMaps, makeGoldenPatterns, mergeXMLFiles;
 

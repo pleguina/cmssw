@@ -300,7 +300,12 @@ OMTFConfiguration::PatternPt OMTFConfiguration::getPatternPtRange(unsigned int p
 }
 
 unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
+  //in LUT the charge is in convention 0 is -, 1 is + (so it is not the uGMT convention!!!)
+  //so we change the charge here
+  if(charge == -1)
+    charge = 0;
   for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
+    //std::cout<<"iPAt "<<iPat<<" ptFrom "<<getPatternPtRange(iPat).ptFrom<<" "<<getPatternPtRange(iPat).ptTo<<" "<<rawParams.chargeLUT()->data(iPat)<<std::endl;
     if(pt >= getPatternPtRange(iPat).ptFrom &&
        pt  < getPatternPtRange(iPat).ptTo   &&
        charge == rawParams.chargeLUT()->data(iPat) )

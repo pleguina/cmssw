@@ -89,7 +89,7 @@ void OMTFHitAnalyzer::configureProcesor(const OMTFConfiguration * omtfConfig,
 
   Key aKey(iEta,iPt,iCharge, patNum);
   std::cout<<"adding GoldenPatternPdf4D "<<aKey<<std::endl;
-  GoldenPatternPdf4D *aGP = new GoldenPatternPdf4D(aKey, omtfConfig);
+  GoldenPatternPdf4D* aGP = new GoldenPatternPdf4D(aKey, omtfConfig);
   aGP->reset();
   myOMTF->addGP(aGP);
 }
@@ -122,7 +122,7 @@ void OMTFHitAnalyzer::beginRun(edm::Run const& run, edm::EventSetup const& iSetu
   omtfParamsMutable.setGeneralParams(generalParams);
 
   myOMTFConfig->configure(&omtfParamsMutable);
-  int ptCode = theConfig.getParameter<int>("ptCode"); //assuming that here the legay PAC pt code is given
+  int ptCode = theConfig.getParameter<int>("ptCode"); //assuming that here the legacy PAC pt code is given
   int charge = theConfig.getParameter<int>("charge");
 
   //converting to the uGMT ptCode
@@ -146,9 +146,9 @@ void OMTFHitAnalyzer::beginJob(){
 void OMTFHitAnalyzer::endJob(){
   std::cout<<"myOMTFConfig "<<*myOMTFConfig;
 
-  if(makeGoldenPatterns && !makeConnectionsMaps) {
-    myWriter->initialiseXMLDocument("OMTF");
-    const std::vector<GoldenPatternPdf4D*> & myGPmap = myOMTF->getPatterns();
+  //if(makeGoldenPatterns && !makeConnectionsMaps)
+  {
+    //myWriter->initialiseXMLDocument("OMTF");
 /*
     for(auto itGP: myGPmap){
       if(!itGP->hasCounts())
@@ -157,7 +157,6 @@ void OMTFHitAnalyzer::endJob(){
     }
 */
 
-
     ///Put back default value of the pdf width.
 /*    L1TMuonOverlapParams omtfParamsMutable = *myOMTFConfig->getRawParams();
     std::vector<int> generalParams = *omtfParamsMutable.generalParams();
@@ -165,20 +164,25 @@ void OMTFHitAnalyzer::endJob(){
     omtfParamsMutable.setGeneralParams(generalParams);
     myOMTFConfig->configure(&omtfParamsMutable);*/
 
-    std::ostringstream fileName;
-    fileName<<"bendingDistr_ptCode_"<<theConfig.getParameter<int>("ptCode")
-        <<"_ch_"<<theConfig.getParameter<int>("charge")<<".root";
-
-    cout<<"out fileName"<<fileName.str()<<endl;
-    TFile* outfile = new TFile(fileName.str().c_str(), "RECREATE");
-    cout<<"out fileName "<<fileName.str()<<" outfile->GetName() "<<outfile->GetName()<<endl;
-    ptDist->Write();
-    for(auto itGP: myGPmap) {
+    for(auto itGP: myOMTF->getPatterns()) {
        /*      if(itGP.first.thePtCode==iPt &&
           itGP.first.theCharge==theConfig.getParameter<int>("charge")) {
         //std::cout<<*itGP.second<<std::endl; FIXME
         myWriter->writeGPData(*((GoldenPattern*)(itGP.second)), dummyGP, dummyGP, dummyGP);
       }*/
+
+      cout<<__FUNCTION__<<":"<<__LINE__<<"itGP->key().thePt "<<itGP->key().thePt<<" "<<endl;
+      if(itGP->key().thePt == 0)
+        continue;
+
+      std::ostringstream fileName;
+      fileName<<"bendingDistr_ptCode_"<<itGP->key().thePt
+          <<"_ch_"<<itGP->key().theCharge<<".root";
+
+      TFile* outfile = new TFile(fileName.str().c_str(), "RECREATE");
+      cout<<"outfile->GetName() "<<outfile->GetName()<<endl;
+      ptDist->Write();
+
       for(unsigned int iLayer = 0; iLayer<myOMTFConfig->nLayers(); ++iLayer) {
         for(unsigned int iRefLayer=0; iRefLayer<myOMTFConfig->nRefLayers(); ++iRefLayer) {
           std::ostringstream histName;
@@ -210,71 +214,13 @@ void OMTFHitAnalyzer::endJob(){
           }
         }
       }
+      outfile->Close();
     }
-    outfile->Close();
   }
 
 
 }
-/////////////////////////////////////////////////////
-/////////////////////////////////////////////////////
-void OMTFHitAnalyzer::writeMergedGPs(){
 
-/*  const std::map<Key, IGoldenPattern*> & myGPmap = myOMTF->getPatterns();
-
-  GoldenPattern *dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
-  dummy->reset();
-
-  unsigned int iPtMin = 9;
-  Key aKey = Key(0, iPtMin, 1);
-  while(myGPmap.find(aKey)!=myGPmap.end()){
-
-    GoldenPattern *aGP1 = myGPmap.find(aKey)->second;
-    GoldenPattern *aGP2 = dummy;
-    GoldenPattern *aGP3 = dummy;
-    GoldenPattern *aGP4 = dummy;
-
-    ++aKey.thePtCode;
-    while(myGPmap.find(aKey)==myGPmap.end() && aKey.thePtCode<=401) ++aKey.thePtCode;    
-    if(aKey.thePtCode<=401 && myGPmap.find(aKey)!=myGPmap.end()) aGP2 =  myGPmap.find(aKey)->second;
-
-    if(aKey.thePtCode>71){
-      ++aKey.thePtCode;
-      while(myGPmap.find(aKey)==myGPmap.end() && aKey.thePtCode<=401) ++aKey.thePtCode;    
-      if(aKey.thePtCode<=401 && myGPmap.find(aKey)!=myGPmap.end()) aGP3 =  myGPmap.find(aKey)->second;
-
-      ++aKey.thePtCode;
-      while(myGPmap.find(aKey)==myGPmap.end() && aKey.thePtCode<=401) ++aKey.thePtCode;    
-      if(aKey.thePtCode<=401 && myGPmap.find(aKey)!=myGPmap.end()) aGP4 =  myGPmap.find(aKey)->second;
-    }
-    ++aKey.thePtCode;
-    while(myGPmap.find(aKey)==myGPmap.end() && aKey.thePtCode<=401) ++aKey.thePtCode;    
-    myWriter->writeGPData(*aGP1,*aGP2, *aGP3, *aGP4);
-
-    ///Write the opposite charge.
-    Key aTmpKey = aGP1->key();
-    aTmpKey.theCharge = -1;
-    if(myGPmap.find(aTmpKey)!=myGPmap.end()) aGP1 =  myGPmap.find(aTmpKey)->second;
-    else aGP1 = dummy;
-
-    aTmpKey = aGP2->key();
-    aTmpKey.theCharge = -1;
-    if(myGPmap.find(aTmpKey)!=myGPmap.end()) aGP2 =  myGPmap.find(aTmpKey)->second;
-    else aGP2 = dummy;
-
-    aTmpKey = aGP3->key();
-    aTmpKey.theCharge = -1;
-    if(myGPmap.find(aTmpKey)!=myGPmap.end()) aGP3 =  myGPmap.find(aTmpKey)->second;
-    else aGP3 = dummy;
-
-    aTmpKey = aGP4->key();
-    aTmpKey.theCharge = -1;
-    if(myGPmap.find(aTmpKey)!=myGPmap.end()) aGP4 =  myGPmap.find(aTmpKey)->second;
-    else aGP4 = dummy;
-
-    myWriter->writeGPData(*aGP1,*aGP2, *aGP3, *aGP4);
-  }*/
-}
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFHitAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& evSetup){
@@ -316,7 +262,6 @@ void OMTFHitAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& e
 
   ///Loop over all processors, each covering 60 deg in phi
   for(unsigned int iProcessor=0;iProcessor<6;++iProcessor) {
-
     ///Input data with phi ranges shifted for each processor, so it fits 11 bits range
     OMTFinput myInput = myInputMaker->buildInputForProcessor(dtPhDigis.product(),
         dtThDigis.product(),
@@ -325,12 +270,9 @@ void OMTFHitAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& e
         iProcessor,
         mtfType);
 
+    myOMTF->fillCounts(iProcessor, myInput, aSimMuon);
 
-    if(makeGoldenPatterns)
-      myOMTF->fillCounts(iProcessor, myInput, aSimMuon);
-
-
-    std::ostringstream ostr;
+/*    std::ostringstream ostr;
     bool wasHit = false;
     for(unsigned int iLayer=0; iLayer < myOMTFConfig->nLayers(); ++iLayer){
       const OMTFinput::vector1D& layerHits = myInput.getLayerData(iLayer, false);
@@ -347,7 +289,7 @@ void OMTFHitAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& e
     }
     if(wasHit) {
       //std::cout<<"iProcessor "<<iProcessor<<std::endl<<ostr.str()<<std::endl;
-    }
+    }*/
 
   }
 }

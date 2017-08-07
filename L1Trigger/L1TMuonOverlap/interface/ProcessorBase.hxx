@@ -77,7 +77,7 @@ bool ProcessorBase<GoldenPatternType>::configure(const OMTFConfiguration* omtfCo
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 template<class GoldenPatternType>
-bool ProcessorBase<GoldenPatternType>::addGP(GoldenPatternType *aGP){
+bool ProcessorBase<GoldenPatternType>::addGP(GoldenPatternType* aGP) {
 /*  auto gpIt = std::find(std::begin(theGPs), std::end(theGPs), aGP->key());
   if(gpIt !=theGPs.end()){
     throw cms::Exception("Corrupted Golden Patterns data")
@@ -95,7 +95,7 @@ bool ProcessorBase<GoldenPatternType>::addGP(GoldenPatternType *aGP){
   }
   //else theGPs[aGP->key()] = new GoldenPattern(*aGP);
   else */
-    theGPs.push_back(aGP);
+  theGPs.push_back(aGP);
 
   for(auto & itResult: aGP->getResults()){
     itResult.configure(myOmtfConfig);
@@ -148,14 +148,13 @@ void ProcessorBase<GoldenPatternType>::fillCounts(unsigned int iProcessor,
   if(refHitsBits.none())
     return;
 
-
   myStr<<"iProcessor: "<<iProcessor<<std::endl;
   myStr<<"Input: ------------"<<std::endl;
   myStr<<aInput<<std::endl;
   edm::LogInfo("OMTF processor")<<myStr.str();
 
-  //std::cout<<__FUNCTION__<<":"<<__LINE__<<" muon iPt "<<iPt<<" theCharge "<<theCharge<<std::endl;
-  for(unsigned int iLayer=0;iLayer<myOmtfConfig->nLayers();++iLayer){
+  //std::cout<<__FUNCTION__<<":"<<__LINE__<<" muon iPt "<<aSimMuon->momentum().pt()<<" theCharge "<<theCharge<<std::endl;
+  for(unsigned int iLayer=0;iLayer<myOmtfConfig->nLayers();++iLayer) {
 
     const OMTFinput::vector1D & layerHits = aInput.getLayerData(iLayer);
     if(!layerHits.size())

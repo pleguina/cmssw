@@ -90,7 +90,7 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapP
     unsigned int in = 0;
     int out = 0;
     for(auto it: aGPs){
-      if(type=="iCharge") out = it->key().theCharge==-1 ? 0:1;
+      if(type=="iCharge") out = it->key().theCharge==-1 ? 0:1; //changing only -1 (negative charge) to 0 (to avoid negative numbers in LUT?) -N.B. that this is not the uGMT charge convention!!!!
       if(type=="iEta") out = it->key().theEtaCode;
       if(type=="iPt") out = it->key().thePt;
       if(type=="meanDistPhi"){

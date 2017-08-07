@@ -147,6 +147,7 @@ class OMTFConfiguration{
   
   PatternPt getPatternPtRange(unsigned int patNum) const;
 
+  ///charge: -1 - negative, +1 - positive
   unsigned int getPatternNum(double pt, int charge) const;
 
 

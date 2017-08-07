@@ -62,7 +62,7 @@ class IGoldenPattern {
   //
   IGoldenPattern(const Key & aKey) : theKey(aKey), myOmtfConfig(0) {}
 
-  IGoldenPattern(const Key & aKey, const OMTFConfiguration * omtfConfig) : theKey(aKey), myOmtfConfig(omtfConfig),
+  IGoldenPattern(const Key& aKey, const OMTFConfiguration * omtfConfig) : theKey(aKey), myOmtfConfig(omtfConfig),
       results(myOmtfConfig->nTestRefHits(), GoldenPatternResult(omtfConfig)) {}
 
   virtual ~IGoldenPattern() {}

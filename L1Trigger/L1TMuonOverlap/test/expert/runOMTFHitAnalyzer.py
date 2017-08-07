@@ -4,7 +4,7 @@ import os
 import sys
 import commands
 
-verbose = True
+verbose = False
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
@@ -65,10 +65,11 @@ process.source = cms.Source(
     #fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/a/akalinow/CMS/OverlapTrackFinder/data/Crab/SingleMuFullEtaTestSample/720_FullEta_v1/data/SingleMu_16_p_1_2_TWz.root')
     #fileNames = cms.untracked.vstring('file:///home/akalinow/scratch/CMS/OverlapTrackFinder/Crab/SingleMuFullEta/721_FullEta_v4/data/SingleMu_25_p_133_2_QJ1.root')
     #fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_18_p_1_1_2KD.root')
-    fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_15_p_1_1_qtl.root')
+    #fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_15_p_1_1_qtl.root')
     #fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_5_p_1_1_Meh.root')
     #fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_7_p_1_1_DkC.root')
     #fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/g/gflouris/public/SingleMuPt6180_noanti_10k_eta1.root')
+    fileNames = cms.untracked.vstring('file:///eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/SingleMu_22_m_99_2_buq.root')
    
 )
 '''
@@ -83,8 +84,8 @@ for aFile in fileList:
     process.source.fileNames.append('file:'+aFile)
 '''
 
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100))
 
 ###TEST
 '''
@@ -129,8 +130,8 @@ process.omtfHitAnalyzer = cms.EDAnalyzer("OMTFHitAnalyzer",
                                           dropRPCPrimitives = cms.bool(False),                                    
                                           dropDTPrimitives = cms.bool(False),                                    
                                           dropCSCPrimitives = cms.bool(False),   
-                                          ptCode = cms.int32(18),#this is old PAC pt scale.
-                                          charge = cms.int32(1),
+                                          ptCode = cms.int32(22),#this is old PAC pt scale.
+                                          charge = cms.int32(-1),
                                           omtf = cms.PSet(
                                               configFromXML = cms.bool(False),   
                                               patternsXMLFiles = cms.VPSet(                                       
