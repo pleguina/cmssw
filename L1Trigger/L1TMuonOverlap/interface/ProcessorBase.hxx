@@ -40,6 +40,7 @@ bool ProcessorBase<GoldenPatternType>::configure(const OMTFConfiguration* omtfCo
   unsigned int address = 0;
   unsigned int iEta, iPt;
   int iCharge;
+  int meanDistPhiSize = myOmtfConfig->nLayers() * myOmtfConfig->nRefLayers() * myOmtfConfig->nGoldenPatterns();
   for(unsigned int iGP=0;iGP<nGPs;++iGP){
     address = iGP;
     iEta = etaLUT->data(address);
@@ -56,6 +57,11 @@ bool ProcessorBase<GoldenPatternType>::configure(const OMTFConfiguration* omtfCo
         address = iRefLayer + iLayer*myOmtfConfig->nRefLayers() + iGP*(myOmtfConfig->nRefLayers()*myOmtfConfig->nLayers());
         int value = meanDistPhiLUT->data(address) - (1<<(meanDistPhiLUT->nrBitsData() -1));
         aGP->setMeanDistPhiValue(value, iLayer, iRefLayer, 0);
+        if(meanDistPhiLUT->nrBitsAddress() == 15) {//for the enw version of the meanDistPhi which have two values for each gp,iLayer,iRefLayer
+          value = meanDistPhiLUT->data(address + meanDistPhiSize) - (1<<(meanDistPhiLUT->nrBitsData() -1));
+          //the second meanDistPhi is in the LUT at the position (address+meanDistPhiSize)
+          aGP->setMeanDistPhiValue(value, iLayer, iRefLayer, 1);
+        }
       }
       ///Pdf data
       for(unsigned int iRefLayer=0;iRefLayer<myOmtfConfig->nRefLayers();++iRefLayer){

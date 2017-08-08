@@ -9,9 +9,9 @@
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
 
 int GoldenPattern::meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB) const {
-  return meanDistPhi[iLayer][iRefLayer][0];
-  //return (meanDistPhiAlpha[iLayer][iRefLayer]*refLayerPhiB)>>myOmtfConfig->nPdfAddrBits()  + meanDistPhi[iLayer][iRefLayer];
-  //assumes that the meanDistPhiAlpha is float alpha from the fit to the phiB-phi distribution multiplied by 2^myOmtfConfig->nPdfAddrBits()
+  //return meanDistPhi[iLayer][iRefLayer][0];
+  return ( ( (meanDistPhi[iLayer][iRefLayer][1]*refLayerPhiB)>>myOmtfConfig->nPdfAddrBits() ) + meanDistPhi[iLayer][iRefLayer][0] );
+  //assumes that the meanDistPhi[1] is float alpha from the fit to the phiB-phi distribution multiplied by 2^myOmtfConfig->nPdfAddrBits()
 }
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////

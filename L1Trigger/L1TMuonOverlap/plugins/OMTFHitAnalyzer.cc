@@ -90,6 +90,7 @@ void OMTFHitAnalyzer::configureProcesor(const OMTFConfiguration * omtfConfig,
   Key aKey(iEta,iPt,iCharge, patNum);
   std::cout<<"adding GoldenPatternPdf4D "<<aKey<<std::endl;
   GoldenPatternPdf4D* aGP = new GoldenPatternPdf4D(aKey, omtfConfig);
+  std::cout<<"adding GoldenPatternPdf4D "<<aGP->key()<<std::endl;
   aGP->reset();
   myOMTF->addGP(aGP);
 }
@@ -164,6 +165,7 @@ void OMTFHitAnalyzer::endJob(){
     omtfParamsMutable.setGeneralParams(generalParams);
     myOMTFConfig->configure(&omtfParamsMutable);*/
 
+    cout<<__FUNCTION__<<":"<<__LINE__<<"myOMTF->getPatterns().size()"<<myOMTF->getPatterns().size()<<" "<<endl;
     for(auto itGP: myOMTF->getPatterns()) {
        /*      if(itGP.first.thePtCode==iPt &&
           itGP.first.theCharge==theConfig.getParameter<int>("charge")) {
@@ -179,8 +181,9 @@ void OMTFHitAnalyzer::endJob(){
       fileName<<"bendingDistr_ptCode_"<<itGP->key().thePt
           <<"_ch_"<<itGP->key().theCharge<<".root";
 
+      cout<<"out fileName"<<fileName.str()<<endl;
       TFile* outfile = new TFile(fileName.str().c_str(), "RECREATE");
-      cout<<"outfile->GetName() "<<outfile->GetName()<<endl;
+      cout<<"out fileName "<<fileName.str()<<" outfile->GetName() "<<outfile->GetName()<<endl;
       ptDist->Write();
 
       for(unsigned int iLayer = 0; iLayer<myOMTFConfig->nLayers(); ++iLayer) {
