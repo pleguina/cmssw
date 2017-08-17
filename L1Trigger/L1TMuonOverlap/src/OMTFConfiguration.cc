@@ -164,18 +164,19 @@ void OMTFConfiguration::configure(const L1TMuonOverlapParams *omtfParams){
   }
 
   initCounterMatrices();
-  
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 std::ostream & operator << (std::ostream &out, const OMTFConfiguration & aConfig){
 
 
-  out<<"nLayers(): "<<aConfig.nLayers()
-     <<" nHitsPerLayer(): "<<aConfig.nHitsPerLayer()
-     <<" nRefLayers(): "<<aConfig.nRefLayers()
-     <<" nPdfAddrBits: "<<aConfig.nPdfAddrBits()
-     <<" nPdfValBits: "<<aConfig.nPdfValBits()
+  out<<"nLayers(): "<<aConfig.nLayers()<<std::endl
+     <<" nHitsPerLayer(): "<<aConfig.nHitsPerLayer()<<std::endl
+     <<" nRefLayers(): "<<aConfig.nRefLayers()<<std::endl
+     <<" nPdfAddrBits: "<<aConfig.nPdfAddrBits()<<std::endl
+     <<" nPdfValBits: "<<aConfig.nPdfValBits()<<std::endl
+	   <<" nPhiBins(): "<<aConfig.nPhiBins()<<std::endl
+	   <<" nPdfAddrBits(): "<<aConfig.nPdfAddrBits()<<std::endl
      <<std::endl;
 
   for(unsigned int iProcessor = 0;iProcessor<aConfig.nProcessors(); ++iProcessor){
@@ -274,3 +275,52 @@ uint32_t OMTFConfiguration::getLayerNumber(uint32_t rawId) const {
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
+OMTFConfiguration::PatternPt OMTFConfiguration::getPatternPtRange(unsigned int patNum) const {
+  PatternPt patternPt;
+  int charge = rawParams.chargeLUT()->data(patNum);
+  if(rawParams.ptLUT()->data(patNum) == 0)
+    return patternPt;
+
+  patternPt.ptFrom = hwPtToGev(rawParams.ptLUT()->data(patNum));
+
+  while(true) { //to skip the empty patterns with pt=0 and patterns with opposite charge
+    patNum++;
+    if(patNum == nGoldenPatterns())
+      break;
+    if(rawParams.ptLUT()->data(patNum) != 0 && rawParams.chargeLUT()->data(patNum) == charge)
+      break;
+  }
+
+  if(patNum == nGoldenPatterns())
+    patternPt.ptTo = 10000; //inf
+  else
+    patternPt.ptTo = hwPtToGev(rawParams.ptLUT()->data(patNum));
+
+  return patternPt;
+}
+
+unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
+  //in LUT the charge is in convention 0 is -, 1 is + (so it is not the uGMT convention!!!)
+  //so we change the charge here
+  if(charge == -1)
+    charge = 0;
+  for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
+    //std::cout<<"iPAt "<<iPat<<" ptFrom "<<getPatternPtRange(iPat).ptFrom<<" "<<getPatternPtRange(iPat).ptTo<<" "<<rawParams.chargeLUT()->data(iPat)<<std::endl;
+    if(pt >= getPatternPtRange(iPat).ptFrom &&
+       pt  < getPatternPtRange(iPat).ptTo   &&
+       charge == rawParams.chargeLUT()->data(iPat) )
+      return iPat;
+  }
+  return  0;
+}
+
+OMTFConfiguration::vector2D OMTFConfiguration::getMergedPartters() const {
+  unsigned int mergedCnt = 4;
+  vector2D mergedPartters(nGoldenPatterns()/mergedCnt, vector1D());
+  for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
+    if(rawParams.ptLUT()->data(iPat) != 0) {
+      mergedPartters[iPat/mergedCnt].push_back(iPat);
+    }
+  }
+  return mergedPartters;
+}

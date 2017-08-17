@@ -1,5 +1,5 @@
-#ifndef OMTFPatternMaker_H
-#define OMTFPatternMaker_H
+#ifndef OMTFHitAnalyzer_H
+#define OMTFHitAnalyzer_H
 
 #include "xercesc/util/XercesDefs.hpp"
 
@@ -17,13 +17,14 @@
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 
-#include "L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h"
+#include "L1Trigger/L1TMuonOverlap/interface/ProcessorBase.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternPdf4D.h"
 
-class PdfGeneratorProcessor;
+#include <TH1.h>
+
 class OMTFConfiguration;
 class OMTFConfigMaker;
 class OMTFinputMaker;
-class GoldenPattern;
 
 class SimTrack;
 
@@ -35,12 +36,12 @@ namespace XERCES_CPP_NAMESPACE{
   class DOMImplementation;
 }
 
-class OMTFPatternMaker : public edm::EDAnalyzer {
+class OMTFHitAnalyzer : public edm::EDAnalyzer {
 public:
 
-  OMTFPatternMaker(const edm::ParameterSet & cfg);
+	OMTFHitAnalyzer(const edm::ParameterSet & cfg);
 
-  virtual ~OMTFPatternMaker();
+  virtual ~OMTFHitAnalyzer();
 
   virtual void beginRun(edm::Run const& run, edm::EventSetup const& iSetup);
 
@@ -51,6 +52,10 @@ public:
   virtual void analyze(const edm::Event&, const edm::EventSetup&);  
 
 private:
+  typedef ProcessorBase<GoldenPatternPdf4D> Pdf4DGeneratorProcessor;
+
+  void configureProcesor(const OMTFConfiguration * omtfConfig,
+      const L1TMuonOverlapParams* omtfPatterns, unsigned int ptCode, int charge, unsigned int patNum);
 
   const SimTrack *findSimMuon(const edm::Event &ev, const edm::EventSetup &es, const SimTrack *previous=0);
 
@@ -62,8 +67,6 @@ private:
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> inputTokenCSC;
   edm::EDGetTokenT<RPCDigiCollection> inputTokenRPC;
   edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimHit;
-
-  void writeMergedGPs();
   
   bool makeConnectionsMaps, makeGoldenPatterns, mergeXMLFiles;
 
@@ -73,11 +76,13 @@ private:
   ///OMTF objects
   OMTFConfiguration *myOMTFConfig;
   OMTFinputMaker *myInputMaker;
-  PdfGeneratorProcessor *myOMTF;
+  Pdf4DGeneratorProcessor* myOMTF;
   ///
   xercesc::DOMElement *aTopElement;
   OMTFConfigMaker *myOMTFConfigMaker;
   XMLConfigWriter *myWriter;
+
+  TH1I* ptDist;
 
 }; 
 

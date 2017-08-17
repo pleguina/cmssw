@@ -13,6 +13,7 @@
 
 <use name="xerces-c"/>
 <use name="root"/>
+<use name="roofit"/>
 
 <use name="L1Trigger/RPCTrigger"/>
 <use name="DataFormats/L1TMuon"/>

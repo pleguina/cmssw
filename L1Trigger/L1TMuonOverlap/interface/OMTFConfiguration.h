@@ -133,7 +133,30 @@ class OMTFConfiguration{
 
   const vector4D & getMeasurements4D() const {return measurements4D;}
   const vector4D & getMeasurements4Dref() const {return measurements4Dref;}
+
+  ///uGMT pt scale conversion
+  double hwPtToGev(unsigned int hwPt) const {
+    return (hwPt - 1.) * 0.5;
+  }
+
+  ///pattern pt range in Gev
+  struct PatternPt {
+    double ptFrom = 0;
+    double ptTo = 0;
+  };
   
+  PatternPt getPatternPtRange(unsigned int patNum) const;
+
+  ///charge: -1 - negative, +1 - positive
+  unsigned int getPatternNum(double pt, int charge) const;
+
+
+  ///[index1][index2] = patternNum
+  ///contains each row (index1) contain the vector of up to 4 patterns (i.e. its numbers) that are merged in the firmware
+  ///(i.e. are in the same BRAM and have common meanDistPhi)
+  ///in some cases only 2 patterns are merged, then the getMergedPartters()[index1] has only 2 entries
+  vector2D getMergedPartters() const;
+
   friend std::ostream & operator << (std::ostream &out, const OMTFConfiguration & aConfig);
 
  private:

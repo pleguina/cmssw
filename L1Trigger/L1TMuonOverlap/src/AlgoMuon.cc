@@ -4,7 +4,7 @@
 #include <iostream>
 
 bool AlgoMuon::isValid() const{
- return m_q >= 0;
+ return m_pt >= 0; //should this realy be pt or quality ?? FIXME
 }
 
 bool AlgoMuon::operator< (const AlgoMuon & o) const{ 
@@ -20,11 +20,13 @@ std::ostream & operator<< (std::ostream &out, const AlgoMuon &o){
   out << " pt: "   << o.getPt()
       << ", phi: " << o.getPhi()
       << ", eta: " << o.getEta()*2.61/240
-      << ", hits: " << std::bitset<18>(o.getHits()).to_string()
+      << ", hits: " << std::bitset<18>(o.getFiredLayerBits()).to_string()
       << ", q: "   << o.getQ()
       << ", bx: "  << o.getBx()
       << ", charge: "<< o.getCharge()
-      << ", disc: "  << o.getDisc() << " refLayer: " << o.getRefLayer();
-  
+      << ", disc: "  << o.getDisc()
+      << " refLayer: " << o.getRefLayer()
+      << " m_patNumb: " << o.getPatternNumber();
+
   return out;
 }
