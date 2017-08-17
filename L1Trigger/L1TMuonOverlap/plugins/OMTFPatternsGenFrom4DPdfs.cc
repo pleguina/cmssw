@@ -85,6 +85,7 @@ void OMTFPatternsGenFrom4DPdfs::beginRun(edm::Run const& run, edm::EventSetup co
 
   myOMTFConfig->configure(&omtfParamsMutable);*/
 
+  myOMTFConfig->configure(omtfParams);
   processor->configure(myOMTFConfig, omtfParams);
 
 /*  int ptCode = theConfig.getParameter<int>("ptCode"); //assuming that here the legay PAC pt code is given
@@ -109,12 +110,13 @@ void OMTFPatternsGenFrom4DPdfs::beginJob(){
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////  
 void OMTFPatternsGenFrom4DPdfs::endJob(){
-  processor->generatePatterns();
+  //processor->generatePatterns();
   writeGPs();
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFPatternsGenFrom4DPdfs::writeGPs() {
+  myWriter->initialiseXMLDocument("OMTF");
   const std::vector<GoldenPattern*> & myGPs = processor->getPatterns();
 
   GoldenPattern *dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
@@ -125,10 +127,16 @@ void OMTFPatternsGenFrom4DPdfs::writeGPs() {
     std::vector<GoldenPattern*> gps(4, dummy);
     for(unsigned int i = 0; i < mergedPartters[iGroup].size(); i++) {
       GoldenPattern* gp = dynamic_cast<GoldenPattern*>(myGPs.at(mergedPartters[iGroup][i]));
+      if(gp == 0) {
+    	  throw cms::Exception("OMTFPatternsGenFrom4DPdfs::writeGPs() gp == 0");
+      }
+      cout<<gp->key()<<endl;;
       gps[i] =  gp;
     }
     myWriter->writeGPData(*gps[0],*gps[1], *gps[2], *gps[3]);
   }
+  std::string fName = "GPs.xml";
+  myWriter->finaliseXMLDocument(fName);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
