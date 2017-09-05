@@ -1,13 +1,13 @@
-#ifndef OMTF_OMTFSorter_H
-#define OMTF_OMTFSorter_H
+#ifndef OMTF_OMTFSorterWithThreshold_H
+#define OMTF_OMTFSorterWithThreshold_H
 
 #include <L1Trigger/L1TMuonOverlap/interface/SorterBase.h>
 #include <L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h>
 #include <vector>
 
-class OMTFSorter: public SorterBase<GoldenPattern> {
+class OMTFSorterWithThreshold: public SorterBase<GoldenPattern> {
 public:
-  virtual ~OMTFSorter() {}
+  virtual ~OMTFSorterWithThreshold() {}
 
   ///Sort results from a single reference hit.
   ///Select candidate with highest number of hit layers

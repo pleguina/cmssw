@@ -8,12 +8,12 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
-#include "L1Trigger/L1TMuonOverlap/interface/OMTFSorter.h"
+#include "L1Trigger/L1TMuonOverlap/interface/OMTFSorterWithThreshold.h"
 
 #include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-AlgoMuon OMTFSorter::sortRefHitResults(unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPattern> >& gPatterns,
+AlgoMuon OMTFSorterWithThreshold::sortRefHitResults(unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPattern> >& gPatterns,
 					  int charge){
 
   GoldenPattern* bestGP = 0; //the GoldenPattern with the best result for this iRefHit
@@ -30,19 +30,14 @@ AlgoMuon OMTFSorter::sortRefHitResults(unsigned int iRefHit, const std::vector< 
     if(itGP->getResults().at(iRefHit).getFiredLayerCnt() < 3) //TODO - move 3 to the configuration??
       continue;
 
-    if(bestGP == 0) {
-      bestGP = itGP.get();
-    }
-    else if(itGP->getResults().at(iRefHit).getFiredLayerCnt() > bestGP->getResults().at(iRefHit).getFiredLayerCnt() ){
-      bestGP = itGP.get();
-      //std::cout <<" sorter, byQual, now best is: "<<bestKey << " RefLayer "<<itKey.second.getRefLayer()<<" FiredLayerCn "<<itKey.second.getFiredLayerCnt()<<std::endl;
-    }
-    else if(itGP->getResults().at(iRefHit).getFiredLayerCnt() == bestGP->getResults().at(iRefHit).getFiredLayerCnt() ) {
-      if(itGP->getResults().at(iRefHit).getPdfWeigtSum() > bestGP->getResults().at(iRefHit).getPdfWeigtSum()) {
-        //if the PdfWeigtSum is equal, we take the GP with the lower number, i.e. lower pt = check if this is ok for physics FIXME (KB)
+    if(itGP->getResults()[iRefHit].getPdfWeigtSum() > itGP->getTreshold(itGP->getResults()[iRefHit].getRefLayer() )) {
+      if(bestGP == 0) {
         bestGP = itGP.get();
-        //std::cout <<" sorter, byDisc, now best is: "<<bestKey << " "<<itKey.second.getRefLayer()<<" FiredLayerCn "<<itKey.second.getFiredLayerCnt()<< std::endl;
       }
+      else if(itGP->getResults().at(iRefHit).getFiredLayerCnt() >= bestGP->getResults().at(iRefHit).getFiredLayerCnt() ){
+        bestGP = itGP.get();
+        //std::cout <<" sorter, byQual, now best is: "<<bestKey << " RefLayer "<<itKey.second.getRefLayer()<<" FiredLayerCn "<<itKey.second.getFiredLayerCnt()<<std::endl;
+      }//we take the on with the highest pattern number (i.e. pt) among these with the same FiredLayerCnt
     }
   }
 

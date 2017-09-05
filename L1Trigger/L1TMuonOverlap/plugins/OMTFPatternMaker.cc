@@ -80,8 +80,8 @@ void OMTFPatternMaker::beginRun(edm::Run const& run, edm::EventSetup const& iSet
   
   ///Clear existing GoldenPatterns
   if(!mergeXMLFiles){
-    const std::vector<GoldenPattern*> & theGPs = myOMTF->getPatterns();
-    for(auto itGP: theGPs) itGP->reset();
+    for(auto& itGP: myOMTF->getPatterns())
+      itGP->reset();
   }  
 }
 /////////////////////////////////////////////////////
@@ -97,8 +97,7 @@ void OMTFPatternMaker::endJob(){
 
   if(makeGoldenPatterns && !makeConnectionsMaps){
     myWriter->initialiseXMLDocument("OMTF");
-    const std::vector<GoldenPattern*> & myGPmap = myOMTF->getPatterns();
-    for(auto itGP: myGPmap){
+    for(auto& itGP: myOMTF->getPatterns()){
       if(!itGP->hasCounts()) continue;
       itGP->normalise(nPdfAddrBits);
     }
@@ -113,7 +112,7 @@ void OMTFPatternMaker::endJob(){
     omtfParamsMutable.setGeneralParams(generalParams);
     myOMTFConfig->configure(&omtfParamsMutable);
 
-    for(auto itGP: myGPmap){
+    for(auto& itGP: myOMTF->getPatterns()){
       ////
       unsigned int iPt = theConfig.getParameter<int>("ptCode")+1;
       if(iPt>31) iPt = 200*2+1;
@@ -122,7 +121,7 @@ void OMTFPatternMaker::endJob(){
       if(itGP->key().thePt==iPt &&
           itGP->key().theCharge==theConfig.getParameter<int>("charge")){
         //std::cout<<*itGP.second<<std::endl;
-        myWriter->writeGPData(*((GoldenPattern*)itGP), dummyGP, dummyGP, dummyGP);
+        myWriter->writeGPData(*itGP, dummyGP, dummyGP, dummyGP);
       }
     }
     std::string fName = "GPs.xml";
@@ -152,9 +151,8 @@ void OMTFPatternMaker::endJob(){
 
     std::string fName = "OMTF";
     myWriter->initialiseXMLDocument(fName);
-    const std::vector<GoldenPattern*> & myGPmap = myOMTF->getPatterns();
-    for(auto itGP: myGPmap){
-      myWriter->writeGPData(*((GoldenPattern*)itGP),*dummy, *dummy, *dummy);
+    for(auto& itGP: myOMTF->getPatterns()){
+      myWriter->writeGPData(*itGP, *dummy, *dummy, *dummy);
     }
     fName = "GPs.xml";
     myWriter->finaliseXMLDocument(fName);
@@ -173,8 +171,6 @@ void OMTFPatternMaker::endJob(){
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFPatternMaker::writeMergedGPs(){
-  const std::vector<GoldenPattern*> & myGPs = myOMTF->getPatterns();
-
   GoldenPattern *dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
   dummy->reset();
 
@@ -233,7 +229,7 @@ void OMTFPatternMaker::writeMergedGPs(){
   for(unsigned int iGroup = 0; iGroup < mergedPartters.size(); iGroup++) {
     std::vector<GoldenPattern*> gps(4, dummy);
     for(unsigned int i = 0; i < mergedPartters[iGroup].size(); i++) {
-      GoldenPattern* gp = dynamic_cast<GoldenPattern*>(myGPs.at(mergedPartters[iGroup][i]));
+      GoldenPattern* gp = myOMTF->getPatterns().at(mergedPartters[iGroup][i]).get();
       gps[i] =  gp;
     }
     myWriter->writeGPData(*gps[0],*gps[1], *gps[2], *gps[3]);

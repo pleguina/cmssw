@@ -8,13 +8,15 @@
 #ifndef OMTF_PROCESSORBASE_HXX_
 #define OMTF_PROCESSORBASE_HXX_
 
+#include <memory>
+
 #include "SimDataFormats/Track/interface/SimTrack.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 template<class GoldenPatternType>
 void ProcessorBase<GoldenPatternType>::resetConfiguration(){
   //myResults.clear();
-  for(auto it: theGPs) delete it;
+  //for(auto it: theGPs) delete it;
   theGPs.clear();
 }
 
@@ -49,7 +51,7 @@ bool ProcessorBase<GoldenPatternType>::configure(const OMTFConfiguration* omtfCo
 
     Key aKey(iEta,iPt,iCharge,iGP);
     edm::LogInfo("OMTFProcessor::configure")<<"adding pattern "<<aKey<<" "<<myOmtfConfig->getPatternPtRange(iGP).ptFrom<<" - "<<myOmtfConfig->getPatternPtRange(iGP).ptTo<<" GeV"<<std::endl;
-    GoldenPatternType *aGP = new GoldenPatternType(aKey, myOmtfConfig);
+    GoldenPatternType* aGP = new GoldenPatternType(aKey, myOmtfConfig);
 
     ///Mean dist phi data
     for(unsigned int iLayer=0;iLayer<myOmtfConfig->nLayers();++iLayer){
@@ -57,7 +59,7 @@ bool ProcessorBase<GoldenPatternType>::configure(const OMTFConfiguration* omtfCo
         address = iRefLayer + iLayer*myOmtfConfig->nRefLayers() + iGP*(myOmtfConfig->nRefLayers()*myOmtfConfig->nLayers());
         int value = meanDistPhiLUT->data(address) - (1<<(meanDistPhiLUT->nrBitsData() -1));
         aGP->setMeanDistPhiValue(value, iLayer, iRefLayer, 0);
-        if(meanDistPhiLUT->nrBitsAddress() == 15) {//for the enw version of the meanDistPhi which have two values for each gp,iLayer,iRefLayer
+        if(meanDistPhiLUT->nrBitsAddress() == 15) {//for the new version of the meanDistPhi which have two values for each gp,iLayer,iRefLayer, FIXME: do it a better way
           value = meanDistPhiLUT->data(address + meanDistPhiSize) - (1<<(meanDistPhiLUT->nrBitsData() -1));
           //the second meanDistPhi is in the LUT at the position (address+meanDistPhiSize)
           aGP->setMeanDistPhiValue(value, iLayer, iRefLayer, 1);
@@ -83,31 +85,8 @@ bool ProcessorBase<GoldenPatternType>::configure(const OMTFConfiguration* omtfCo
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 template<class GoldenPatternType>
-bool ProcessorBase<GoldenPatternType>::addGP(GoldenPatternType* aGP) {
-/*  auto gpIt = std::find(std::begin(theGPs), std::end(theGPs), aGP->key());
-  if(gpIt !=theGPs.end()){
-    throw cms::Exception("Corrupted Golden Patterns data")
-    <<"ProcessorBase::addGP(...) "
-    <<" Reading two Golden Patterns with the same key: "
-    <<aGP->key()<<std::endl;
-  }*/
-
-  //FIXME - should we also check the pt, charge and eta???
-/*  if(theGPs.size() != aGP->key().theNumber) {
-    throw cms::Exception("Corrupted Golden Patterns data")
-    <<"ProcessorBase::addGP(...) "
-    <<" theGPs.size() != aGP->key().theNumber: "
-    <<aGP->key()<<std::endl;
-  }
-  //else theGPs[aGP->key()] = new GoldenPattern(*aGP);
-  else */
-  theGPs.push_back(aGP);
-
-  for(auto & itResult: aGP->getResults()){
-    itResult.configure(myOmtfConfig);
-  }
-
-  return true;
+void ProcessorBase<GoldenPatternType>::addGP(GoldenPatternType* aGP) {
+  theGPs.emplace_back(std::unique_ptr<GoldenPatternType>(aGP));
 }
 
 ////////////////////////////////////////////
@@ -123,7 +102,7 @@ OMTFinput::vector1D ProcessorBase<GoldenPatternType>::restrictInput(unsigned int
   unsigned int iStart = myOmtfConfig->getConnections()[iProcessor][iRegion][iLayer].first;
   unsigned int iEnd = iStart + myOmtfConfig->getConnections()[iProcessor][iRegion][iLayer].second -1;
 
-  for(unsigned int iInput=0;iInput<14;++iInput){
+  for(unsigned int iInput=0;iInput<myHits.size();++iInput){
     if(iInput<iStart || iInput>iEnd) myHits[iInput] = myOmtfConfig->nPhiBins();
   }
   return myHits;

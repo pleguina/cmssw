@@ -133,6 +133,18 @@ void OMTFHitAnalyzer::beginRun(edm::Run const& run, edm::EventSetup const& iSetu
   configureProcesor(myOMTFConfig, omtfParams, ptCode, charge, patNum);
   //myOMTFConfigMaker = new OMTFConfigMaker(myOMTFConfig);
 
+  for(int iPt = 0; iPt <= 31; iPt++) {
+    double pt = RPCConst::ptFromIpt(iPt);
+    unsigned int patNum = myOMTFConfig->getPatternNum(pt, charge);
+    ptCode = omtfParams->ptLUT()->data(patNum );
+    std::cout<<" ipt "<<std::setw(3)<<iPt<<" pt "<<std::setw(3)<<pt<<" [GeV]"<<std::setw(3)<<" patNum "<<std::setw(3)<<patNum<<" ptCodeOmtf "<<std::setw(3)<<ptCode<<endl;
+  }
+
+  for(unsigned int iPat = 0; iPat < myOMTFConfig->nGoldenPatterns(); iPat++) {
+    std::cout<<"pat num"<<std::setw(3)<<iPat<<" ptFrom "<<std::setw(3)<<myOMTFConfig->getPatternPtRange(iPat).ptFrom
+        <<" ptFrom "<<std::setw(3)<<myOMTFConfig->getPatternPtRange(iPat).ptTo<<std::endl;
+  }
+
   std::cout<<"OMTFHitAnalyzer::beginRun: myOMTFConfig "<<*myOMTFConfig;
 }
 /////////////////////////////////////////////////////
@@ -166,7 +178,7 @@ void OMTFHitAnalyzer::endJob(){
     myOMTFConfig->configure(&omtfParamsMutable);*/
 
     cout<<__FUNCTION__<<":"<<__LINE__<<"myOMTF->getPatterns().size()"<<myOMTF->getPatterns().size()<<" "<<endl;
-    for(auto itGP: myOMTF->getPatterns()) {
+    for(auto& itGP: myOMTF->getPatterns()) {
        /*      if(itGP.first.thePtCode==iPt &&
           itGP.first.theCharge==theConfig.getParameter<int>("charge")) {
         //std::cout<<*itGP.second<<std::endl; FIXME
@@ -193,7 +205,7 @@ void OMTFHitAnalyzer::endJob(){
           histName<<"ipt_"<<itGP->key().thePt<<"_ch"<<itGP->key().theCharge<<"_layer_"<<iLayer<<"_refLayer_"<<iRefLayer<<" ";
 
           unsigned int refLayerPhiBSize = itGP->getPdf()[iLayer][iRefLayer].size();
-          unsigned int layerPhiSize = (static_cast<GoldenPatternPdf4D*>(itGP))->getPdf()[iLayer][iRefLayer][0].size();
+          unsigned int layerPhiSize = (itGP)->getPdf()[iLayer][iRefLayer][0].size();
           cout<<"creating hist "<<histName.str()<<" refLayerPhiBSize "<<refLayerPhiBSize<<" layerPhiSize "<<layerPhiSize<<std::endl;
 
           if(refLayerPhiBSize == 1 ) {

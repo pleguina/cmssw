@@ -51,7 +51,7 @@ public:
 
   ///Process single measurement layer with a single ref layer
   ///Method should be thread safe
-  virtual IGoldenPattern::layerResult process1Layer1RefLayer(unsigned int iRefLayer,
+  virtual GoldenPatternResult::layerResult process1Layer1RefLayer(unsigned int iRefLayer,
       unsigned int iLayer,
       const int refPhi,
       const OMTFinput::vector1D & layerHits,
@@ -86,6 +86,14 @@ public:
   ///last step of the event processing, before sorting and ghost busting
   virtual void finalise();
 
+  unsigned int getTreshold(unsigned int iRefLayer) const {
+    return thresholds.at(iRefLayer);
+  }
+
+  void setThresholds(std::vector<unsigned int>& tresholds) {
+    this->thresholds = tresholds;
+  }
+
 private:
   ///Distributions for all reference layers
   ///First index: measurement layer number
@@ -102,6 +110,8 @@ private:
   ///Vector holding number of counts.
   ///Used for making the patterns
   vector2D meanDistPhiCounts;
+
+  std::vector<unsigned int> thresholds;
 };
 //////////////////////////////////
 //////////////////////////////////

@@ -14,7 +14,11 @@ simOmtfDigis = cms.EDProducer("L1TMuonOverlapTrackProducer",
                               eventsXMLFiles = cms.vstring("TestEvents.xml"),
                               dropRPCPrimitives = cms.bool(False),                                    
                               dropDTPrimitives = cms.bool(False),                                    
-                              dropCSCPrimitives = cms.bool(False)   
+                              dropCSCPrimitives = cms.bool(False),
+                              #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")   
+                              #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/GPs_ArtWithThresh.xml")
+                              #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/GPs78_withThresh2.xml")
+                              #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/GPsNorm1NoCor_WithThresh4.xml")                             
 )
 
 

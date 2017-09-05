@@ -17,6 +17,8 @@ public:
   virtual ~PatternsGeneratorProcessor();
 
   void generatePatterns();
+
+  void generateThresholds();
 };
 
 #endif /* OMTF_PATTERNSGENERATORPROCESSOR_H_ */

@@ -110,14 +110,15 @@ void OMTFPatternsGenFrom4DPdfs::beginJob(){
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////  
 void OMTFPatternsGenFrom4DPdfs::endJob(){
-  //processor->generatePatterns();
+ //processor->generatePatterns();
+  processor-> generateThresholds();
   writeGPs();
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFPatternsGenFrom4DPdfs::writeGPs() {
   myWriter->initialiseXMLDocument("OMTF");
-  const std::vector<GoldenPattern*> & myGPs = processor->getPatterns();
+  const PatternsGeneratorProcessor::GoldenPatternVec& myGPs = processor->getPatterns();
 
   GoldenPattern *dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
   dummy->reset();
@@ -126,11 +127,16 @@ void OMTFPatternsGenFrom4DPdfs::writeGPs() {
   for(unsigned int iGroup = 0; iGroup < mergedPartters.size(); iGroup++) {
     std::vector<GoldenPattern*> gps(4, dummy);
     for(unsigned int i = 0; i < mergedPartters[iGroup].size(); i++) {
-      GoldenPattern* gp = dynamic_cast<GoldenPattern*>(myGPs.at(mergedPartters[iGroup][i]));
-      if(gp == 0) {
-    	  throw cms::Exception("OMTFPatternsGenFrom4DPdfs::writeGPs() gp == 0");
-      }
-      cout<<gp->key()<<endl;;
+      GoldenPattern* gp = myGPs.at(mergedPartters[iGroup][i]).get();
+
+      /*cout<<gp->key()<<endl;;
+      for(unsigned int iLayer = 0; iLayer<myOMTFConfig->nLayers(); ++iLayer) {
+        for(unsigned int iRefLayer=0; iRefLayer<myOMTFConfig->nRefLayers(); ++iRefLayer) {
+          if(gp->getPdf()[iLayer][iRefLayer][0] != 0) {
+            cout<<"iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" pdf[0] "<<gp->getPdf()[iLayer][iRefLayer][0]<<"!!!!!!!!!!!!!!!!!!!!\n";
+          }
+        }
+      }*/
       gps[i] =  gp;
     }
     myWriter->writeGPData(*gps[0],*gps[1], *gps[2], *gps[3]);

@@ -13,6 +13,9 @@
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
 #include "L1Trigger/L1TMuonOverlap/interface/XMLConfigWriter.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OmtfName.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GhostBusterPreferRefDt.h"
+#include "L1Trigger/L1TMuonOverlap/interface/OMTFSorterWithThreshold.h"
+#include "L1Trigger/L1TMuonOverlap/interface/XMLConfigReader.h"
 
 #include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 
@@ -66,11 +69,27 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
   const L1TMuonOverlapParams* omtfParams = omtfParamsHandle.product();
 
   if (!omtfParams) {
-    edm::LogError("L1TMuonOverlapTrackProducer") << "Could not retrieve parameters from Event Setup" << std::endl;
+    edm::LogError("OMTFReconstruction") << "Could not retrieve parameters from Event Setup" << std::endl;
   }
 
   m_OMTFConfig->configure(omtfParams);
-  m_OMTF->configure(m_OMTFConfig, omtfParams);
+
+  if(m_Config.exists("patternsXMLFile") ) {
+    std::string patternsXMLFile = m_Config.getParameter<edm::FileInPath>("patternsXMLFile").fullPath();
+    edm::LogImportant("OMTFReconstruction") << "reading patterns from "<<patternsXMLFile << std::endl;
+    XMLConfigReader xnlReader;
+    xnlReader.setPatternsFile(patternsXMLFile);
+    auto const & gps = xnlReader.readPatterns(*omtfParams);
+    m_OMTF->setConfigurataion(m_OMTFConfig);
+    m_OMTF->setGPs(gps);
+    edm::LogImportant("OMTFReconstruction") << " goldenPattern size "<<gps.size() << std::endl;
+    for(auto& gp :  m_OMTF->getPatterns()) {
+      if(gp.get() != 0)
+        edm::LogImportant("OMTFReconstruction") <<gp->key()<< std::endl;
+    }
+  }
+  else
+    m_OMTF->configure(m_OMTFConfig, omtfParams);
 
   m_InputMaker.initialize(iSetup, m_OMTFConfig);
 
@@ -79,6 +98,11 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
     std::string fName = "OMTF";
     m_Writer->initialiseXMLDocument(fName);
   }
+
+  //emulator configuration
+  //GoldenPatternResult::setFinalizeFunction(1);
+  //m_OMTF->setSorter(new OMTFSorterWithThreshold());
+  //m_OMTF->setGhostBuster(new GhostBusterPreferRefDt(m_OMTFConfig));
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -121,7 +145,7 @@ void OMTFReconstruction::loadAndFilterDigis(const edm::Event& iEvent){
 void OMTFReconstruction::getProcessorCandidates(unsigned int iProcessor, l1t::tftype mtfType, int bx,
                l1t::RegionalMuonCandBxCollection & omtfCandidates){
 
-  
+
   m_InputMaker.setFlag(0);
   OMTFinput input = m_InputMaker.buildInputForProcessor(dtPhDigis.product(),
                 dtThDigis.product(),
@@ -129,7 +153,7 @@ void OMTFReconstruction::getProcessorCandidates(unsigned int iProcessor, l1t::tf
                 rpcDigis.product(),
                 iProcessor, mtfType);
   int flag = m_InputMaker.getFlag();
-  
+
   m_OMTF->processInput(iProcessor,input);
 
   std::vector<AlgoMuon> algoCandidates =  m_OMTF->sortResults();

@@ -52,7 +52,7 @@ const void OMTFProcessor::processInput(unsigned int iProcessor,
   for(unsigned int iLayer=0;iLayer<myOmtfConfig->nLayers();++iLayer) {
     const OMTFinput::vector1D & layerHits = aInput.getLayerData(iLayer);
 
-    if(!layerHits.size()) continue;
+    if(!layerHits.size()) continue; //in principle not needed, the size is always 14
     ///Number of reference hits to be checked. 
     unsigned int nTestedRefHits = myOmtfConfig->nTestRefHits();
     for(unsigned int iRefHit = 0; iRefHit < myOmtfConfig->nRefHits(); ++iRefHit) { //loop over all possible refHits, i.e. 128
@@ -69,15 +69,26 @@ const void OMTFProcessor::processInput(unsigned int iProcessor,
         phiRef = 0;  //then in the delta_phi in process1Layer1RefLayer one obtains simply the iLayer phi
 
       const OMTFinput::vector1D restrictedLayerHits = restrictInput(iProcessor, iRegion, iLayer,layerHits);
+      //std::cout<<"iLayer "<<iLayer<<" iRefLayer "<<aRefHitDef.iRefLayer<<" hits.size "<<restrictedLayerHits.size()<<std::endl;
       //std::cout<<"iLayer "<<iLayer<<" refHitNum "<<myOmtfConfig->nTestRefHits()-nTestedRefHits-1<<" iRefHit "<<iRefHit;
       //std::cout<<" nTestedRefHits "<<nTestedRefHits<<" aRefHitDef "<<aRefHitDef<<std::endl;
+
+      int refLayerLogicNumber = myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer];
+      int refLayerPhiB = 0;
+      if(refLayerLogicNumber < 6) {//is DT layer TODO - check
+        refLayerPhiB = aInput.getLayerData(refLayerLogicNumber+1)[aRefHitDef.iInput]; //corresponding bending layer has number +1 versus the phi DT layer - this is configured in the XML
+        if(myOmtfConfig->getBendingLayers().count(refLayerLogicNumber+1) == 0) {
+          throw cms::Exception("not good: the layer is not bending layer");
+        }
+      }
 
       for(auto& itGP: theGPs) {
         if(itGP->key().thePt == 0) //empty pattern
           continue;
-        GoldenPattern::layerResult aLayerResult = itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer,
+        GoldenPatternResult::layerResult layerResult = itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer,
             phiRef,
-            restrictedLayerHits);
+            restrictedLayerHits,
+            refLayerPhiB);
         int phiRefSt2 = itGP->propagateRefPhi(phiRef, etaRef, aRefHitDef.iRefLayer);
 /*        myResults[myOmtfConfig->nTestRefHits()-nTestedRefHits-1][itGP.second->key()].setRefPhiRHits(aRefHitDef.iRefLayer, phiRef);
         myResults[myOmtfConfig->nTestRefHits()-nTestedRefHits-1][itGP.second->key()].addResult(aRefHitDef.iRefLayer, iLayer,
@@ -85,7 +96,7 @@ const void OMTFProcessor::processInput(unsigned int iProcessor,
             phiRefSt2, etaRef);*/
 
         //myResults.at(myOmtfConfig->nTestRefHits()-nTestedRefHits-1).at(itGP->key()).set(aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef, iLayer, aLayerResult.first);
-        itGP->getResults().at(myOmtfConfig->nTestRefHits()-nTestedRefHits-1).set(aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef, iLayer, aLayerResult.first);
+        itGP->getResults().at(myOmtfConfig->nTestRefHits()-nTestedRefHits-1).set(aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef, iLayer, layerResult);
       }
     }
   }

@@ -246,10 +246,13 @@ std::unique_ptr<GoldenPattern> XMLConfigReader::buildGP(DOMElement* aGPElement,
   XMLCh *xmliEta= _toDOMS("iEta");
   //index 0 means no number at the end
   std::ostringstream stringStr;
-  if (index>0) stringStr<<"iPt"<<index;
-  else stringStr.str("iPt");
+  if (index>0)
+    stringStr<<"iPt"<<index;
+  else
+    stringStr.str("iPt");
   XMLCh *xmliPt=_toDOMS(stringStr.str().c_str());
   stringStr.str("");
+
   if (index>0) stringStr<<"value"<<index;
   else stringStr.str("value");
   XMLCh *xmlValue=_toDOMS(stringStr.str().c_str());
@@ -296,6 +299,30 @@ std::unique_ptr<GoldenPattern> XMLConfigReader::buildGP(DOMElement* aGPElement,
     return aGP;
   }
 
+
+  stringStr.str("");
+  XMLCh* xmlRefLayerThresh = _toDOMS("RefLayerThresh");
+  if (index>0)
+    stringStr<<"tresh"<<index;
+  else
+    stringStr.str("tresh");
+  XMLCh *xmlTresh=_toDOMS(stringStr.str().c_str());
+  stringStr.str("");
+
+  std::vector<unsigned int> thresholds(aConfig.nRefLayers(), 0);
+  unsigned int nItems = aGPElement->getElementsByTagName(xmlRefLayerThresh)->getLength();
+  if(nItems > 0 && nItems != thresholds.size()) {
+    throw cms::Exception("OMTF::XMLConfigReader: nItems != thresholds.size()");
+  }
+  for(unsigned int iItem=0; iItem<nItems; ++iItem) {
+    aNode = aGPElement->getElementsByTagName(xmlRefLayerThresh)->item(iItem);
+    aItemElement = dynamic_cast<DOMElement*>(aNode);
+    if(aItemElement == 0)
+      throw cms::Exception("OMTF::XMLConfigReader: aItemElement is 0");
+    std::string strVal = _toString(aItemElement->getAttribute(xmlTresh));
+    thresholds[iItem] = std::stoi(strVal);
+  }
+
   ///Loop over layers
   for(unsigned int iLayer=0;iLayer<nLayers;++iLayer){
     aNode = aGPElement->getElementsByTagName(xmlLayer)->item(iLayer);
@@ -340,6 +367,7 @@ std::unique_ptr<GoldenPattern> XMLConfigReader::buildGP(DOMElement* aGPElement,
   auto aGP = std::make_unique<GoldenPattern>(aKey);
   aGP->setMeanDistPhi(meanDistPhi);
   aGP->setPdf(pdf3D);
+  aGP->setThresholds(thresholds);
 
   XMLString::release(&xmliEta);
   XMLString::release(&xmliPt);

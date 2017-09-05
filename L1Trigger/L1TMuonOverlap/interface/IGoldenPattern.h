@@ -55,7 +55,6 @@ class IGoldenPattern {
   typedef std::vector<vector1D> vector2D;
   typedef std::vector<vector2D> vector3D;
   typedef std::vector<vector3D> vector4D;
-  typedef std::pair<int,bool> layerResult;
 
   //
   // IGoldenPatterns methods
@@ -67,6 +66,11 @@ class IGoldenPattern {
 
   virtual ~IGoldenPattern() {}
   
+  virtual void setConfig(const OMTFConfiguration * omtfConfig) {
+    myOmtfConfig = omtfConfig;
+    results.assign(myOmtfConfig->nTestRefHits(), GoldenPatternResult(omtfConfig));
+  }
+
   virtual Key key() const {return theKey;}
 
   //void setMeanDistPhi(const vector2D & aMeanDistPhi) { meanDistPhi = aMeanDistPhi; }

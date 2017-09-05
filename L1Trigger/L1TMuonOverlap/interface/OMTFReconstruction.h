@@ -78,7 +78,6 @@ class OMTFReconstruction {
     xercesc::DOMElement *aTopElement;
     OMTFConfigMaker     *m_OMTFConfigMaker;
     XMLConfigWriter     *m_Writer;
-	
 };
 
 #endif

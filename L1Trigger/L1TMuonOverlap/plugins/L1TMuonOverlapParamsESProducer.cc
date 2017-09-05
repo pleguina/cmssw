@@ -21,17 +21,17 @@ L1TMuonOverlapParamsESProducer::L1TMuonOverlapParamsESProducer(const edm::Parame
   
   if (!theConfig.exists("configXMLFile") ) return;
   std::string fName = theConfig.getParameter<edm::FileInPath>("configXMLFile").fullPath();
+
+  XMLConfigReader myReader;
+  myReader.setConfigFile(fName);
+  readConnectionsXML(myReader);
   
   ///WARNING: filling the CondFormats objects works only for a single XML patterns file.
   if (!theConfig.exists("patternsXMLFiles") ) return;
   std::vector<std::string> fileNames;
   for(auto it: theConfig.getParameter<std::vector<edm::ParameterSet> >("patternsXMLFiles")){
     fileNames.push_back(it.getParameter<edm::FileInPath>("patternsXMLFile").fullPath());
-  }  
-  
-  XMLConfigReader myReader;
-  myReader.setConfigFile(fName);
-  readConnectionsXML(myReader);
+  }
   
   for(auto it: fileNames){
     myReader.setPatternsFile(it);

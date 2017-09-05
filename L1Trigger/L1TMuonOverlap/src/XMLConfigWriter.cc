@@ -438,6 +438,16 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
   setAttribute(aGPElement, "iPt3", aGP3.key().thePt);
   setAttribute(aGPElement, "iPt4", aGP4.key().thePt);
 
+  for(unsigned int iRefLayer=0;iRefLayer<myOMTFConfig->nRefLayers();++iRefLayer){
+    xercesc::DOMElement* aRefLayerThresh = theDoc->createElement(_toDOMS("RefLayerThresh"));
+    setAttribute(aRefLayerThresh, "tresh1", aGP1.getTreshold(iRefLayer));
+    setAttribute(aRefLayerThresh, "tresh2", aGP2.getTreshold(iRefLayer));
+    setAttribute(aRefLayerThresh, "tresh3", aGP3.getTreshold(iRefLayer));
+    setAttribute(aRefLayerThresh, "tresh4", aGP4.getTreshold(iRefLayer));
+
+    aGPElement->appendChild(aRefLayerThresh);
+  }
+
   setAttribute(aGPElement, "iEta", 0); //aGP1.key().theEtaCode; //No eta code at the moment
 
   setAttribute(aGPElement, "iPhi", 0); //No phi code is assigned to GP for the moment.

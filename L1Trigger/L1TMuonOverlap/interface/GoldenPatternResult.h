@@ -10,6 +10,7 @@ class OMTFConfiguration;
 class GoldenPatternResult {
 public:
   typedef std::vector<unsigned int> vector1D;
+  typedef std::pair<int,bool> layerResult;
 
 private:
   bool valid;
@@ -39,6 +40,8 @@ private:
   ///phi of the reference hits
   unsigned int refHitPhi;
 
+  static int finalizeFunction;
+
 public:
   void reset();
 
@@ -51,7 +54,7 @@ public:
   }
 
   void set(int refLayer, unsigned int phi, unsigned int eta, unsigned int refHitPhi,
-      unsigned int iLayer, unsigned int pdfVal);
+      unsigned int iLayer, layerResult layerResult);
 
   int getRefLayer() const {
     return this->refLayer;
@@ -151,13 +154,26 @@ public:
 
   void set();
 
-  void finalise();
+  void finalise() {
+    if(finalizeFunction == 1)
+      finalise1();
+    else
+      finalise0();
+  }
 
+  //version for the "normal" patterns, i.e. without pdfSum threshold
+  void finalise0();
 
+  //version for the patterns with pdfSum threshold
+  void finalise1();
 
   //bool empty() const;
 
   friend std::ostream & operator << (std::ostream &out, const GoldenPatternResult & aResult);
+
+  static void setFinalizeFunction(int finalizeFunction_) {
+    finalizeFunction = finalizeFunction_;
+  }
 
 private:
   /*  ///Pdf weight found for each layer
