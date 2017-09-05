@@ -25,7 +25,7 @@ void GoldenPatternResult::configure(const OMTFConfiguration * omtfConfig) {
 ////////////////////////////////////////////
 
 void GoldenPatternResult::set(int refLayer_, unsigned int phi, unsigned int eta, unsigned int refHitPhi,
-    unsigned int iLayer, unsigned int pdfVal) {
+    unsigned int iLayer, GoldenPatternResult::layerResult layerResult) {
   if( isValid() && this->refLayer != refLayer_) {
     std::cout<<__FUNCTION__<<" "<<__LINE__<<" this->refLayer "<<this->refLayer<<" refLayer_ "<<refLayer_<<std::endl;
   }
@@ -35,7 +35,9 @@ void GoldenPatternResult::set(int refLayer_, unsigned int phi, unsigned int eta,
   this->phi = phi;
   this->eta = eta;
   this->refHitPhi = refHitPhi;
-  pdfWeights[iLayer] = pdfVal;
+  pdfWeights[iLayer] = layerResult.first;
+  if(layerResult.second)
+    firedLayerBits |= (1<< iLayer);
   //std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" refLayer "<<refLayer<<std::endl;
   //pdfWeightSum += pdfVal; - this cannot be done here, because the pdfVal for the banding layer must be added only
   //if hit in the corresponding phi layer was accpeted (i.e. its pdfVal > 0. therefore it is done in finalise()
@@ -93,13 +95,15 @@ void GoldenPatternResult::finalise() {
   for(unsigned int iLogicLayer=0; iLogicLayer < pdfWeights.size(); ++iLogicLayer) {
     unsigned int connectedLayer = myOmtfConfig->getLogicToLogic().at(iLogicLayer);
 
-    ///If connected layer (POS or BEND) has not been fired, ignore this layer also
-    unsigned int val = pdfWeights[connectedLayer] > 0 ? pdfWeights[iLogicLayer] : 0;
-    pdfWeightSum += val;
-    firedLayerBits += (val>0)*std::pow(2,iLogicLayer);
-    ///Do not count bending layers in hit count
-    if(!myOmtfConfig->getBendingLayers().count(iLogicLayer))
-      firedLayerCnt += (val>0);
+    //TODO for the version with threshold, the condition requiring the connectedLayer to be fired should be removed
+    if(firedLayerBits & (1<<connectedLayer)) {
+      pdfWeightSum += pdfWeights[iLogicLayer];
+      if(!myOmtfConfig->getBendingLayers().count(iLogicLayer))
+        firedLayerCnt += ( (firedLayerBits & (1<<iLogicLayer)) != 0 );
+    }
+    else {
+      firedLayerBits &= ~(1<<iLogicLayer);
+    }
   }
 
   valid = true;

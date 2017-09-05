@@ -13,7 +13,7 @@
 #include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-AlgoMuon OMTFSorter::sortRefHitResults(unsigned int iRefHit, const std::vector<GoldenPattern*>& gPatterns,
+AlgoMuon OMTFSorter::sortRefHitResults(unsigned int iRefHit, const std::vector< std::unique_ptr<GoldenPattern> >& gPatterns,
 					  int charge){
 
   GoldenPattern* bestGP = 0; //the GoldenPattern with the best result for this iRefHit
@@ -31,16 +31,16 @@ AlgoMuon OMTFSorter::sortRefHitResults(unsigned int iRefHit, const std::vector<G
       continue;
 
     if(bestGP == 0) {
-      bestGP = itGP;
+      bestGP = itGP.get();
     }
     else if(itGP->getResults().at(iRefHit).getFiredLayerCnt() > bestGP->getResults().at(iRefHit).getFiredLayerCnt() ){
-      bestGP = itGP;
+      bestGP = itGP.get();
       //std::cout <<" sorter, byQual, now best is: "<<bestKey << " RefLayer "<<itKey.second.getRefLayer()<<" FiredLayerCn "<<itKey.second.getFiredLayerCnt()<<std::endl;
     }
     else if(itGP->getResults().at(iRefHit).getFiredLayerCnt() == bestGP->getResults().at(iRefHit).getFiredLayerCnt() ) {
       if(itGP->getResults().at(iRefHit).getPdfWeigtSum() > bestGP->getResults().at(iRefHit).getPdfWeigtSum()) {
         //if the PdfWeigtSum is equal, we take the GP with the lower number, i.e. lower pt = check if this is ok for physics FIXME (KB)
-        bestGP = itGP;
+        bestGP = itGP.get();
         //std::cout <<" sorter, byDisc, now best is: "<<bestKey << " "<<itKey.second.getRefLayer()<<" FiredLayerCn "<<itKey.second.getFiredLayerCnt()<< std::endl;
       }
     }

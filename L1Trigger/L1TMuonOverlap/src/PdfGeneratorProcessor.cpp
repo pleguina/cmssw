@@ -26,14 +26,14 @@ void  PdfGeneratorProcessor::averagePatterns(){
   for(unsigned int iGroup = 0; iGroup < mergedPartters.size(); iGroup++) {
     if(mergedPartters[iGroup].size() > 1) {
 
-      GoldenPattern* gp = dynamic_cast<GoldenPattern*>(theGPs.at(mergedPartters[iGroup][0]));
+      GoldenPattern* gp = theGPs.at(mergedPartters[iGroup][0]).get();
       if(gp == 0)
         throw cms::Exception("PdfGeneratorProcessor::averagePatterns works only for GoldenPatter");
 
       GoldenPattern::vector3D meanDistPhi = gp->getMeanDistPhi();
 
       for(unsigned int i = 1; i < mergedPartters[iGroup].size(); i++) {
-        GoldenPattern* gp = static_cast<GoldenPattern*>(theGPs.at( mergedPartters[iGroup][i]));
+        GoldenPattern* gp = theGPs.at( mergedPartters[iGroup][i]).get();
         for(unsigned int iLayer=0; iLayer<myOmtfConfig->nLayers(); ++iLayer) {
           for(unsigned int iRefLayer=0; iRefLayer<myOmtfConfig->nRefLayers(); ++iRefLayer) {
             meanDistPhi[iLayer][iRefLayer][0] += gp->getMeanDistPhi()[iLayer][iRefLayer][0];
@@ -48,7 +48,7 @@ void  PdfGeneratorProcessor::averagePatterns(){
       }
 
       for(unsigned int i = 0; i < mergedPartters[iGroup].size(); i++) {
-        GoldenPattern* gp = static_cast<GoldenPattern*>(theGPs.at( mergedPartters[iGroup][i]));
+        GoldenPattern* gp = theGPs.at( mergedPartters[iGroup][i]).get();
         shiftGP(gp, meanDistPhi, gp->getMeanDistPhi());
         gp->setMeanDistPhi(meanDistPhi);
       }

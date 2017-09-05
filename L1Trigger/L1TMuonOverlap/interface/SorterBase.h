@@ -21,7 +21,7 @@ class SorterBase {
 public:
   virtual ~SorterBase() {}
 
-  virtual std::vector<AlgoMuon> sortResults(const std::vector<GoldenPatternType*>& gPatterns, int charge=0) {
+  virtual std::vector<AlgoMuon> sortResults(const std::vector< std::unique_ptr<GoldenPatternType> >& gPatterns, int charge=0) {
     std::vector<AlgoMuon> refHitCands(gPatterns.at(0)->getResults().size());
   //  for(auto itRefHit: procResults) refHitCands.push_back(sortRefHitResults(itRefHit,charge));
     for (unsigned int iRefHit = 0 ; iRefHit < gPatterns.at(0)->getResults().size(); iRefHit++) {
@@ -37,7 +37,7 @@ public:
   ///Select candidate with highest number of hit layers
   ///Then select a candidate with largest likelihood value and given charge
   ///as we allow two candidates with opposite charge from single 10deg region
-  virtual AlgoMuon sortRefHitResults(unsigned int iRefHit, const std::vector<GoldenPatternType*>& gPatterns,
+  virtual AlgoMuon sortRefHitResults(unsigned int iRefHit, const std::vector< std::unique_ptr<GoldenPatternType> >& gPatterns,
         int charge=0)  = 0;
 };
 

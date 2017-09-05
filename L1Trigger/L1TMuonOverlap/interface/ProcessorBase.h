@@ -8,6 +8,8 @@
 #ifndef OMTF_PROCESSORBASE_H_
 #define OMTF_PROCESSORBASE_H_
 
+#include <memory>
+
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
 #include "L1Trigger/L1TMuonOverlap/interface/IGoldenPattern.h"
 
@@ -17,12 +19,13 @@ class SimTrack;
 template <class GoldenPatternType>
 class ProcessorBase {
 public:
+  typedef std::vector< std::unique_ptr<GoldenPatternType> > GoldenPatternVec;
   ProcessorBase():myOmtfConfig(0)  {
   };
 
   //virtual ~ProcessorBase();
   virtual ~ProcessorBase() {
-    for(auto it: theGPs) delete it;
+    //for(auto it: theGPs) delete it;
   }
 
   ///Just sets the myOmtfConfig
@@ -31,7 +34,7 @@ public:
   }
 
   ///Return vector of GoldenPatterns
-  virtual const std::vector<GoldenPatternType*> & getPatterns() const  {
+  virtual const GoldenPatternVec& getPatterns() const  {
     return theGPs;
   };
 
@@ -40,7 +43,7 @@ public:
 
   ///Add GoldenPattern to pattern vec.
   ///If GP key already exists in map, a new entry is ignored
-  virtual bool addGP(GoldenPatternType *aGP);
+  virtual void addGP(GoldenPatternType *aGP);
 
 
   ///Fill counts for a GoldenPattern of this
@@ -52,7 +55,7 @@ public:
 
 protected:
   ///vector holding Golden Patterns
-  std::vector<GoldenPatternType*> theGPs;
+  GoldenPatternVec theGPs;
 
   ///Configuration of the algorithm. This object
   ///does not contain the patterns data.
