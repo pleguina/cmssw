@@ -30,19 +30,16 @@
 OMTFPatternsGenFrom4DPdfs::OMTFPatternsGenFrom4DPdfs(const edm::ParameterSet& cfg):
 theConfig(cfg),
 g4SimTrackSrc(cfg.getParameter<edm::InputTag>("g4SimTrackSrc")) {
-
   inputTokenDTPh = consumes<L1MuDTChambPhContainer>(theConfig.getParameter<edm::InputTag>("srcDTPh"));
   inputTokenDTTh = consumes<L1MuDTChambThContainer>(theConfig.getParameter<edm::InputTag>("srcDTTh"));
   inputTokenCSC = consumes<CSCCorrelatedLCTDigiCollection>(theConfig.getParameter<edm::InputTag>("srcCSC"));
   inputTokenRPC = consumes<RPCDigiCollection>(theConfig.getParameter<edm::InputTag>("srcRPC"));
   inputTokenSimHit = consumes<edm::SimTrackContainer>(theConfig.getParameter<edm::InputTag>("g4SimTrackSrc"));
-
   myInputMaker = new OMTFinputMaker();
 
   makeGoldenPatterns = theConfig.getParameter<bool>("makeGoldenPatterns");
   makeConnectionsMaps = theConfig.getParameter<bool>("makeConnectionsMaps");
   mergeXMLFiles = theConfig.getParameter<bool>("mergeXMLFiles");
-
   myOMTFConfig = 0;
 }
 /////////////////////////////////////////////////////
@@ -110,8 +107,8 @@ void OMTFPatternsGenFrom4DPdfs::beginJob(){
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////  
 void OMTFPatternsGenFrom4DPdfs::endJob(){
- //processor->generatePatterns();
-  processor-> generateThresholds();
+  processor->generatePatterns();
+  //processor-> generateThresholds();
   writeGPs();
 }
 /////////////////////////////////////////////////////

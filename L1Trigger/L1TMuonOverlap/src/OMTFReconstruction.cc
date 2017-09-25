@@ -102,7 +102,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
   //emulator configuration
   //GoldenPatternResult::setFinalizeFunction(1);
   //m_OMTF->setSorter(new OMTFSorterWithThreshold());
-  //m_OMTF->setGhostBuster(new GhostBusterPreferRefDt(m_OMTFConfig));
+  m_OMTF->setGhostBuster(new GhostBusterPreferRefDt(m_OMTFConfig));
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
