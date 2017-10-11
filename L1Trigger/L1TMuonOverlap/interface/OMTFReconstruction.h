@@ -18,10 +18,11 @@
 #include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinputMaker.h"
+#include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessor.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GhostBuster.h"
+#include "L1Trigger/L1TMuonOverlap/interface/IProcessorEmulator.h"
 
 class L1TMuonOverlapParams;
-class OMTFProcessor;
 class OMTFConfiguration;
 class OMTFConfigMaker;
 class XMLConfigWriter;
@@ -73,7 +74,8 @@ class OMTFReconstruction {
   ///OMTF objects
     OMTFConfiguration   *m_OMTFConfig;
     OMTFinputMaker       m_InputMaker;
-    OMTFProcessor       *m_OMTF;    
+    //OMTFProcessor<GoldenPattern>  *m_OMTF;
+    IProcessorEmulator* m_OMTF;
   ///
     xercesc::DOMElement *aTopElement;
     OMTFConfigMaker     *m_OMTFConfigMaker;

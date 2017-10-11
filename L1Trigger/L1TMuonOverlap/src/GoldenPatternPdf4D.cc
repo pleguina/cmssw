@@ -13,7 +13,7 @@
 
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
-GoldenPatternPdf4D::GoldenPatternPdf4D(const Key& aKey, const OMTFConfiguration * omtfConfig) : IGoldenPattern(aKey, omtfConfig) {
+GoldenPatternPdf4D::GoldenPatternPdf4D(const Key& aKey, const OMTFConfiguration * omtfConfig) : GoldenPatternBase(aKey, omtfConfig) {
 }
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
@@ -117,16 +117,16 @@ std::ostream & operator << (std::ostream &out, const GoldenPatternPdf4D & aPatte
 ////////////////////////////////////////////////////
 void GoldenPatternPdf4D::reset(){
 
-  IGoldenPattern::vector1D meanDistPhi1D(myOmtfConfig->nRefLayers());
-  IGoldenPattern::vector2D meanDistPhi2D(myOmtfConfig->nLayers());
+  GoldenPatternBase::vector1D meanDistPhi1D(myOmtfConfig->nRefLayers());
+  GoldenPatternBase::vector2D meanDistPhi2D(myOmtfConfig->nLayers());
   meanDistPhi2D.assign(myOmtfConfig->nLayers(), meanDistPhi1D);
   meanDistPhi = meanDistPhi2D;
   meanDistPhiCounts = meanDistPhi2D;
 
   unsigned int nBins = exp2(myOmtfConfig->nPdfAddrBits());
-  IGoldenPattern::vector1D pdf1D(nBins);
+  GoldenPatternBase::vector1D pdf1D(nBins);
   //IGoldenPattern::vector2D pdf2D(myOmtfConfig->nRefLayers());
-  IGoldenPattern::vector3D pdf3D(myOmtfConfig->nRefLayers());
+  GoldenPatternBase::vector3D pdf3D(myOmtfConfig->nRefLayers());
   //GoldenPatternPdf4D::vector4D pdf4D(myOmtfConfig->nLayers());
 
   std::cout<<"GoldenPatternPdf4D::reset() myOmtfConfig->nPdfAddrBits() "<<myOmtfConfig->nPdfAddrBits()<<" nBins "<<nBins<<std::endl;
@@ -147,6 +147,12 @@ void GoldenPatternPdf4D::reset(){
     }
   }
 }
-
+////////////////////////////////////////////////////
+////////////////////////////////////////////////////
+int GoldenPatternPdf4D::propagateRefPhi(int phiRef, int etaRef, unsigned int iRefLayer){
+  unsigned int iLayer = 2; //MB2
+  //if(etaRef>101) iLayer = 7;//RE2
+  return phiRef + meanDistPhi[iLayer][iRefLayer];
+}
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////

@@ -10,13 +10,17 @@
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFSorter.h"
 
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternParametrised.h"
+
 #include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-AlgoMuon OMTFSorter::sortRefHitResults(unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPattern> >& gPatterns,
+template <class GoldenPatternType>
+AlgoMuon OMTFSorter<GoldenPatternType>::sortRefHitResults(unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPatternType> >& gPatterns,
 					  int charge){
 
-  GoldenPattern* bestGP = 0; //the GoldenPattern with the best result for this iRefHit
+  GoldenPatternType* bestGP = 0; //the GoldenPattern with the best result for this iRefHit
 //  std::cout <<" ====== sortRefHitResults: " << std::endl;
 
   for(auto& itGP: gPatterns) {
@@ -58,3 +62,5 @@ AlgoMuon OMTFSorter::sortRefHitResults(unsigned int iRefHit, const std::vector< 
   }
 }
 
+template class OMTFSorter<GoldenPattern>;
+template class OMTFSorter<GoldenPatternParametrised>;

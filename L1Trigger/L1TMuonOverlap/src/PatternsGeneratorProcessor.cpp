@@ -6,6 +6,7 @@
  */
 
 #include "L1Trigger/L1TMuonOverlap/interface/PatternsGeneratorProcessor.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternParametrised.h"
 #include <cmath>
 #include <vector>
 #include <algorithm>
@@ -443,7 +444,7 @@ double PatternsGeneratorProcessor::getMeanSigma(TH2F* h)
 }
 
 void PatternsGeneratorProcessor::generateThresholds() {
-  for(auto& gp : theGPs) {
+/*  for(auto& gp : theGPs) {
     std::vector<unsigned int> thresholds(gp->getPdf()[0].size(), 0);
     for(unsigned int iRefLayer=0; iRefLayer < gp->getPdf()[0].size(); ++iRefLayer) {
       std::vector<int> maxPdfValues(gp->getPdf()[0].size());
@@ -495,5 +496,47 @@ void PatternsGeneratorProcessor::generateThresholds() {
       }
     }
     gp->setThresholds(thresholds);
+  }*/
+}
+
+
+void PatternsGeneratorProcessor::modifyPdfs() {
+  for(auto& gp : theGPs) {
+    GoldenPatternParametrised* newGp = new GoldenPatternParametrised(gp.get());
+    delete newGp;
+    break;
+
+    /*if(gp->key().thePt <= 25 || gp->key().thePt >= 100)
+      continue;
+    for(unsigned int iRefLayer=0; iRefLayer < gp->getPdf()[0].size(); ++iRefLayer) {
+      for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
+        if(iRefLayer == 1 || iRefLayer == 3 || iRefLayer == 4) {
+          if(iLayer == 6 || iLayer == 7 || iLayer == 8 || iLayer == 15 || iLayer == 16 || iLayer == 17) {
+            for(unsigned int iPdf = 1; iPdf < gp->getPdf().at(iLayer).at(iRefLayer).size(); iPdf++) {
+              int newPdfVal = (gp->pdfValue(iLayer, iRefLayer, iPdf) - 25) * 1.5;
+              if(newPdfVal < 0)
+                newPdfVal =  0;
+              gp->setPdfValue(newPdfVal, iLayer, iRefLayer, iPdf);
+
+            }
+            for(unsigned int iPdf = 1; iPdf < gp->getPdf().at(iLayer).at(iRefLayer).size() -1; iPdf++) {
+              if(gp->pdfValue(iLayer, iRefLayer, iPdf) != 0 && gp->pdfValue(iLayer, iRefLayer, iPdf) <= 30 &&
+                 gp->pdfValue(iLayer, iRefLayer, iPdf+1) == 0 ) {
+                gp->setPdfValue(0, iLayer, iRefLayer, iPdf);
+                break;
+              }
+            }
+
+            for(unsigned int iPdf = gp->getPdf().at(iLayer).at(iRefLayer).size() -1; iPdf >= 1 ; iPdf--) {
+              if(gp->pdfValue(iLayer, iRefLayer, iPdf) != 0 && gp->pdfValue(iLayer, iRefLayer, iPdf) <= 30 &&
+                 gp->pdfValue(iLayer, iRefLayer, iPdf-1) == 0 ) {
+                gp->setPdfValue(0, iLayer, iRefLayer, iPdf);
+                break;
+              }
+            }
+          }
+        }
+      }
+    }*/
   }
 }

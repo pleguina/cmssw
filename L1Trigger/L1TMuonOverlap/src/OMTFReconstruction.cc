@@ -16,6 +16,8 @@
 #include "L1Trigger/L1TMuonOverlap/interface/GhostBusterPreferRefDt.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFSorterWithThreshold.h"
 #include "L1Trigger/L1TMuonOverlap/interface/XMLConfigReader.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternParametrised.h"
+
 
 #include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 
@@ -43,9 +45,9 @@ OMTFReconstruction::~OMTFReconstruction(){
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFReconstruction::beginJob() {
-  
     m_OMTFConfig = new OMTFConfiguration();
-    m_OMTF = new OMTFProcessor();
+    //m_OMTF = new OMTFProcessor<GoldenPattern>();
+    //m_OMTF = new OMTFProcessor<GoldenPatternParametrised>();
 
 }
 /////////////////////////////////////////////////////
@@ -72,20 +74,47 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
     edm::LogError("OMTFReconstruction") << "Could not retrieve parameters from Event Setup" << std::endl;
   }
 
+  if(m_Config.exists("patternsXMLFile") && m_OMTF)
+    return; //TODO remove!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  m_OMTF = new OMTFProcessor<GoldenPattern>();
+  //m_OMTF = new OMTFProcessor<GoldenPatternParametrised>();
+
   m_OMTFConfig->configure(omtfParams);
 
   if(m_Config.exists("patternsXMLFile") ) {
     std::string patternsXMLFile = m_Config.getParameter<edm::FileInPath>("patternsXMLFile").fullPath();
     edm::LogImportant("OMTFReconstruction") << "reading patterns from "<<patternsXMLFile << std::endl;
-    XMLConfigReader xnlReader;
-    xnlReader.setPatternsFile(patternsXMLFile);
-    auto const & gps = xnlReader.readPatterns(*omtfParams);
+    XMLConfigReader xmlReader;
+    xmlReader.setPatternsFile(patternsXMLFile);
+    auto const& gps = xmlReader.readPatterns(*omtfParams);
     m_OMTF->setConfigurataion(m_OMTFConfig);
-    m_OMTF->setGPs(gps);
-    edm::LogImportant("OMTFReconstruction") << " goldenPattern size "<<gps.size() << std::endl;
-    for(auto& gp :  m_OMTF->getPatterns()) {
-      if(gp.get() != 0)
-        edm::LogImportant("OMTFReconstruction") <<gp->key()<< std::endl;
+    if(dynamic_cast<OMTFProcessor<GoldenPattern>*>(m_OMTF) ) {
+      dynamic_cast<OMTFProcessor<GoldenPattern>*>(m_OMTF)->setGPs(gps);
+      edm::LogImportant("OMTFReconstruction") << " goldenPattern size "<<gps.size() << std::endl;
+      /*for(auto& gp :  m_OMTF->getPatterns()) {
+        if(gp.get() != 0)
+          edm::LogImportant("OMTFReconstruction") <<gp->key()<< std::endl;
+      }*/
+    }
+
+    OMTFProcessor<GoldenPatternParametrised>* proc =  dynamic_cast<OMTFProcessor<GoldenPatternParametrised>*>(m_OMTF);
+    if(proc ) {
+      proc->resetConfiguration();
+      for(auto& gp :  gps) {
+        if(gp.get() != 0) {
+          gp->setConfig(m_OMTFConfig);
+          edm::LogImportant("OMTFReconstruction") <<gp->key()<< std::endl;
+          GoldenPatternParametrised* newGp = new GoldenPatternParametrised(gp.get());
+          proc->addGP(newGp);
+        }
+      }
+
+      edm::LogImportant("OMTFReconstruction") << " goldenPattern size "<<proc->getPatterns().size() << std::endl;
+      /*for(auto& gp :  m_OMTF->getPatterns()) {
+        if(gp.get() != 0)
+          edm::LogImportant("OMTFReconstruction") <<gp->key()<< std::endl;
+      }*/
     }
   }
   else
@@ -102,7 +131,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
   //emulator configuration
   //GoldenPatternResult::setFinalizeFunction(1);
   //m_OMTF->setSorter(new OMTFSorterWithThreshold());
-  m_OMTF->setGhostBuster(new GhostBusterPreferRefDt(m_OMTFConfig));
+  //m_OMTF->setGhostBuster(new GhostBusterPreferRefDt(m_OMTFConfig));
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////

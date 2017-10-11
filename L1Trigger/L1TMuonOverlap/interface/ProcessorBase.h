@@ -8,10 +8,10 @@
 #ifndef OMTF_PROCESSORBASE_H_
 #define OMTF_PROCESSORBASE_H_
 
+#include <L1Trigger/L1TMuonOverlap/interface/GoldenPatternBase.h>
 #include <memory>
 
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
-#include "L1Trigger/L1TMuonOverlap/interface/IGoldenPattern.h"
 
 class L1TMuonOverlapParams;
 class SimTrack;
@@ -59,6 +59,9 @@ public:
       const OMTFinput & aInput,
       const SimTrack* aSimMuon);
 
+  ///Reset all configuration parameters
+  virtual void resetConfiguration();
+
 protected:
   ///vector holding Golden Patterns
   GoldenPatternVec theGPs;
@@ -66,9 +69,6 @@ protected:
   ///Configuration of the algorithm. This object
   ///does not contain the patterns data.
   const OMTFConfiguration* myOmtfConfig;
-
-  ///Reset all configuration parameters
-  virtual void resetConfiguration();
 
   ///Remove hits whis are outside input range
   ///for given processor and cone

@@ -1,8 +1,8 @@
 #ifndef AlgoMuon_H
 #define AlgoMuon_H
 
+#include <L1Trigger/L1TMuonOverlap/interface/GoldenPatternBase.h>
 #include <L1Trigger/L1TMuonOverlap/interface/GoldenPatternResult.h>
-#include <L1Trigger/L1TMuonOverlap/interface/IGoldenPattern.h>
 #include <ostream>
 
 class AlgoMuon{

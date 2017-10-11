@@ -70,7 +70,7 @@ inline XMLCh*  _toDOMS(std::string temp) {
 }
 ////////////////////////////////////
 ////////////////////////////////////
-XMLConfigWriter::XMLConfigWriter(const OMTFConfiguration* aOMTFConfig){
+XMLConfigWriter::XMLConfigWriter(const OMTFConfiguration* aOMTFConfig, bool writePdfThresholds, bool writeMeanDistPhi1): writePdfThresholds(writePdfThresholds), writeMeanDistPhi1(writeMeanDistPhi1) {
 
   XMLPlatformUtils::Initialize();
   
@@ -438,14 +438,17 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
   setAttribute(aGPElement, "iPt3", aGP3.key().thePt);
   setAttribute(aGPElement, "iPt4", aGP4.key().thePt);
 
-  for(unsigned int iRefLayer=0;iRefLayer<myOMTFConfig->nRefLayers();++iRefLayer){
-    xercesc::DOMElement* aRefLayerThresh = theDoc->createElement(_toDOMS("RefLayerThresh"));
-    setAttribute(aRefLayerThresh, "tresh1", aGP1.getTreshold(iRefLayer));
-    setAttribute(aRefLayerThresh, "tresh2", aGP2.getTreshold(iRefLayer));
-    setAttribute(aRefLayerThresh, "tresh3", aGP3.getTreshold(iRefLayer));
-    setAttribute(aRefLayerThresh, "tresh4", aGP4.getTreshold(iRefLayer));
+  if(writePdfThresholds) {
+    throw cms::Exception("OMTF::XMLConfigWriter::writeGPData: writePdfThresholds not implemented now ");
+    /*for(unsigned int iRefLayer=0;iRefLayer<myOMTFConfig->nRefLayers();++iRefLayer){
+      xercesc::DOMElement* aRefLayerThresh = theDoc->createElement(_toDOMS("RefLayerThresh"));
+      setAttribute(aRefLayerThresh, "tresh1", aGP1.getTreshold(iRefLayer));
+      setAttribute(aRefLayerThresh, "tresh2", aGP2.getTreshold(iRefLayer));
+      setAttribute(aRefLayerThresh, "tresh3", aGP3.getTreshold(iRefLayer));
+      setAttribute(aRefLayerThresh, "tresh4", aGP4.getTreshold(iRefLayer));
 
-    aGPElement->appendChild(aRefLayerThresh);
+      aGPElement->appendChild(aRefLayerThresh);
+    }*/
   }
 
   setAttribute(aGPElement, "iEta", 0); //aGP1.key().theEtaCode; //No eta code at the moment
@@ -465,12 +468,17 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
     for(unsigned int iRefLayer=0;iRefLayer<myOMTFConfig->nRefLayers();++iRefLayer){
       xercesc::DOMElement* aRefLayer = theDoc->createElement(_toDOMS("RefLayer"));
 
-      int meanDistPhi0 = aGP1.getMeanDistPhi()[iLayer][iRefLayer][0];
-      setAttribute(aRefLayer, "meanDistPhi0", meanDistPhi0);
+      if(writeMeanDistPhi1) {
+        int meanDistPhi0 = aGP1.getMeanDistPhi()[iLayer][iRefLayer][0];
+        setAttribute(aRefLayer, "meanDistPhi0", meanDistPhi0);
 
-      int meanDistPhi1 = aGP1.getMeanDistPhi()[iLayer][iRefLayer][1];
-      setAttribute(aRefLayer, "meanDistPhi1", meanDistPhi1);
-
+        int meanDistPhi1 = aGP1.getMeanDistPhi()[iLayer][iRefLayer][1];
+        setAttribute(aRefLayer, "meanDistPhi1", meanDistPhi1);
+      }
+      else {
+        int meanDistPhi = aGP1.getMeanDistPhi()[iLayer][iRefLayer][0];
+        setAttribute(aRefLayer, "meanDistPhi", meanDistPhi);
+      }
 
       int selDistPhi = 0;
       setAttribute(aRefLayer, "selDistPhi", selDistPhi);

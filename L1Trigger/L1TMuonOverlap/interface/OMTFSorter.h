@@ -2,10 +2,10 @@
 #define OMTF_OMTFSorter_H
 
 #include <L1Trigger/L1TMuonOverlap/interface/SorterBase.h>
-#include <L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h>
 #include <vector>
 
-class OMTFSorter: public SorterBase<GoldenPattern> {
+template <class GoldenPatternType>
+class OMTFSorter: public SorterBase<GoldenPatternType> {
 public:
   virtual ~OMTFSorter() {}
 
@@ -13,7 +13,7 @@ public:
   ///Select candidate with highest number of hit layers
   ///Then select a candidate with largest likelihood value and given charge
   ///as we allow two candidates with opposite charge from single 10deg region
-  virtual AlgoMuon sortRefHitResults(unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPattern> >& gPatterns,
+  virtual AlgoMuon sortRefHitResults(unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPatternType> >& gPatterns,
 				int charge=0);
 };
 

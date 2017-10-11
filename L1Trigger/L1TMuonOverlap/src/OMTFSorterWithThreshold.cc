@@ -13,10 +13,10 @@
 #include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-AlgoMuon OMTFSorterWithThreshold::sortRefHitResults(unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPattern> >& gPatterns,
+AlgoMuon OMTFSorterWithThreshold::sortRefHitResults(unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPatternWithThresh> >& gPatterns,
 					  int charge){
 
-  GoldenPattern* bestGP = 0; //the GoldenPattern with the best result for this iRefHit
+  GoldenPatternWithThresh* bestGP = 0; //the GoldenPattern with the best result for this iRefHit
 //  std::cout <<" ====== sortRefHitResults: " << std::endl;
 
   for(auto& itGP: gPatterns) {

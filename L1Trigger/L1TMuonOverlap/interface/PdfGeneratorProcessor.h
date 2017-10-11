@@ -26,8 +26,8 @@ private:
  ///Shift pdf indexes by differecne between averaged and
  ///original meanDistPhi
   virtual void shiftGP(GoldenPattern *aGP,
-        const GoldenPattern::vector3D & meanDistPhiNew,
-        const GoldenPattern::vector3D & meanDistPhiOld);
+        const GoldenPattern::MeanDistPhiArrayType& meanDistPhiNew,
+        const GoldenPattern::MeanDistPhiArrayType& meanDistPhiOld);
 };
 
 #endif /* OMTF_PDFGENERATORPROCESSOR_H_ */

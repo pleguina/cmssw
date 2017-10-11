@@ -23,6 +23,7 @@ public:
   void generatePatterns();
 
   void generateThresholds();
+  void modifyPdfs();
 
 private:
   void generateDTPattern(int iGroup, int iRefLayer, int iLayer);

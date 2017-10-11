@@ -80,8 +80,9 @@ void OMTFPatternMaker::beginRun(edm::Run const& run, edm::EventSetup const& iSet
   
   ///Clear existing GoldenPatterns
   if(!mergeXMLFiles){
-    for(auto& itGP: myOMTF->getPatterns())
+    for(auto& itGP: myOMTF->getPatterns()) {
       itGP->reset();
+    }
   }  
 }
 /////////////////////////////////////////////////////
@@ -103,7 +104,6 @@ void OMTFPatternMaker::endJob(){
     }
 
     GoldenPattern dummyGP(Key(0,0,0), myOMTFConfig);
-    dummyGP.reset();
 
     ///Put back default value of the pdf width.
     L1TMuonOverlapParams omtfParamsMutable = *myOMTFConfig->getRawParams();
@@ -145,9 +145,7 @@ void OMTFPatternMaker::endJob(){
   }
 
   if(mergeXMLFiles){
-
     GoldenPattern *dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
-    dummy->reset();
 
     std::string fName = "OMTF";
     myWriter->initialiseXMLDocument(fName);
@@ -172,7 +170,6 @@ void OMTFPatternMaker::endJob(){
 /////////////////////////////////////////////////////
 void OMTFPatternMaker::writeMergedGPs(){
   GoldenPattern *dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
-  dummy->reset();
 
   /*unsigned int iPtMin = 9;
   Key aKey = Key(0, iPtMin, 1);

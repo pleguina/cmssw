@@ -1,5 +1,5 @@
-#ifndef OMTF_IGoldenPattern_H
-#define OMTF_IGoldenPattern_H
+#ifndef OMTF_GoldenPatternBase_H
+#define OMTF_GoldenPatternBase_H
 
 #include <vector>
 #include <ostream>
@@ -9,7 +9,6 @@
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternResult.h"
 
 class OMTFConfigMaker;
-class OMTFProcessor;
 class OMTFConfiguration;
 //////////////////////////////////
 // Key
@@ -47,7 +46,7 @@ Key(int iEta=99, unsigned int iPt=0, int iCharge= 0, unsigned int iNumber=999):
 // Golden Pattern
 //////////////////////////////////
 
-class IGoldenPattern {
+class GoldenPatternBase {
 
  public:
 
@@ -59,16 +58,20 @@ class IGoldenPattern {
   //
   // IGoldenPatterns methods
   //
-  IGoldenPattern(const Key & aKey) : theKey(aKey), myOmtfConfig(0) {}
+  GoldenPatternBase(const Key & aKey) : theKey(aKey), myOmtfConfig(0) {}
 
-  IGoldenPattern(const Key& aKey, const OMTFConfiguration * omtfConfig) : theKey(aKey), myOmtfConfig(omtfConfig),
+  GoldenPatternBase(const Key& aKey, const OMTFConfiguration * omtfConfig) : theKey(aKey), myOmtfConfig(omtfConfig),
       results(myOmtfConfig->nTestRefHits(), GoldenPatternResult(omtfConfig)) {}
 
-  virtual ~IGoldenPattern() {}
+  virtual ~GoldenPatternBase() {}
   
   virtual void setConfig(const OMTFConfiguration * omtfConfig) {
     myOmtfConfig = omtfConfig;
     results.assign(myOmtfConfig->nTestRefHits(), GoldenPatternResult(omtfConfig));
+  }
+
+  const OMTFConfiguration* getConfig() const {
+    return myOmtfConfig;
   }
 
   virtual Key key() const {return theKey;}
@@ -87,19 +90,27 @@ class IGoldenPattern {
 
   virtual int pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) const = 0;
 
-  virtual void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, int paramIndex = 0) = 0;
+  virtual void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, unsigned int paramIndex = 0) = 0;
 
   virtual void setPdfValue(int value, unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) = 0;
 
-  /*
   ///Process single measurement layer with a single ref layer
   ///Method should be thread safe
-  virtual IGoldenPattern::layerResult process1Layer1RefLayer(unsigned int iRefLayer,
-						    unsigned int iLayer,
-						    const int refPhi,
-						    const OMTFinput::vector1D & layerHits,
-						    int refLayerPhiB = 0) = 0;
-    
+  virtual GoldenPatternResult::layerResult process1Layer1RefLayer(unsigned int iRefLayer,
+      unsigned int iLayer,
+      const int refPhi,
+      const OMTFinput::vector1D & layerHits,
+      int refLayerPhiB = 0);
+
+  ///Propagate phi from given reference layer to MB2 or ME2
+  ///ME2 is used if eta of reference hit is larger than 1.1
+  ///expressed in ingerer MicroGMT scale: 1.1/2.61*240 = 101
+  virtual int propagateRefPhi(int phiRef, int etaRef, unsigned int iRefLayer) = 0;
+
+  ///Reset contents of all data vectors, keeping the vectors size
+  //virtual void reset() = 0;
+
+  /*
   ///Add a single count to the relevant pdf bin in three dimensions
   virtual void addCount(unsigned int iRefLayer,
 		unsigned int iLayer,
@@ -107,19 +118,13 @@ class IGoldenPattern {
 		const OMTFinput::vector1D & layerHits,
 		int refLayerPhiB = 0) = 0;
 
-  ///Reset contents of all data vectors, keeping the vectors size
-  virtual void reset() = 0;
+
 
   ///Normalise event counts in mean dist phi, and pdf vectors to get
   ///the real values of meand dist phi and probability.
   ///The pdf width is passed to this method, since the width stored in
   ///configuration is extended during the pattern making phase.
   virtual void normalise(unsigned int nPdfAddrBits) = 0;
-
-  ///Propagate phi from given reference layer to MB2 or ME2
-  ///ME2 is used if eta of reference hit is larger than 1.1
-  ///expressed in ingerer MicroGMT scale: 1.1/2.61*240 = 101
-  virtual int propagateRefPhi(int phiRef, int etaRef, unsigned int iRefLayer) = 0;
 
   ///Check if the GP has any counts in any of referecne layers;
   virtual bool hasCounts() = 0;
@@ -132,6 +137,8 @@ class IGoldenPattern {
     return results;
   }
 
+  ///last step of the event processing, before sorting and ghost busting
+  virtual void finalise();
  protected:
 
   ///Pattern kinematical identification (iEta,iPt,iCharge)

@@ -1,11 +1,11 @@
 #ifndef OMTF_GoldenPatternPdf4D_H
 #define OMTF_GoldenPatternPdf4D_H
 
+#include <L1Trigger/L1TMuonOverlap/interface/GoldenPatternBase.h>
 #include <vector>
 #include <ostream>
 
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
-#include "L1Trigger/L1TMuonOverlap/interface/IGoldenPattern.h"
 
 class OMTFConfiguration;
 
@@ -13,7 +13,7 @@ class OMTFConfiguration;
 // Golden Pattern
 //////////////////////////////////
 
-class GoldenPatternPdf4D : public IGoldenPattern {
+class GoldenPatternPdf4D : public GoldenPatternBase {
 
 public:
   //
@@ -23,15 +23,13 @@ public:
 
   virtual ~GoldenPatternPdf4D() {};
 
-  virtual Key key() const {return theKey;}
-
   virtual void setMeanDistPhi(const vector2D & aMeanDistPhi){ meanDistPhi = aMeanDistPhi; }
 
   //virtual const vector2D & getMeanDistPhi() const {return meanDistPhi;}
 
   virtual const vector4D & getPdf() const {return pdfAllRef;}
 
-  virtual void setPdf(const vector4D & aPdf){  pdfAllRef = aPdf; }
+  //virtual void setPdf(const vector4D & aPdf){  pdfAllRef = aPdf; }
 
   virtual int meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB = 0) const { return meanDistPhi[iLayer][iRefLayer];}
 
@@ -39,7 +37,7 @@ public:
     return pdfAllRef[iLayer][iRefLayer][refLayerPhiB][iBin];
   }
 
-  virtual void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB = 0) {
+  virtual void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, unsigned int refLayerPhiB = 0) {
     //meanDistPhi[iLayer][iRefLayer] = value;
   }
 
@@ -47,7 +45,8 @@ public:
     pdfAllRef[iLayer][iRefLayer][refLayerPhiB][iBin] = value;
   }
 
-
+  //TODO remove it from this class
+  virtual int propagateRefPhi(int phiRef, int etaRef, unsigned int iRefLayer);
 
   friend std::ostream & operator << (std::ostream &out, const GoldenPatternPdf4D & aPattern);
 

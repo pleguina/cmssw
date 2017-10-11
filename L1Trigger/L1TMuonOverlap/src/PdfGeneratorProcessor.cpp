@@ -30,7 +30,7 @@ void  PdfGeneratorProcessor::averagePatterns(){
       if(gp == 0)
         throw cms::Exception("PdfGeneratorProcessor::averagePatterns works only for GoldenPatter");
 
-      GoldenPattern::vector3D meanDistPhi = gp->getMeanDistPhi();
+      GoldenPattern::MeanDistPhiArrayType meanDistPhi = gp->getMeanDistPhi();
 
       for(unsigned int i = 1; i < mergedPartters[iGroup].size(); i++) {
         GoldenPattern* gp = theGPs.at( mergedPartters[iGroup][i]).get();
@@ -58,13 +58,13 @@ void  PdfGeneratorProcessor::averagePatterns(){
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 void PdfGeneratorProcessor::shiftGP(GoldenPattern *aGP,
-    const GoldenPattern::vector3D & meanDistPhiNew,
-    const GoldenPattern::vector3D & meanDistPhiOld){
+    const GoldenPattern::MeanDistPhiArrayType& meanDistPhiNew,
+    const GoldenPattern::MeanDistPhiArrayType& meanDistPhiOld){
 
   ///Shift pdfs by differecne between original menaDistPhi, and
   ///the averaged value
   unsigned int nPdfBins =  exp2(myOmtfConfig->nPdfAddrBits());
-  GoldenPattern::vector3D pdfAllRef = aGP->getPdf();
+  GoldenPattern::PdfArrayType pdfAllRef = aGP->getPdf();
 
   int indexShift = 0;
   for(unsigned int iLayer=0;iLayer<myOmtfConfig->nLayers();++iLayer){

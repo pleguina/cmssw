@@ -107,8 +107,9 @@ void OMTFPatternsGenFrom4DPdfs::beginJob(){
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////  
 void OMTFPatternsGenFrom4DPdfs::endJob(){
-  processor->generatePatterns();
+  //processor->generatePatterns();
   //processor-> generateThresholds();
+  processor->modifyPdfs();
   writeGPs();
 }
 /////////////////////////////////////////////////////
@@ -117,8 +118,7 @@ void OMTFPatternsGenFrom4DPdfs::writeGPs() {
   myWriter->initialiseXMLDocument("OMTF");
   const PatternsGeneratorProcessor::GoldenPatternVec& myGPs = processor->getPatterns();
 
-  GoldenPattern *dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
-  dummy->reset();
+  GoldenPattern* dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
 
   OMTFConfiguration::vector2D mergedPartters = myOMTFConfig->getMergedPartters();
   for(unsigned int iGroup = 0; iGroup < mergedPartters.size(); iGroup++) {

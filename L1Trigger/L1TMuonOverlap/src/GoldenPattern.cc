@@ -13,45 +13,7 @@ int GoldenPattern::meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer,
   return ( ( (meanDistPhi[iLayer][iRefLayer][1]*refLayerPhiB)>>myOmtfConfig->nPdfAddrBits() ) + meanDistPhi[iLayer][iRefLayer][0] );
   //assumes that the meanDistPhi[1] is float alpha from the fit to the phiB-phi distribution multiplied by 2^myOmtfConfig->nPdfAddrBits()
 }
-////////////////////////////////////////////////////
-////////////////////////////////////////////////////
-GoldenPatternResult::layerResult GoldenPattern::process1Layer1RefLayer(unsigned int iRefLayer,
-    unsigned int iLayer,
-    const int phiRefHit,
-    const OMTFinput::vector1D & layerHits,
-    int refLayerPhiB){
 
-  GoldenPatternResult::layerResult aResult; //0, 0
-
-  int phiMean = meanDistPhiValue(iLayer, iRefLayer, refLayerPhiB);
-  int phiDist = 1<<(myOmtfConfig->nPdfAddrBits()); //"infinite" value for the beginning
-  ///Select hit closest to the mean of probability 
-  ///distribution in given layer
-  for(auto itHit: layerHits){
-    if(itHit >= (int)myOmtfConfig->nPhiBins())
-      continue;  //empty itHits are marked with nPhiBins() in OMTFProcessor::restrictInput
-
-    if(abs(itHit-phiMean-phiRefHit) < abs(phiDist))
-      phiDist = itHit-phiMean-phiRefHit;
-  }
-
-  ///Check if phiDist is within pdf range -63 +63 
-  ///in firmware here the arithmetic "value and sign" is used, therefore the range is -63 +63, and not -64 +63
-  if(abs(phiDist) > ( (1<<(myOmtfConfig->nPdfAddrBits()-1)) -1) ) {
-    //return aResult;
-    return GoldenPatternResult::layerResult(pdfAllRef[iLayer][iRefLayer][0], false);
-    //in the version with thresholds we use the bin 0 to store the pdf value returned when there was no hit.
-    //in the version without thresholds, the value in the bin 0 should be 0
-  }
-
-  ///Shift phidist, so 0 is at the middle of the range
-  phiDist += 1<<(myOmtfConfig->nPdfAddrBits()-1);
-
-  int pdfVal = pdfAllRef[iLayer][iRefLayer][phiDist];
-  if(pdfVal == 0)
-    return GoldenPatternResult::layerResult(pdfAllRef[iLayer][iRefLayer][0], false);
-  return GoldenPatternResult::layerResult(pdfVal, true);
-}
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
 int GoldenPattern::propagateRefPhi(int phiRef, int etaRef, unsigned int iRefLayer){
@@ -149,25 +111,25 @@ std::ostream & operator << (std::ostream &out, const GoldenPattern & aPattern){
 }
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
-void GoldenPattern::reset(){
+void GoldenPattern::reset() {
+  for (unsigned int iLayer=0; iLayer < meanDistPhi.size(); ++iLayer) {
+    for (unsigned int iRefLayer=0; iRefLayer < meanDistPhi[iLayer].size(); ++iRefLayer) {
+      for (unsigned int iPdf=0; iPdf < meanDistPhi[iLayer][iRefLayer].size(); ++iPdf) {
+        meanDistPhi[iLayer][iRefLayer][iPdf] = 0;
+      }
+    }
+  }
 
-  GoldenPattern::vector1D meanDistPhi1D(myOmtfConfig->nRefLayers());
-  GoldenPattern::vector2D meanDistPhi2D(myOmtfConfig->nLayers());
-  meanDistPhi2D.assign(myOmtfConfig->nLayers(), meanDistPhi1D);
+  for (unsigned int iLayer=0; iLayer < pdfAllRef.size(); ++iLayer) {
+    for (unsigned int iRefLayer=0; iRefLayer < pdfAllRef[iLayer].size(); ++iRefLayer) {
+      for (unsigned int iPdf=0; iPdf < pdfAllRef[iLayer][iRefLayer].size(); ++iPdf) {
+        pdfAllRef[iLayer][iRefLayer][iPdf] = 0;
+      }
+    }
+  }
 
-  meanDistPhi.assign(myOmtfConfig->nLayers(), GoldenPattern::vector2D(myOmtfConfig->nRefLayers(), GoldenPattern::vector1D(2)));
-
-  meanDistPhiCounts = meanDistPhi2D;
-
-  GoldenPattern::vector1D pdf1D(exp2(myOmtfConfig->nPdfAddrBits()));
-  GoldenPattern::vector2D pdf2D(myOmtfConfig->nRefLayers());
-  //GoldenPattern::vector3D pdf3D(myOmtfConfig->nLayers()); not used
-
-  pdf2D.assign(myOmtfConfig->nRefLayers(),pdf1D);
-  pdfAllRef.assign(myOmtfConfig->nLayers(),pdf2D);
-
-  thresholds.assign(myOmtfConfig->nRefLayers(), 0);
 }
+
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
 void GoldenPattern::normalise(unsigned int nPdfAddrBits){
@@ -225,7 +187,7 @@ void GoldenPattern::normalise(unsigned int nPdfAddrBits){
     }
   } 
 
-  vector3D  pdfAllRefTmp = pdfAllRef;
+  PdfArrayType pdfAllRefTmp = pdfAllRef;
   for (unsigned int iRefLayer=0;iRefLayer<pdfAllRef[0].size();++iRefLayer){
     for (unsigned int iLayer=0;iLayer<pdfAllRef.size();++iLayer){   
       for (unsigned int iPdf=0;iPdf<pdfAllRef[iLayer][iRefLayer].size();++iPdf){
@@ -251,11 +213,7 @@ bool GoldenPattern::hasCounts(){
 }
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
-void GoldenPattern::finalise() {
-  for(auto& result : getResults()) {
-    result.finalise();
-  }
+void GoldenPatternWithThresh::reset(const OMTFConfiguration* omtfConfig) {
+  GoldenPattern::reset();
+  thresholds.assign(myOmtfConfig->nRefLayers(), 0);
 }
-
-////////////////////////////////////////////////////
-////////////////////////////////////////////////////

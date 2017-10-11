@@ -100,6 +100,7 @@ class OMTFConfiguration{
   unsigned int nRefLayers() const {return rawParams.nRefLayers();};
   unsigned int nPhiBits() const {return rawParams.nPhiBits();};
   unsigned int nPdfAddrBits() const {return rawParams.nPdfAddrBits();};
+  unsigned int nPdfBins() const {return (1<<rawParams.nPdfAddrBits());};
   unsigned int nPdfValBits() const {return rawParams.nPdfValBits();};
   unsigned int nPhiBins() const {return rawParams.nPhiBins();};
   unsigned int nRefHits() const {return rawParams.nRefHits();};

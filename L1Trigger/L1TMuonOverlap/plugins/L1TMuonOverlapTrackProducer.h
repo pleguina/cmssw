@@ -20,11 +20,10 @@
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFReconstruction.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinputMaker.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFSorter.h"
-
+#include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessor.h"
 
 
 class L1TMuonOverlapParams;
-class OMTFProcessor;
 class OMTFConfiguration;
 class OMTFConfigMaker;
 class XMLConfigWriter;

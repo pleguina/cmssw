@@ -20,13 +20,15 @@ int compareDistr(){
   cout << "ROOT" << endl;
   c0->SetGrid();
 
-  int layer = 10;
-  int refLayer = 1;
+  int layer = 7;
+  int refLayer = 3;
 
-  drawHitDistr(2*4.0 + 1, 1, layer, refLayer, kRed);
-  drawHitDistr(2*4.5 + 1, 1, layer, refLayer, kGreen);
-  drawHitDistr(2*10.0 + 1, 1, layer, refLayer, kPink);
+  drawHitDistr(2*50.0 + 1, 1, layer, refLayer, kBlack);
   drawHitDistr(2*20  + 1, 1, layer, refLayer, kBlue);
+  drawHitDistr(2*18 + 1, 1, layer, refLayer, kRed);
+  drawHitDistr(2*4.5 + 1, 1, layer, refLayer, kGreen);
+  drawHitDistr(2*10.0 + 1, 1, layer, refLayer, kMagenta);
+
 
   legend->Draw();
 
@@ -69,7 +71,7 @@ void drawHitDistr(int iPt, int charge, int layer, int refLayer, int color) {
     h->SetLineColor(color);
     string opt = ""; //"lego"; //"cont1";//box";
     if(first)
-      h->Draw(opt.c_str());
+      h->Draw("box");
     else
       h->Draw((opt+"same").c_str() );
 

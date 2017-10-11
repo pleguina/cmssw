@@ -50,7 +50,7 @@ bool ProcessorBase<GoldenPatternType>::configure(const OMTFConfiguration* omtfCo
     iPt = ptLUT->data(address);
 
     Key aKey(iEta,iPt,iCharge,iGP);
-    edm::LogInfo("OMTFProcessor::configure")<<"adding pattern "<<aKey<<" "<<myOmtfConfig->getPatternPtRange(iGP).ptFrom<<" - "<<myOmtfConfig->getPatternPtRange(iGP).ptTo<<" GeV"<<std::endl;
+    edm::LogInfo("ProcessorBase::configure")<<"adding pattern "<<aKey<<" "<<myOmtfConfig->getPatternPtRange(iGP).ptFrom<<" - "<<myOmtfConfig->getPatternPtRange(iGP).ptTo<<" GeV"<<std::endl;
     GoldenPatternType* aGP = new GoldenPatternType(aKey, myOmtfConfig);
 
     ///Mean dist phi data

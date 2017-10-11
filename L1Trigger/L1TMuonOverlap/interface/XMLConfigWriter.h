@@ -28,7 +28,7 @@ class XMLConfigWriter{
 
  public:
 
-  XMLConfigWriter(const OMTFConfiguration* aOMTFConfig);
+  XMLConfigWriter(const OMTFConfiguration* aOMTFConfig, bool writePdfThresholds = false, bool writeMeanDistPhi1 = false);
 
   void initialiseXMLDocument(const std::string & docName);
 
@@ -71,6 +71,9 @@ class XMLConfigWriter{
   xercesc::DOMDocument* theDoc;
 
   const OMTFConfiguration* myOMTFConfig;
+
+  bool writePdfThresholds = false;
+  bool writeMeanDistPhi1 = false;
 
 };
 

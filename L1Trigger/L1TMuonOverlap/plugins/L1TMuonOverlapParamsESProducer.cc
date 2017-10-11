@@ -67,7 +67,7 @@ bool L1TMuonOverlapParamsESProducer::readPatternsXML(XMLConfigReader & aReader){
 
   std::vector<l1t::LUT*> luts={ &chargeLUT, &etaLUT, &ptLUT, &meanDistPhiLUT, &pdfLUT};
   std::vector<std::string> types= {"iCharge", "iEta", "iPt", "meanDistPhi", "pdf"};
-  aReader.readLUTs(luts,params,types);
+  aReader.readLUTs(luts, params, types);
 
   params.setChargeLUT(chargeLUT);
   params.setEtaLUT(etaLUT);

@@ -58,7 +58,7 @@ XMLConfigReader::~XMLConfigReader()
 }
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapParams & aConfig, const std::vector<std::string> & types){
+void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapParams& aConfig, const std::vector<std::string> & types){
 
   ///Fill payload string  
   auto const & aGPs = readPatterns(aConfig);
@@ -129,7 +129,7 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapP
     ///Read the data into LUT
     int result = lut->read(strStream);
     if(result != l1t::LUT::SUCCESS) {
-      throw cms::Exception("OMTF::XMLConfigReader::readLUTs: lut->read(strStream did not returned l1t::LUT::SUCCESS but " + std::to_string(result));
+      throw cms::Exception("OMTF::XMLConfigReader::readLUTs: lut->read(strStream) did not returned l1t::LUT::SUCCESS but " + std::to_string(result));
     }
   }
 }
@@ -166,7 +166,7 @@ unsigned int XMLConfigReader::getPatternsVersion() const{
 }
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-std::vector<std::shared_ptr<GoldenPattern>> XMLConfigReader::readPatterns(const L1TMuonOverlapParams & aConfig){
+std::vector<std::shared_ptr<GoldenPattern>> XMLConfigReader::readPatterns(const L1TMuonOverlapParams& aConfig){
 
   aGPs.clear();
 
@@ -238,7 +238,7 @@ std::vector<std::shared_ptr<GoldenPattern>> XMLConfigReader::readPatterns(const 
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 std::unique_ptr<GoldenPattern> XMLConfigReader::buildGP(DOMElement* aGPElement,
-    const L1TMuonOverlapParams & aConfig,
+    const L1TMuonOverlapParams& aConfig,
     unsigned int index,
     unsigned int aGPNumber){
 
@@ -277,25 +277,10 @@ std::unique_ptr<GoldenPattern> XMLConfigReader::buildGP(DOMElement* aGPElement,
   DOMNode *aNode = 0;
   DOMElement* aLayerElement = 0;
   DOMElement* aItemElement = 0;
-  GoldenPattern::vector3D meanDistPhi2D(nLayers);
-
-  GoldenPattern::vector3D meanDistPhi(nLayers, GoldenPattern::vector2D(aConfig.nRefLayers(), GoldenPattern::vector1D(2)));
-
-  GoldenPattern::vector1D pdf1D(exp2(aConfig.nPdfAddrBits()));
-  GoldenPattern::vector3D pdf3D(aConfig.nLayers());
-  GoldenPattern::vector2D pdf2D(aConfig.nRefLayers());
 
   if(iPt==0){///Build empty GP
-    GoldenPattern::vector1D meanDistPhi1D(aConfig.nRefLayers());
-    //meanDistPhi2D.assign(aConfig.nLayers(),meanDistPhi1D);
-    pdf1D.assign(exp2(aConfig.nPdfAddrBits()),0);
-    pdf2D.assign(aConfig.nRefLayers(),pdf1D);
-    pdf3D.assign(aConfig.nLayers(),pdf2D);
-
     Key aKey(iEta,iPt,iCharge, aGPNumber);
-    auto aGP = std::make_unique<GoldenPattern>(aKey);
-    aGP->setMeanDistPhi(meanDistPhi);
-    aGP->setPdf(pdf3D);
+    auto aGP = std::make_unique<GoldenPattern>(aKey, aConfig.nLayers(), aConfig.nRefLayers(), aConfig.nPdfAddrBits());
     return aGP;
   }
 
@@ -324,6 +309,9 @@ std::unique_ptr<GoldenPattern> XMLConfigReader::buildGP(DOMElement* aGPElement,
   }
 
   ///Loop over layers
+  Key aKey(iEta,iPt,iCharge, aGPNumber);
+  auto aGP = std::make_unique<GoldenPattern>(aKey, aConfig.nLayers(), aConfig.nRefLayers(), aConfig.nPdfAddrBits());
+  //aGP->setThresholds(thresholds);
   for(unsigned int iLayer=0;iLayer<nLayers;++iLayer){
     aNode = aGPElement->getElementsByTagName(xmlLayer)->item(iLayer);
     aLayerElement = static_cast<DOMElement *>(aNode); 
@@ -336,39 +324,33 @@ std::unique_ptr<GoldenPattern> XMLConfigReader::buildGP(DOMElement* aGPElement,
 
       std::string strVal = _toString(aItemElement->getAttribute(xmlmeanDistPhi)).c_str();
       if(strVal.size() > 0) {
-        meanDistPhi[iLayer][iItem][0] = std::stoi(strVal);
+        aGP->setMeanDistPhiValue(std::stoi(strVal), iLayer, iItem, 0);
       }
       else {
         strVal = _toString(aItemElement->getAttribute(xmlmeanDistPhi0)).c_str();
-        meanDistPhi[iLayer][iItem][0] = std::stoi(strVal);
+        aGP->setMeanDistPhiValue(std::stoi(strVal), iLayer, iItem, 0);
         strVal = _toString(aItemElement->getAttribute(xmlmeanDistPhi1)).c_str();
-        meanDistPhi[iLayer][iItem][1] = std::stoi(strVal);
+        aGP->setMeanDistPhiValue(std::stoi(strVal), iLayer, iItem, 1);
       }
 
     }
 
     ///PDF vector
     nItems = aLayerElement->getElementsByTagName(xmlPDF)->getLength();
+    //if(nItems!=aConfig.nRefLayers()*exp2(aConfig.nPdfAddrBits()))
+    {
+      //std::cout<<" iPt "<<iPt<<" iLayer "<<iLayer<<" nLayers "<<nLayers<<" nItems "<<nItems<<" nRefLayers "<<aConfig.nRefLayers()<<" nPdfAddrBits "<<aConfig.nPdfAddrBits()<<std::endl;
+    }
     assert(nItems==aConfig.nRefLayers()*exp2(aConfig.nPdfAddrBits()));
     for(unsigned int iRefLayer=0;iRefLayer<(unsigned) aConfig.nRefLayers();++iRefLayer){
-      pdf1D.assign(exp2(aConfig.nPdfAddrBits()),0);
       for(unsigned int iPdf=0;iPdf<exp2(aConfig.nPdfAddrBits());++iPdf){
         aNode = aLayerElement->getElementsByTagName(xmlPDF)->item(iRefLayer*exp2(aConfig.nPdfAddrBits())+iPdf);
         aItemElement = static_cast<DOMElement *>(aNode);
         val = std::atoi(_toString(aItemElement->getAttribute(xmlValue)).c_str());
-        pdf1D[iPdf] = val;
+        aGP->setPdfValue(val, iLayer, iRefLayer, iPdf);
       }
-      pdf2D[iRefLayer] = pdf1D;
     }
-    pdf3D[iLayer] = pdf2D;
   }
-
-  Key aKey(iEta,iPt,iCharge, aGPNumber);
-  auto aGP = std::make_unique<GoldenPattern>(aKey);
-  aGP->setMeanDistPhi(meanDistPhi);
-  aGP->setPdf(pdf3D);
-  aGP->setThresholds(thresholds);
-
   XMLString::release(&xmliEta);
   XMLString::release(&xmliPt);
   XMLString::release(&xmliCharge);
