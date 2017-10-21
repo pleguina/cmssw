@@ -102,7 +102,7 @@ void OMTFPatternsGenFrom4DPdfs::beginRun(edm::Run const& run, edm::EventSetup co
 void OMTFPatternsGenFrom4DPdfs::beginJob(){
 
   myOMTFConfig = new OMTFConfiguration();
-  processor = new PatternsGeneratorProcessor();
+  processor = new PatternsGeneratorProcessor(myOMTFConfig);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////  
@@ -115,9 +115,10 @@ void OMTFPatternsGenFrom4DPdfs::endJob(){
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFPatternsGenFrom4DPdfs::writeGPs() {
-  myWriter->initialiseXMLDocument("OMTF");
   const PatternsGeneratorProcessor::GoldenPatternVec& myGPs = processor->getPatterns();
-
+  std::string fName = "GPs.xml";
+/*
+ * myWriter->initialiseXMLDocument("OMTF");
   GoldenPattern* dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
 
   OMTFConfiguration::vector2D mergedPartters = myOMTFConfig->getMergedPartters();
@@ -126,20 +127,22 @@ void OMTFPatternsGenFrom4DPdfs::writeGPs() {
     for(unsigned int i = 0; i < mergedPartters[iGroup].size(); i++) {
       GoldenPattern* gp = myGPs.at(mergedPartters[iGroup][i]).get();
 
-      /*cout<<gp->key()<<endl;;
+      cout<<gp->key()<<endl;;
       for(unsigned int iLayer = 0; iLayer<myOMTFConfig->nLayers(); ++iLayer) {
         for(unsigned int iRefLayer=0; iRefLayer<myOMTFConfig->nRefLayers(); ++iRefLayer) {
           if(gp->getPdf()[iLayer][iRefLayer][0] != 0) {
             cout<<"iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" pdf[0] "<<gp->getPdf()[iLayer][iRefLayer][0]<<"!!!!!!!!!!!!!!!!!!!!\n";
           }
         }
-      }*/
+      }
       gps[i] =  gp;
     }
     myWriter->writeGPData(*gps[0],*gps[1], *gps[2], *gps[3]);
   }
-  std::string fName = "GPs.xml";
-  myWriter->finaliseXMLDocument(fName);
+
+  myWriter->finaliseXMLDocument(fName);*/
+
+  myWriter->writeGPs(myGPs, fName);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////

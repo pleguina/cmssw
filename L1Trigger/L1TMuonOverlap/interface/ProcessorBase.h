@@ -20,17 +20,11 @@ template <class GoldenPatternType>
 class ProcessorBase {
 public:
   typedef std::vector< std::shared_ptr<GoldenPatternType> > GoldenPatternVec;
-  ProcessorBase():myOmtfConfig(0)  {
+
+  ProcessorBase(const OMTFConfiguration* omtfConfig): myOmtfConfig(omtfConfig)  {
   };
 
-  //virtual ~ProcessorBase();
   virtual ~ProcessorBase() {
-    //for(auto it: theGPs) delete it;
-  }
-
-  ///Just sets the myOmtfConfig
-  virtual void setConfigurataion(const OMTFConfiguration* omtfParams) {
-    myOmtfConfig = omtfParams;
   }
 
   ///Return vector of GoldenPatterns
@@ -49,6 +43,8 @@ public:
     for(auto& gp : theGPs) {
       gp->setConfig(myOmtfConfig);
     }
+
+    initPatternPtRange();
   }
 
 
@@ -61,6 +57,12 @@ public:
 
   ///Reset all configuration parameters
   virtual void resetConfiguration();
+
+  virtual void initPatternPtRange();
+
+  const std::vector<OMTFConfiguration::PatternPt>& getPatternPtRange() const {
+    return patternPts;
+  }
 
 protected:
   ///vector holding Golden Patterns
@@ -76,7 +78,8 @@ protected:
             unsigned int iCone,
             unsigned int iLayer,
             const OMTFinput::vector1D & layerHits);
+
+  std::vector<OMTFConfiguration::PatternPt> patternPts;
 };
 
-#include "L1Trigger/L1TMuonOverlap/interface/ProcessorBase.hxx"
 #endif /* OMTF_PROCESSORBASE_H_ */

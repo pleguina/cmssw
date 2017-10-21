@@ -20,9 +20,6 @@ class IProcessorEmulator {
 public:
   virtual ~IProcessorEmulator() {}
 
-  ///Just sets the myOmtfConfig
-  virtual void setConfigurataion(const OMTFConfiguration* omtfParams) = 0;
-
   ///Fill GP vec with patterns from CondFormats object
   virtual bool configure(const OMTFConfiguration * omtfParams, const L1TMuonOverlapParams* omtfPatterns) = 0;
 
@@ -42,7 +39,6 @@ public:
   virtual bool checkHitPatternValidity(unsigned int hits) = 0;
 
   virtual std::vector<l1t::RegionalMuonCand> getFinalcandidates(unsigned int iProcessor, l1t::tftype mtfType, const std::vector<AlgoMuon> & algoCands) = 0;
-
 
 };
 

@@ -12,6 +12,7 @@
 
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternParametrised.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternWithStat.h"
 
 #include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 ///////////////////////////////////////////////////////
@@ -51,7 +52,7 @@ AlgoMuon OMTFSorter<GoldenPatternType>::sortRefHitResults(unsigned int iRefHit, 
   }
 
   if(bestGP) {
-     AlgoMuon candidate(bestGP->getResults().at(iRefHit), bestGP->key(), iRefHit);
+     AlgoMuon candidate(bestGP->getResults().at(iRefHit), bestGP, iRefHit);
      //std::cout<<__FUNCTION__<<" line "<<__LINE__ <<" return: " << candidate << std::endl;
      return candidate;
   }
@@ -64,3 +65,4 @@ AlgoMuon OMTFSorter<GoldenPatternType>::sortRefHitResults(unsigned int iRefHit, 
 
 template class OMTFSorter<GoldenPattern>;
 template class OMTFSorter<GoldenPatternParametrised>;
+template class OMTFSorter<GoldenPatternWithStat>;

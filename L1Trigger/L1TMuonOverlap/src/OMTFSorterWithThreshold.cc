@@ -42,7 +42,7 @@ AlgoMuon OMTFSorterWithThreshold::sortRefHitResults(unsigned int iRefHit, const 
   }
 
   if(bestGP) {
-     AlgoMuon candidate(bestGP->getResults().at(iRefHit), bestGP->key(), iRefHit);
+     AlgoMuon candidate(bestGP->getResults().at(iRefHit), bestGP, iRefHit);
      //std::cout<<__FUNCTION__<<" line "<<__LINE__ <<" return: " << candidate << std::endl;
      return candidate;
   }

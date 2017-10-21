@@ -11,6 +11,7 @@
 
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessor.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternParametrised.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternWithStat.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -24,7 +25,7 @@
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 template <class GoldenPatternType>
-OMTFProcessor<GoldenPatternType>::OMTFProcessor(): ProcessorBase<GoldenPatternType>()  {
+OMTFProcessor<GoldenPatternType>::OMTFProcessor(const OMTFConfiguration* myOmtfConfig): ProcessorBase<GoldenPatternType>(myOmtfConfig)  {
   setSorter(new OMTFSorter<GoldenPatternType>()); //initialize with the default sorter
   setGhostBuster(new GhostBuster()); //initialize with the default sorter
 };
@@ -124,7 +125,10 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
 
   for(unsigned int iLayer=0; iLayer < this->myOmtfConfig->nLayers(); ++iLayer) {
     const OMTFinput::vector1D & layerHits = aInput.getLayerData(iLayer);
-
+    /*for(auto& h : layerHits) {
+      if(h != 5400)
+        std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" layerHit "<<h<<std::endl;
+    }*/
     if(!layerHits.size()) continue; //in principle not needed, the size is always 14
     ///Number of reference hits to be checked.
     unsigned int nTestedRefHits = this->myOmtfConfig->nTestRefHits();
@@ -142,7 +146,7 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
         phiRef = 0;  //then in the delta_phi in process1Layer1RefLayer one obtains simply the iLayer phi
 
       const OMTFinput::vector1D restrictedLayerHits = this->restrictInput(iProcessor, iRegion, iLayer,layerHits);
-      //std::cout<<"iLayer "<<iLayer<<" iRefLayer "<<aRefHitDef.iRefLayer<<" hits.size "<<restrictedLayerHits.size()<<std::endl;
+      //std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" iRefLayer "<<aRefHitDef.iRefLayer<<" hits.size "<<restrictedLayerHits.size()<<std::endl;
       //std::cout<<"iLayer "<<iLayer<<" refHitNum "<<myOmtfConfig->nTestRefHits()-nTestedRefHits-1<<" iRefHit "<<iRefHit;
       //std::cout<<" nTestedRefHits "<<nTestedRefHits<<" aRefHitDef "<<aRefHitDef<<std::endl;
 
@@ -158,7 +162,7 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
       for(auto& itGP: this->theGPs) {
         if(itGP->key().thePt == 0) //empty pattern
           continue;
-        GoldenPatternResult::layerResult layerResult = itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer,
+        GoldenPatternResult::LayerResult layerResult = itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer,
             phiRef,
             restrictedLayerHits,
             refLayerPhiB);
@@ -204,3 +208,5 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
 
 template class OMTFProcessor<GoldenPattern>;
 template class OMTFProcessor<GoldenPatternParametrised>;
+template class OMTFProcessor<GoldenPatternWithStat>;
+

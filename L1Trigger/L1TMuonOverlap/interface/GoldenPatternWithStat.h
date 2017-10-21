@@ -16,7 +16,7 @@ class OMTFConfiguration;
 class GoldenPatternWithStat : public GoldenPattern {
 public:
   static const unsigned int STAT_BINS = 4;
-  typedef boost::multi_array<short, 4> StatArrayType;
+  typedef boost::multi_array<float, 4> StatArrayType;
   //GoldenPatternWithStat(const Key & aKey) : GoldenPattern(aKey) {}
 
   GoldenPatternWithStat(const Key & aKey, unsigned int nLayers, unsigned int nRefLayers, unsigned int nPdfAddrBits):
@@ -28,7 +28,13 @@ public:
 
   virtual ~GoldenPatternWithStat() {};
 
+  virtual void updateStat(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, unsigned int what, double value);
+
+  //virtual void updatePdfs(double learingRate);
+
   friend std::ostream & operator << (std::ostream &out, const GoldenPatternWithStat & aPattern);
+
+  friend class PatternOptimizer;
 
 private:
   StatArrayType statisitics;

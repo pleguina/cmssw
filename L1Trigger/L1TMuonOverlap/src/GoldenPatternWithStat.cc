@@ -20,8 +20,34 @@
 }*/
 
 
+void GoldenPatternWithStat::updateStat(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, unsigned int what, double value) {
+  statisitics[iLayer][iRefLayer][iBin][what] += value;
+  //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" iBin "<<iBin<<" what "<<what<<" value "<<value<<std::endl;
+}
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
+/*void GoldenPatternWithStat::updatePdfs(double learingRate) {
+  //double f = 1;
+  for(unsigned int iLayer = 0; iLayer < getPdf().size(); ++iLayer) {
+    for(unsigned int iRefLayer=0; iRefLayer < getPdf()[iLayer].size(); ++iRefLayer) {
+      for(unsigned int iPdf = 1; iPdf < getPdf()[iLayer][iRefLayer].size(); iPdf++) {
+        double d = 0;
+        if(statisitics[iLayer][iRefLayer][iPdf][whatSimNorm] != 0)
+          d -= statisitics[iLayer][iRefLayer][iPdf][whatSimVal]/(double)statisitics[iLayer][iRefLayer][iPdf][whatSimNorm];
+
+        if(statisitics[iLayer][iRefLayer][iPdf][whatOmtfNorm] != 0)
+          d += statisitics[iLayer][iRefLayer][iPdf][whatOmtfVal]/(double)statisitics[iLayer][iRefLayer][iPdf][whatOmtfNorm] ;
+
+        d = d * learingRate;
+        pdfAllRef[iLayer][iRefLayer][iPdf] += d;
+        if(d != 0) {
+          std::cout<<__FUNCTION__<<":"<<__LINE__<<" "<< key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" iBin "<<iPdf<<" pdfVal "<<pdfAllRef[iLayer][iRefLayer][iPdf]<<" d "<<d<<std::endl;
+        }
+      }
+    }
+  }
+}*/
+
 std::ostream & operator << (std::ostream &out, const GoldenPatternWithStat & aPattern){
 
 /*  out <<"GoldenPatternWithStat "<< aPattern.theKey <<std::endl;

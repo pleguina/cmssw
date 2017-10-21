@@ -164,6 +164,9 @@ void OMTFConfiguration::configure(const L1TMuonOverlapParams *omtfParams){
   }
 
   initCounterMatrices();
+
+  pdfBins = (1<<rawParams.nPdfAddrBits());
+  pdfMaxVal = (1<<rawParams.nPdfValBits() ) - 1;
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
@@ -276,39 +279,56 @@ uint32_t OMTFConfiguration::getLayerNumber(uint32_t rawId) const {
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 OMTFConfiguration::PatternPt OMTFConfiguration::getPatternPtRange(unsigned int patNum) const {
-  PatternPt patternPt;
-  int charge = rawParams.chargeLUT()->data(patNum);
-  if(rawParams.ptLUT()->data(patNum) == 0)
-    return patternPt;
+  if(patNum > patternPts.size() ) {
+    if(patternPts.size() == 0)
+      throw cms::Exception("OMTFConfiguration::getPatternPtRange: patternPts vector not initialized");
 
-  patternPt.ptFrom = hwPtToGev(rawParams.ptLUT()->data(patNum));
-
-  while(true) { //to skip the empty patterns with pt=0 and patterns with opposite charge
-    patNum++;
-    if(patNum == nGoldenPatterns())
-      break;
-    if(rawParams.ptLUT()->data(patNum) != 0 && rawParams.chargeLUT()->data(patNum) == charge)
-      break;
+    throw cms::Exception("OMTFConfiguration::getPatternPtRange: patNum > patternPts.size()");
   }
+  return patternPts[patNum];
+}
 
-  if(patNum == nGoldenPatterns())
-    patternPt.ptTo = 10000; //inf
-  else
-    patternPt.ptTo = hwPtToGev(rawParams.ptLUT()->data(patNum));
+void OMTFConfiguration::initPatternPtRange() {
+  for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
+    PatternPt patternPt;
+    int charge = rawParams.chargeLUT()->data(iPat);
+    if(rawParams.ptLUT()->data(iPat) == 0) {
+      patternPts.push_back(patternPt);
+      continue;
+    }
 
-  return patternPt;
+    patternPt.ptFrom = hwPtToGev(rawParams.ptLUT()->data(iPat));
+
+    unsigned int iPat1 = iPat;
+    while(true) { //to skip the empty patterns with pt=0 and patterns with opposite charge
+      iPat1++;
+      if(iPat1 == nGoldenPatterns())
+        break;
+      if(rawParams.ptLUT()->data(iPat1) != 0 && rawParams.chargeLUT()->data(iPat1) == charge)
+        break;
+    }
+
+    if(iPat1 == nGoldenPatterns())
+      patternPt.ptTo = 10000; //inf
+    else
+      patternPt.ptTo = hwPtToGev(rawParams.ptLUT()->data(iPat1));
+
+    patternPt.charge = charge;
+    patternPts.push_back(patternPt);
+  }
 }
 
 unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
   //in LUT the charge is in convention 0 is -, 1 is + (so it is not the uGMT convention!!!)
   //so we change the charge here
-  if(charge == -1)
-    charge = 0;
+  //if(charge == -1)
+    //charge = 0;  //TODO but in the xml (and in GPs) the charge is +1 and -1, so it is important from where the patternPts is loaded FIXME!!!
   for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
     //std::cout<<"iPAt "<<iPat<<" ptFrom "<<getPatternPtRange(iPat).ptFrom<<" "<<getPatternPtRange(iPat).ptTo<<" "<<rawParams.chargeLUT()->data(iPat)<<std::endl;
-    if(pt >= getPatternPtRange(iPat).ptFrom &&
-       pt  < getPatternPtRange(iPat).ptTo   &&
-       charge == rawParams.chargeLUT()->data(iPat) )
+    PatternPt patternPt = getPatternPtRange(iPat);
+    if(pt >= patternPt.ptFrom &&
+       pt  < patternPt.ptTo   &&
+       charge == patternPt.charge )
       return iPat;
   }
   return  0;

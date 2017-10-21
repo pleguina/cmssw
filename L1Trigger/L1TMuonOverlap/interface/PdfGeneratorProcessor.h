@@ -13,7 +13,7 @@
 
 class PdfGeneratorProcessor: public ProcessorBase<GoldenPattern>  {
 public:
-  PdfGeneratorProcessor():ProcessorBase<GoldenPattern>() {};
+  PdfGeneratorProcessor(const OMTFConfiguration* omtfConfig): ProcessorBase<GoldenPattern>(omtfConfig) {};
 
   virtual ~PdfGeneratorProcessor() {};
 

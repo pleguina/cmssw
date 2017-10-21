@@ -100,8 +100,9 @@ class OMTFConfiguration{
   unsigned int nRefLayers() const {return rawParams.nRefLayers();};
   unsigned int nPhiBits() const {return rawParams.nPhiBits();};
   unsigned int nPdfAddrBits() const {return rawParams.nPdfAddrBits();};
-  unsigned int nPdfBins() const {return (1<<rawParams.nPdfAddrBits());};
+  unsigned int nPdfBins() const {return pdfBins;};
   unsigned int nPdfValBits() const {return rawParams.nPdfValBits();};
+  int pdfMaxValue() const {return pdfMaxVal; };
   unsigned int nPhiBins() const {return rawParams.nPhiBins();};
   unsigned int nRefHits() const {return rawParams.nRefHits();};
   unsigned int nTestRefHits() const {return rawParams.nTestRefHits();};
@@ -136,7 +137,7 @@ class OMTFConfiguration{
   const vector4D & getMeasurements4Dref() const {return measurements4Dref;}
 
   ///uGMT pt scale conversion
-  double hwPtToGev(unsigned int hwPt) const {
+  static double hwPtToGev(unsigned int hwPt) {
     return (hwPt - 1.) * 0.5;
   }
 
@@ -144,9 +145,17 @@ class OMTFConfiguration{
   struct PatternPt {
     double ptFrom = 0;
     double ptTo = 0;
+    int charge = 0;
   };
   
-  PatternPt getPatternPtRange(unsigned int patNum) const;
+  PatternPt getPatternPtRange(unsigned int patNum) const ;
+
+  void initPatternPtRange();
+
+  //call it when the patterns are read directly from the xml, without using the LUTs
+  void setPatternPtRange(const std::vector<PatternPt>& patternPts) {
+    this->patternPts = patternPts;
+  }
 
   ///charge: -1 - negative, +1 - positive
   unsigned int getPatternNum(double pt, int charge) const;
@@ -208,6 +217,10 @@ class OMTFConfiguration{
   vector4D measurements4D;
   vector4D measurements4Dref;
 
+  std::vector<PatternPt> patternPts;
+
+  int pdfMaxVal = 0;
+  unsigned int pdfBins = 0;
 };
 
 

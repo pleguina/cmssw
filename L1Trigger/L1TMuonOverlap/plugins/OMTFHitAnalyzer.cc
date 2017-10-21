@@ -59,7 +59,7 @@ OMTFHitAnalyzer::~OMTFHitAnalyzer(){
 /////////////////////////////////////////////////////
 void OMTFHitAnalyzer::configureProcesor(const OMTFConfiguration * omtfConfig,
     const L1TMuonOverlapParams* omtfPatterns, unsigned int ptCode, int charge, unsigned int patNum) {
-  myOMTF->setConfigurataion(myOMTFConfig);
+  //myOMTF->setConfigurataion(myOMTFConfig);
 
   //myResults.assign(omtfConfig->nTestRefHits(),OMTFProcessor::resultsMap()); FIXME is it needed???
 
@@ -152,7 +152,7 @@ void OMTFHitAnalyzer::beginRun(edm::Run const& run, edm::EventSetup const& iSetu
 void OMTFHitAnalyzer::beginJob(){
 
   myOMTFConfig = new OMTFConfiguration();
-  myOMTF = new Pdf4DGeneratorProcessor();
+  myOMTF = new Pdf4DGeneratorProcessor(myOMTFConfig);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////  

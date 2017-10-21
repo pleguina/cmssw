@@ -19,16 +19,16 @@ GoldenPatternResult::GoldenPatternResult(const OMTFConfiguration * omtfConfig): 
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-void GoldenPatternResult::configure(const OMTFConfiguration * omtfConfig) {
+/*void GoldenPatternResult::configure(const OMTFConfiguration * omtfConfig) {
   myOmtfConfig = omtfConfig;
   assert(myOmtfConfig != 0);
   reset();
-}
+}*/
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 
 void GoldenPatternResult::set(int refLayer_, unsigned int phi, unsigned int eta, unsigned int refHitPhi,
-    unsigned int iLayer, GoldenPatternResult::layerResult layerResult) {
+    unsigned int iLayer, GoldenPatternResult::LayerResult layerResult) {
   if( isValid() && this->refLayer != refLayer_) {
     std::cout<<__FUNCTION__<<" "<<__LINE__<<" this->refLayer "<<this->refLayer<<" refLayer_ "<<refLayer_<<std::endl;
   }
@@ -38,11 +38,14 @@ void GoldenPatternResult::set(int refLayer_, unsigned int phi, unsigned int eta,
   this->phi = phi;
   this->eta = eta;
   this->refHitPhi = refHitPhi;
-  pdfWeights[iLayer] = layerResult.first;
-  if(layerResult.second)
+  pdfWeights.at(iLayer) = layerResult.pdfVal;
+  if(layerResult.valid) {
     firedLayerBits |= (1<< iLayer);
-  //std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" refLayer "<<refLayer<<std::endl;
-  //pdfWeightSum += pdfVal; - this cannot be done here, because the pdfVal for the banding layer must be added only
+    hitPdfBins[iLayer] = layerResult.pdfBin;
+  }
+  /*if(layerResult.valid || layerResult.pdfVal)
+    std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" refLayer "<<refLayer<<" pdfBin "<<layerResult.pdfBin<<" val "<<layerResult.pdfVal<<" valid "<<layerResult.valid<<std::endl;
+ */ //pdfWeightSum += pdfVal; - this cannot be done here, because the pdfVal for the banding layer must be added only
   //if hit in the corresponding phi layer was accpeted (i.e. its pdfVal > 0. therefore it is done in finalise()
 }
 
@@ -70,6 +73,7 @@ void GoldenPatternResult::reset() {
   valid = false;
   refLayer = -1;
   pdfWeights.assign(myOmtfConfig->nLayers(), 0);
+  hitPdfBins.assign(myOmtfConfig->nLayers(), 0);
   phi = 1024;
   eta = 1024;
   pdfWeightSum = 0;
@@ -144,10 +148,8 @@ void GoldenPatternResult::finalise1() {
 ////////////////////////////////////////////
 std::ostream & operator << (std::ostream &out, const GoldenPatternResult & gpResult) {
   for(unsigned int iLogicLayer=0; iLogicLayer < gpResult.getPdfWeights().size(); ++iLogicLayer){
-    out<<" layer: "<<iLogicLayer<<" res: ";
-    out<<std::setw(3)<<gpResult.getPdfWeights()[iLogicLayer]<<" ";
+    out<<" layer: "<<iLogicLayer<<" pdfBin: "<<std::setw(3)<<gpResult.hitPdfBins[iLogicLayer]<<" pdfVal: "<<std::setw(3)<<gpResult.getPdfWeights()[iLogicLayer]<<std::endl;
   }
-  out<<std::endl;
 
   out<<"  refLayer: ";
   out << gpResult.getRefLayer()<<"\t";

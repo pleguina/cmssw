@@ -30,14 +30,9 @@ template <class GoldenPatternType>
 class OMTFProcessor: public ProcessorBase<GoldenPatternType>, public IProcessorEmulator {
  public:
 
-  OMTFProcessor();
+  OMTFProcessor(const OMTFConfiguration* myOmtfConfig);
 
   virtual ~OMTFProcessor();
-
-  ///Just sets the myOmtfConfig
-  virtual void setConfigurataion(const OMTFConfiguration* omtfParams) {
-    ProcessorBase<GoldenPatternType>::setConfigurataion(omtfParams);
-  }
 
   ///Fill GP vec with patterns from CondFormats object
   virtual bool configure(const OMTFConfiguration* omtfParams, const L1TMuonOverlapParams* omtfPatterns) {

@@ -2,6 +2,7 @@
 
 #include "L1Trigger/L1TMuonOverlap/interface/XMLConfigWriter.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternWithStat.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
 #include <L1Trigger/L1TMuonOverlap/interface/GoldenPatternResult.h>
@@ -509,6 +510,35 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
 }
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
+template <class GoldenPatternType>
+void XMLConfigWriter::writeGPs(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats, std::string fName ) {
+  initialiseXMLDocument("OMTF");
+  GoldenPattern* dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
+
+  OMTFConfiguration::vector2D mergedPartters = myOMTFConfig->getMergedPartters();
+  for(unsigned int iGroup = 0; iGroup < mergedPartters.size(); iGroup++) {
+    std::vector<GoldenPattern*> gps(4, dummy);
+    for(unsigned int i = 0; i < mergedPartters[iGroup].size(); i++) {
+      GoldenPattern* gp = dynamic_cast<GoldenPattern*> (goldenPats.at(mergedPartters[iGroup][i]).get() );
+      if(!gp) {
+        throw cms::Exception("OMTF::XMLConfigWriter::writeGPs: the gps are not GoldenPatterns ");
+      }
+      /*cout<<gp->key()<<endl;;
+      for(unsigned int iLayer = 0; iLayer<myOMTFConfig->nLayers(); ++iLayer) {
+        for(unsigned int iRefLayer=0; iRefLayer<myOMTFConfig->nRefLayers(); ++iRefLayer) {
+          if(gp->getPdf()[iLayer][iRefLayer][0] != 0) {
+            cout<<"iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" pdf[0] "<<gp->getPdf()[iLayer][iRefLayer][0]<<"!!!!!!!!!!!!!!!!!!!!\n";
+          }
+        }
+      }*/
+      gps[i] =  gp;
+    }
+    writeGPData(*gps[0],*gps[1], *gps[2], *gps[3]);
+  }
+  finaliseXMLDocument(fName);
+}
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
 void  XMLConfigWriter::writeConnectionsData(const std::vector<std::vector <OMTFConfiguration::vector2D> > & measurements4D){
 
   std::ostringstream stringStr;
@@ -654,4 +684,9 @@ unsigned int XMLConfigWriter::findMaxInput(const OMTFConfiguration::vector1D & m
 }
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+template
+void XMLConfigWriter::writeGPs(const std::vector<std::shared_ptr<GoldenPattern> >& goldenPats, std::string fName);
+
+template
+void XMLConfigWriter::writeGPs(const std::vector<std::shared_ptr<GoldenPatternWithStat> >& goldenPats, std::string fName);
 

@@ -96,7 +96,7 @@ class GoldenPatternBase {
 
   ///Process single measurement layer with a single ref layer
   ///Method should be thread safe
-  virtual GoldenPatternResult::layerResult process1Layer1RefLayer(unsigned int iRefLayer,
+  virtual GoldenPatternResult::LayerResult process1Layer1RefLayer(unsigned int iRefLayer,
       unsigned int iLayer,
       const int refPhi,
       const OMTFinput::vector1D & layerHits,

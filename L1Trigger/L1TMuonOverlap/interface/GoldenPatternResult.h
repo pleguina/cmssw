@@ -10,7 +10,13 @@ class OMTFConfiguration;
 class GoldenPatternResult {
 public:
   typedef std::vector<unsigned int> vector1D;
-  typedef std::pair<int,bool> layerResult;
+  struct LayerResult {
+    int pdfVal = 0;
+    bool valid = false;
+    int pdfBin = 0; //hit deltaPhi, bin=0 is reserved for no valid hit, see GoldenPatternBase::process1Layer1RefLayer
+
+    LayerResult(int pdfVal, bool valid, int pdfBin): pdfVal(pdfVal), valid(valid), pdfBin(pdfBin) {};
+  };
 
 private:
   bool valid;
@@ -21,6 +27,10 @@ private:
   ///Pdf weight found for each layer
   ///First index: layer number
   vector1D pdfWeights;
+
+  ///pdfBins for each for each layer
+  ///First index: layer number
+  vector1D hitPdfBins;
 
   ///phi at the 2nd muon station (propagated refHitPhi)
   unsigned int phi;
@@ -54,7 +64,7 @@ public:
   }
 
   void set(int refLayer, unsigned int phi, unsigned int eta, unsigned int refHitPhi,
-      unsigned int iLayer, layerResult layerResult);
+      unsigned int iLayer, LayerResult layerResult);
 
   int getRefLayer() const {
     return this->refLayer;
@@ -104,6 +114,10 @@ public:
     this->pdfWeightSum = pdfWeigtSum;
   }
 
+  const vector1D& getHitPdfBins()  {
+    return hitPdfBins;
+  }
+
   unsigned int getPhi() const {
     return phi;
   }
@@ -120,14 +134,17 @@ public:
     this->refHitPhi = refHitPhi;
   }
 
+  bool isLayerFired(unsigned int iLayer) const {
+    return firedLayerBits & (1<<iLayer);
+  }
 
-  GoldenPatternResult(): refLayer(-2), pdfWeights(8, 0), myOmtfConfig(0)  {
+  GoldenPatternResult():  valid(0), refLayer(-2), firedLayerCnt(0), myOmtfConfig(0)  {
   };
 
   //dont use this in the pattern construction, since the myOmtfConfig is null then
   GoldenPatternResult(const OMTFConfiguration* omtfConfig);
 
-  void configure(const OMTFConfiguration * omtfConfig);
+  //void configure(const OMTFConfiguration * omtfConfig);
 
   /*  const GoldenPatternResults::vector2D & getResults() const {return results;}
 

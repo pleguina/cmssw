@@ -6,6 +6,7 @@
 
 #include "L1Trigger/L1TMuonOverlap/interface/XMLConfigReader.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternWithStat.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
 
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
@@ -61,7 +62,7 @@ XMLConfigReader::~XMLConfigReader()
 void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapParams& aConfig, const std::vector<std::string> & types){
 
   ///Fill payload string  
-  auto const & aGPs = readPatterns(aConfig);
+  auto const & aGPs = readPatterns<GoldenPattern>(aConfig);
 
   for ( unsigned int i=0; i< luts.size(); i++ ) {
     l1t::LUT* lut=luts[i];
@@ -166,8 +167,9 @@ unsigned int XMLConfigReader::getPatternsVersion() const{
 }
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-std::vector<std::shared_ptr<GoldenPattern>> XMLConfigReader::readPatterns(const L1TMuonOverlapParams& aConfig){
-
+template <class GoldenPatternType>
+std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(const L1TMuonOverlapParams& aConfig) {
+  std::vector<std::shared_ptr<GoldenPatternType> > aGPs;
   aGPs.clear();
 
   XMLPlatformUtils::Initialize();
@@ -199,18 +201,18 @@ std::vector<std::shared_ptr<GoldenPattern>> XMLConfigReader::readPatterns(const 
       aNode = doc->getElementsByTagName(xmlGP)->item(iItem);
       aGPElement = static_cast<DOMElement *>(aNode);
 
-      std::unique_ptr<GoldenPattern> aGP;
+      std::unique_ptr<GoldenPatternType> aGP;
       for(unsigned int index = 1;index<5;++index){
         ///Patterns XML format backward compatibility. Can use both packed by 4, or by 1 XML files.
         if(aGPElement->getAttributeNode(xmliPt[index-1])) {
-          aGP = buildGP(aGPElement, aConfig, index, iGPNumber);
+          aGP = buildGP<GoldenPatternType>(aGPElement, aConfig, index, iGPNumber);
           if(aGP){
             aGPs.emplace_back(std::move(aGP));
             iGPNumber++;
           }
         }
         else{
-          aGP = buildGP(aGPElement, aConfig);
+          aGP = buildGP<GoldenPatternType>(aGPElement, aConfig);
           if(aGP){
             aGPs.emplace_back(std::move(aGP));
             iGPNumber++;
@@ -237,7 +239,8 @@ std::vector<std::shared_ptr<GoldenPattern>> XMLConfigReader::readPatterns(const 
 }
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-std::unique_ptr<GoldenPattern> XMLConfigReader::buildGP(DOMElement* aGPElement,
+template <class GoldenPatternType>
+std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPElement,
     const L1TMuonOverlapParams& aConfig,
     unsigned int index,
     unsigned int aGPNumber){
@@ -280,7 +283,7 @@ std::unique_ptr<GoldenPattern> XMLConfigReader::buildGP(DOMElement* aGPElement,
 
   if(iPt==0){///Build empty GP
     Key aKey(iEta,iPt,iCharge, aGPNumber);
-    auto aGP = std::make_unique<GoldenPattern>(aKey, aConfig.nLayers(), aConfig.nRefLayers(), aConfig.nPdfAddrBits());
+    auto aGP = std::make_unique<GoldenPatternType>(aKey, aConfig.nLayers(), aConfig.nRefLayers(), aConfig.nPdfAddrBits());
     return aGP;
   }
 
@@ -310,7 +313,7 @@ std::unique_ptr<GoldenPattern> XMLConfigReader::buildGP(DOMElement* aGPElement,
 
   ///Loop over layers
   Key aKey(iEta,iPt,iCharge, aGPNumber);
-  auto aGP = std::make_unique<GoldenPattern>(aKey, aConfig.nLayers(), aConfig.nRefLayers(), aConfig.nPdfAddrBits());
+  auto aGP = std::make_unique<GoldenPatternType>(aKey, aConfig.nLayers(), aConfig.nRefLayers(), aConfig.nPdfAddrBits());
   //aGP->setThresholds(thresholds);
   for(unsigned int iLayer=0;iLayer<nLayers;++iLayer){
     aNode = aGPElement->getElementsByTagName(xmlLayer)->item(iLayer);
@@ -676,3 +679,7 @@ void XMLConfigReader::readConfig(L1TMuonOverlapParams *aConfig) const{
 
   //  xercesc::XercesDOMParser *parser;
   //  xercesc::DOMDocument* doc;
+
+
+template
+std::vector<std::shared_ptr<GoldenPatternWithStat> > XMLConfigReader::readPatterns<GoldenPatternWithStat>(const L1TMuonOverlapParams& aConfig);

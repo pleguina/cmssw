@@ -21,6 +21,7 @@
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessor.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GhostBuster.h"
 #include "L1Trigger/L1TMuonOverlap/interface/IProcessorEmulator.h"
+#include "L1Trigger/L1TMuonOverlap/interface/IOMTFEmulationObserver.h"
 
 class L1TMuonOverlapParams;
 class OMTFConfiguration;
@@ -35,7 +36,7 @@ namespace XERCES_CPP_NAMESPACE{
 
 class OMTFReconstruction {
   public:
-    OMTFReconstruction();
+    //OMTFReconstruction();
 
     OMTFReconstruction(const edm::ParameterSet&);
 
@@ -77,9 +78,11 @@ class OMTFReconstruction {
     //OMTFProcessor<GoldenPattern>  *m_OMTF;
     IProcessorEmulator* m_OMTF;
   ///
-    xercesc::DOMElement *aTopElement;
+    //xercesc::DOMElement *aTopElement;
     OMTFConfigMaker     *m_OMTFConfigMaker;
-    XMLConfigWriter     *m_Writer;
+    //XMLConfigWriter     *m_Writer;
+
+    std::vector<std::unique_ptr<IOMTFEmulationObserver> > observers;
 };
 
 #endif
