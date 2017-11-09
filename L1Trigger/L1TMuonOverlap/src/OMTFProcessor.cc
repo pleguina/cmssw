@@ -172,7 +172,6 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
             aLayerResult.first,
             phiRefSt2, etaRef);*/
 
-        //myResults.at(myOmtfConfig->nTestRefHits()-nTestedRefHits-1).at(itGP->key()).set(aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef, iLayer, aLayerResult.first);
         itGP->getResults().at(this->myOmtfConfig->nTestRefHits()-nTestedRefHits-1).set(aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef, iLayer, layerResult);
       }
     }
@@ -195,13 +194,13 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
     }
   }
 
-  std::ostringstream myStr;
+/*  std::ostringstream myStr;
   myStr<<"iProcessor: "<<iProcessor<<std::endl;
   myStr<<"Input: ------------"<<std::endl;
   myStr<<aInput<<std::endl;
-  edm::LogInfo("OMTF processor")<<myStr.str();
+  edm::LogInfo("OMTF processor")<<myStr.str();*/
 
-  return; //myResults;
+  return;
 }
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////

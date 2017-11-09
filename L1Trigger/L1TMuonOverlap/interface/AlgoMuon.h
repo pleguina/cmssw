@@ -39,7 +39,7 @@ class AlgoMuon{
     return goldenPatern;
   }
 
-  int getDisc() const { return m_disc; }
+  omtfPdfValueType getDisc() const { return m_disc; }
   int getPhi()  const { return m_phi; }
   int getEta()  const { return m_eta; }
   int getRefLayer() const { return m_refLayer; }
@@ -52,7 +52,7 @@ class AlgoMuon{
   unsigned int getPatternNumber() const { return m_patNumb; }
   unsigned int getRefHitNumber() const { return m_rhitNumb; }
 
-  void setDisc(int disc) { m_disc = disc; }
+  void setDisc(omtfPdfValueType disc) { m_disc = disc; }
   void setPhi(int phi)   { m_phi = phi; }
   void setEta(int eta)   { m_eta = eta; }
   void setRefLayer(int refLayer) { m_refLayer = refLayer; }
@@ -74,7 +74,7 @@ class AlgoMuon{
  private: 
   GoldenPatternBase* goldenPatern;
 
-  int m_disc;
+  omtfPdfValueType m_disc;
   int m_phi;
   int m_eta;
   int m_refLayer;

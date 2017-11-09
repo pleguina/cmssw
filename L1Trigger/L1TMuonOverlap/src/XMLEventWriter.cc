@@ -32,10 +32,10 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor, l1t::tfty
     const AlgoMuon& algoMuon = algoCandidates.at(iRefHit);//charge=0 means ignore charge
     if(algoMuon.isValid()) {
       xmlWriter.writeAlgoMuon(aProcElement,iRefHit,algoMuon);
-      /*        if(dumpDetailedResultToXML){
-          for(auto & itKey: results[iRefHit])
-            m_Writer->writeResultsData(aProcElement, iRefHit, itKey.first,itKey.second);
-        }*/
+      /*if(dumpDetailedResultToXML){
+        for(auto & itKey: results[iRefHit])
+          xmlWriter.writeResultsData(aProcElement, iRefHit, itKey.first,itKey.second);
+      }*/
     }
   }
   for (auto & candMuon :  candMuons) xmlWriter.writeCandMuon(aProcElement, candMuon);

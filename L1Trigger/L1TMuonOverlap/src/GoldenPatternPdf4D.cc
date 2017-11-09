@@ -13,7 +13,9 @@
 
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
-GoldenPatternPdf4D::GoldenPatternPdf4D(const Key& aKey, const OMTFConfiguration * omtfConfig) : GoldenPatternBase(aKey, omtfConfig) {
+GoldenPatternPdf4D::GoldenPatternPdf4D(const Key& aKey, const OMTFConfiguration * omtfConfig) :
+  GoldenPatternBase(aKey, omtfConfig) {
+  reset();
 }
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
@@ -59,8 +61,8 @@ void GoldenPatternPdf4D::addCount(unsigned int iRefLayer,
   }
 
 
-  if((int)iLayer == myOmtfConfig->getRefToLogicNumber()[iRefLayer])
-    ++meanDistPhiCounts[iLayer][iRefLayer];
+/*  if((int)iLayer == myOmtfConfig->getRefToLogicNumber()[iRefLayer])
+    ++meanDistPhiCounts[iLayer][iRefLayer];*/
 
   pdfAllRef[iLayer][iRefLayer].at(refLayerPhiB).at(phiDistShift)++;
 }
@@ -68,7 +70,7 @@ void GoldenPatternPdf4D::addCount(unsigned int iRefLayer,
 ////////////////////////////////////////////////////
 std::ostream & operator << (std::ostream &out, const GoldenPatternPdf4D & aPattern){
 
-  out <<"GoldenPatternPdf4D "<< aPattern.theKey <<std::endl;
+/*  out <<"GoldenPatternPdf4D "<< aPattern.theKey <<std::endl;
   out <<"Number of reference layers: "<<aPattern.meanDistPhi[0].size()
           <<", number of measurement layers: "<<aPattern.pdfAllRef.size()
           <<std::endl;
@@ -83,9 +85,9 @@ std::ostream & operator << (std::ostream &out, const GoldenPatternPdf4D & aPatte
       out<<std::setw(3)<<aPattern.meanDistPhi[iLayer][iRefLayer]<<"\t";
     }
     out<<")"<<std::endl;
-  }
+  }*/
 
-  if(aPattern.meanDistPhiCounts.size()){
+/*  if(aPattern.meanDistPhiCounts.size()){
     out<<"Counts number per layer:"<<std::endl;
     for (unsigned int iRefLayer=0;iRefLayer<aPattern.meanDistPhi[0].size();++iRefLayer){
       out<<"Ref layer: "<<iRefLayer<<" (";
@@ -94,7 +96,7 @@ std::ostream & operator << (std::ostream &out, const GoldenPatternPdf4D & aPatte
       }
       out<<")"<<std::endl;
     }
-  }
+  }*/
 
   unsigned int nPdfAddrBits = 7;
   out<<"PDF per layer:"<<std::endl;
@@ -116,17 +118,16 @@ std::ostream & operator << (std::ostream &out, const GoldenPatternPdf4D & aPatte
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
 void GoldenPatternPdf4D::reset(){
-
-  GoldenPatternBase::vector1D meanDistPhi1D(myOmtfConfig->nRefLayers());
+/*  GoldenPatternBase::vector1D meanDistPhi1D(myOmtfConfig->nRefLayers());
   GoldenPatternBase::vector2D meanDistPhi2D(myOmtfConfig->nLayers());
   meanDistPhi2D.assign(myOmtfConfig->nLayers(), meanDistPhi1D);
   meanDistPhi = meanDistPhi2D;
-  meanDistPhiCounts = meanDistPhi2D;
+  meanDistPhiCounts = meanDistPhi2D;*/
 
   unsigned int nBins = exp2(myOmtfConfig->nPdfAddrBits());
-  GoldenPatternBase::vector1D pdf1D(nBins);
+  vector1D pdf1D(nBins);
   //IGoldenPattern::vector2D pdf2D(myOmtfConfig->nRefLayers());
-  GoldenPatternBase::vector3D pdf3D(myOmtfConfig->nRefLayers());
+  vector3D pdf3D(myOmtfConfig->nRefLayers());
   //GoldenPatternPdf4D::vector4D pdf4D(myOmtfConfig->nLayers());
 
   std::cout<<"GoldenPatternPdf4D::reset() myOmtfConfig->nPdfAddrBits() "<<myOmtfConfig->nPdfAddrBits()<<" nBins "<<nBins<<std::endl;
@@ -150,9 +151,10 @@ void GoldenPatternPdf4D::reset(){
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
 int GoldenPatternPdf4D::propagateRefPhi(int phiRef, int etaRef, unsigned int iRefLayer){
-  unsigned int iLayer = 2; //MB2
+  //unsigned int iLayer = 2; //MB2
   //if(etaRef>101) iLayer = 7;//RE2
-  return phiRef + meanDistPhi[iLayer][iRefLayer];
+  //return phiRef + meanDistPhi[iLayer][iRefLayer];
+  return 0;
 }
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////

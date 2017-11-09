@@ -135,8 +135,8 @@ process.omtfHitAnalyzer = cms.EDAnalyzer("OMTFPatternsGenFrom4DPdfs",
                                           omtf = cms.PSet(
                                               configFromXML = cms.bool(False),   
                                               patternsXMLFiles = cms.VPSet(                                       
-                                                  cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/Patterns_0x00020007_narrowedEndcaps2.xml")),
-                                                  #cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00020007.xml")),
+                                                  #cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/Patterns_0x00020007_narrowedEndcaps2.xml")),
+                                                  cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00020007.xml")),
                                                   #cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/GPsNorm1NoCor.xml")),
                                                   
                                               ),

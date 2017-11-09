@@ -41,8 +41,8 @@ void GoldenPatternResult::set(int refLayer_, unsigned int phi, unsigned int eta,
   pdfWeights.at(iLayer) = layerResult.pdfVal;
   if(layerResult.valid) {
     firedLayerBits |= (1<< iLayer);
-    hitPdfBins[iLayer] = layerResult.pdfBin;
   }
+  hitPdfBins[iLayer] = layerResult.pdfBin;
   /*if(layerResult.valid || layerResult.pdfVal)
     std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" refLayer "<<refLayer<<" pdfBin "<<layerResult.pdfBin<<" val "<<layerResult.pdfVal<<" valid "<<layerResult.valid<<std::endl;
  */ //pdfWeightSum += pdfVal; - this cannot be done here, because the pdfVal for the banding layer must be added only
@@ -148,7 +148,8 @@ void GoldenPatternResult::finalise1() {
 ////////////////////////////////////////////
 std::ostream & operator << (std::ostream &out, const GoldenPatternResult & gpResult) {
   for(unsigned int iLogicLayer=0; iLogicLayer < gpResult.getPdfWeights().size(); ++iLogicLayer){
-    out<<" layer: "<<iLogicLayer<<" pdfBin: "<<std::setw(3)<<gpResult.hitPdfBins[iLogicLayer]<<" pdfVal: "<<std::setw(3)<<gpResult.getPdfWeights()[iLogicLayer]<<std::endl;
+    out<<" layer: "<<std::setw(2)<<iLogicLayer<<" pdfBin: "<<std::setw(3)<<gpResult.hitPdfBins[iLogicLayer]<<" pdfVal: "<<std::setw(3)<<gpResult.getPdfWeights()[iLogicLayer]
+       <<" fired "<<gpResult.isLayerFired(iLogicLayer)<<std::endl;
   }
 
   out<<"  refLayer: ";

@@ -66,6 +66,9 @@ private:
 
   TH1I* ptDist;
 
+  double etaCutFrom = 0;
+  double etaCutTo = 0;
+
 }; 
 
 #endif

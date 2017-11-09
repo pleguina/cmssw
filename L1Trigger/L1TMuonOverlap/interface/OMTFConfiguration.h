@@ -7,7 +7,13 @@
 #include <ostream>
 #include <memory>
 
+#undef BOOST_DISABLE_ASSERTS
+#include "boost/multi_array.hpp"
+
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
+
+//typedef int omtfPdfValueType; //normal emulation is with int type
+typedef float omtfPdfValueType; //but floats are needed for the PatternOptimizer
 
 namespace edm{
   class ParameterSet;

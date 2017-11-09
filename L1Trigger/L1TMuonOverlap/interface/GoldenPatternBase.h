@@ -47,13 +47,11 @@ Key(int iEta=99, unsigned int iPt=0, int iCharge= 0, unsigned int iNumber=999):
 //////////////////////////////////
 
 class GoldenPatternBase {
-
  public:
-
   typedef std::vector<int> vector1D;
-  typedef std::vector<vector1D> vector2D;
-  typedef std::vector<vector2D> vector3D;
-  typedef std::vector<vector3D> vector4D;
+//  typedef std::vector<vector1D> vector2D;
+//  typedef std::vector<vector2D> vector3D;
+//  typedef std::vector<vector3D> vector4D;
 
   //
   // IGoldenPatterns methods
@@ -88,11 +86,15 @@ class GoldenPatternBase {
 
   virtual int meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB = 0) const = 0;
 
-  virtual int pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) const = 0;
+  virtual omtfPdfValueType pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) const = 0;
 
   virtual void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, unsigned int paramIndex = 0) = 0;
 
-  virtual void setPdfValue(int value, unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) = 0;
+  virtual void setPdfValue(omtfPdfValueType value, unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) = 0;
+
+  virtual int getDistPhiBitShift(unsigned int iLayer, unsigned int iRefLayer) const  = 0;
+
+  virtual void setDistPhiBitShift(int value, unsigned int iLayer, unsigned int iRefLayer)  = 0;
 
   ///Process single measurement layer with a single ref layer
   ///Method should be thread safe

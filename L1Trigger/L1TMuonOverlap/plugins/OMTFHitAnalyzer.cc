@@ -91,7 +91,7 @@ void OMTFHitAnalyzer::configureProcesor(const OMTFConfiguration * omtfConfig,
   std::cout<<"adding GoldenPatternPdf4D "<<aKey<<std::endl;
   GoldenPatternPdf4D* aGP = new GoldenPatternPdf4D(aKey, omtfConfig);
   std::cout<<"adding GoldenPatternPdf4D "<<aGP->key()<<std::endl;
-  aGP->reset();
+  //aGP->reset();
   myOMTF->addGP(aGP);
 }
 /////////////////////////////////////////////////////

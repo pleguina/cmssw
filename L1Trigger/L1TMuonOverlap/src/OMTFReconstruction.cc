@@ -84,9 +84,12 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
     //patterns from the L1TMuonOverlapParamsESProducer, are reloaded every run begin
     if(m_OMTF == 0 && m_Config.exists("patternsXMLFile") == false) {
       edm::LogInfo("OMTFReconstruction") << "getting patterns from L1TMuonOverlapParamsESProducer" << std::endl;
-      m_OMTFConfig->initPatternPtRange();
-      m_OMTF = new OMTFProcessor<GoldenPattern>(m_OMTFConfig);
+      //m_OMTFConfig->initPatternPtRange();
+      OMTFProcessor<GoldenPattern>* proc =  new OMTFProcessor<GoldenPattern>(m_OMTFConfig);
+      m_OMTF = proc;
+
       m_OMTF->configure(m_OMTFConfig, omtfParams);
+      m_OMTFConfig->setPatternPtRange(proc->getPatternPtRange() );
     }
   }
   if(m_OMTF == 0 && m_Config.exists("patternsXMLFile") ) {//if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run

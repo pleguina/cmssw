@@ -9,7 +9,7 @@
 #define OMTF_PATTERNSGENERATORPROCESSOR_H_
 
 #include "L1Trigger/L1TMuonOverlap/interface/ProcessorBase.h"
-#include "L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternPdfGen.h"
 #include "TROOT.h"
 #include "TH1F.h"
 #include "TH2F.h"
@@ -24,7 +24,7 @@ public:
 
   void generateThresholds();
   void modifyPdfs();
-
+  void modifyPdfs1();
 private:
   void generateDTPattern(int iGroup, int iRefLayer, int iLayer);
   void copyDTPattern(int iGroup, int iRefLayer, int iLayer);

@@ -4,18 +4,18 @@
 #include <vector>
 #include <ostream>
 
-class OMTFConfiguration;
+#include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
 
 //result for one refHit of one GoldenPattern
 class GoldenPatternResult {
 public:
   typedef std::vector<unsigned int> vector1D;
   struct LayerResult {
-    int pdfVal = 0;
+    omtfPdfValueType pdfVal = 0;
     bool valid = false;
     int pdfBin = 0; //hit deltaPhi, bin=0 is reserved for no valid hit, see GoldenPatternBase::process1Layer1RefLayer
 
-    LayerResult(int pdfVal, bool valid, int pdfBin): pdfVal(pdfVal), valid(valid), pdfBin(pdfBin) {};
+    LayerResult(omtfPdfValueType pdfVal, bool valid, int pdfBin): pdfVal(pdfVal), valid(valid), pdfBin(pdfBin) {};
   };
 
 private:
@@ -26,7 +26,7 @@ private:
 
   ///Pdf weight found for each layer
   ///First index: layer number
-  vector1D pdfWeights;
+  std::vector<omtfPdfValueType> pdfWeights;
 
   ///pdfBins for each for each layer
   ///First index: layer number
@@ -39,7 +39,7 @@ private:
   unsigned int eta;
 
   ///Sum of pdf weights
-  unsigned int pdfWeightSum;
+  omtfPdfValueType pdfWeightSum;
 
   ///Number of fired layers - excluding banding layers
   unsigned int firedLayerCnt;
@@ -98,21 +98,22 @@ public:
     this->firedLayerCnt = firedLayerCnt;
   }
 
-  const vector1D& getPdfWeights() const {
+  const std::vector<omtfPdfValueType>& getPdfWeights() const {
     return pdfWeights;
   }
 
+/*
   void setPdfWeights(const vector1D& pdfWeigts) {
     this->pdfWeights = pdfWeigts;
-  }
+  }*/
 
-  unsigned int getPdfWeigtSum() const {
+  omtfPdfValueType getPdfWeigtSum() const {
     return pdfWeightSum;
   }
 
-  void setPdfWeigtSum(unsigned int pdfWeigtSum) {
+  /*void setPdfWeigtSum(unsigned int pdfWeigtSum) {
     this->pdfWeightSum = pdfWeigtSum;
-  }
+  }*/
 
   const vector1D& getHitPdfBins()  {
     return hitPdfBins;

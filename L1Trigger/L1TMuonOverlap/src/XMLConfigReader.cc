@@ -75,7 +75,7 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapP
     if(type=="iCharge") outWidth = 1;
     if(type=="iEta") outWidth = 2;
     if(type=="iPt") outWidth = 9;
-    if(type=="meanDistPhi"){
+    if(type=="meanDistPhi") {
       outWidth = 11;
       totalInWidth = 15; //in the  old version the number of minsDistPhi values aConfig.nGoldenPatterns()*aConfig.nLayers()*aConfig.nRefLayers()=11520, so 14 bits are needed
                          //in the new version we have two meanDistPhi values for each gp,iLayer,iRefLayer, so we need one bit of the address more
@@ -83,6 +83,10 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapP
     if(type=="pdf"){
       outWidth = 6;
       totalInWidth = 21;
+    }
+    if(type=="selDistPhiShift"){
+      outWidth = 2;
+      totalInWidth = 14;
     }
     
     ///Prepare the header 
@@ -110,6 +114,15 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapP
           }
         }
       }
+      if(type=="selDistPhiShift"){
+        for(unsigned int iLayer = 0;iLayer<(unsigned) aConfig.nLayers();++iLayer){
+          for(unsigned int iRefLayer=0;iRefLayer<(unsigned) aConfig.nRefLayers();++iRefLayer){
+            out = it->getDistPhiBitShift(iLayer, iRefLayer);
+            strStream<<in<<" "<<out<<std::endl;
+            ++in;
+          }
+        }
+      }
       if(type=="pdf"){
         for(unsigned int iLayer = 0;iLayer<(unsigned)aConfig.nLayers();++iLayer){
           for(unsigned int iRefLayer=0;iRefLayer<(unsigned)aConfig.nRefLayers();++iRefLayer){
@@ -121,7 +134,7 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapP
           }
         }
       }
-      if(type!="meanDistPhi" && type!="pdf"){
+      if(type!="meanDistPhi" && type!="pdf" && type!="selDistPhiShift"){
         strStream<<in<<" "<<out<<std::endl;
         ++in;
       }
@@ -268,6 +281,8 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
   XMLCh *xmlmeanDistPhi0= _toDOMS("meanDistPhi0"); //for new version
   XMLCh *xmlmeanDistPhi1= _toDOMS("meanDistPhi1"); //for new version
 
+  XMLCh *xmlSelDistPhiShift = _toDOMS("selDistPhiShift");
+
   XMLCh *xmlPDF= _toDOMS("PDF");
 
   unsigned int iPt = std::atoi(_toString(aGPElement->getAttribute(xmliPt)).c_str());  
@@ -336,6 +351,11 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
         aGP->setMeanDistPhiValue(std::stoi(strVal), iLayer, iItem, 1);
       }
 
+      strVal = _toString(aItemElement->getAttribute(xmlSelDistPhiShift)).c_str();
+      if(strVal.size() > 0) {
+        aGP->setDistPhiBitShift(std::stoi(strVal), iLayer, iItem);
+      }
+
     }
 
     ///PDF vector
@@ -349,7 +369,7 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
       for(unsigned int iPdf=0;iPdf<exp2(aConfig.nPdfAddrBits());++iPdf){
         aNode = aLayerElement->getElementsByTagName(xmlPDF)->item(iRefLayer*exp2(aConfig.nPdfAddrBits())+iPdf);
         aItemElement = static_cast<DOMElement *>(aNode);
-        val = std::atoi(_toString(aItemElement->getAttribute(xmlValue)).c_str());
+        omtfPdfValueType val = std::atof(_toString(aItemElement->getAttribute(xmlValue)).c_str());
         aGP->setPdfValue(val, iLayer, iRefLayer, iPdf);
       }
     }

@@ -289,6 +289,7 @@ OMTFConfiguration::PatternPt OMTFConfiguration::getPatternPtRange(unsigned int p
 }
 
 void OMTFConfiguration::initPatternPtRange() {
+  patternPts.clear();
   for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
     PatternPt patternPt;
     int charge = rawParams.chargeLUT()->data(iPat);
@@ -334,6 +335,7 @@ unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
   return  0;
 }
 
+//FIXME does not work if patterns not loeaded from LUTs, but only firectly from file
 OMTFConfiguration::vector2D OMTFConfiguration::getMergedPartters() const {
   unsigned int mergedCnt = 4;
   vector2D mergedPartters(nGoldenPatterns()/mergedCnt, vector1D());

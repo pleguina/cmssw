@@ -47,14 +47,6 @@ public:
     initPatternPtRange();
   }
 
-
-  ///Fill counts for a GoldenPattern of this
-  ///processor unit. Pattern key is selcted according
-  ///to the SimTrack parameters.
-  virtual void fillCounts(unsigned int iProcessor,
-      const OMTFinput & aInput,
-      const SimTrack* aSimMuon);
-
   ///Reset all configuration parameters
   virtual void resetConfiguration();
 

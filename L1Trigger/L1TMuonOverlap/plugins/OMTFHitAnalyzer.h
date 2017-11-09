@@ -17,7 +17,7 @@
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 
-#include "L1Trigger/L1TMuonOverlap/interface/ProcessorBase.h"
+#include "L1Trigger/L1TMuonOverlap/interface/PdfGeneratorProcessor.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternPdf4D.h"
 
 #include <TH1.h>
@@ -52,7 +52,7 @@ public:
   virtual void analyze(const edm::Event&, const edm::EventSetup&);  
 
 private:
-  typedef ProcessorBase<GoldenPatternPdf4D> Pdf4DGeneratorProcessor;
+  typedef PdfGeneratorProcessor<GoldenPatternPdf4D> Pdf4DGeneratorProcessor;
 
   void configureProcesor(const OMTFConfiguration * omtfConfig,
       const L1TMuonOverlapParams* omtfPatterns, unsigned int ptCode, int charge, unsigned int patNum);

@@ -90,7 +90,7 @@ void OMTFPatternMaker::beginRun(edm::Run const& run, edm::EventSetup const& iSet
 void OMTFPatternMaker::beginJob(){
 
     myOMTFConfig = new OMTFConfiguration();
-    myOMTF = new PdfGeneratorProcessor(myOMTFConfig);
+    myOMTF = new PdfGeneratorProcessor<GoldenPatternPdfGen>(myOMTFConfig);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////  

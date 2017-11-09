@@ -17,9 +17,9 @@
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 
-#include "L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternPdfGen.h"
+#include "L1Trigger/L1TMuonOverlap/interface/PdfGeneratorProcessor.h"
 
-class PdfGeneratorProcessor;
 class OMTFConfiguration;
 class OMTFConfigMaker;
 class OMTFinputMaker;
@@ -73,7 +73,7 @@ private:
   ///OMTF objects
   OMTFConfiguration *myOMTFConfig;
   OMTFinputMaker *myInputMaker;
-  PdfGeneratorProcessor *myOMTF;
+  PdfGeneratorProcessor<GoldenPatternPdfGen>* myOMTF;
   ///
   xercesc::DOMElement *aTopElement;
   OMTFConfigMaker *myOMTFConfigMaker;

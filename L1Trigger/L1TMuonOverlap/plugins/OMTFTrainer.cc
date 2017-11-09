@@ -40,6 +40,9 @@ g4SimTrackSrc(cfg.getParameter<edm::InputTag>("g4SimTrackSrc")), m_Reconstructio
   inputTokenSimHit = consumes<edm::SimTrackContainer>(theConfig.getParameter<edm::InputTag>("g4SimTrackSrc"));
 
   ptDist = new TH1I("ptDist", "ptDist", 200, -0.5, 200-0.5);
+
+  etaCutFrom = theConfig.getParameter<double>("etaCutFrom");
+  etaCutTo = theConfig.getParameter<double>("etaCutTo");
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -79,7 +82,12 @@ void OMTFTrainer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup){
       simMuon = &aTrack;
   }
 
-  if(muCnt != 1 || ( abs(simMuon->momentum().eta() ) < 0.82 || abs(simMuon->momentum().eta() ) > 1.24 ) ) {
+  /*cout<<__FUNCTION__<<":"<<__LINE__<<" mmuCnt "<<muCnt;
+  if(muCnt > 0) {
+    cout<<" simMuon pt "<<simMuon->momentum().pt()<<" eta "<<simMuon->momentum().eta()<<std::endl;
+  }*/
+
+  if(muCnt != 1 || ( abs(simMuon->momentum().eta() ) < etaCutFrom || abs(simMuon->momentum().eta() ) > etaCutTo ) ) {
     std::unique_ptr<l1t::RegionalMuonCandBxCollection> candidates(new l1t::RegionalMuonCandBxCollection);
     iEvent.put(std::move(candidates), "OMTF");
     return;

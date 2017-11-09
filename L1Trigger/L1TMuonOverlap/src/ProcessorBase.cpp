@@ -17,6 +17,7 @@
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternParametrised.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternWithStat.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternPdfGen.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternPdf4D.h"
 
 /*ProcessorBase::ProcessorBase(): myOmtfConfig(0) {
@@ -61,7 +62,7 @@ bool ProcessorBase<GoldenPatternType>::configure(const OMTFConfiguration* omtfCo
     iPt = ptLUT->data(address);
 
     Key aKey(iEta,iPt,iCharge,iGP);
-    edm::LogInfo("ProcessorBase::configure")<<"adding pattern "<<aKey<<" "<<myOmtfConfig->getPatternPtRange(iGP).ptFrom<<" - "<<myOmtfConfig->getPatternPtRange(iGP).ptTo<<" GeV"<<std::endl;
+    edm::LogInfo("ProcessorBase::configure")<<"adding pattern "<<aKey<<" "<<std::endl; //<<myOmtfConfig->getPatternPtRange(iGP).ptFrom<<" - "<<myOmtfConfig->getPatternPtRange(iGP).ptTo<<" GeV"<<std::endl; PatternPtRange is not initialized here yet!!!!
     GoldenPatternType* aGP = new GoldenPatternType(aKey, myOmtfConfig);
 
     ///Mean dist phi data
@@ -75,6 +76,8 @@ bool ProcessorBase<GoldenPatternType>::configure(const OMTFConfiguration* omtfCo
           //the second meanDistPhi is in the LUT at the position (address+meanDistPhiSize)
           aGP->setMeanDistPhiValue(value, iLayer, iRefLayer, 1);
         }
+
+        //TODO add handling of selDistPhiShift - requires changing in the L1TMuonOverlapParams
       }
       ///Pdf data
       for(unsigned int iRefLayer=0;iRefLayer<myOmtfConfig->nRefLayers();++iRefLayer){
@@ -82,7 +85,7 @@ bool ProcessorBase<GoldenPatternType>::configure(const OMTFConfiguration* omtfCo
           address = iPdf + iRefLayer*(1<<myOmtfConfig->nPdfAddrBits()) +
               iLayer*myOmtfConfig->nRefLayers()*(1<<myOmtfConfig->nPdfAddrBits()) +
               iGP*myOmtfConfig->nLayers()*myOmtfConfig->nRefLayers()*(1<<myOmtfConfig->nPdfAddrBits());
-          int value = pdfLUT->data(address);
+          int value = pdfLUT->data(address);//here only int is possible
           aGP->setPdfValue(value, iLayer, iRefLayer, iPdf);
         }
       }
@@ -123,81 +126,6 @@ OMTFinput::vector1D ProcessorBase<GoldenPatternType>::restrictInput(unsigned int
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-template<class GoldenPatternType>
-void ProcessorBase<GoldenPatternType>::fillCounts(unsigned int iProcessor,
-    const OMTFinput & aInput,
-    const SimTrack* aSimMuon) {
-
-  std::ostringstream myStr;
-  int theCharge = (abs(aSimMuon->type()) == 13) ? aSimMuon->type()/-13 : 0;
-  myStr<<"aSimMuon->momentum().pt() "<<aSimMuon->momentum().pt()<<" theCharge "<<theCharge<<std::endl;
-/*  unsigned int  iPt =  RPCConst::iptFromPt(aSimMuon->momentum().pt());
-  myStr<<"line "<<__LINE__<<" iPt "<<iPt<<" theCharge "<<theCharge<<std::endl;
-  ///Stupid conersion. Have to go through PAC pt scale, as we later
-  ///shift resulting pt code by +1
-  iPt+=1;
-  if(iPt>31) iPt=200*2+1;
-  else iPt = RPCConst::ptFromIpt(iPt)*2.0+1;//MicroGMT has 0.5 GeV step size, with lower bin edge  (uGMT_pt_code - 1)*step_size
-  myStr<<"line "<<__LINE__<<" iPt "<<iPt<<std::endl;*/
-  //////
-
-  //////////////////////////////////////
-  std::bitset<128> refHitsBits = aInput.getRefHits(iProcessor);
-  if(refHitsBits.none())
-    return;
-
-  myStr<<"iProcessor: "<<iProcessor<<std::endl;
-  myStr<<"Input: ------------"<<std::endl;
-  myStr<<aInput<<std::endl;
-  edm::LogInfo("OMTF processor")<<myStr.str();
-
-  //std::cout<<__FUNCTION__<<":"<<__LINE__<<" muon iPt "<<aSimMuon->momentum().pt()<<" theCharge "<<theCharge<<std::endl;
-  for(unsigned int iLayer=0;iLayer<myOmtfConfig->nLayers();++iLayer) {
-
-    const OMTFinput::vector1D & layerHits = aInput.getLayerData(iLayer);
-    if(!layerHits.size())
-      continue;
-
-    ///Number of reference hits to be checked.
-    for(unsigned int iRefHit=0;iRefHit<myOmtfConfig->nRefHits();++iRefHit){
-
-      if(!refHitsBits[iRefHit]) continue;
-      const RefHitDef & aRefHitDef = myOmtfConfig->getRefHitsDefs()[iProcessor][iRefHit];
-
-      int refLayerLogicNumber = myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer];
-      int phiRef = aInput.getLayerData(refLayerLogicNumber)[aRefHitDef.iInput];
-
-      int refLayerPhiB = 0;
-      if(refLayerLogicNumber < 6) {//is DT layer TODO - check
-        refLayerPhiB = aInput.getLayerData(refLayerLogicNumber+1)[aRefHitDef.iInput]; //corresponding bending layer has number +1 versus the phi DT layer - this is configured in the XML
-        if(myOmtfConfig->getBendingLayers().count(refLayerLogicNumber+1) == 0) {
-          throw cms::Exception("not good: the layer is not bending layer");
-        }
-      }
-
-
-      unsigned int iRegion = aRefHitDef.iRegion;
-      if(myOmtfConfig->getBendingLayers().count(iLayer))
-        phiRef = 0;
-      const OMTFinput::vector1D restrictedLayerHits = restrictInput(iProcessor, iRegion, iLayer,layerHits);
-      for(auto& itGP: theGPs) {
-/*        if(itGP->key().theCharge != theCharge)  //TODO it was in the orginal code, i commented it out, check why
-          continue;*/
-
-        if(aSimMuon->momentum().pt() >= myOmtfConfig->getPatternPtRange(itGP->key().number()).ptFrom &&
-           aSimMuon->momentum().pt() < myOmtfConfig->getPatternPtRange(itGP->key().number()).ptTo    &&
-           itGP->key().theCharge == theCharge ) {
-          itGP->addCount(aRefHitDef.iRefLayer, iLayer, phiRef, restrictedLayerHits, refLayerPhiB);
-          break;
-        }
-        //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iLayer "<<iLayer<<" refLayerPhiB "<<refLayerPhiB<<std::endl;
-      }
-    }
-  }
-}
-
-
-
 template <class GoldenPatternType>
 void ProcessorBase<GoldenPatternType>::initPatternPtRange() {
   patternPts.clear();
@@ -239,4 +167,5 @@ void ProcessorBase<GoldenPatternType>::initPatternPtRange() {
 template class ProcessorBase<GoldenPattern>;
 template class ProcessorBase<GoldenPatternParametrised>;
 template class ProcessorBase<GoldenPatternWithStat>;
+template class ProcessorBase<GoldenPatternPdfGen>;
 template class ProcessorBase<GoldenPatternPdf4D>;

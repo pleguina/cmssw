@@ -31,9 +31,9 @@ public:
 
   //virtual int pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) const;
 
-  virtual void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, int paramIndex = 0) {
+/*  virtual void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, int paramIndex = 0) {
     meanDistPhi[iLayer][iRefLayer][paramIndex] = value;
-  }
+  }*/
 
 /*  virtual void setPdfValue(int value, unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) {
     //pdfAllRef[iLayer][iRefLayer][refLayerPhiB][iBin] = value;

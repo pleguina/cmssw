@@ -20,6 +20,7 @@
 #include "TMath.h"
 #include "TTree.h"
 #include "TSystem.h"
+#include <TLinearFitter.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string>
@@ -538,5 +539,83 @@ void PatternsGeneratorProcessor::modifyPdfs() {
         }
       }
     }*/
+  }
+}
+
+void PatternsGeneratorProcessor::modifyPdfs1() {
+  /*for(auto& gp : theGPs) {
+    for(unsigned int iRefLayer=0; iRefLayer < gp->getPdf()[0].size(); ++iRefLayer) {
+      for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
+
+        if(gp->getPdf()[iLayer][iRefLayer][0] > 0 || gp->getPdf()[iLayer][iRefLayer][1] > 0 ||
+           gp->getPdf()[iLayer][iRefLayer][127] > 0 || gp->getPdf()[iLayer][iRefLayer][126] > 0 ) {
+          std::cout<<gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<std::endl;
+          for(unsigned int iPdf = 1; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
+            std::cout<<iPdf<<"\t"<<gp->getPdf()[iLayer][iRefLayer][iPdf]<<std::endl;
+          }
+          std::cout<<std::endl;
+        }
+      }
+    }
+  }*/
+
+  for(auto& gp : theGPs) {
+    if(gp->key().thePt >= 11 || gp->key().thePt == 0)
+      continue;
+    for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
+      for(unsigned int iRefLayer=0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
+        //if(iRefLayer == 1 || iRefLayer == 3 || iRefLayer == 4)
+        {
+          if(iLayer == 1 || iLayer == 3 || (iLayer == 5 && iRefLayer == 5) ) {
+            std::cout<<gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<std::endl;
+            gp->setDistPhiBitShift(1, iLayer, iRefLayer);
+            boost::multi_array<omtfPdfValueType, 1> pdfBuf(boost::extents[gp->getPdf()[iLayer][iRefLayer].size()]);
+            pdfBuf = gp->getPdf()[iLayer][iRefLayer];
+            for(unsigned int iPdf = 0; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
+              assert(gp->getPdf()[iLayer][iRefLayer][iPdf] == pdfBuf[iPdf]);
+              gp->setPdfValue(0, iLayer, iRefLayer, iPdf);
+            }
+            for(unsigned int iBinNew = 32; iBinNew < pdfBuf.size() - 32; iBinNew++) {
+              int iBinOld = (iBinNew - 32) * 2;
+              double pdfVal = (pdfBuf[iBinOld] + pdfBuf[iBinOld + 1]) / 2.;
+              gp->setPdfValue(rint(pdfVal), iLayer, iRefLayer, iBinNew);
+            }
+
+            TLinearFitter linearFitter;
+            linearFitter.StoreData(kTRUE);
+            std::ostringstream ostr;
+            ostr<<"fit_lay_"<<iLayer<<"_refLay_"<<iRefLayer;
+            TF1 linearFit("linearFit", "pol2", 0, gp->getPdf()[iLayer][iRefLayer].size());
+            linearFitter.SetFormula(linearFit.GetFormula());
+
+            for(unsigned int iPdf = 0; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
+              if(gp->pdfValue(iLayer, iRefLayer, iPdf) > 0) {
+                double x = iPdf;
+                linearFitter.AddPoint(&x, gp->pdfValue(iLayer, iRefLayer, iPdf));
+              }
+            }
+            int res = linearFitter.Eval();
+            std::cout<<gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" linearFitter result "<<res<<std::endl;
+            if(res == 0) {
+              for(unsigned int iPdf = 0; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
+                if(gp->getPdf()[iLayer][iRefLayer][iPdf] != 0)
+                  continue;
+                double pdfVal = 0;
+                unsigned int iBinPow = 1;
+                for(unsigned int i = 0; i < 3; i++) {
+                  //std::cout<<linearFit.GetParName(i)<<" "<<linearFit.GetParameter(i)<<" ";
+
+                  pdfVal += linearFit.GetParameter(i) * iBinPow ;
+                  iBinPow *= iPdf;
+                }
+                if(pdfVal > 0) {
+                  gp->setPdfValue(rint(pdfVal), iLayer, iRefLayer, iPdf);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

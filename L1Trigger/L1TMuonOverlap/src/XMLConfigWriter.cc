@@ -393,10 +393,12 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP){
       stringStr.str("");
       stringStr<<selDistPhi;
       aRefLayer->setAttribute(_toDOMS("selDistPhi"), _toDOMS(stringStr.str()));
-      int selDistPhiShift = 0;
+
+      int selDistPhiShift = aGP.getDistPhiBitShift(iLayer, iRefLayer); //TODO check if Wojtek expects it here or on the distMsbPhiShift
       stringStr.str("");
       stringStr<<selDistPhiShift;
       aRefLayer->setAttribute(_toDOMS("selDistPhiShift"), _toDOMS(stringStr.str()));
+
       int distMsbPhiShift = 0;
       stringStr.str("");
       stringStr<<distMsbPhiShift;
@@ -424,7 +426,13 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
     const GoldenPattern & aGP4){
 
   std::ostringstream stringStr;
-  auto setAttribute = [&](xercesc::DOMElement* domElement, std::string name, int value)->void {
+  auto setAttributeInt = [&](xercesc::DOMElement* domElement, std::string name, int value)->void {
+    stringStr<<value;
+    domElement->setAttribute(_toDOMS(name), _toDOMS(stringStr.str()));
+    stringStr.str("");
+  };
+
+  auto setAttributeFloat = [&](xercesc::DOMElement* domElement, std::string name, float value)->void {
     stringStr<<value;
     domElement->setAttribute(_toDOMS(name), _toDOMS(stringStr.str()));
     stringStr.str("");
@@ -434,10 +442,10 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
 
   xercesc::DOMElement* aGPElement = theDoc->createElement(_toDOMS("GP"));
 
-  setAttribute(aGPElement, "iPt1", aGP1.key().thePt);
-  setAttribute(aGPElement, "iPt2", aGP2.key().thePt);
-  setAttribute(aGPElement, "iPt3", aGP3.key().thePt);
-  setAttribute(aGPElement, "iPt4", aGP4.key().thePt);
+  setAttributeInt(aGPElement, "iPt1", aGP1.key().thePt);
+  setAttributeInt(aGPElement, "iPt2", aGP2.key().thePt);
+  setAttributeInt(aGPElement, "iPt3", aGP3.key().thePt);
+  setAttributeInt(aGPElement, "iPt4", aGP4.key().thePt);
 
   if(writePdfThresholds) {
     throw cms::Exception("OMTF::XMLConfigWriter::writeGPData: writePdfThresholds not implemented now ");
@@ -452,43 +460,43 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
     }*/
   }
 
-  setAttribute(aGPElement, "iEta", 0); //aGP1.key().theEtaCode; //No eta code at the moment
+  setAttributeInt(aGPElement, "iEta", 0); //aGP1.key().theEtaCode; //No eta code at the moment
 
-  setAttribute(aGPElement, "iPhi", 0); //No phi code is assigned to GP for the moment.
+  setAttributeInt(aGPElement, "iPhi", 0); //No phi code is assigned to GP for the moment.
 
-  setAttribute(aGPElement, "iCharge", aGP1.key().theCharge);
+  setAttributeInt(aGPElement, "iCharge", aGP1.key().theCharge);
 
   for(unsigned int iLayer = 0;iLayer<myOMTFConfig->nLayers();++iLayer){
     int nOfPhis = 0;
     /////////////////////////////////////
     xercesc::DOMElement* aLayer = theDoc->createElement(_toDOMS("Layer"));
 
-    setAttribute(aLayer, "iLayer", iLayer);
-    setAttribute(aLayer, "nOfPhis", nOfPhis);
+    setAttributeInt(aLayer, "iLayer", iLayer);
+    setAttributeInt(aLayer, "nOfPhis", nOfPhis);
 
     for(unsigned int iRefLayer=0;iRefLayer<myOMTFConfig->nRefLayers();++iRefLayer){
       xercesc::DOMElement* aRefLayer = theDoc->createElement(_toDOMS("RefLayer"));
 
       if(writeMeanDistPhi1) {
         int meanDistPhi0 = aGP1.getMeanDistPhi()[iLayer][iRefLayer][0];
-        setAttribute(aRefLayer, "meanDistPhi0", meanDistPhi0);
+        setAttributeInt(aRefLayer, "meanDistPhi0", meanDistPhi0);
 
         int meanDistPhi1 = aGP1.getMeanDistPhi()[iLayer][iRefLayer][1];
-        setAttribute(aRefLayer, "meanDistPhi1", meanDistPhi1);
+        setAttributeInt(aRefLayer, "meanDistPhi1", meanDistPhi1);
       }
       else {
         int meanDistPhi = aGP1.getMeanDistPhi()[iLayer][iRefLayer][0];
-        setAttribute(aRefLayer, "meanDistPhi", meanDistPhi);
+        setAttributeInt(aRefLayer, "meanDistPhi", meanDistPhi);
       }
 
       int selDistPhi = 0;
-      setAttribute(aRefLayer, "selDistPhi", selDistPhi);
+      setAttributeInt(aRefLayer, "selDistPhi", selDistPhi);
 
-      int selDistPhiShift = 0;
-      setAttribute(aRefLayer, "selDistPhiShift", selDistPhiShift);
+      int selDistPhiShift = aGP1.getDistPhiBitShift(iLayer, iRefLayer); //TODO check if Wojtek expects it here or on the distMsbPhiShift;
+      setAttributeInt(aRefLayer, "selDistPhiShift", selDistPhiShift);
 
       int distMsbPhiShift = 0;
-      setAttribute(aRefLayer, "distMsbPhiShift", distMsbPhiShift);
+      setAttributeInt(aRefLayer, "distMsbPhiShift", distMsbPhiShift);
 
       aLayer->appendChild(aRefLayer);
     }
@@ -496,10 +504,10 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
       for(unsigned int iPdf=0; iPdf < exp2(myOMTFConfig->nPdfAddrBits()); ++iPdf){
         xercesc::DOMElement* aPdf = theDoc->createElement(_toDOMS("PDF"));
 
-        setAttribute(aPdf, "value1", aGP1.pdfValue(iLayer,iRefLayer,iPdf));
-        setAttribute(aPdf, "value2", aGP2.pdfValue(iLayer,iRefLayer,iPdf));
-        setAttribute(aPdf, "value3", aGP3.pdfValue(iLayer,iRefLayer,iPdf));
-        setAttribute(aPdf, "value4", aGP4.pdfValue(iLayer,iRefLayer,iPdf));
+        setAttributeFloat(aPdf, "value1", aGP1.pdfValue(iLayer,iRefLayer,iPdf));
+        setAttributeFloat(aPdf, "value2", aGP2.pdfValue(iLayer,iRefLayer,iPdf));
+        setAttributeFloat(aPdf, "value3", aGP3.pdfValue(iLayer,iRefLayer,iPdf));
+        setAttributeFloat(aPdf, "value4", aGP4.pdfValue(iLayer,iRefLayer,iPdf));
 
         aLayer->appendChild(aPdf);
       }

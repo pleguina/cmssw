@@ -9,25 +9,32 @@
 #define OMTF_PDFGENERATORPROCESSOR_H_
 
 #include "L1Trigger/L1TMuonOverlap/interface/ProcessorBase.h"
-#include "L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h"
 
-class PdfGeneratorProcessor: public ProcessorBase<GoldenPattern>  {
+template <class GoldenPatternType>
+class PdfGeneratorProcessor: public ProcessorBase<GoldenPatternType>  {
 public:
-  PdfGeneratorProcessor(const OMTFConfiguration* omtfConfig): ProcessorBase<GoldenPattern>(omtfConfig) {};
+  PdfGeneratorProcessor(const OMTFConfiguration* omtfConfig): ProcessorBase<GoldenPatternType>(omtfConfig) {};
 
   virtual ~PdfGeneratorProcessor() {};
+
+
+  ///Fill counts for a GoldenPattern of this
+  ///processor unit. Pattern key is selcted according
+  ///to the SimTrack parameters.
+  virtual void fillCounts(unsigned int iProcessor,
+      const OMTFinput & aInput,
+      const SimTrack* aSimMuon);
 
   ///Average patterns. Use same meanDistPhi[0] for two
   ///patterns neighboring in pt code.
   //not sutable for patterns with non-zero meanDistPhi[1]
   virtual void averagePatterns();
-
 private:
  ///Shift pdf indexes by differecne between averaged and
  ///original meanDistPhi
-  virtual void shiftGP(GoldenPattern *aGP,
-        const GoldenPattern::MeanDistPhiArrayType& meanDistPhiNew,
-        const GoldenPattern::MeanDistPhiArrayType& meanDistPhiOld);
+/*  virtual void shiftGP(GoldenPatternType *aGP,
+        const GoldenPattern::meanDistPhiArrayType& meanDistPhiNew,
+        const GoldenPattern::meanDistPhiArrayType& meanDistPhiOld);*/
 };
 
 #endif /* OMTF_PDFGENERATORPROCESSOR_H_ */

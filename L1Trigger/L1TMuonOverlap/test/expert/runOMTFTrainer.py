@@ -3,6 +3,7 @@ process = cms.Process("OMTFTrainerProc")
 import os
 import sys
 import commands
+import re
 from os import listdir
 from os.path import isfile, join
 
@@ -59,11 +60,12 @@ if verbose:
                                         )
 
 if not verbose:
-    process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1000)
+    process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(10000)
     process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False), 
                                          #SkipEvent = cms.untracked.vstring('ProductNotFound') 
                                      )
 
+stepNum = int(sys.argv[2])
 '''
 process.source = cms.Source(
     'PoolSource',
@@ -79,8 +81,10 @@ path = '/afs/cern.ch/work/k/kbunkow/public/data/SingleMuFullEta/721_FullEta_v4/'
 
 onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
 chosenFiles = ['file://' + path + f for f in onlyfiles if (('_p_10_' in f) or ('_m_10_' in f))]
-firstEv = 40000
-nEvents = 30000
+#chosenFiles = ['file://' + path + f for f in onlyfiles if (('_5_p_10_' in f))]
+#chosenFiles = ['file://' + path + f for f in onlyfiles if (re.match('.*_._p_10.*', f))]
+firstEv = 0#40000
+nEvents = 100000
 
 # input files (up to 255 files accepted)
 process.source = cms.Source('PoolSource',
@@ -156,16 +160,19 @@ process.simOmtfDigis = cms.EDProducer("OMTFTrainer",
                                           dropDTPrimitives = cms.bool(False),                                    
                                           dropCSCPrimitives = cms.bool(False),   
                                           #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00020007.xml"),
-                                          patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/optimisedPats4.xml"),
+                                          patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/optimisedPats_" + str(stepNum-1) + ".xml"),
+                                          optimisedPatsXmlFile = cms.string("optimisedPats_" + str(stepNum) + ".xml"),
                                           XMLDumpFileName = cms.string("TestEvents.xml"), 
                                           dumpResultToXML = cms.bool(False),
                                           dumpDetailedResultToXML = cms.bool(False),
                                           patternType = cms.string("GoldenPatternWithStat"), 
                                           ghostBusterType = cms.string("GhostBusterPreferRefDt"),
+                                          etaCutFrom = cms.double(0.82),
+                                          etaCutTo = cms.double(1.24),
                                           omtf = cms.PSet(
                                               configFromXML = cms.bool(False),   
                                               patternsXMLFiles = cms.VPSet(                                       
-                                                  #cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00020007.xml")),
+                                                cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00020007.xml")), #must be here, otherwise some things in the OMTFConfiguration does not work should be FIXME
                                               ),
                                               #configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x00020005.xml"),
                                               configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0004.xml"),
@@ -182,7 +189,8 @@ process.simOmtfDigis = cms.EDProducer("OMTFTrainer",
 
 #process.MuonEtaFilter*
 
-process.cwiczenie= cms.EDAnalyzer("Cwiczenie")
+process.cwiczenie= cms.EDAnalyzer("Cwiczenie", 
+                                  outRootFile = cms.string("omtfAnalysis_" + str(stepNum-1) + ".root") )
 
 process.L1TMuonSeq = cms.Sequence(process.esProd + process.simOmtfDigis + process.cwiczenie )
 
