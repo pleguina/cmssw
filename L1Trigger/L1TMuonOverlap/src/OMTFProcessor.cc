@@ -145,7 +145,7 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
       if(this->myOmtfConfig->getBendingLayers().count(iLayer)) //this iLayer is a banding layer
         phiRef = 0;  //then in the delta_phi in process1Layer1RefLayer one obtains simply the iLayer phi
 
-      const OMTFinput::vector1D restrictedLayerHits = this->restrictInput(iProcessor, iRegion, iLayer,layerHits);
+      const OMTFinput::vector1D restrictedLayerHits = this->restrictInput(iProcessor, iRegion, iLayer, layerHits);
       //std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" iRefLayer "<<aRefHitDef.iRefLayer<<" hits.size "<<restrictedLayerHits.size()<<std::endl;
       //std::cout<<"iLayer "<<iLayer<<" refHitNum "<<myOmtfConfig->nTestRefHits()-nTestedRefHits-1<<" iRefHit "<<iRefHit;
       //std::cout<<" nTestedRefHits "<<nTestedRefHits<<" aRefHitDef "<<aRefHitDef<<std::endl;

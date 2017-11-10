@@ -20,7 +20,8 @@ PatternOptimizer::PatternOptimizer(const edm::ParameterSet& edmCfg, const OMTFCo
   //updateStatFunc([this] (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) { updateStatPtDiff2_1(omtfCandGp, exptCandGp); } ),
   //updateStatFunc([this] (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) { updateStatPtLogDiff_2(omtfCandGp, exptCandGp); } ),
   //updatePdfsFunc([this] (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) { updatePdfsMean_1(gp, iLayer, iRefLayer, learingRate); })
-  updatePdfsFunc([this] (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) { updatePdfsMean_2(gp, iLayer, iRefLayer, learingRate); })
+  //updatePdfsFunc([this] (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) { updatePdfsMean_2(gp, iLayer, iRefLayer, learingRate); })
+  updatePdfsFunc([this] (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) { updatePdfsVoter_1(gp, iLayer, iRefLayer, learingRate); })
 {
 
 }
@@ -183,7 +184,7 @@ void PatternOptimizer::updateStatVoter_1(GoldenPatternWithStat* omtfCandGp, Gold
   double delta = 0;
   double norm = 1.;
   if(exptCandGp->key().thePt >= 51 && omtfCandGp->key().thePt < 51) {
-    delta = 0.7; //1./10.;
+    delta = 1.; //1./10.;
   }
   else if(exptCandGp->key().thePt <= 33 && omtfCandGp->key().thePt >= 51) {
     delta = 6./sqrt(exptCandGp->key().thePt);
@@ -321,6 +322,46 @@ void PatternOptimizer::updatePdfsMean_2(GoldenPatternWithStat* gp, unsigned int&
     if(d > 0 && gp->key().thePt > 50 && gp->pdfAllRef[iLayer][iRefLayer][iPdf] == 0) {
       d = 0; //don't add additional non zero beans for the high pt
     }
+
+    gp->pdfAllRef[iLayer][iRefLayer][iPdf] += d;
+    if(gp->pdfAllRef[iLayer][iRefLayer][iPdf] < 0)
+      gp->pdfAllRef[iLayer][iRefLayer][iPdf] = 0;
+    else if(gp->pdfAllRef[iLayer][iRefLayer][iPdf] > omtfConfig->pdfMaxValue()) {
+      gp->pdfAllRef[iLayer][iRefLayer][iPdf] = omtfConfig->pdfMaxValue();
+    }
+    if(d != 0) {
+      std::cout<<__FUNCTION__<<":"<<__LINE__<<" "<< gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" iBin "
+          <<iPdf<<" pdfVal "<<gp->pdfAllRef[iLayer][iRefLayer][iPdf]
+          <<" ExptVal "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptVal]
+          <<" ExptNorm "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptNorm]
+          <<" OmtfVal "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfVal]
+          <<" OmtfNorm "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfNorm]
+          <<" d "<<d<<std::endl;
+    }
+  }
+}
+
+void PatternOptimizer::updatePdfsVoter_1(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) {
+  for(unsigned int iPdf = 1; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
+    double d = 0;
+    double norm = (double)gp->statisitics[iLayer][iRefLayer][iPdf][whatExptNorm] + (double)gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfNorm];
+    if(norm != 0)
+      d += (gp->statisitics[iLayer][iRefLayer][iPdf][whatExptVal] + gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfVal]); // /norm;
+
+    //d = d * learingRate;
+
+    if(d > 0 && gp->key().thePt > 50 && gp->pdfAllRef[iLayer][iRefLayer][iPdf] == 0) {
+      d = 0; //don't add additional non zero beans for the high pt
+    }
+
+    if(gp->statisitics[iLayer][iRefLayer][iPdf][whatExptNorm] > 5 || gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfNorm] > 5) {
+      if(d >= 2)
+        d = 1.0;
+      else if(d <= 2)
+        d = -1.0;
+    }
+    else
+      d = 0;
 
     gp->pdfAllRef[iLayer][iRefLayer][iPdf] += d;
     if(gp->pdfAllRef[iLayer][iRefLayer][iPdf] < 0)

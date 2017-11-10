@@ -49,7 +49,7 @@ bool OMTFinput::addLayerHit(unsigned int iLayer,
 
   bool overwrite = false;
   assert(iLayer<myOmtfConfig->nLayers());
-  assert(iInput<14);
+  assert(iInput<14); //FIXME define parameters for this 14
 
   if(iPhi>=(int)myOmtfConfig->nPhiBins()) return true;
 //  unsigned int origInput = iInput;
@@ -59,7 +59,7 @@ bool OMTFinput::addLayerHit(unsigned int iLayer,
 
 //  std::cout <<" addLayerHit :"<<iLayer<<" input orig :"<<inputorig<<" now:  "<< iInput <<" phi: "<<iPhi<< std::endl;
   
-  if(iInput>13) return false;
+  if(iInput>13) return false; //FIXME this rather should not happen, so should be assert here(?)
   
   measurementsPhi[iLayer][iInput] = iPhi;
   measurementsEta[iLayer][iInput] = iEta;
