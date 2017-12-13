@@ -103,7 +103,7 @@ void OMTFPatternMaker::endJob(){
       itGP->normalise(nPdfAddrBits);
     }
 
-    GoldenPattern dummyGP(Key(0,0,0), myOMTFConfig);
+    const GoldenPattern dummyGP(Key(0,0,0), myOMTFConfig);
 
     ///Put back default value of the pdf width.
     L1TMuonOverlapParams omtfParamsMutable = *myOMTFConfig->getRawParams();
@@ -121,7 +121,7 @@ void OMTFPatternMaker::endJob(){
       if(itGP->key().thePt==iPt &&
           itGP->key().theCharge==theConfig.getParameter<int>("charge")){
         //std::cout<<*itGP.second<<std::endl;
-        myWriter->writeGPData(*itGP, dummyGP, dummyGP, dummyGP);
+        myWriter->writeGPData(itGP.get(), &dummyGP, &dummyGP, &dummyGP);
       }
     }
     std::string fName = "GPs.xml";
@@ -145,12 +145,12 @@ void OMTFPatternMaker::endJob(){
   }
 
   if(mergeXMLFiles){
-    GoldenPattern *dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
+    const GoldenPattern *dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
 
     std::string fName = "OMTF";
     myWriter->initialiseXMLDocument(fName);
     for(auto& itGP: myOMTF->getPatterns()){
-      myWriter->writeGPData(*itGP, *dummy, *dummy, *dummy);
+      myWriter->writeGPData(itGP.get(), dummy, dummy, dummy);
     }
     fName = "GPs.xml";
     myWriter->finaliseXMLDocument(fName);
@@ -229,7 +229,7 @@ void OMTFPatternMaker::writeMergedGPs(){
       GoldenPattern* gp = myOMTF->getPatterns().at(mergedPartters[iGroup][i]).get();
       gps[i] =  gp;
     }
-    myWriter->writeGPData(*gps[0],*gps[1], *gps[2], *gps[3]);
+    myWriter->writeGPData(gps[0], gps[1], gps[2], gps[3]);
   }
 
 }

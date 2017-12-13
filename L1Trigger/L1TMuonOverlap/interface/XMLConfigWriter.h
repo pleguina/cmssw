@@ -55,10 +55,10 @@ class XMLConfigWriter{
 
   void writeGPData(const GoldenPattern & aGP);
 
-  void writeGPData(const GoldenPattern & aGP1,
-		   const GoldenPattern & aGP2,
-		   const GoldenPattern & aGP3,
-		   const GoldenPattern & aGP4);
+  void writeGPData(const GoldenPattern* aGP1,
+		   const GoldenPattern* aGP2,
+		   const GoldenPattern* aGP3,
+		   const GoldenPattern* aGP4);
 
   template <class GoldenPatternType>
   void writeGPs(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats, std::string fName );

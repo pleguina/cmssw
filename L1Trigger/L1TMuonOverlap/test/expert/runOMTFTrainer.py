@@ -80,11 +80,11 @@ process.source = cms.Source(
 path = '/afs/cern.ch/work/k/kbunkow/public/data/SingleMuFullEta/721_FullEta_v4/'
 
 onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
-chosenFiles = ['file://' + path + f for f in onlyfiles if (('_p_10_' in f) or ('_m_10_' in f))]
-#chosenFiles = ['file://' + path + f for f in onlyfiles if (('_10_p_10_' in f))]
+#chosenFiles = ['file://' + path + f for f in onlyfiles if (('_p_10_' in f) or ('_m_10_' in f))]
+chosenFiles = ['file://' + path + f for f in onlyfiles if (('_10_p_10_' in f))]
 #chosenFiles = ['file://' + path + f for f in onlyfiles if (re.match('.*_._p_10.*', f))]
 firstEv = 0#40000
-nEvents = 100000
+nEvents = 1000
 
 # input files (up to 255 files accepted)
 process.source = cms.Source('PoolSource',

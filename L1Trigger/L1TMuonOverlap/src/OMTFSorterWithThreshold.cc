@@ -91,7 +91,7 @@ AlgoMuon OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResults(unsigned 
 */
 
     //assuming the patterns are sorted from the smallest pt
-    /*if(result.getGpProbability1() > itGP->getTreshold(result.getRefLayer() )) {
+    /*if(result.getGpProbability1() > itGP->getTreshold(result.getRefLayer() )) { //TODO uncomment
       bestGP = itGP.get();
       //we take the one with the highest pattern number (i.e. pt) among these with the same FiredLayerCnt
       //std::cout<<__FUNCTION__<<" line "<<__LINE__ << " passed threshold "<<itGP->getTreshold(result.getRefLayer() )<<std::endl;

@@ -420,10 +420,10 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP){
 }
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
-    const GoldenPattern & aGP2,
-    const GoldenPattern & aGP3,
-    const GoldenPattern & aGP4){
+void XMLConfigWriter::writeGPData(const GoldenPattern* aGP1,
+    const GoldenPattern* aGP2,
+    const GoldenPattern* aGP3,
+    const GoldenPattern* aGP4){
 
   std::ostringstream stringStr;
   auto setAttributeInt = [&](xercesc::DOMElement* domElement, std::string name, int value)->void {
@@ -442,29 +442,32 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
 
   xercesc::DOMElement* aGPElement = theDoc->createElement(_toDOMS("GP"));
 
-  setAttributeInt(aGPElement, "iPt1", aGP1.key().thePt);
-  setAttributeInt(aGPElement, "iPt2", aGP2.key().thePt);
-  setAttributeInt(aGPElement, "iPt3", aGP3.key().thePt);
-  setAttributeInt(aGPElement, "iPt4", aGP4.key().thePt);
+  setAttributeInt(aGPElement, "iPt1", aGP1->key().thePt);
+  setAttributeInt(aGPElement, "iPt2", aGP2->key().thePt);
+  setAttributeInt(aGPElement, "iPt3", aGP3->key().thePt);
+  setAttributeInt(aGPElement, "iPt4", aGP4->key().thePt);
 
   if(writePdfThresholds) {
-    throw cms::Exception("OMTF::XMLConfigWriter::writeGPData: writePdfThresholds not implemented now ");
-    /*for(unsigned int iRefLayer=0;iRefLayer<myOMTFConfig->nRefLayers();++iRefLayer){
-      xercesc::DOMElement* aRefLayerThresh = theDoc->createElement(_toDOMS("RefLayerThresh"));
-      setAttribute(aRefLayerThresh, "tresh1", aGP1.getTreshold(iRefLayer));
-      setAttribute(aRefLayerThresh, "tresh2", aGP2.getTreshold(iRefLayer));
-      setAttribute(aRefLayerThresh, "tresh3", aGP3.getTreshold(iRefLayer));
-      setAttribute(aRefLayerThresh, "tresh4", aGP4.getTreshold(iRefLayer));
+    if(dynamic_cast<const GoldenPatternWithThresh*>(aGP1) != 0)
+    {
+      for(unsigned int iRefLayer=0;iRefLayer<myOMTFConfig->nRefLayers();++iRefLayer){
+        //cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;
+        xercesc::DOMElement* aRefLayerThresh = theDoc->createElement(_toDOMS("RefLayerThresh"));
+        setAttributeFloat(aRefLayerThresh, "tresh1", dynamic_cast<const GoldenPatternWithThresh*>(aGP1)->getTreshold(iRefLayer));
+        setAttributeFloat(aRefLayerThresh, "tresh2", dynamic_cast<const GoldenPatternWithThresh*>(aGP2)->getTreshold(iRefLayer));
+        setAttributeFloat(aRefLayerThresh, "tresh3", dynamic_cast<const GoldenPatternWithThresh*>(aGP3)->getTreshold(iRefLayer));
+        setAttributeFloat(aRefLayerThresh, "tresh4", dynamic_cast<const GoldenPatternWithThresh*>(aGP4)->getTreshold(iRefLayer));
 
-      aGPElement->appendChild(aRefLayerThresh);
-    }*/
+        aGPElement->appendChild(aRefLayerThresh);
+      }
+    }
   }
 
   setAttributeInt(aGPElement, "iEta", 0); //aGP1.key().theEtaCode; //No eta code at the moment
 
   setAttributeInt(aGPElement, "iPhi", 0); //No phi code is assigned to GP for the moment.
 
-  setAttributeInt(aGPElement, "iCharge", aGP1.key().theCharge);
+  setAttributeInt(aGPElement, "iCharge", aGP1->key().theCharge);
 
   for(unsigned int iLayer = 0;iLayer<myOMTFConfig->nLayers();++iLayer){
     int nOfPhis = 0;
@@ -478,21 +481,21 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
       xercesc::DOMElement* aRefLayer = theDoc->createElement(_toDOMS("RefLayer"));
 
       if(writeMeanDistPhi1) {
-        int meanDistPhi0 = aGP1.getMeanDistPhi()[iLayer][iRefLayer][0];
+        int meanDistPhi0 = aGP1->getMeanDistPhi()[iLayer][iRefLayer][0];
         setAttributeInt(aRefLayer, "meanDistPhi0", meanDistPhi0);
 
-        int meanDistPhi1 = aGP1.getMeanDistPhi()[iLayer][iRefLayer][1];
+        int meanDistPhi1 = aGP1->getMeanDistPhi()[iLayer][iRefLayer][1];
         setAttributeInt(aRefLayer, "meanDistPhi1", meanDistPhi1);
       }
       else {
-        int meanDistPhi = aGP1.getMeanDistPhi()[iLayer][iRefLayer][0];
+        int meanDistPhi = aGP1->getMeanDistPhi()[iLayer][iRefLayer][0];
         setAttributeInt(aRefLayer, "meanDistPhi", meanDistPhi);
       }
 
       int selDistPhi = 0;
       setAttributeInt(aRefLayer, "selDistPhi", selDistPhi);
 
-      int selDistPhiShift = aGP1.getDistPhiBitShift(iLayer, iRefLayer); //TODO check if Wojtek expects it here or on the distMsbPhiShift;
+      int selDistPhiShift = aGP1->getDistPhiBitShift(iLayer, iRefLayer); //TODO check if Wojtek expects it here or on the distMsbPhiShift;
       setAttributeInt(aRefLayer, "selDistPhiShift", selDistPhiShift);
 
       int distMsbPhiShift = 0;
@@ -504,10 +507,10 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
       for(unsigned int iPdf=0; iPdf < exp2(myOMTFConfig->nPdfAddrBits()); ++iPdf){
         xercesc::DOMElement* aPdf = theDoc->createElement(_toDOMS("PDF"));
 
-        setAttributeFloat(aPdf, "value1", aGP1.pdfValue(iLayer,iRefLayer,iPdf));
-        setAttributeFloat(aPdf, "value2", aGP2.pdfValue(iLayer,iRefLayer,iPdf));
-        setAttributeFloat(aPdf, "value3", aGP3.pdfValue(iLayer,iRefLayer,iPdf));
-        setAttributeFloat(aPdf, "value4", aGP4.pdfValue(iLayer,iRefLayer,iPdf));
+        setAttributeFloat(aPdf, "value1", aGP1->pdfValue(iLayer,iRefLayer,iPdf));
+        setAttributeFloat(aPdf, "value2", aGP2->pdfValue(iLayer,iRefLayer,iPdf));
+        setAttributeFloat(aPdf, "value3", aGP3->pdfValue(iLayer,iRefLayer,iPdf));
+        setAttributeFloat(aPdf, "value4", aGP4->pdfValue(iLayer,iRefLayer,iPdf));
 
         aLayer->appendChild(aPdf);
       }
@@ -521,7 +524,7 @@ void XMLConfigWriter::writeGPData(const GoldenPattern & aGP1,
 template <class GoldenPatternType>
 void XMLConfigWriter::writeGPs(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats, std::string fName ) {
   initialiseXMLDocument("OMTF");
-  GoldenPattern* dummy = new GoldenPattern(Key(0,0,0), myOMTFConfig);
+  GoldenPattern* dummy = new GoldenPatternWithThresh(Key(0,0,0), myOMTFConfig);
 
   OMTFConfiguration::vector2D mergedPartters = myOMTFConfig->getMergedPartters();
   for(unsigned int iGroup = 0; iGroup < mergedPartters.size(); iGroup++) {
@@ -541,7 +544,7 @@ void XMLConfigWriter::writeGPs(const std::vector<std::shared_ptr<GoldenPatternTy
       }*/
       gps[i] =  gp;
     }
-    writeGPData(*gps[0],*gps[1], *gps[2], *gps[3]);
+    writeGPData(gps[0], gps[1], gps[2], gps[3]);
   }
   finaliseXMLDocument(fName);
 }

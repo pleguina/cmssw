@@ -312,7 +312,7 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
   XMLCh *xmlTresh=_toDOMS(stringStr.str().c_str());
   stringStr.str("");
 
-  std::vector<unsigned int> thresholds(aConfig.nRefLayers(), 0);
+  std::vector<omtfPdfValueType> thresholds(aConfig.nRefLayers(), 0);
   unsigned int nItems = aGPElement->getElementsByTagName(xmlRefLayerThresh)->getLength();
   if(nItems > 0 && nItems != thresholds.size()) {
     throw cms::Exception("OMTF::XMLConfigReader: nItems != thresholds.size()");
@@ -329,7 +329,9 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
   ///Loop over layers
   Key aKey(iEta,iPt,iCharge, aGPNumber);
   auto aGP = std::make_unique<GoldenPatternType>(aKey, aConfig.nLayers(), aConfig.nRefLayers(), aConfig.nPdfAddrBits());
-  //aGP->setThresholds(thresholds);
+  if(dynamic_cast<GoldenPatternWithThresh*>(aGP.get()) ) {
+    dynamic_cast<GoldenPatternWithThresh*>(aGP.get())->setThresholds(thresholds);
+  }
   for(unsigned int iLayer=0;iLayer<nLayers;++iLayer){
     aNode = aGPElement->getElementsByTagName(xmlLayer)->item(iLayer);
     aLayerElement = static_cast<DOMElement *>(aNode); 

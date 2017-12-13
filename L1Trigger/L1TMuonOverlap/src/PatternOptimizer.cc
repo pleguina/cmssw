@@ -32,7 +32,7 @@ PatternOptimizer::PatternOptimizer(const edm::ParameterSet& edmCfg, const OMTFCo
   //updatePdfsFunc([this] (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) { updatePdfsMean_2(gp, iLayer, iRefLayer, learingRate); })
   updatePdfsFunc([this] (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) { updatePdfsVoter_1(gp, iLayer, iRefLayer, learingRate); })
 {
-  modifyPatterns(); //TODO remve if not needed!!!!!!!!!!!!!!!!
+  //modifyPatterns(); //TODO remove if not needed!!!!!!!!!!!!!!!!
   simMuPt =  new TH1I("simMuPt", "simMuPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
   simMuFoundByOmtfPt =  new TH1I("simMuFoundByOmtfPt", "simMuFoundByOmtfPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
 }
@@ -175,7 +175,7 @@ void PatternOptimizer::endJob() {
   //"optimisedPats.xml";
   std::string fName = edmCfg.getParameter<std::string>("optimisedPatsXmlFile");
   edm::LogImportant("PatternOptimizer") << " Writing optimized patterns to "<<fName << std::endl;
-  XMLConfigWriter xmlWriter(omtfConfig);
+  XMLConfigWriter xmlWriter(omtfConfig, true, false);
   xmlWriter.writeGPs(goldenPatterns, fName);
 
   fName.replace(fName.find('.'), fName.length(), ".root");
