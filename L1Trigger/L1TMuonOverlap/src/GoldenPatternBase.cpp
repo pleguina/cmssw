@@ -8,6 +8,30 @@
 
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternBase.h"
 
+GoldenPatternBase::GoldenPatternBase(const Key & aKey) : theKey(aKey), myOmtfConfig(0) {
+  //std::cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;
+}
+
+GoldenPatternBase::GoldenPatternBase(const Key& aKey, const OMTFConfiguration * omtfConfig) : theKey(aKey), myOmtfConfig(omtfConfig),
+results(boost::extents[myOmtfConfig->processorCnt()][myOmtfConfig->nTestRefHits()]) {
+  //std::cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;
+  for(unsigned int iProc = 0; iProc < results.size(); iProc++) {
+    for(unsigned int iTestRefHit = 0; iTestRefHit < results[iProc].size(); iTestRefHit++) {
+      results[iProc][iTestRefHit].init(omtfConfig);
+    }
+  }
+}
+
+void GoldenPatternBase::setConfig(const OMTFConfiguration * omtfConfig) {
+  myOmtfConfig = omtfConfig;
+  results.resize(boost::extents[myOmtfConfig->processorCnt()][myOmtfConfig->nTestRefHits()]);
+  for(unsigned int iProc = 0; iProc < results.size(); iProc++) {
+    for(unsigned int iTestRefHit = 0; iTestRefHit < results[iProc].size(); iTestRefHit++) {
+      results[iProc][iTestRefHit].init(omtfConfig);
+    }
+  }
+}
+
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
 GoldenPatternResult::LayerResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
@@ -38,9 +62,8 @@ GoldenPatternResult::LayerResult GoldenPatternBase::process1Layer1RefLayer(unsig
   ///Check if phiDistMin is within pdf range -63 +63
   ///in firmware here the arithmetic "value and sign" is used, therefore the range is -63 +63, and not -64 +63
   if(abs(phiDistMin) > ( (1<<(myOmtfConfig->nPdfAddrBits()-1)) -1) ) {
-    //return aResult;
     return GoldenPatternResult::LayerResult(this->pdfValue(iLayer, iRefLayer, 0), false, 0);
-    //in the version with thresholds we use the bin 0 to store the pdf value returned when there was no hit.
+    //in some algorithms versions with thresholds we use the bin 0 to store the pdf value returned when there was no hit.
     //in the version without thresholds, the value in the bin 0 should be 0
   }
 
@@ -49,14 +72,14 @@ GoldenPatternResult::LayerResult GoldenPatternBase::process1Layer1RefLayer(unsig
   //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0) std::cout<<__FUNCTION__<<":"<<__LINE__<<" phiDistMin "<<phiDistMin<<std::endl;
   omtfPdfValueType pdfVal = this->pdfValue(iLayer, iRefLayer, phiDistMin);
   if(pdfVal <= 0)
-    return GoldenPatternResult::LayerResult(this->pdfValue(iLayer, iRefLayer, 0), false, phiDistMin); //this is needed for the version with threshold
+    return GoldenPatternResult::LayerResult(this->pdfValue(iLayer, iRefLayer, 0), false, phiDistMin); //the pdf[0] needed in some versions of algorithm with threshold
   return GoldenPatternResult::LayerResult(pdfVal, true, phiDistMin);
 }
 
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
-void GoldenPatternBase::finalise() {
-  for(auto& result : getResults()) {
+void GoldenPatternBase::finalise(unsigned int procIndx) {
+  for(auto& result : getResults()[procIndx]) {
     result.finalise();
   }
 }

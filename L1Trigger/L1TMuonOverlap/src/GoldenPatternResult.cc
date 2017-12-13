@@ -14,7 +14,7 @@ int GoldenPatternResult::finalizeFunction = 0;
 ////////////////////////////////////////////
 GoldenPatternResult::GoldenPatternResult(const OMTFConfiguration * omtfConfig):  valid(false), myOmtfConfig(omtfConfig) {
   if(myOmtfConfig)
-    reset();
+    init(myOmtfConfig);
 }
 
 ////////////////////////////////////////////
@@ -38,49 +38,42 @@ void GoldenPatternResult::set(int refLayer_, unsigned int phi, unsigned int eta,
   this->phi = phi;
   this->eta = eta;
   this->refHitPhi = refHitPhi;
-  pdfWeights.at(iLayer) = layerResult.pdfVal;
+  pdfValues.at(iLayer) = layerResult.pdfVal;
   if(layerResult.valid) {
     firedLayerBits |= (1<< iLayer);
   }
   hitPdfBins[iLayer] = layerResult.pdfBin;
   /*if(layerResult.valid || layerResult.pdfVal)
     std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" refLayer "<<refLayer<<" pdfBin "<<layerResult.pdfBin<<" val "<<layerResult.pdfVal<<" valid "<<layerResult.valid<<std::endl;
- */ //pdfWeightSum += pdfVal; - this cannot be done here, because the pdfVal for the banding layer must be added only
+ */ //pdfSum += pdfVal; - this cannot be done here, because the pdfVal for the banding layer must be added only
   //if hit in the corresponding phi layer was accpeted (i.e. its pdfVal > 0. therefore it is done in finalise()
 }
 
 
-/*void GoldenPatternResult::setRefPhiRHits(unsigned int iRefLayer, int iRefPhiRHit) {
-  refHitPhi = iRefPhiRHit;
+////////////////////////////////////////////
+////////////////////////////////////////////
+void GoldenPatternResult::init(const OMTFConfiguration* omtfConfig) {
+  myOmtfConfig = omtfConfig;
+  pdfValues.assign(myOmtfConfig->nLayers(), 0);
+  hitPdfBins.assign(myOmtfConfig->nLayers(), 0);
+  reset();
 }
-////////////////////////////////////////////
-////////////////////////////////////////////
 
-void GoldenPatternResult::addResult(unsigned int iRefLayer,
-			   unsigned int iLayer,
-			   unsigned int val,
-			   int iRefPhi, 
-			   int iRefEta){
-
-  refLayerResults[iRefLayer].phi = iRefPhi;
-  refLayerResults[iRefLayer].eta = iRefEta;
-  refLayerResults[iRefLayer].pdfWeights[iLayer] = val;
-
-}*/
-////////////////////////////////////////////
-////////////////////////////////////////////
 void GoldenPatternResult::reset() {
+  std::fill(pdfValues.begin(), pdfValues.end(), 0);
+  std::fill(hitPdfBins.begin(), hitPdfBins.end(), 0);
   valid = false;
   refLayer = -1;
-  pdfWeights.assign(myOmtfConfig->nLayers(), 0);
-  hitPdfBins.assign(myOmtfConfig->nLayers(), 0);
   phi = 1024;
   eta = 1024;
-  pdfWeightSum = 0;
+  pdfSum = 0;
   firedLayerCnt = 0;
   firedLayerBits = 0;
   refHitPhi = 1024;
+  gpProbability1 = 0;
+  gpProbability2 = 0;
 }
+
 
 /*void GoldenPatternResult::clear() {
   if(refLayerResults.size() == 0)
@@ -100,12 +93,12 @@ void GoldenPatternResult::reset() {
 ////////////////////////////////////////////
 //default version
 void GoldenPatternResult::finalise0() {
-  for(unsigned int iLogicLayer=0; iLogicLayer < pdfWeights.size(); ++iLogicLayer) {
+  for(unsigned int iLogicLayer=0; iLogicLayer < pdfValues.size(); ++iLogicLayer) {
     unsigned int connectedLayer = myOmtfConfig->getLogicToLogic().at(iLogicLayer);
     //here we require that in case of the DT layers, both phi and phiB is fired
     if(firedLayerBits & (1<<connectedLayer) ) {
-      if( firedLayerBits & (1<<iLogicLayer) ) {//now in the GoldenPattern::process1Layer1RefLayer the pdf bin 0 is returned when the layer is not fired, so this is 'if' is to assured that this pdf val is ont added here
-        pdfWeightSum += pdfWeights[iLogicLayer];
+      if( firedLayerBits & (1<<iLogicLayer) ) {//now in the GoldenPattern::process1Layer1RefLayer the pdf bin 0 is returned when the layer is not fired, so this is 'if' is to assured that this pdf val is not added here
+        pdfSum += pdfValues[iLogicLayer];
         if(!myOmtfConfig->getBendingLayers().count(iLogicLayer)) //in DT case, the phi and phiB layers are threaded as one, so the firedLayerCnt is increased only for the phi layer
           firedLayerCnt++;
       }
@@ -123,16 +116,61 @@ void GoldenPatternResult::finalise0() {
 ////////////////////////////////////////////
 //for the algo version with thresholds
 void GoldenPatternResult::finalise1() {
-  for(unsigned int iLogicLayer=0; iLogicLayer < pdfWeights.size(); ++iLogicLayer) {
+  for(unsigned int iLogicLayer=0; iLogicLayer < pdfValues.size(); ++iLogicLayer) {
     //in this version we do not require that both phi and phiB is fired (non-zero), we thread them just independent
+    //watch out that then the number of fired layers is bigger, and the cut on the minimal number of fired layers dies not work in the same way as when the dt chamber is counted as one layer
     //TODO check if it affects performance
-    pdfWeightSum += pdfWeights[iLogicLayer];
+    pdfSum += pdfValues[iLogicLayer];
     firedLayerCnt += ( (firedLayerBits & (1<<iLogicLayer)) != 0 );
   }
 
   valid = true;
   //by default result becomes valid here, but can be overwritten later
 }
+
+////////////////////////////////////////////
+////////////////////////////////////////////
+//multiplication of PDF values instead of sum
+void GoldenPatternResult::finalise2() {
+  pdfSum = 1.;
+  for(unsigned int iLogicLayer=0; iLogicLayer < pdfValues.size(); ++iLogicLayer) {
+    unsigned int connectedLayer = myOmtfConfig->getLogicToLogic().at(iLogicLayer);
+    //here we require that in case of the DT layers, both phi and phiB is fired
+    if(firedLayerBits & (1<<connectedLayer) ) {
+      if( firedLayerBits & (1<<iLogicLayer) ) {//now in the GoldenPattern::process1Layer1RefLayer the pdf bin 0 is returned when the layer is not fired, so this is 'if' is to assured that this pdf val is not added here
+        pdfSum *= pdfValues[iLogicLayer];
+        if(!myOmtfConfig->getBendingLayers().count(iLogicLayer)) //in DT case, the phi and phiB layers are threaded as one, so the firedLayerCnt is increased only for the phi layer
+          firedLayerCnt++;
+      }
+    }
+    else {
+      firedLayerBits &= ~(1<<iLogicLayer);
+    }
+  }
+
+  if(firedLayerCnt < 3)
+    pdfSum = 0;
+
+  valid = true;
+  //by default result becomes valid here, but can be overwritten later
+}
+
+/*void GoldenPatternResult::finalise2() {
+  pdfSum = 1.;
+  for(unsigned int iLogicLayer=0; iLogicLayer < pdfValues.size(); ++iLogicLayer) {
+    //in this version we do not require that both phi and phiB is fired (non-zero), we thread them just independent
+    //TODO check if it affects performance
+    bool layerFired = ( (firedLayerBits & (1<<iLogicLayer)) != 0 );
+    if(layerFired) {
+      pdfSum *= pdfValues[iLogicLayer];
+      firedLayerCnt++ ;
+    }
+  }
+  if(firedLayerCnt < 3)
+    pdfSum = 0;
+  valid = true;
+  //by default result becomes valid here, but can be overwritten later
+}*/
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
@@ -147,8 +185,8 @@ void GoldenPatternResult::finalise1() {
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 std::ostream & operator << (std::ostream &out, const GoldenPatternResult & gpResult) {
-  for(unsigned int iLogicLayer=0; iLogicLayer < gpResult.getPdfWeights().size(); ++iLogicLayer){
-    out<<" layer: "<<std::setw(2)<<iLogicLayer<<" pdfBin: "<<std::setw(3)<<gpResult.hitPdfBins[iLogicLayer]<<" pdfVal: "<<std::setw(3)<<gpResult.getPdfWeights()[iLogicLayer]
+  for(unsigned int iLogicLayer=0; iLogicLayer < gpResult.getPdfValues().size(); ++iLogicLayer){
+    out<<" layer: "<<std::setw(2)<<iLogicLayer<<" pdfBin: "<<std::setw(3)<<gpResult.hitPdfBins[iLogicLayer]<<" pdfVal: "<<std::setw(3)<<gpResult.getPdfValues()[iLogicLayer]
        <<" fired "<<gpResult.isLayerFired(iLogicLayer)<<std::endl;
   }
 
@@ -156,7 +194,7 @@ std::ostream & operator << (std::ostream &out, const GoldenPatternResult & gpRes
   out << gpResult.getRefLayer()<<"\t";
 
   out<<" Sum over layers: ";
-  out<<gpResult.getPdfWeigtSum()<<"\t";
+  out<<gpResult.getPdfSum()<<"\t";
 
   out<<" Number of hits: ";
   out << gpResult.getFiredLayerCnt()<<"\t";

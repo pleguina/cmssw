@@ -31,6 +31,8 @@ private:
   xercesc::DOMElement* topElement;
 
   std::string fName;
+
+  unsigned int eventNum = 0;
 };
 
 #endif /* INTERFACE_XMLEVENTWRITER_H_ */

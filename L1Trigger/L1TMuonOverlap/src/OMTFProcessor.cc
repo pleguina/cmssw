@@ -101,18 +101,20 @@ bool OMTFProcessor<GoldenPatternType>::checkHitPatternValidity(unsigned int hits
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
 template<class GoldenPatternType>
-std::vector<AlgoMuon> OMTFProcessor<GoldenPatternType>::sortResults(int charge) {
-  std::vector<AlgoMuon> algoCandidates = sorter->sortResults(this->getPatterns(), charge);
+std::vector<AlgoMuon> OMTFProcessor<GoldenPatternType>::sortResults(unsigned int iProcessor, l1t::tftype mtfType, int charge) {
+  unsigned int procIndx = this->myOmtfConfig->getProcIndx(iProcessor, mtfType);
+  std::vector<AlgoMuon> algoCandidates = sorter->sortResults(procIndx, this->getPatterns(), charge);
   return algoCandidates;
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 //const std::vector<OMTFProcessor::resultsMap> &
 template<class GoldenPatternType>
-const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
+const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor, l1t::tftype mtfType,
     const OMTFinput & aInput){
+  unsigned int procIndx = this->myOmtfConfig->getProcIndx(iProcessor, mtfType);
   for(auto& itGP: this->theGPs) {
-    for(auto& result : itGP->getResults()) {
+    for(auto& result : itGP->getResults()[procIndx]) {
       result.reset();
     }
   }
@@ -172,7 +174,7 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
             aLayerResult.first,
             phiRefSt2, etaRef);*/
 
-        itGP->getResults().at(this->myOmtfConfig->nTestRefHits()-nTestedRefHits-1).set(aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef, iLayer, layerResult);
+        itGP->getResults()[procIndx][this->myOmtfConfig->nTestRefHits()-nTestedRefHits-1].set(aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef, iLayer, layerResult);
       }
     }
   }
@@ -190,7 +192,7 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
     }*/
 
     for(auto& itGP: this->theGPs) {
-      itGP->finalise();
+      itGP->finalise(procIndx);
     }
   }
 

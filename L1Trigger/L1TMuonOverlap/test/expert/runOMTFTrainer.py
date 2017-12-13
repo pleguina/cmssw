@@ -81,7 +81,7 @@ path = '/afs/cern.ch/work/k/kbunkow/public/data/SingleMuFullEta/721_FullEta_v4/'
 
 onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
 chosenFiles = ['file://' + path + f for f in onlyfiles if (('_p_10_' in f) or ('_m_10_' in f))]
-#chosenFiles = ['file://' + path + f for f in onlyfiles if (('_5_p_10_' in f))]
+#chosenFiles = ['file://' + path + f for f in onlyfiles if (('_10_p_10_' in f))]
 #chosenFiles = ['file://' + path + f for f in onlyfiles if (re.match('.*_._p_10.*', f))]
 firstEv = 0#40000
 nEvents = 100000
@@ -167,6 +167,7 @@ process.simOmtfDigis = cms.EDProducer("OMTFTrainer",
                                           dumpDetailedResultToXML = cms.bool(False),
                                           patternType = cms.string("GoldenPatternWithStat"), 
                                           ghostBusterType = cms.string("GhostBusterPreferRefDt"),
+                                          sorterType  = cms.string("sorterWithThreshold"),
                                           etaCutFrom = cms.double(0.82),
                                           etaCutTo = cms.double(1.24),
                                           omtf = cms.PSet(

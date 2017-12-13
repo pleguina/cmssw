@@ -332,7 +332,7 @@ unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
        charge == patternPt.charge )
       return iPat;
   }
-  return  0;
+  return  0; //FIXME in this way if pt < 4GeV, the pattern = 0 is return , regardless of sign!
 }
 
 //FIXME does not work if patterns not loeaded from LUTs, but only firectly from file

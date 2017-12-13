@@ -335,9 +335,9 @@ void XMLConfigWriter::writeResultsData(xercesc::DOMElement *aTopElement,
       stringStr<<iLogicLayer;
       aLayer->setAttribute(_toDOMS("iLayer"), _toDOMS(stringStr.str()));
       stringStr.str("");
-      stringStr<<aResult.getPdfWeights()[iLogicLayer];
+      stringStr<<aResult.getPdfValues()[iLogicLayer];
       aLayer->setAttribute(_toDOMS("value"), _toDOMS(stringStr.str()));
-      if(aResult.getPdfWeights()[iLogicLayer])
+      if(aResult.getPdfValues()[iLogicLayer])
         aRefLayer->appendChild(aLayer);
     }
     if(aRefLayer->getChildNodes()->getLength()) aGP->appendChild(aRefLayer);

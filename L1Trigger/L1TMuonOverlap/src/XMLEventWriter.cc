@@ -11,6 +11,7 @@ XMLEventWriter::XMLEventWriter(const OMTFConfiguration* aOMTFConfig, std::string
 omtfConfig(aOMTFConfig), xmlWriter(aOMTFConfig), topElement(0), fName(fName) {
   //std::string fName = "OMTF";
   xmlWriter.initialiseXMLDocument("OMTF");
+  eventNum = 0;
 };
 
 
@@ -21,8 +22,10 @@ XMLEventWriter::~XMLEventWriter() {
 void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
     const std::vector<AlgoMuon>& algoCandidates,
     std::vector<AlgoMuon>& gbCandidates,
-    const std::vector<l1t::RegionalMuonCand> & candMuons) {
-
+    const std::vector<l1t::RegionalMuonCand> & candMuons)
+{
+  if(eventNum > 1000)
+    return;
   int endcap =  (mtfType == l1t::omtf_neg) ? -1 : ( ( mtfType == l1t::omtf_pos) ? +1 : 0 );
   OmtfName board(iProcessor, endcap);
 
@@ -43,6 +46,9 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor, l1t::tfty
 }
 
 void XMLEventWriter::observeEventBegin(const edm::Event& iEvent) {
+  eventNum++;
+  if(eventNum > 1000) //due to some bug if more events is written the memory consumption s very big and program crashes
+    return;
   topElement = xmlWriter.writeEventHeader(iEvent.id().event());
 }
 

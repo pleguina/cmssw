@@ -19,7 +19,7 @@ class AlgoMuon{
 
   AlgoMuon(const GoldenPatternResult& gpResult, GoldenPatternBase* gp, unsigned int refHitNumber):
               goldenPatern(gp),
-              m_disc(gpResult.getPdfWeigtSum()), m_phi(gpResult.getPhi()), m_eta(gpResult.getEta()),
+              m_disc(gpResult.getPdfSum()), m_phi(gpResult.getPhi()), m_eta(gpResult.getEta()),
               m_refLayer(gpResult.getRefLayer()),
               m_firedLayerBits(gpResult.getFiredLayerBits()), m_q(gpResult.getFiredLayerCnt()),
               m_bx(0), m_pt(gp->key().thePt), m_charge(gp->key().theCharge),

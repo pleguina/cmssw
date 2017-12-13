@@ -38,19 +38,12 @@ public:
   ///Add GoldenPattern to pattern vec.
   virtual void addGP(GoldenPatternType *aGP);
 
-  virtual void setGPs(const GoldenPatternVec& gps) {
-    theGPs = gps;
-    for(auto& gp : theGPs) {
-      gp->setConfig(myOmtfConfig);
-    }
-
-    initPatternPtRange();
-  }
+  virtual void setGPs(const GoldenPatternVec& gps);
 
   ///Reset all configuration parameters
   virtual void resetConfiguration();
 
-  virtual void initPatternPtRange();
+  virtual void initPatternPtRange(bool firstPatFrom0);
 
   const std::vector<OMTFConfiguration::PatternPt>& getPatternPtRange() const {
     return patternPts;

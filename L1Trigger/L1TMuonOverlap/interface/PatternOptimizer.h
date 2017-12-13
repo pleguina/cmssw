@@ -18,6 +18,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 
+#include "TH1I.h"
 
 class PatternOptimizer: public IOMTFEmulationObserver {
 public:
@@ -44,8 +45,12 @@ public:
 private:
   //candidate found by omtf in a given event
   AlgoMuon omtfCand;
+  unsigned int candProcIndx;
+
   GoldenPatternResult omtfResult;
   GoldenPatternResult exptResult;
+
+  unsigned int exptPatNum;
 
   edm::ParameterSet edmCfg;
   //edm::Handle<edm::SimTrackContainer> simTks;
@@ -55,11 +60,19 @@ private:
 
   const SimTrack* simMuon;
 
+  TH1I* simMuPt;
+  TH1I* simMuFoundByOmtfPt;
+
   std::function<void (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp)> updateStatFunc;
 
   std::function<void (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) > updatePdfsFunc;
 
+  void updateStatForAllGps(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
+
   void updateStat(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp, double delta, double norm);
+
+  void updateStatCollectProb(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
+  void calulateProb();
 
   //void updateStatPtDiff_1(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
   void updateStatVoter_1(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
@@ -72,6 +85,10 @@ private:
   void updatePdfsMean_1(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate);
   void updatePdfsMean_2(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate);
   void updatePdfsVoter_1(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate);
+
+  void savePatternsInRoot(std::string rootFileName);
+
+  void modifyPatterns();
 };
 
 #endif /* OMTF_PATTERNOPTIMIZER_H_ */

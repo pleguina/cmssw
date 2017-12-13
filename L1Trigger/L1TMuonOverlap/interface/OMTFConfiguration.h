@@ -11,6 +11,7 @@
 #include "boost/multi_array.hpp"
 
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
+#include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 
 //typedef int omtfPdfValueType; //normal emulation is with int type
 typedef float omtfPdfValueType; //but floats are needed for the PatternOptimizer
@@ -112,7 +113,10 @@ class OMTFConfiguration{
   unsigned int nPhiBins() const {return rawParams.nPhiBins();};
   unsigned int nRefHits() const {return rawParams.nRefHits();};
   unsigned int nTestRefHits() const {return rawParams.nTestRefHits();};
+  //processors number per detector side
   unsigned int nProcessors() const {return rawParams.nProcessors();};
+  //total number of processors in the system
+  unsigned int processorCnt() const {return 2*rawParams.nProcessors();};
   unsigned int nLogicRegions() const {return rawParams.nLogicRegions();};
   unsigned int nInputs() const {return rawParams.nInputs();};
   unsigned int nGoldenPatterns() const {return rawParams.nGoldenPatterns();};
@@ -146,6 +150,11 @@ class OMTFConfiguration{
   static double hwPtToGev(unsigned int hwPt) {
     return (hwPt - 1.) * 0.5;
   }
+
+  ///Continuous processor number [0...12], to be used in as array index,
+  unsigned int getProcIndx(unsigned int iProcessor, l1t::tftype mtfType) const {
+    return ( (mtfType - l1t::tftype::omtf_neg) * rawParams.nProcessors() + iProcessor );
+  };
 
   ///pattern pt range in Gev
   struct PatternPt {

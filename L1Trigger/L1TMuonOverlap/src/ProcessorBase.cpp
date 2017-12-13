@@ -93,7 +93,7 @@ bool ProcessorBase<GoldenPatternType>::configure(const OMTFConfiguration* omtfCo
     addGP(aGP);
   }
 
-  initPatternPtRange();
+  initPatternPtRange(true);
 
   return true;
 }
@@ -105,6 +105,17 @@ void ProcessorBase<GoldenPatternType>::addGP(GoldenPatternType* aGP) {
   theGPs.emplace_back(std::unique_ptr<GoldenPatternType>(aGP));
 }
 
+////////////////////////////////////////////
+////////////////////////////////////////////
+template<class GoldenPatternType>
+void ProcessorBase<GoldenPatternType>::setGPs(const GoldenPatternVec& gps) {
+  theGPs = gps;
+  for(auto& gp : theGPs) {
+    gp->setConfig(myOmtfConfig);
+  }
+
+  initPatternPtRange(true);
+}
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 template<class GoldenPatternType>
@@ -127,9 +138,11 @@ OMTFinput::vector1D ProcessorBase<GoldenPatternType>::restrictInput(unsigned int
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 template <class GoldenPatternType>
-void ProcessorBase<GoldenPatternType>::initPatternPtRange() {
+void ProcessorBase<GoldenPatternType>::initPatternPtRange(bool firstPatFrom0) {
   patternPts.clear();
 
+  bool firstPos = firstPatFrom0;
+  bool firstNeg = firstPatFrom0;
   for(unsigned int iPat = 0; iPat < theGPs.size(); iPat++) {
     OMTFConfiguration::PatternPt patternPt;
     int charge = theGPs[iPat]->key().theCharge;
@@ -139,6 +152,14 @@ void ProcessorBase<GoldenPatternType>::initPatternPtRange() {
     }
 
     patternPt.ptFrom = OMTFConfiguration::hwPtToGev(theGPs[iPat]->key().thePt);
+    if(firstPos && theGPs[iPat]->key().theCharge == 1) {
+      patternPt.ptFrom = 0;
+      firstPos = false;
+    }
+    if(firstNeg && theGPs[iPat]->key().theCharge == -1) {
+      patternPt.ptFrom = 0;
+      firstNeg = false;
+    }
 
     unsigned int iPat1 = iPat;
     while(true) { //to skip the empty patterns with pt=0 and patterns with opposite charge

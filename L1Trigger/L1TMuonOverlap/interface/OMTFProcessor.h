@@ -44,10 +44,10 @@ class OMTFProcessor: public ProcessorBase<GoldenPatternType>, public IProcessorE
   ///Vector index: number of the ref hit (from 0 to nTestRefHits i.e. 4)
   ///Map key: GoldenPattern key
   //const std::vector<OMTFProcessor::resultsMap> &
-  virtual const void processInput(unsigned int iProcessor,
+  virtual const void processInput(unsigned int iProcessor, l1t::tftype mtfType,
 							      const OMTFinput & aInput);
   
-  virtual std::vector<AlgoMuon> sortResults(int charge=0);
+  virtual std::vector<AlgoMuon> sortResults(unsigned int iProcessor, l1t::tftype mtfType, int charge=0);
 
   virtual std::vector<AlgoMuon> ghostBust(std::vector<AlgoMuon> refHitCands, int charge=0) {
     return ghostBuster->select(refHitCands, charge);

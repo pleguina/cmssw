@@ -560,13 +560,14 @@ void PatternsGeneratorProcessor::modifyPdfs1() {
   }*/
 
   for(auto& gp : theGPs) {
-    if(gp->key().thePt >= 11 || gp->key().thePt == 0)
+    if(gp->key().thePt >= 14 || gp->key().thePt == 0)
       continue;
     for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
       for(unsigned int iRefLayer=0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
         //if(iRefLayer == 1 || iRefLayer == 3 || iRefLayer == 4)
         {
-          if(iLayer == 1 || iLayer == 3 || (iLayer == 5 && iRefLayer == 5) ) {
+          if( ( (gp->key().thePt == 9 || gp->key().thePt == 10) && (iLayer == 1 || iLayer == 3 || (iLayer == 5 && iRefLayer == 5) ) ) ||
+              ( (gp->key().thePt == 11|| gp->key().thePt == 13) && (iLayer == 1 ) )    ) {
             std::cout<<gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<std::endl;
             gp->setDistPhiBitShift(1, iLayer, iRefLayer);
             boost::multi_array<omtfPdfValueType, 1> pdfBuf(boost::extents[gp->getPdf()[iLayer][iRefLayer].size()]);

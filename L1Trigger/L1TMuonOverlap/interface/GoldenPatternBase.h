@@ -53,20 +53,18 @@ class GoldenPatternBase {
 //  typedef std::vector<vector2D> vector3D;
 //  typedef std::vector<vector3D> vector4D;
 
+  //typedef std::vector<std::vector <unique_ptr<GoldenPatternResult> > > resultsArrayType;
+  typedef boost::multi_array<GoldenPatternResult, 2> resultsArrayType;
   //
   // IGoldenPatterns methods
   //
-  GoldenPatternBase(const Key & aKey) : theKey(aKey), myOmtfConfig(0) {}
+  GoldenPatternBase(const Key & aKey);
 
-  GoldenPatternBase(const Key& aKey, const OMTFConfiguration * omtfConfig) : theKey(aKey), myOmtfConfig(omtfConfig),
-      results(myOmtfConfig->nTestRefHits(), GoldenPatternResult(omtfConfig)) {}
+  GoldenPatternBase(const Key& aKey, const OMTFConfiguration * omtfConfig);
 
   virtual ~GoldenPatternBase() {}
   
-  virtual void setConfig(const OMTFConfiguration * omtfConfig) {
-    myOmtfConfig = omtfConfig;
-    results.assign(myOmtfConfig->nTestRefHits(), GoldenPatternResult(omtfConfig));
-  }
+  virtual void setConfig(const OMTFConfiguration * omtfConfig);
 
   const OMTFConfiguration* getConfig() const {
     return myOmtfConfig;
@@ -135,12 +133,12 @@ class GoldenPatternBase {
   virtual void finalise() = 0;
   */
 
-  std::vector<GoldenPatternResult>& getResults() {
+  resultsArrayType& getResults() {
     return results;
   }
 
   ///last step of the event processing, before sorting and ghost busting
-  virtual void finalise();
+  virtual void finalise(unsigned int procIndx);
  protected:
 
   ///Pattern kinematical identification (iEta,iPt,iCharge)
@@ -148,8 +146,11 @@ class GoldenPatternBase {
 
   const OMTFConfiguration* myOmtfConfig;
 
-  std::vector<GoldenPatternResult> results;
+  //std::vector<GoldenPatternResult> results;
 
+  //first index:processorNum (0...5)
+  //second index: myOmtfConfig->nTestRefHits
+  resultsArrayType results;
 };
 //////////////////////////////////
 //////////////////////////////////

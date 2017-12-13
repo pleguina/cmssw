@@ -24,9 +24,9 @@ private:
   //number of the layer from which the reference hit originated
   int refLayer;
 
-  ///Pdf weight found for each layer
+  ///Pdf value found for each layer
   ///First index: layer number
-  std::vector<omtfPdfValueType> pdfWeights;
+  std::vector<omtfPdfValueType> pdfValues;
 
   ///pdfBins for each for each layer
   ///First index: layer number
@@ -38,8 +38,9 @@ private:
   ///eta at the 2nd muon station
   unsigned int eta;
 
-  ///Sum of pdf weights
-  omtfPdfValueType pdfWeightSum;
+  ///Sum of pdfValues
+  //omtfPdfValueType
+  double pdfSum;
 
   ///Number of fired layers - excluding banding layers
   unsigned int firedLayerCnt;
@@ -52,7 +53,12 @@ private:
 
   static int finalizeFunction;
 
+  double gpProbability1 = 0;
+
+  double gpProbability2 = 0;
 public:
+  void init(const OMTFConfiguration* omtfConfig);
+
   void reset();
 
   bool isValid() const {
@@ -98,22 +104,20 @@ public:
     this->firedLayerCnt = firedLayerCnt;
   }
 
-  const std::vector<omtfPdfValueType>& getPdfWeights() const {
-    return pdfWeights;
+  /*
+   * pdfValue from each layer
+   */
+  const std::vector<omtfPdfValueType>& getPdfValues() const {
+    return pdfValues;
   }
 
-/*
-  void setPdfWeights(const vector1D& pdfWeigts) {
-    this->pdfWeights = pdfWeigts;
-  }*/
-
-  omtfPdfValueType getPdfWeigtSum() const {
-    return pdfWeightSum;
+  /*
+   * sum of the pdfValues in layers
+   * if finalise2() it is product of the pdfValues
+   */
+  omtfPdfValueType getPdfSum() const {
+    return pdfSum;
   }
-
-  /*void setPdfWeigtSum(unsigned int pdfWeigtSum) {
-    this->pdfWeightSum = pdfWeigtSum;
-  }*/
 
   const vector1D& getHitPdfBins()  {
     return hitPdfBins;
@@ -145,36 +149,13 @@ public:
   //dont use this in the pattern construction, since the myOmtfConfig is null then
   GoldenPatternResult(const OMTFConfiguration* omtfConfig);
 
-  //void configure(const OMTFConfiguration * omtfConfig);
-
-  /*  const GoldenPatternResults::vector2D & getResults() const {return results;}
-
-  const GoldenPatternResults::vector1D & getSummaryVals() const {return results1D;}
-
-  const GoldenPatternResults::vector1D & getSummaryHits() const {return hits1D;}
-
-  const GoldenPatternResults::vector1D & getRefPhis() const {return refPhi1D;}
-
-  const GoldenPatternResults::vector1D & getRefEtas() const {return refEta1D;}
-
-  const GoldenPatternResults::vector1D & getHitsWord() const { return hitsBits;}
-
-  const GoldenPatternResults::vector1D & getRefPhiRHits() const {return refPhiRHit1D;}*/
-
- /* void setRefPhiRHits(unsigned int iRefLayer, int iRefPhiRHit);
-
-  void addResult(unsigned int iRefLayer,
-      unsigned int iLayer,
-      unsigned int val,
-      int iRefPhi, int iRefEta);
-        void clear();
-        */
-
   void set();
 
   void finalise() {
     if(finalizeFunction == 1)
       finalise1();
+    else if(finalizeFunction == 2)
+      finalise2();
     else
       finalise0();
   }
@@ -185,6 +166,9 @@ public:
   //version for the patterns with pdfSum threshold
   void finalise1();
 
+  //multiplication of PDF values instead of sum
+  void finalise2();
+
   //bool empty() const;
 
   friend std::ostream & operator << (std::ostream &out, const GoldenPatternResult & aResult);
@@ -193,29 +177,23 @@ public:
     finalizeFunction = finalizeFunction_;
   }
 
+  double getGpProbability1() const {
+    return gpProbability1;
+  }
+
+  void setGpProbability1(double probability1 = 0) {
+    this->gpProbability1 = probability1;
+  }
+
+  double getGpProbability2() const {
+    return gpProbability2;
+  }
+
+  void setGpProbability2(double probability2 = 0) {
+    this->gpProbability2 = probability2;
+  }
+
 private:
-  /*  ///Pdf weight found for each layer
-  ///First index: layer number
-  ///Second index: ref layer number
-  vector2D results; 
-
-  ///Reference phi for each reference layer
-  vector1D refPhi1D; 
-
-  ///Reference phi for each reference layer
-  vector1D refEta1D; 
-
-  ///Sum of pdf weights for each reference layer
-  vector1D results1D; 
-
-  ///Number of hits for each reference layer
-  vector1D hits1D; 
-
-  ///Words representing nimber of hit layers for each reference layer
-  vector1D hitsBits;
-
-  ///Reference phi for each reference layer - the input value
-  vector1D refPhiRHit1D; */
 
   const OMTFConfiguration *myOmtfConfig;
 

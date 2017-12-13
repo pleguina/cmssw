@@ -92,10 +92,3 @@ void GoldenPattern::reset() {
   }
 
 }
-
-////////////////////////////////////////////////////
-////////////////////////////////////////////////////
-void GoldenPatternWithThresh::reset(const OMTFConfiguration* omtfConfig) {
-  GoldenPattern::reset();
-  thresholds.assign(myOmtfConfig->nRefLayers(), 0);
-}

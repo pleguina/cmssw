@@ -23,7 +23,7 @@ public:
   ///Fill GP vec with patterns from CondFormats object
   virtual bool configure(const OMTFConfiguration * omtfParams, const L1TMuonOverlapParams* omtfPatterns) = 0;
 
-  virtual const void processInput(unsigned int iProcessor,
+  virtual const void processInput(unsigned int iProcessor, l1t::tftype mtfType,
                     const OMTFinput & aInput) = 0;
 
   ///allows to use other sorter implementation than the default one
@@ -32,7 +32,7 @@ public:
   ///allows to use other IGhostBuster implementation than the default one
   virtual void setGhostBuster(IGhostBuster* ghostBuster) = 0;
 
-  virtual std::vector<AlgoMuon> sortResults(int charge = 0) = 0;
+  virtual std::vector<AlgoMuon> sortResults(unsigned int iProcessor, l1t::tftype mtfType, int charge = 0) = 0;
 
   virtual std::vector<AlgoMuon> ghostBust(std::vector<AlgoMuon> refHitCands, int charge=0) = 0;
 

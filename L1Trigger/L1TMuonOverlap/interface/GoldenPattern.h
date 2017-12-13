@@ -113,15 +113,18 @@ public:
   // GoldenPatterns methods
   //
   GoldenPatternWithThresh(const Key & aKey, unsigned int nLayers, unsigned int nRefLayers, unsigned int nPdfAddrBits):
-    GoldenPattern(aKey, nLayers, nRefLayers, nPdfAddrBits) {}
+    GoldenPattern(aKey, nLayers, nRefLayers, nPdfAddrBits),
+    thresholds(nRefLayers, 0) {
 
-  GoldenPatternWithThresh(const Key & aKey, const OMTFConfiguration* omtfConfig) : GoldenPattern(aKey, omtfConfig) {
+  }
+
+  GoldenPatternWithThresh(const Key & aKey, const OMTFConfiguration* omtfConfig):
+    GoldenPattern(aKey, omtfConfig),
+    thresholds(myOmtfConfig->nRefLayers(), 0) {
 
   }
 
   virtual ~GoldenPatternWithThresh() {};
-
-  virtual void reset(const OMTFConfiguration* omtfConfig);
 
   omtfPdfValueType getTreshold(unsigned int iRefLayer) const {
     return thresholds.at(iRefLayer);
@@ -129,6 +132,10 @@ public:
 
   void setThresholds(std::vector<omtfPdfValueType>& tresholds) {
     this->thresholds = tresholds;
+  }
+
+  void setThreshold(unsigned int& iRefLayer, omtfPdfValueType& treshold) {
+    this->thresholds[iRefLayer] = treshold;
   }
 };
 //////////////////////////////////

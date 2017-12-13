@@ -124,6 +124,24 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
 
       std::unique_ptr<IOMTFEmulationObserver> obs(new PatternOptimizer(m_Config, m_OMTFConfig, gps));
       observers.emplace_back(std::move(obs));
+
+      for(auto gp : gps) {
+        gp->init();
+      }
+
+      for(auto& gp : gps) {
+        edm::LogImportant("OMTFReconstruction")<<gp->key()<<" "
+            <<m_OMTFConfig->getPatternPtRange(gp->key().theNumber).ptFrom
+            <<" - "<<m_OMTFConfig->getPatternPtRange(gp->key().theNumber).ptTo<<" GeV"<<std::endl;
+      }
+
+      if(m_Config.exists("sorterType") ) {//TODO add it also for the patternType == "GoldenPattern" - if needed
+        string sorterType = m_Config.getParameter<std::string>("sorterType");
+        if(sorterType == "sorterWithThreshold") {
+          GoldenPatternResult::setFinalizeFunction(2);
+          proc->setSorter(new OMTFSorterWithThreshold<GoldenPatternWithStat>(m_OMTFConfig));
+        }
+      }
     }
     else if(patternType == "GoldenPatternParametrised") {
       OMTFProcessor<GoldenPatternParametrised>* proc = new OMTFProcessor<GoldenPatternParametrised>(m_OMTFConfig);
@@ -155,10 +173,6 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
     std::unique_ptr<IOMTFEmulationObserver> obs(new XMLEventWriter(m_OMTFConfig, m_Config.getParameter<std::string>("XMLDumpFileName")));
     observers.emplace_back(std::move(obs));
   }
-
-  //emulator configuration
-  //GoldenPatternResult::setFinalizeFunction(1);
-  //m_OMTF->setSorter(new OMTFSorterWithThreshold());
 
   if(m_Config.exists("ghostBusterType") ) {
     if(m_Config.getParameter<std::string>("ghostBusterType") == "GhostBusterPreferRefDt")
@@ -223,9 +237,9 @@ void OMTFReconstruction::getProcessorCandidates(unsigned int iProcessor, l1t::tf
                 iProcessor, mtfType);
   int flag = m_InputMaker.getFlag();
 
-  m_OMTF->processInput(iProcessor,input);
+  m_OMTF->processInput(iProcessor, mtfType, input);
 
-  std::vector<AlgoMuon> algoCandidates =  m_OMTF->sortResults();
+  std::vector<AlgoMuon> algoCandidates =  m_OMTF->sortResults(iProcessor, mtfType);
   // perform GB 
   std::vector<AlgoMuon> gbCandidates =  m_OMTF->ghostBust(algoCandidates);
   // fill RegionalMuonCand colleciton
