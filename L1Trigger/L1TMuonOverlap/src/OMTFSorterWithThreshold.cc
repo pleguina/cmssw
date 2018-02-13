@@ -16,7 +16,7 @@
 ///////////////////////////////////////////////////////
 template <class GoldenPatternType>
 AlgoMuon OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResults(unsigned int procIndx, unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPatternType> >& gPatterns,
-					  int charge){
+					  int charge) {
   GoldenPatternWithThresh* bestGP = 0; //the GoldenPattern with the best result for this iRefHit
 //  std::cout <<" ====== sortRefHitResults: " << std::endl;
 
@@ -49,7 +49,9 @@ AlgoMuon OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResults(unsigned 
   double maxGpProbability1 = 0;
   //std::cout<<__FUNCTION__<<" line "<<__LINE__<<" procIndx "<<procIndx<<" iRefHit "<<iRefHit<<" charge "<<charge<<std::endl;
   double p_deltaPhis2 = 0;
-  for(auto& itGP: gPatterns) {
+  //for(auto& itGP: gPatterns) {
+  for(int patNum = gPatterns.size() -1; patNum >= 0; patNum--) {
+    auto& itGP =  gPatterns[patNum];
     GoldenPatternResult& result = itGP->getResults()[procIndx][iRefHit];
     if(!result.isValid())
       continue;
@@ -65,20 +67,25 @@ AlgoMuon OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResults(unsigned 
       continue;
 
     //calculating P(ptMu = gpPt | delta_phis)
-    if(p_deltaPhis1 > 0) {
+    //if(p_deltaPhis1 > 0) it is impossible that p_deltaPhis1 is 0 here
+    {
       double gpProbability1 = result.getPdfSum() / p_deltaPhis1;
       result.setGpProbability1(gpProbability1);
     }
 
     //calculating P(ptMu >= gpPt | delta_phis)
     p_deltaPhis2 += result.getPdfSum();
-    if(p_deltaPhis2 > 0) {
+    /*if(p_deltaPhis2 > 0) {
       double gpProbability2 = result.getPdfSum() / p_deltaPhis2;
+      result.setGpProbability2(gpProbability2);
+    }*/
+    //if(p_deltaPhis1 > 0)
+    {
+      double gpProbability2 = p_deltaPhis2 / p_deltaPhis1;
       result.setGpProbability2(gpProbability2);
     }
 
 /*
-
     int refLayerLogicNumber = myOmtfConfig->getRefToLogicNumber()[result.getRefLayer()];
     double ptProbability = itGP->pdfValue(refLayerLogicNumber, result.getRefLayer(), myOmtfConfig->nPdfBins()/2 );
     std::cout<<__FUNCTION__<<" line "<<__LINE__ << itGP->key()<<" refLayerLogicNumber "<<refLayerLogicNumber
@@ -90,14 +97,13 @@ AlgoMuon OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResults(unsigned 
         << std::endl;
 */
 
-    //assuming the patterns are sorted from the smallest pt
-    /*if(result.getGpProbability1() > itGP->getTreshold(result.getRefLayer() )) { //TODO uncomment
+    /*if(bestGP == 0 && result.getGpProbability2() >= itGP->getThreshold(0) ) { //TODO uncomment, TODO change to getGpProbability1
       bestGP = itGP.get();
-      //we take the one with the highest pattern number (i.e. pt) among these with the same FiredLayerCnt
-      //std::cout<<__FUNCTION__<<" line "<<__LINE__ << " passed threshold "<<itGP->getTreshold(result.getRefLayer() )<<std::endl;
+      //we take the one with the highest pattern number (i.e. pt) among these with the same FiredLayerCnt (the loop is from the last pattern)
+      //std::cout<<__FUNCTION__<<" line "<<__LINE__ <<" "<<itGP->key()<<" getGpProbability1 "<<result.getGpProbability1()<< " passed threshold "<<itGP->getThreshold(0)<<" FiredLayerCnt "<<result.getFiredLayerCnt()<<std::endl; //result.getRefLayer()
     }*/
 
-    if(result.getGpProbability1() > maxGpProbability1) { //max likelihood option, TODO - remove
+    if(result.getGpProbability1() > maxGpProbability1) { //max likelihood option, TODO - comment/uncomment if needed
       maxGpProbability1 = result.getGpProbability1();
       bestGP = itGP.get();
       //std::cout<<__FUNCTION__<<" line "<<__LINE__ << " passed threshold "<<itGP->getTreshold(result.getRefLayer() )<<std::endl;

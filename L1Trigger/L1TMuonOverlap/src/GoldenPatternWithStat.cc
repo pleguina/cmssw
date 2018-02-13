@@ -21,8 +21,13 @@
 
 GoldenPatternWithStat::GoldenPatternWithStat(const Key & aKey, unsigned int nLayers, unsigned int nRefLayers, unsigned int nPdfAddrBits):
 GoldenPatternWithThresh(aKey, nLayers, nRefLayers, nPdfAddrBits),
-statisitics(boost::extents[nLayers][nRefLayers][1<<nPdfAddrBits][STAT_BINS] ) {
-
+statisitics(boost::extents[nLayers][nRefLayers][ (1<<nPdfAddrBits)][STAT_BINS] ) //TODO remove *4!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//gpProbabilityStat( ("gpProbabilityStat_GP_" + to_string(key().theNumber)).c_str(), ("gpProbabilityStat_GP_" + to_string(key().theNumber)).c_str(), 1000, 0., 1.) //TODO find proper range
+{
+  for(unsigned int iRefLayer=0; iRefLayer < nRefLayers; ++iRefLayer) {
+    gpProbabilityStat.push_back(new TH1I( ("gpProbabilityStat_GP_" + to_string(key().theNumber) + "_refLay_" + to_string(iRefLayer)).c_str(),
+                                          ("gpProbabilityStat GP " + to_string(key().theNumber) + " refLayer " + to_string(iRefLayer)).c_str(), 1000, 0., 1.) );
+  }
 };
 
 GoldenPatternWithStat::GoldenPatternWithStat(const Key & aKey, const OMTFConfiguration* omtfConfig): GoldenPatternWithThresh(aKey, omtfConfig),
@@ -108,19 +113,15 @@ std::ostream & operator << (std::ostream &out, const GoldenPatternWithStat & aPa
 }
 
 void GoldenPatternWithStat::init() {
-  if(key().thePt == 0)
+  /*  if(key().thePt == 0)
     return;
   ostringstream ostrName;
   ostringstream ostrTitle;
-  for(unsigned int iPat = 0; iPat < this->myOmtfConfig->nGoldenPatterns(); iPat++) {
-    ostrName.str("");
-    ostrTitle.str("");
-    OMTFConfiguration::PatternPt patternPt = this->myOmtfConfig->getPatternPtRange(iPat);
-    ostrName<<"gpProbabilityStat_GP_"<<key().theNumber<<"_ptBinNum_"<<iPat;//<<"_muPtFrom_"<<patternPt.ptFrom<<"_GeV";
-    ostrTitle<<"gpProbabilityStat_GP_"<<key().theNumber<<"_ptBinNum_"<<iPat<<"_muPtFrom_"<<patternPt.ptFrom<<"_GeV";
-    if(patternPt.ptFrom > 0)
-      gpProbabilityStat.emplace_back(TH1I(ostrName.str().c_str(), ostrTitle.str().c_str(), 100, 0., 1.)); //TODO find proper range
-    else
-      gpProbabilityStat.emplace_back(TH1I(ostrName.str().c_str(), ostrTitle.str().c_str(), 1, 0., 1.)); //to save some memory, for empty patterns just "empty" hits
-  }
+
+  //OMTFConfiguration::PatternPt patternPt = this->myOmtfConfig->getPatternPtRange(iPat);
+  ostrName<<"gpProbabilityStat_GP_"<<key().theNumber;//<<"_muPtFrom_"<<patternPt.ptFrom<<"_GeV";
+  ostrTitle<<"gpProbabilityStat_GP_"<<key().theNumber;//<<"_muPtFrom_"<<patternPt.ptFrom<<"_GeV";
+
+  gpProbabilityStat = TH1I(ostrName.str().c_str(), ostrTitle.str().c_str(), 100, 0., 1.); //TODO find proper range
+*/
 }

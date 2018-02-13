@@ -52,6 +52,10 @@ private:
 
   unsigned int exptPatNum;
 
+  unsigned int selectedPatNum;
+
+  unsigned int currnetPtBatchPatNum; //for threshold finding
+
   edm::ParameterSet edmCfg;
   //edm::Handle<edm::SimTrackContainer> simTks;
 
@@ -63,6 +67,21 @@ private:
   TH1I* simMuPt;
   TH1I* simMuFoundByOmtfPt;
 
+  //std::vector<TH2I*> gpExpt_gpOmtf;
+  //std::vector<TH1F*> gpEff;
+
+
+  //double ptRangeFrom = 0;
+  //double ptRangeTo = 0;
+
+  unsigned int ptCut = 37;
+
+  std::vector<double> rateWeights;
+
+  std::vector<int> patternPtCodes; //continous ptCode 1...31 (liek in the old PAC)
+
+  void initRateWeights();
+
   std::function<void (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp)> updateStatFunc;
 
   std::function<void (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) > updatePdfsFunc;
@@ -71,8 +90,25 @@ private:
 
   void updateStat(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp, double delta, double norm);
 
+  enum SecondCloserStatIndx {
+    goodBigger,
+    goodSmaller,
+    badBigger,
+    badSmaller
+  };
+  void updateStatCloseResults(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
+  void updatePdfCloseResults();
+
   void updateStatCollectProb(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
   void calulateProb();
+
+
+  void calculateThresholds(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
+  void calculateThresholds(double targetEff);
+
+
+  void tuneClassProb(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
+  void tuneClassProb(double targetEff);
 
   //void updateStatPtDiff_1(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
   void updateStatVoter_1(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
@@ -89,6 +125,9 @@ private:
   void savePatternsInRoot(std::string rootFileName);
 
   void modifyPatterns();
+  void modifyPatterns1(double step);
+
+  void printPatterns();
 };
 
 #endif /* OMTF_PATTERNOPTIMIZER_H_ */

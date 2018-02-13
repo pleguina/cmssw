@@ -25,6 +25,7 @@ public:
   void generateThresholds();
   void modifyPdfs();
   void modifyPdfs1();
+
 private:
   void generateDTPattern(int iGroup, int iRefLayer, int iLayer);
   void copyDTPattern(int iGroup, int iRefLayer, int iLayer);

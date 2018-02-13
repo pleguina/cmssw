@@ -453,10 +453,10 @@ void XMLConfigWriter::writeGPData(const GoldenPattern* aGP1,
       for(unsigned int iRefLayer=0;iRefLayer<myOMTFConfig->nRefLayers();++iRefLayer){
         //cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;
         xercesc::DOMElement* aRefLayerThresh = theDoc->createElement(_toDOMS("RefLayerThresh"));
-        setAttributeFloat(aRefLayerThresh, "tresh1", dynamic_cast<const GoldenPatternWithThresh*>(aGP1)->getTreshold(iRefLayer));
-        setAttributeFloat(aRefLayerThresh, "tresh2", dynamic_cast<const GoldenPatternWithThresh*>(aGP2)->getTreshold(iRefLayer));
-        setAttributeFloat(aRefLayerThresh, "tresh3", dynamic_cast<const GoldenPatternWithThresh*>(aGP3)->getTreshold(iRefLayer));
-        setAttributeFloat(aRefLayerThresh, "tresh4", dynamic_cast<const GoldenPatternWithThresh*>(aGP4)->getTreshold(iRefLayer));
+        setAttributeFloat(aRefLayerThresh, "tresh1", dynamic_cast<const GoldenPatternWithThresh*>(aGP1)->getThreshold(iRefLayer));
+        setAttributeFloat(aRefLayerThresh, "tresh2", dynamic_cast<const GoldenPatternWithThresh*>(aGP2)->getThreshold(iRefLayer));
+        setAttributeFloat(aRefLayerThresh, "tresh3", dynamic_cast<const GoldenPatternWithThresh*>(aGP3)->getThreshold(iRefLayer));
+        setAttributeFloat(aRefLayerThresh, "tresh4", dynamic_cast<const GoldenPatternWithThresh*>(aGP4)->getThreshold(iRefLayer));
 
         aGPElement->appendChild(aRefLayerThresh);
       }

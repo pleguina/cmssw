@@ -133,6 +133,7 @@ void GoldenPatternResult::finalise1() {
 //multiplication of PDF values instead of sum
 void GoldenPatternResult::finalise2() {
   pdfSum = 1.;
+  firedLayerCnt = 0;
   for(unsigned int iLogicLayer=0; iLogicLayer < pdfValues.size(); ++iLogicLayer) {
     unsigned int connectedLayer = myOmtfConfig->getLogicToLogic().at(iLogicLayer);
     //here we require that in case of the DT layers, both phi and phiB is fired
@@ -198,6 +199,10 @@ std::ostream & operator << (std::ostream &out, const GoldenPatternResult & gpRes
 
   out<<" Number of hits: ";
   out << gpResult.getFiredLayerCnt()<<"\t";
+
+  out<<" GpProbability1: ";
+  out << gpResult.getGpProbability1()<<"\t";
+
   out<<std::endl;
 
 

@@ -186,6 +186,7 @@ void ProcessorBase<GoldenPatternType>::initPatternPtRange(bool firstPatFrom0) {
 
 //to force compiler to compile the above methods with needed GoldenPatterns types
 template class ProcessorBase<GoldenPattern>;
+template class ProcessorBase<GoldenPatternWithThresh>;
 template class ProcessorBase<GoldenPatternParametrised>;
 template class ProcessorBase<GoldenPatternWithStat>;
 template class ProcessorBase<GoldenPatternPdfGen>;

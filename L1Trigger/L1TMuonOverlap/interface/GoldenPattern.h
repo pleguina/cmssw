@@ -126,7 +126,7 @@ public:
 
   virtual ~GoldenPatternWithThresh() {};
 
-  omtfPdfValueType getTreshold(unsigned int iRefLayer) const {
+  omtfPdfValueType getThreshold(unsigned int iRefLayer) const {
     return thresholds.at(iRefLayer);
   }
 
@@ -134,7 +134,7 @@ public:
     this->thresholds = tresholds;
   }
 
-  void setThreshold(unsigned int& iRefLayer, omtfPdfValueType& treshold) {
+  void setThreshold(unsigned int iRefLayer, omtfPdfValueType treshold) {
     this->thresholds[iRefLayer] = treshold;
   }
 };

@@ -64,3 +64,5 @@ AlgoMuon OMTFSorter<GoldenPatternType>::sortRefHitResults(unsigned int procIndx,
 template class OMTFSorter<GoldenPattern>;
 template class OMTFSorter<GoldenPatternParametrised>;
 template class OMTFSorter<GoldenPatternWithStat>;
+template class OMTFSorter<GoldenPatternWithThresh>;
+

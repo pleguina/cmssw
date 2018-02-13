@@ -80,18 +80,31 @@ process.source = cms.Source(
 path = '/afs/cern.ch/work/k/kbunkow/public/data/SingleMuFullEta/721_FullEta_v4/'
 
 onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
-#chosenFiles = ['file://' + path + f for f in onlyfiles if (('_p_10_' in f) or ('_m_10_' in f))]
-chosenFiles = ['file://' + path + f for f in onlyfiles if (('_10_p_10_' in f))]
+print onlyfiles
+chosenFiles = ['file://' + path + f for f in onlyfiles if (('_p_10_' in f) or ('_m_10_' in f))]
+#chosenFiles = ['file://' + path + f for f in onlyfiles if (('_10_p_10_' in f))]
 #chosenFiles = ['file://' + path + f for f in onlyfiles if (re.match('.*_._p_10.*', f))]
+
+print onlyfiles
+
+#chosenFiles = []
+#for i in range(27, 26, -1) :
+#    for sign in ['_m'] : #'_p', m
+#        for f in onlyfiles:
+#            if (( '_' + str(i) + sign + '_10_') in f): 
+#                print f
+#                chosenFiles.append('file://' + path + f) 
+#print chosenFiles
+
 firstEv = 0#40000
-nEvents = 1000
+nEvents = 100000
 
 # input files (up to 255 files accepted)
 process.source = cms.Source('PoolSource',
 fileNames = cms.untracked.vstring( 
     #'file:/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/SingleMu_16_p_1_1_xTE.root',
     #'file:/afs/cern.ch/user/k/kpijanow/Neutrino_Pt-2to20_gun_50.root',
-    set(chosenFiles),
+    list(chosenFiles),
                                   ),
 eventsToProcess = cms.untracked.VEventRange(
  '3:' + str(firstEv) + '-3:' +   str(firstEv + nEvents),
@@ -170,6 +183,9 @@ process.simOmtfDigis = cms.EDProducer("OMTFTrainer",
                                           sorterType  = cms.string("sorterWithThreshold"),
                                           etaCutFrom = cms.double(0.82),
                                           etaCutTo = cms.double(1.24),
+                                          #ptRangeFrom = cms.double(401),
+                                          #ptRangeTo   = cms.double(401),
+                                          selectedPatNum = cms.uint32(70),
                                           omtf = cms.PSet(
                                               configFromXML = cms.bool(False),   
                                               patternsXMLFiles = cms.VPSet(                                       

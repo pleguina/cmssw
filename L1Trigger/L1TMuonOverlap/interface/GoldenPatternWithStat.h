@@ -17,7 +17,7 @@ class OMTFConfiguration;
 
 class GoldenPatternWithStat : public GoldenPatternWithThresh {
 public:
-  static const unsigned int STAT_BINS = 4;
+  static const unsigned int STAT_BINS = 4; //TODO change to 4!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   typedef boost::multi_array<float, 4> StatArrayType;
   //GoldenPatternWithStat(const Key & aKey) : GoldenPattern(aKey) {}
 
@@ -42,7 +42,8 @@ private:
 
   ///the vector index is the muon pt_code
   ///the histogram bin is the value of the pdfSum (or product) for the muons of given pt_code
-  std::vector<TH1I> gpProbabilityStat; //TODO maybe better is to have just TH2I
+  std::vector<TH1I*> gpProbabilityStat; //TODO maybe better is to have just TH2I
+  //TH1I gpProbabilityStat;
 };
 //////////////////////////////////
 //////////////////////////////////

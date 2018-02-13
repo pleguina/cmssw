@@ -210,4 +210,4 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
 template class OMTFProcessor<GoldenPattern>;
 template class OMTFProcessor<GoldenPatternParametrised>;
 template class OMTFProcessor<GoldenPatternWithStat>;
-
+template class OMTFProcessor<GoldenPatternWithThresh>;

@@ -143,6 +143,33 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
         }
       }
     }
+    else if(patternType == "GoldenPatternWithThresh") {
+      std::cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;
+      OMTFProcessor<GoldenPatternWithThresh>* proc =  new OMTFProcessor<GoldenPatternWithThresh>(m_OMTFConfig);
+      m_OMTF = proc;
+
+      auto gps = xmlReader.readPatterns<GoldenPatternWithThresh>(*omtfParams);
+      proc->setGPs(gps);
+      m_OMTFConfig->setPatternPtRange(proc->getPatternPtRange() );
+      edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. GoldenPattern type: "<<patternType<<" size: "<<gps.size() << std::endl;
+
+      //std::unique_ptr<IOMTFEmulationObserver> obs(new PatternOptimizer(m_Config, m_OMTFConfig, gps));
+      //observers.emplace_back(std::move(obs));
+
+      for(auto& gp : gps) {
+        edm::LogImportant("OMTFReconstruction")<<gp->key()<<" "
+            <<m_OMTFConfig->getPatternPtRange(gp->key().theNumber).ptFrom
+            <<" - "<<m_OMTFConfig->getPatternPtRange(gp->key().theNumber).ptTo<<" GeV"<<" threshold "<<gp->getThreshold(0)<<std::endl;
+      }
+
+      if(m_Config.exists("sorterType") ) {//TODO add it also for the patternType == "GoldenPattern" - if needed
+        string sorterType = m_Config.getParameter<std::string>("sorterType");
+        if(sorterType == "sorterWithThreshold") {
+          GoldenPatternResult::setFinalizeFunction(2);
+          proc->setSorter(new OMTFSorterWithThreshold<GoldenPatternWithThresh>(m_OMTFConfig));
+        }
+      }
+    }
     else if(patternType == "GoldenPatternParametrised") {
       OMTFProcessor<GoldenPatternParametrised>* proc = new OMTFProcessor<GoldenPatternParametrised>(m_OMTFConfig);
       m_OMTF = proc;

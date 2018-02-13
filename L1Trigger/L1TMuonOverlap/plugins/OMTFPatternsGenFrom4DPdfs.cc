@@ -111,7 +111,15 @@ void OMTFPatternsGenFrom4DPdfs::endJob(){
   //processor->generatePatterns();
   //processor-> generateThresholds();
   processor->modifyPdfs1();
-  writeGPs();
+  //double step = theConfig.getParameter<double>("step");
+  //processor->modifyPdfs2(step);
+
+  std::string fName = theConfig.getParameter<std::string>("optimisedPatsXmlFile");
+  edm::LogImportant("OMTFPatternsGenFrom4DPdfs") << " Writing optimized patterns to "<<fName << std::endl;
+  const PatternsGeneratorProcessor::GoldenPatternVec& myGPs = processor->getPatterns();
+  myWriter->writeGPs(myGPs, fName);
+
+  //writeGPs();
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////

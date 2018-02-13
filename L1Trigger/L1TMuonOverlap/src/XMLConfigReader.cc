@@ -323,7 +323,8 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
     if(aItemElement == 0)
       throw cms::Exception("OMTF::XMLConfigReader: aItemElement is 0");
     std::string strVal = _toString(aItemElement->getAttribute(xmlTresh));
-    thresholds[iItem] = std::stoi(strVal);
+    thresholds[iItem] = std::stof(strVal);
+    //cout<<__FUNCTION__<<":"<<__LINE__<<" strVal "<<strVal<<" thresholds[iItem] "<<thresholds[iItem]<<std::endl;
   }
 
   ///Loop over layers
@@ -705,3 +706,6 @@ void XMLConfigReader::readConfig(L1TMuonOverlapParams *aConfig) const{
 
 template
 std::vector<std::shared_ptr<GoldenPatternWithStat> > XMLConfigReader::readPatterns<GoldenPatternWithStat>(const L1TMuonOverlapParams& aConfig);
+
+template
+std::vector<std::shared_ptr<GoldenPatternWithThresh> > XMLConfigReader::readPatterns<GoldenPatternWithThresh>(const L1TMuonOverlapParams& aConfig);
