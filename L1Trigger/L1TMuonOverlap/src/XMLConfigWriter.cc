@@ -526,7 +526,7 @@ void XMLConfigWriter::writeGPs(const std::vector<std::shared_ptr<GoldenPatternTy
   initialiseXMLDocument("OMTF");
   GoldenPattern* dummy = new GoldenPatternWithThresh(Key(0,0,0), myOMTFConfig);
 
-  OMTFConfiguration::vector2D mergedPartters = myOMTFConfig->getMergedPartters();
+  OMTFConfiguration::vector2D mergedPartters = myOMTFConfig->getMergedPatterns(goldenPats);
   for(unsigned int iGroup = 0; iGroup < mergedPartters.size(); iGroup++) {
     std::vector<GoldenPattern*> gps(4, dummy);
     for(unsigned int i = 0; i < mergedPartters[iGroup].size(); i++) {

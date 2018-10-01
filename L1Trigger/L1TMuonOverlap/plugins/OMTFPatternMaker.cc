@@ -222,7 +222,7 @@ void OMTFPatternMaker::writeMergedGPs(){
   }*/
 
 
-  OMTFConfiguration::vector2D mergedPartters = myOMTFConfig->getMergedPartters();
+  OMTFConfiguration::vector2D mergedPartters = myOMTFConfig->getMergedPatterns();
   for(unsigned int iGroup = 0; iGroup < mergedPartters.size(); iGroup++) {
     std::vector<GoldenPattern*> gps(4, dummy);
     for(unsigned int i = 0; i < mergedPartters[iGroup].size(); i++) {

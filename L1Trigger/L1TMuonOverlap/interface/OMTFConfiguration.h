@@ -7,7 +7,7 @@
 #include <ostream>
 #include <memory>
 
-#undef BOOST_DISABLE_ASSERTS
+//#undef BOOST_DISABLE_ASSERTS
 #include "boost/multi_array.hpp"
 
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
@@ -180,7 +180,22 @@ class OMTFConfiguration{
   ///contains each row (index1) contain the vector of up to 4 patterns (i.e. its numbers) that are merged in the firmware
   ///(i.e. are in the same BRAM and have common meanDistPhi)
   ///in some cases only 2 patterns are merged, then the getMergedPartters()[index1] has only 2 entries
-  vector2D getMergedPartters() const;
+  ///this version gives the groups based on the LUT data
+  vector2D getMergedPatterns() const;
+
+  ///and this based on the actual goldenPats
+  template <class GoldenPatternType>
+  vector2D getMergedPatterns(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats) const {
+    unsigned int mergedCnt = 4;
+    vector2D mergedPatterns(nGoldenPatterns()/mergedCnt, vector1D());
+    for(unsigned int iPat = 0; iPat < goldenPats.size(); iPat++) {
+      if(goldenPats[iPat]->key().thePt != 0) {
+        mergedPatterns[iPat/mergedCnt].push_back(iPat);
+      }
+    }
+    return mergedPatterns;
+  }
+
 
   friend std::ostream & operator << (std::ostream &out, const OMTFConfiguration & aConfig);
 

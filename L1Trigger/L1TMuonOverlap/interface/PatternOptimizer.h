@@ -19,6 +19,7 @@
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 
 #include "TH1I.h"
+#include "TH2I.h"
 
 class PatternOptimizer: public IOMTFEmulationObserver {
 public:
@@ -45,16 +46,26 @@ public:
 private:
   //candidate found by omtf in a given event
   AlgoMuon omtfCand;
+  l1t::RegionalMuonCand regionalMuonCand;
+
   unsigned int candProcIndx;
 
   GoldenPatternResult omtfResult;
   GoldenPatternResult exptResult;
+  double errorSum;
+  int nEvents = 0;
+  std::vector<double> errorSumRefL = std::vector<double>(8, 0.0);
+  std::vector<double> nEventsRefL = std::vector<double>(8, 0.0);
+  double maxdPdf = 0;
+  std::string optPatXmlFile;
 
   unsigned int exptPatNum;
 
   unsigned int selectedPatNum;
 
   unsigned int currnetPtBatchPatNum; //for threshold finding
+
+  double deltaPdf = 0.01;
 
   edm::ParameterSet edmCfg;
   //edm::Handle<edm::SimTrackContainer> simTks;
@@ -66,6 +77,12 @@ private:
 
   TH1I* simMuPt;
   TH1I* simMuFoundByOmtfPt;
+
+  TH1F* simMuPtSpectrum;
+
+  std::vector<TH2I*> deltaPhi1_deltaPhi2_hits;
+  std::vector<TH2I*> deltaPhi1_deltaPhi2_omtf;
+  int selRefL, selL1, selL2;
 
   //std::vector<TH2I*> gpExpt_gpOmtf;
   //std::vector<TH1F*> gpEff;
@@ -80,7 +97,11 @@ private:
 
   std::vector<int> patternPtCodes; //continous ptCode 1...31 (liek in the old PAC)
 
+  std::vector<double> eventRateWeights;
+
   void initRateWeights();
+
+  double getEventRateWeight(double pt);
 
   std::function<void (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp)> updateStatFunc;
 
@@ -121,6 +142,9 @@ private:
   void updatePdfsMean_1(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate);
   void updatePdfsMean_2(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate);
   void updatePdfsVoter_1(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate);
+
+  void updatePdfsAnaDeriv(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate);
+  void updatePdfsNumDeriv(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate);
 
   void savePatternsInRoot(std::string rootFileName);
 

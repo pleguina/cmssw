@@ -17,6 +17,32 @@
 template <class GoldenPatternType>
 AlgoMuon OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResults(unsigned int procIndx, unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPatternType> >& gPatterns,
 					  int charge) {
+
+  //this sorting is needed for the bestGPByThresholdOnProbability2 due to sum of the probabilities of gp with >= pt ten the current onegetGpProbability2
+  if(gPatternsSortedByPt.size() == 0) {
+    gPatternsSortedByPt = gPatterns;
+
+    auto customLess = [&](const std::shared_ptr<GoldenPatternType> & a, const std::shared_ptr<GoldenPatternType> & b)->bool {
+      if(a->key().thePt < b->key().thePt)
+        return true;
+      else if(a->key().thePt == b->key().thePt) {
+        if(a->key().theCharge > b->key().theCharge)
+          return true;
+        else if(a->key().theCharge == b->key().theCharge) {//matters for the empty patterns
+          if(a->key().theNumber < b->key().theNumber)
+            return true;
+        }
+      }
+      return false;
+    };
+
+    std::sort( gPatternsSortedByPt.rbegin(), gPatternsSortedByPt.rend(), customLess );
+
+    for(auto& itGP: gPatternsSortedByPt) {
+      std::cout<<__FUNCTION__<<" line "<<__LINE__<<" "<<itGP->key()<<std::endl;
+    }
+  }
+
   GoldenPatternWithThresh* bestGP = 0; //the GoldenPattern with the best result for this iRefHit
 //  std::cout <<" ====== sortRefHitResults: " << std::endl;
 
@@ -50,8 +76,8 @@ AlgoMuon OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResults(unsigned 
   //std::cout<<__FUNCTION__<<" line "<<__LINE__<<" procIndx "<<procIndx<<" iRefHit "<<iRefHit<<" charge "<<charge<<std::endl;
   double p_deltaPhis2 = 0;
   //for(auto& itGP: gPatterns) {
-  for(int patNum = gPatterns.size() -1; patNum >= 0; patNum--) {
-    auto& itGP =  gPatterns[patNum];
+  for(unsigned int patNum = 0; patNum < gPatternsSortedByPt.size(); patNum++) { //gPatternsSortedByPt are from the highest to lowest pt
+    auto& itGP =  gPatternsSortedByPt[patNum];
     GoldenPatternResult& result = itGP->getResults()[procIndx][iRefHit];
     if(!result.isValid())
       continue;
@@ -97,18 +123,25 @@ AlgoMuon OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResults(unsigned 
         << std::endl;
 */
 
-    /*if(bestGP == 0 && result.getGpProbability2() >= itGP->getThreshold(0) ) { //TODO uncomment, TODO change to getGpProbability1
-      bestGP = itGP.get();
-      //we take the one with the highest pattern number (i.e. pt) among these with the same FiredLayerCnt (the loop is from the last pattern)
-      //std::cout<<__FUNCTION__<<" line "<<__LINE__ <<" "<<itGP->key()<<" getGpProbability1 "<<result.getGpProbability1()<< " passed threshold "<<itGP->getThreshold(0)<<" FiredLayerCnt "<<result.getFiredLayerCnt()<<std::endl; //result.getRefLayer()
-    }*/
-
-    if(result.getGpProbability1() > maxGpProbability1) { //max likelihood option, TODO - comment/uncomment if needed
-      maxGpProbability1 = result.getGpProbability1();
-      bestGP = itGP.get();
-      //std::cout<<__FUNCTION__<<" line "<<__LINE__ << " passed threshold "<<itGP->getTreshold(result.getRefLayer() )<<std::endl;
+    if(mode == bestGPByThresholdOnProbability2) {
+      if(result.getGpProbability2() >= itGP->getThreshold(result.getRefLayer() ) ) {
+        if(bestGP == 0 ) //|| itGP->key().thePt > bestGP->key().thePt
+          bestGP = itGP.get();
+        else if(itGP->key().thePt == bestGP->key().thePt) {
+          if(result.getGpProbability1() > bestGP->getResults()[procIndx][iRefHit].getGpProbability1())
+            bestGP = itGP.get();
+        }
+        //we take the one with the highest (i.e. pt) among these with the same FiredLayerCnt (the loop is from the last pattern)
+        //std::cout<<__FUNCTION__<<" line "<<__LINE__ <<" "<<itGP->key()<<" getGpProbability1 "<<result.getGpProbability1()<< " passed threshold "<<itGP->getThreshold(0)<<" FiredLayerCnt "<<result.getFiredLayerCnt()<<std::endl; //result.getRefLayer()
+      }
     }
-
+    else if(mode == bestGPByMaxGpProbability1) {
+      if(result.getGpProbability1() > maxGpProbability1) { //max likelihood option, TODO - comment/uncomment if needed
+        maxGpProbability1 = result.getGpProbability1();
+        bestGP = itGP.get();
+        //std::cout<<__FUNCTION__<<" line "<<__LINE__ << " passed threshold "<<itGP->getTreshold(result.getRefLayer() )<<std::endl;
+      }
+    }
   }
 
 

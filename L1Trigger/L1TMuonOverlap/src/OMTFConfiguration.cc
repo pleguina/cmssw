@@ -335,14 +335,14 @@ unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
   return  0; //FIXME in this way if pt < 4GeV, the pattern = 0 is return , regardless of sign!
 }
 
-//FIXME does not work if patterns not loeaded from LUTs, but only firectly from file
-OMTFConfiguration::vector2D OMTFConfiguration::getMergedPartters() const {
+//FIXME does not work if patterns not loaded from LUTs, but only directly from file
+OMTFConfiguration::vector2D OMTFConfiguration::getMergedPatterns() const {
   unsigned int mergedCnt = 4;
-  vector2D mergedPartters(nGoldenPatterns()/mergedCnt, vector1D());
+  vector2D mergedPatterns(nGoldenPatterns()/mergedCnt, vector1D());
   for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
     if(rawParams.ptLUT()->data(iPat) != 0) {
-      mergedPartters[iPat/mergedCnt].push_back(iPat);
+      mergedPatterns[iPat/mergedCnt].push_back(iPat);
     }
   }
-  return mergedPartters;
+  return mergedPatterns;
 }

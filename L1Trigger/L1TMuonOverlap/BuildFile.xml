@@ -15,6 +15,9 @@
 <use name="root"/>
 <use name="roofit"/>
 
+<!-- <use lib=boost_timer />  -->
+<lib name="boost_timer" />
+
 <use name="L1Trigger/RPCTrigger"/>
 <use name="DataFormats/L1TMuon"/>
 

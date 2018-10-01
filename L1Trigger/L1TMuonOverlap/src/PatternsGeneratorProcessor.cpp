@@ -40,7 +40,7 @@ PatternsGeneratorProcessor::~PatternsGeneratorProcessor() {
 
 void PatternsGeneratorProcessor::generatePatterns() {
 	path = "/afs/cern.ch/work/k/kpijanow/public/CMSSW_9_2_0/src/L1Trigger/L1TMuonOverlap/test/expert/";
-	OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPartters();
+	OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPatterns();
 	std::cout<<"#####   gneratePatterns   #####"<<std::endl;
 
 	for(auto& it : theGPs){
@@ -79,7 +79,7 @@ void PatternsGeneratorProcessor::generatePatterns() {
 }
 
 void PatternsGeneratorProcessor::generateDTPattern(int iGroup, int iRefLayer, int iLayer){
-	OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPartters();
+	OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPatterns();
 	int iMerge = mergedPartters[iGroup].size();
 	std::vector<TH2F*> h;
 	bool empty = true;
@@ -166,7 +166,7 @@ void PatternsGeneratorProcessor::generateDTPattern(int iGroup, int iRefLayer, in
 }
 
 void PatternsGeneratorProcessor::generateNonDTPattern(int iGroup, int iRefLayer, int iLayer){
-	OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPartters();
+	OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPatterns();
 	int iMerge = mergedPartters[iGroup].size();
 	std::vector<TH1F*> h;
 	int meanDistPhi = getMenDistPhiLoadHisto(iGroup, iRefLayer, iLayer, &h);
@@ -226,7 +226,7 @@ void PatternsGeneratorProcessor::getDTLayers(){
 }
 
 void PatternsGeneratorProcessor::generateDTSelfPattern(int iGroup, int iRefLayer, int iLayer){
-  OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPartters();
+  OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPatterns();
   int iMerge = mergedPartters[iGroup].size();
   std::vector<TH2F*> h;
   int meanDistPhi = getMenDistPhiLoadHisto(iGroup, iRefLayer, iLayer, &h);
@@ -263,7 +263,7 @@ void PatternsGeneratorProcessor::generateDTSelfPattern(int iGroup, int iRefLayer
 }
 
 void PatternsGeneratorProcessor::copyDTPattern(int iGroup, int iRefLayer, int iLayer){
-  OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPartters();
+  OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPatterns();
   int iMerge = mergedPartters[iGroup].size();
   int histCount = 0;
   std::vector<TH2F*> h;
@@ -318,7 +318,7 @@ int PatternsGeneratorProcessor::getMenDistPhiLoadHisto(int iGroup, int iRefLayer
 {
   int meanDistPhi = 0;
   int meanDistCount = 0;
-  OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPartters();
+  OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPatterns();
   int iMerge = mergedPartters[iGroup].size();
   //read histograms form a group and calculate meanDistPhi
   for(int k = 0; k < iMerge; k++)
@@ -346,7 +346,7 @@ int PatternsGeneratorProcessor::getMenDistPhiLoadHisto(int iGroup, int iRefLayer
 {
   int meanDistPhi = 0;
   int meanDistCount = 0;
-  OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPartters();
+  OMTFConfiguration::vector2D mergedPartters = myOmtfConfig->getMergedPatterns();
   int iMerge = mergedPartters[iGroup].size();
   //read histograms form a group and calculate meanDistPhi
   for(int k = 0; k < iMerge; k++)

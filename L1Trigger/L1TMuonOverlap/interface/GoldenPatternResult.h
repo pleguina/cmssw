@@ -14,8 +14,9 @@ public:
     omtfPdfValueType pdfVal = 0;
     bool valid = false;
     int pdfBin = 0; //hit deltaPhi, bin=0 is reserved for no valid hit, see GoldenPatternBase::process1Layer1RefLayer
+    int hit = 0;
 
-    LayerResult(omtfPdfValueType pdfVal, bool valid, int pdfBin): pdfVal(pdfVal), valid(valid), pdfBin(pdfBin) {};
+    LayerResult(omtfPdfValueType pdfVal, bool valid, int pdfBin, int hit): pdfVal(pdfVal), valid(valid), pdfBin(pdfBin), hit(hit) {};
   };
 
 private:
@@ -31,6 +32,8 @@ private:
   ///pdfBins for each for each layer
   ///First index: layer number
   vector1D hitPdfBins;
+
+  vector1D hits;
 
   ///phi at the 2nd muon station (propagated refHitPhi)
   unsigned int phi;

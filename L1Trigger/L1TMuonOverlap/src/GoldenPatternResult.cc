@@ -43,6 +43,7 @@ void GoldenPatternResult::set(int refLayer_, unsigned int phi, unsigned int eta,
     firedLayerBits |= (1<< iLayer);
   }
   hitPdfBins[iLayer] = layerResult.pdfBin;
+  hits[iLayer] = layerResult.hit;
   /*if(layerResult.valid || layerResult.pdfVal)
     std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" refLayer "<<refLayer<<" pdfBin "<<layerResult.pdfBin<<" val "<<layerResult.pdfVal<<" valid "<<layerResult.valid<<std::endl;
  */ //pdfSum += pdfVal; - this cannot be done here, because the pdfVal for the banding layer must be added only
@@ -56,6 +57,7 @@ void GoldenPatternResult::init(const OMTFConfiguration* omtfConfig) {
   myOmtfConfig = omtfConfig;
   pdfValues.assign(myOmtfConfig->nLayers(), 0);
   hitPdfBins.assign(myOmtfConfig->nLayers(), 0);
+  hits.assign(myOmtfConfig->nLayers(), 0);
   reset();
 }
 
@@ -187,7 +189,7 @@ void GoldenPatternResult::finalise2() {
 ////////////////////////////////////////////
 std::ostream & operator << (std::ostream &out, const GoldenPatternResult & gpResult) {
   for(unsigned int iLogicLayer=0; iLogicLayer < gpResult.getPdfValues().size(); ++iLogicLayer){
-    out<<" layer: "<<std::setw(2)<<iLogicLayer<<" pdfBin: "<<std::setw(3)<<gpResult.hitPdfBins[iLogicLayer]<<" pdfVal: "<<std::setw(3)<<gpResult.getPdfValues()[iLogicLayer]
+    out<<" layer: "<<std::setw(2)<<iLogicLayer<<" hit: "<<std::setw(3)<<gpResult.hits[iLogicLayer]<<" pdfBin: "<<std::setw(3)<<gpResult.hitPdfBins[iLogicLayer]<<" pdfVal: "<<std::setw(3)<<gpResult.getPdfValues()[iLogicLayer]
        <<" fired "<<gpResult.isLayerFired(iLogicLayer)<<std::endl;
   }
 
@@ -202,6 +204,9 @@ std::ostream & operator << (std::ostream &out, const GoldenPatternResult & gpRes
 
   out<<" GpProbability1: ";
   out << gpResult.getGpProbability1()<<"\t";
+
+  out<<" GpProbability2: ";
+  out << gpResult.getGpProbability2()<<"\t";
 
   out<<std::endl;
 

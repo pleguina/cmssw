@@ -8,7 +8,11 @@
 template <class GoldenPatternType>
 class OMTFSorterWithThreshold: public SorterBase<GoldenPatternType> {
 public:
-  OMTFSorterWithThreshold(const OMTFConfiguration* myOmtfConfig) : myOmtfConfig(myOmtfConfig) {}
+  enum Mode {
+    bestGPByThresholdOnProbability2,
+    bestGPByMaxGpProbability1
+  };
+  OMTFSorterWithThreshold(const OMTFConfiguration* myOmtfConfig, Mode mode) : myOmtfConfig(myOmtfConfig), mode(mode) {}
 
   virtual ~OMTFSorterWithThreshold() {}
 
@@ -21,6 +25,10 @@ public:
 
 private:
   const OMTFConfiguration* myOmtfConfig;
+
+  Mode mode = bestGPByThresholdOnProbability2;
+
+  std::vector< std::shared_ptr<GoldenPatternType> > gPatternsSortedByPt;
 };
 
 #endif

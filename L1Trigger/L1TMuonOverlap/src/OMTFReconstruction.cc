@@ -24,6 +24,8 @@
 
 #include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 
+#include <boost/timer/timer.hpp>
+
 /*OMTFReconstruction::OMTFReconstruction() :
   m_OMTFConfig(0), m_OMTF(0), m_OMTFConfigMaker(0){}*/
 /////////////////////////////////////////////////////
@@ -48,6 +50,7 @@ OMTFReconstruction::~OMTFReconstruction(){
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFReconstruction::beginJob() {
+    //std::cout<<__FUNCTION__<<":"<<__LINE__<<"test!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<std::endl;
     m_OMTFConfig = new OMTFConfiguration();
     //m_OMTF = new OMTFProcessor<GoldenPattern>();
     //m_OMTF = new OMTFProcessor<GoldenPatternParametrised>();
@@ -137,9 +140,18 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
 
       if(m_Config.exists("sorterType") ) {//TODO add it also for the patternType == "GoldenPattern" - if needed
         string sorterType = m_Config.getParameter<std::string>("sorterType");
+        edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. sorterType: "<<sorterType<< std::endl;
         if(sorterType == "sorterWithThreshold") {
           GoldenPatternResult::setFinalizeFunction(2);
-          proc->setSorter(new OMTFSorterWithThreshold<GoldenPatternWithStat>(m_OMTFConfig));
+
+          OMTFSorterWithThreshold<GoldenPatternWithStat>::Mode mode = OMTFSorterWithThreshold<GoldenPatternWithStat>::bestGPByMaxGpProbability1;
+          string modeStr = m_Config.getParameter<std::string>("sorterWithThresholdMode");
+          if(modeStr == "bestGPByThresholdOnProbability2")
+            mode = OMTFSorterWithThreshold<GoldenPatternWithStat>::bestGPByThresholdOnProbability2;
+          else if(modeStr == "bestGPByMaxGpProbability1")
+            mode = OMTFSorterWithThreshold<GoldenPatternWithStat>::bestGPByMaxGpProbability1;
+
+          proc->setSorter(new OMTFSorterWithThreshold<GoldenPatternWithStat>(m_OMTFConfig, mode));
         }
       }
     }
@@ -164,9 +176,18 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
 
       if(m_Config.exists("sorterType") ) {//TODO add it also for the patternType == "GoldenPattern" - if needed
         string sorterType = m_Config.getParameter<std::string>("sorterType");
+        edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. sorterType: "<<sorterType<< std::endl;
         if(sorterType == "sorterWithThreshold") {
           GoldenPatternResult::setFinalizeFunction(2);
-          proc->setSorter(new OMTFSorterWithThreshold<GoldenPatternWithThresh>(m_OMTFConfig));
+
+          OMTFSorterWithThreshold<GoldenPatternWithThresh>::Mode mode = OMTFSorterWithThreshold<GoldenPatternWithThresh>::bestGPByMaxGpProbability1;
+          string modeStr = m_Config.getParameter<std::string>("sorterWithThresholdMode");
+          if(modeStr == "bestGPByThresholdOnProbability2")
+            mode = OMTFSorterWithThreshold<GoldenPatternWithThresh>::bestGPByThresholdOnProbability2;
+          else if(modeStr == "bestGPByMaxGpProbability1")
+            mode = OMTFSorterWithThreshold<GoldenPatternWithThresh>::bestGPByMaxGpProbability1;
+
+          proc->setSorter(new OMTFSorterWithThreshold<GoldenPatternWithThresh>(m_OMTFConfig, mode));
         }
       }
     }
@@ -255,7 +276,7 @@ void OMTFReconstruction::loadAndFilterDigis(const edm::Event& iEvent){
 void OMTFReconstruction::getProcessorCandidates(unsigned int iProcessor, l1t::tftype mtfType, int bx,
                l1t::RegionalMuonCandBxCollection & omtfCandidates){
 
-
+  //boost::timer::auto_cpu_timer t("%ws wall, %us user in getProcessorCandidates\n");
   m_InputMaker.setFlag(0);
   OMTFinput input = m_InputMaker.buildInputForProcessor(dtPhDigis.product(),
                 dtThDigis.product(),
@@ -263,15 +284,17 @@ void OMTFReconstruction::getProcessorCandidates(unsigned int iProcessor, l1t::tf
                 rpcDigis.product(),
                 iProcessor, mtfType);
   int flag = m_InputMaker.getFlag();
-
+  //cout<<"buildInputForProce "; t.report();
   m_OMTF->processInput(iProcessor, mtfType, input);
-
+  //cout<<"processInput       "; t.report();
   std::vector<AlgoMuon> algoCandidates =  m_OMTF->sortResults(iProcessor, mtfType);
+  //cout<<"sortResults        "; t.report();
   // perform GB 
   std::vector<AlgoMuon> gbCandidates =  m_OMTF->ghostBust(algoCandidates);
+  //cout<<"ghostBust          "; t.report();
   // fill RegionalMuonCand colleciton
   std::vector<l1t::RegionalMuonCand> candMuons = m_OMTF->getFinalcandidates(iProcessor, mtfType, gbCandidates);
-
+  //cout<<"getFinalcandidates "; t.report();
   //fill outgoing collection
   for (auto & candMuon :  candMuons) {
      candMuon.setHwQual( candMuon.hwQual() | flag);         //FIXME temporary debug fix

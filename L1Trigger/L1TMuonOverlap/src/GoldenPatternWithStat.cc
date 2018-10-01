@@ -24,10 +24,30 @@ GoldenPatternWithThresh(aKey, nLayers, nRefLayers, nPdfAddrBits),
 statisitics(boost::extents[nLayers][nRefLayers][ (1<<nPdfAddrBits)][STAT_BINS] ) //TODO remove *4!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 //gpProbabilityStat( ("gpProbabilityStat_GP_" + to_string(key().theNumber)).c_str(), ("gpProbabilityStat_GP_" + to_string(key().theNumber)).c_str(), 1000, 0., 1.) //TODO find proper range
 {
+  unsigned int  binNum = 1000 + 100 + 10 -2;
+  Double_t* bins = new Double_t[binNum + 1];
+
+  Double_t lowerEdge = 0;
+  for(unsigned int i = 0; i <= binNum; i++) {
+    bins[i] = lowerEdge;
+    if(lowerEdge < 0.001) {
+      //std::cout<<__FUNCTION__<<":"<<__LINE__<<" i "<<i<<"lowerEdge "<<lowerEdge<<std::endl;
+      lowerEdge += 0.00001;
+    }
+    else if(lowerEdge >= 0.999) {
+      //std::cout<<__FUNCTION__<<":"<<__LINE__<<" i "<<i<<"lowerEdge "<<lowerEdge<<std::endl;
+      lowerEdge += 0.0001;
+    }
+    else
+      lowerEdge += 0.001;
+  }
+
   for(unsigned int iRefLayer=0; iRefLayer < nRefLayers; ++iRefLayer) {
     gpProbabilityStat.push_back(new TH1I( ("gpProbabilityStat_GP_" + to_string(key().theNumber) + "_refLay_" + to_string(iRefLayer)).c_str(),
-                                          ("gpProbabilityStat GP " + to_string(key().theNumber) + " refLayer " + to_string(iRefLayer)).c_str(), 1000, 0., 1.) );
+                                          ("gpProbabilityStat GP " + to_string(key().theNumber) + " refLayer " + to_string(iRefLayer)).c_str(), binNum, bins) );
   }
+
+  delete bins;
 };
 
 GoldenPatternWithStat::GoldenPatternWithStat(const Key & aKey, const OMTFConfiguration* omtfConfig): GoldenPatternWithThresh(aKey, omtfConfig),

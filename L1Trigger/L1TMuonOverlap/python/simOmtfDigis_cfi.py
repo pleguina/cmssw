@@ -15,7 +15,7 @@ simOmtfDigis = cms.EDProducer("L1TMuonOverlapTrackProducer",
                               dropRPCPrimitives = cms.bool(False),                                    
                               dropDTPrimitives = cms.bool(False),                                    
                               dropCSCPrimitives = cms.bool(False),
-                              #ghostBusterType = cms.string("GhostBusterPreferRefDt"),
+                              ghostBusterType = cms.string("GhostBusterPreferRefDt"),
                               #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/optimisedPats0.xml"),
                               #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00020007.xml")
                               #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")   
@@ -23,5 +23,4 @@ simOmtfDigis = cms.EDProducer("L1TMuonOverlapTrackProducer",
                               #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/GPs78_withThresh2.xml")
                               #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/GPsNorm1NoCor_WithThresh4.xml")                             
 )
-
 
