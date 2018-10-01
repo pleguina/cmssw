@@ -71,6 +71,7 @@ class OMTFReconstruction {
 
 
     bool dumpResultToXML, dumpDetailedResultToXML;
+    int bxMin, bxMax;
 
   ///OMTF objects
     OMTFConfiguration   *m_OMTFConfig;
@@ -83,6 +84,7 @@ class OMTFReconstruction {
     //XMLConfigWriter     *m_Writer;
 
     std::vector<std::unique_ptr<IOMTFEmulationObserver> > observers;
+    unsigned int theEvent;
 };
 
 #endif

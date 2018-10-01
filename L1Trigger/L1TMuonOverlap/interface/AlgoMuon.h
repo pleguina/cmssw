@@ -39,6 +39,8 @@ class AlgoMuon{
     return goldenPatern;
   }
 
+  virtual ~AlgoMuon() {}
+
   omtfPdfValueType getDisc() const { return m_disc; }
   int getPhi()  const { return m_phi; }
   int getEta()  const { return m_eta; }

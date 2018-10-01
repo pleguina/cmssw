@@ -101,7 +101,12 @@ void GoldenPatternResult::finalise0() {
     if(firedLayerBits & (1<<connectedLayer) ) {
       if( firedLayerBits & (1<<iLogicLayer) ) {//now in the GoldenPattern::process1Layer1RefLayer the pdf bin 0 is returned when the layer is not fired, so this is 'if' is to assured that this pdf val is not added here
         pdfSum += pdfValues[iLogicLayer];
-        if(!myOmtfConfig->getBendingLayers().count(iLogicLayer)) //in DT case, the phi and phiB layers are threaded as one, so the firedLayerCnt is increased only for the phi layer
+
+        if (myOmtfConfig->fwVersion() <= 4) {
+          if(!myOmtfConfig->getBendingLayers().count(iLogicLayer)) //in DT case, the phi and phiB layers are threaded as one, so the firedLayerCnt is increased only for the phi layer
+            firedLayerCnt++;
+        }
+        else
           firedLayerCnt++;
       }
     }

@@ -21,17 +21,17 @@ L1TMuonOverlapParamsESProducer::L1TMuonOverlapParamsESProducer(const edm::Parame
   
   if (!theConfig.exists("configXMLFile") ) return;
   std::string fName = theConfig.getParameter<edm::FileInPath>("configXMLFile").fullPath();
-
-  XMLConfigReader myReader;
-  myReader.setConfigFile(fName);
-  readConnectionsXML(myReader);
   
   ///WARNING: filling the CondFormats objects works only for a single XML patterns file.
   if (!theConfig.exists("patternsXMLFiles") ) return;
   std::vector<std::string> fileNames;
   for(auto it: theConfig.getParameter<std::vector<edm::ParameterSet> >("patternsXMLFiles")){
     fileNames.push_back(it.getParameter<edm::FileInPath>("patternsXMLFile").fullPath());
-  }
+  }  
+  
+  XMLConfigReader myReader;
+  myReader.setConfigFile(fName);
+  readConnectionsXML(myReader);
   
   for(auto it: fileNames){
     myReader.setPatternsFile(it);
@@ -67,7 +67,7 @@ bool L1TMuonOverlapParamsESProducer::readPatternsXML(XMLConfigReader & aReader){
 
   std::vector<l1t::LUT*> luts={ &chargeLUT, &etaLUT, &ptLUT, &meanDistPhiLUT, &pdfLUT};
   std::vector<std::string> types= {"iCharge", "iEta", "iPt", "meanDistPhi", "pdf"};
-  aReader.readLUTs(luts, params, types);
+  aReader.readLUTs(luts,params,types);
 
   params.setChargeLUT(chargeLUT);
   params.setEtaLUT(etaLUT);
@@ -84,7 +84,7 @@ L1TMuonOverlapParamsESProducer::produceParams(const L1TMuonOverlapParamsRcd& iRe
 {
    using namespace edm::es;
   
-   return std::shared_ptr<L1TMuonOverlapParams>(new L1TMuonOverlapParams(params));
+   return std::make_shared<L1TMuonOverlapParams>(params);
 }
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////

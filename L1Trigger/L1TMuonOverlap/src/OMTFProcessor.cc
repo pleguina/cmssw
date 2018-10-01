@@ -48,9 +48,8 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     int phiValue = myCand.getPhi();
     if(phiValue>= int(this->myOmtfConfig->nPhiBins()) )
       phiValue -= this->myOmtfConfig->nPhiBins();
-    ///conversion factor from OMTF to uGMT scale: 5400/576
-//    phiValue/=9.375;
-    phiValue *= (437./pow(2,12));    // ie. use as in hw: 9.3729977
+    ///conversion factor from OMTF to uGMT scale is  5400/576 i.e. phiValue/=9.375;
+    phiValue = floor(phiValue*437./pow(2,12));    // ie. use as in hw: 9.3729977
     candidate.setHwPhi(phiValue);
 
     candidate.setHwSign(myCand.getCharge()<0 ? 1:0  );
@@ -66,7 +65,33 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
              || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000001010000000").to_ulong()
            )
        ) quality =4;
-
+    if( myOmtfConfig->fwVersion() >= 5 ) {
+      if (    static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000010000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000100000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000001000000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000010000000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000100000000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("001000000000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("010000000000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000000000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000010000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000100000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000001000000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000010000000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000100000000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("001000000000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("010000000000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000000000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000010000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000100000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000001000000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000010000000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000100000000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("001000000000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("010000000000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000000000110000").to_ulong()
+         ) quality = 1;
+}
 //  if (abs(myCand.getEta()) == 121) quality = 4;
     if (abs(myCand.getEta()) == 121) quality = 0; // changed on request from HI
 
@@ -149,7 +174,7 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
       if(h != 5400)
         std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" layerHit "<<h<<std::endl;
     }*/
-    if(!layerHits.size()) continue; //in principle not needed, the size is always 14
+    if(layerHits.empty()) continue; //in principle not needed, the size is always 14
     ///Number of reference hits to be checked.
     unsigned int nTestedRefHits = this->myOmtfConfig->nTestRefHits();
     for(unsigned int iRefHit = 0; iRefHit < this->myOmtfConfig->nRefHits(); ++iRefHit) { //loop over all possible refHits, i.e. 128

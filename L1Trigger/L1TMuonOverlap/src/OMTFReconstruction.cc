@@ -27,15 +27,17 @@
 #include <boost/timer/timer.hpp>
 
 /*OMTFReconstruction::OMTFReconstruction() :
-  m_OMTFConfig(0), m_OMTF(0), m_OMTFConfigMaker(0){}*/
+  m_OMTFConfig(nullptr), m_OMTF(nullptr), aTopElement(nullptr), m_OMTFConfigMaker(nullptr), m_Writer(nullptr){}*/
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 OMTFReconstruction::OMTFReconstruction(const edm::ParameterSet& theConfig) :
-  m_Config(theConfig), m_OMTFConfig(0), m_OMTF(0), m_OMTFConfigMaker(0) {
+  m_Config(theConfig), m_OMTFConfig(nullptr), m_OMTF(nullptr), aTopElement(nullptr), m_OMTFConfigMaker(nullptr), m_Writer(nullptr) {
 
   dumpResultToXML = m_Config.getParameter<bool>("dumpResultToXML");
   dumpDetailedResultToXML = m_Config.getParameter<bool>("dumpDetailedResultToXML");
-  m_Config.getParameter<std::string>("XMLDumpFileName");  
+  //m_Config.getParameter<std::string>("XMLDumpFileName");  
+  bxMin = m_Config.exists("bxMin") ? m_Config.getParameter<int>("bxMin") : 0;
+  bxMax = m_Config.exists("bxMax") ? m_Config.getParameter<int>("bxMax") : 0;
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -226,6 +228,10 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
     if(m_Config.getParameter<std::string>("ghostBusterType") == "GhostBusterPreferRefDt")
       m_OMTF->setGhostBuster(new GhostBusterPreferRefDt(m_OMTFConfig));
   }
+  else if (m_OMTFConfig->fwVersion() >= 5) {
+    	m_GhostBuster.reset(new GhostBusterPreferRefDt(m_OMTFConfig) );
+  }
+  
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -234,22 +240,27 @@ std::unique_ptr<l1t::RegionalMuonCandBxCollection> OMTFReconstruction::reconstru
   loadAndFilterDigis(iEvent);
 
   //if(dumpResultToXML) aTopElement = m_Writer->writeEventHeader(iEvent.id().event());
-
+  theEvent = iEvent.id().event();
+  
   for(auto& obs : observers) {
     obs->observeEventBegin(iEvent);
   }
 
-  // NOTE: assuming all is for bx 0
-  int bx = 0;
   std::unique_ptr<l1t::RegionalMuonCandBxCollection> candidates(new l1t::RegionalMuonCandBxCollection);
+  candidates->setBXRange(bxMin, bxMax);
 
   ///The order is important: first put omtf_pos candidates, then omtf_neg.
-  for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor)
-    getProcessorCandidates(iProcessor, l1t::tftype::omtf_pos, bx, *candidates);
+  for(int bx = bxMin; bx<= bxMax; bx++) {
+  
+    for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor)
+      getProcessorCandidates(iProcessor, l1t::tftype::omtf_pos, bx, *candidates);
 
-  for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor)
-    getProcessorCandidates(iProcessor, l1t::tftype::omtf_neg, bx, *candidates);
-    
+    for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor)
+      getProcessorCandidates(iProcessor, l1t::tftype::omtf_neg, bx, *candidates);
+      
+    edm::LogInfo("OMTFReconstruction") <<"OMTF:  Number of candidates in BX="<<bx<<": "<<candidates->size(bx) << std::endl;;  
+  }
+  
   for(auto& obs : observers) {
     obs->observeEventEnd(iEvent);
   }
@@ -282,7 +293,7 @@ void OMTFReconstruction::getProcessorCandidates(unsigned int iProcessor, l1t::tf
                 dtThDigis.product(),
                 cscDigis.product(),
                 rpcDigis.product(),
-                iProcessor, mtfType);
+                iProcessor, mtfType, bx);
   int flag = m_InputMaker.getFlag();
   //cout<<"buildInputForProce "; t.report();
   m_OMTF->processInput(iProcessor, mtfType, input);
@@ -301,7 +312,7 @@ void OMTFReconstruction::getProcessorCandidates(unsigned int iProcessor, l1t::tf
      omtfCandidates.push_back(bx, candMuon);
   }
   //dump to XML
-  //writeResultToXML(iProcessor, mtfType,  input, algoCandidates, candMuons);
+  //if(bx==0) writeResultToXML(iProcessor, mtfType,  input, algoCandidates, candMuons); //TODO handle bx
   for(auto& obs : observers) {
     obs->observeProcesorEmulation(iProcessor, mtfType,  input, algoCandidates, gbCandidates, candMuons);
   }

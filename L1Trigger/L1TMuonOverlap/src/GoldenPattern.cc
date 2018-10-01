@@ -33,8 +33,8 @@ std::ostream & operator << (std::ostream &out, const GoldenPattern & aPattern){
           <<", number of measurement layers: "<<aPattern.pdfAllRef.size()
           <<std::endl;
 
-  if(!aPattern.meanDistPhi.size()) return out;
-  if(!aPattern.pdfAllRef.size()) return out;
+  if(aPattern.meanDistPhi.empty()) return out;
+  if(aPattern.pdfAllRef.empty()) return out;
 
   out<<"Mean dist phi per layer:"<<std::endl;
   for (unsigned int iRefLayer=0;iRefLayer<aPattern.meanDistPhi[0].size();++iRefLayer){

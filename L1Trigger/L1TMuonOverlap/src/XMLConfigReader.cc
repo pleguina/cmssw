@@ -151,7 +151,7 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapP
 //////////////////////////////////////////////////
 unsigned int XMLConfigReader::getPatternsVersion() const{
 
-  if(!patternsFile.size()) return 0;
+  if(patternsFile.empty()) return 0;
 
   unsigned int version=0;
   XMLPlatformUtils::Initialize();
@@ -206,8 +206,8 @@ std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(c
       return aGPs;
     }
 
-    DOMNode *aNode = 0;
-    DOMElement* aGPElement = 0;
+    DOMNode *aNode = nullptr;
+    DOMElement* aGPElement = nullptr;
     unsigned int iGPNumber=0;
 
     for(unsigned int iItem=0;iItem<nElem;++iItem){
@@ -266,12 +266,12 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
     stringStr<<"iPt"<<index;
   else
     stringStr.str("iPt");
-  XMLCh *xmliPt=_toDOMS(stringStr.str().c_str());
+  XMLCh *xmliPt=_toDOMS(stringStr.str());
   stringStr.str("");
 
   if (index>0) stringStr<<"value"<<index;
   else stringStr.str("value");
-  XMLCh *xmlValue=_toDOMS(stringStr.str().c_str());
+  XMLCh *xmlValue=_toDOMS(stringStr.str());
 
   XMLCh *xmliCharge= _toDOMS("iCharge");
   XMLCh *xmlLayer= _toDOMS("Layer");
@@ -292,9 +292,9 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
   unsigned int nLayers = aGPElement->getElementsByTagName(xmlLayer)->getLength();
   assert(nLayers==(unsigned) aConfig.nLayers());
 
-  DOMNode *aNode = 0;
-  DOMElement* aLayerElement = 0;
-  DOMElement* aItemElement = 0;
+  DOMNode *aNode = nullptr;
+  DOMElement* aLayerElement = nullptr;
+  DOMElement* aItemElement = nullptr;
 
   if(iPt==0){///Build empty GP
     Key aKey(iEta,iPt,iCharge, aGPNumber);
@@ -507,7 +507,7 @@ void XMLConfigReader::readConfig(L1TMuonOverlapParams *aConfig) const{
     ///Start/End values for all processors, and chamber types are put into a single vector
     std::vector<int> sectorsStart(3*nProcessors), sectorsEnd(3*nProcessors);
     nElem = aOMTFElement->getElementsByTagName(xmlConnectionMap)->getLength();
-    DOMElement* aConnectionElement = 0;
+    DOMElement* aConnectionElement = nullptr;
     for(unsigned int i=0;i<nElem;++i){
       aNode = aOMTFElement->getElementsByTagName(xmlConnectionMap)->item(i);
       aConnectionElement = static_cast<DOMElement *>(aNode);
@@ -536,7 +536,7 @@ void XMLConfigReader::readConfig(L1TMuonOverlapParams *aConfig) const{
     L1TMuonOverlapParams::LayerMapNode aLayerMapNode;
     
     nElem = aOMTFElement->getElementsByTagName(xmlLayerMap)->getLength();
-    DOMElement* aLayerElement = 0;
+    DOMElement* aLayerElement = nullptr;
     for(unsigned int i=0;i<nElem;++i){
       aNode = aOMTFElement->getElementsByTagName(xmlLayerMap)->item(i);
       aLayerElement = static_cast<DOMElement *>(aNode); 
@@ -557,7 +557,7 @@ void XMLConfigReader::readConfig(L1TMuonOverlapParams *aConfig) const{
     L1TMuonOverlapParams::RefLayerMapNode aRefLayerNode;
     
     nElem = aOMTFElement->getElementsByTagName(xmlRefLayerMap)->getLength();
-    DOMElement* aRefLayerElement = 0;
+    DOMElement* aRefLayerElement = nullptr;
     for(unsigned int i=0;i<nElem;++i){
       aNode = aOMTFElement->getElementsByTagName(xmlRefLayerMap)->item(i);
       aRefLayerElement = static_cast<DOMElement *>(aNode); 
@@ -579,14 +579,14 @@ void XMLConfigReader::readConfig(L1TMuonOverlapParams *aConfig) const{
     
     nElem = aOMTFElement->getElementsByTagName(xmlProcessor)->getLength();
     assert(nElem==nProcessors);
-    DOMElement* aProcessorElement = 0;
+    DOMElement* aProcessorElement = nullptr;
     for(unsigned int i=0;i<nElem;++i){
       aNode = aOMTFElement->getElementsByTagName(xmlProcessor)->item(i);
       aProcessorElement = static_cast<DOMElement *>(aNode); 
       unsigned int iProcessor = std::atoi(_toString(aProcessorElement->getAttribute(xmliProcessor)).c_str());
       unsigned int nElem1 = aProcessorElement->getElementsByTagName(xmlRefLayer)->getLength();
       assert(nElem1==nRefLayers);
-      DOMElement* aRefLayerElement = 0;
+      DOMElement* aRefLayerElement = nullptr;
       for(unsigned int ii=0;ii<nElem1;++ii){
 	aNode = aProcessorElement->getElementsByTagName(xmlRefLayer)->item(ii);
 	aRefLayerElement = static_cast<DOMElement *>(aNode); 
@@ -597,7 +597,7 @@ void XMLConfigReader::readConfig(L1TMuonOverlapParams *aConfig) const{
       ///////////
       nElem1 = aProcessorElement->getElementsByTagName(xmlRefHit)->getLength();
       assert( (iProcessor==0 && nElem1==nRefHits) || (iProcessor!=0 && nElem1==0) );
-      DOMElement* aRefHitElement = 0;
+      DOMElement* aRefHitElement = nullptr;
       for(unsigned int ii=0;ii<nElem1;++ii){
 	aNode = aProcessorElement->getElementsByTagName(xmlRefHit)->item(ii);
 	aRefHitElement = static_cast<DOMElement *>(aNode); 
@@ -619,14 +619,14 @@ void XMLConfigReader::readConfig(L1TMuonOverlapParams *aConfig) const{
       ///////////
       unsigned int nElem2 = aProcessorElement->getElementsByTagName(xmlLogicRegion)->getLength();
       assert( (iProcessor==0 && nElem2==nLogicRegions) || (iProcessor!=0 && nElem2==0) );
-      DOMElement* aRegionElement = 0;
+      DOMElement* aRegionElement = nullptr;
       for(unsigned int ii=0;ii<nElem2;++ii){
 	aNode = aProcessorElement->getElementsByTagName(xmlLogicRegion)->item(ii);
 	aRegionElement = static_cast<DOMElement *>(aNode); 
 	unsigned int iRegion = std::atoi(_toString(aRegionElement->getAttribute(xmliRegion)).c_str());
 	unsigned int nElem3 = aRegionElement->getElementsByTagName(xmlLayer)->getLength();
 	assert(nElem3==nLayers);
-	DOMElement* aLayerElement = 0;
+	DOMElement* aLayerElement = nullptr;
 	for(unsigned int iii=0;iii<nElem3;++iii){
   	  aNode = aRegionElement->getElementsByTagName(xmlLayer)->item(iii);
 	  aLayerElement = static_cast<DOMElement *>(aNode); 
