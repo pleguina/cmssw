@@ -1,128 +1,142 @@
 #ifndef OMTF_GoldenPattern_H
 #define OMTF_GoldenPattern_H
 
+#include <L1Trigger/L1TMuonOverlap/interface/GoldenPatternBase.h>
 #include <vector>
 #include <ostream>
 
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
 
-class OMTFConfigMaker;
-class OMTFProcessor;
 class OMTFConfiguration;
-//////////////////////////////////
-// Key
-//////////////////////////////////
-struct Key {
 
-Key(int iEta=99, unsigned int iPt=0, int iCharge= 0, unsigned int iNumber=999): 
-  theEtaCode(iEta), thePtCode(iPt), theCharge(iCharge), theNumber(iNumber) {}
-    
-  inline bool operator< (const Key & o) const {return (theNumber < o.theNumber);}
-   
-  bool operator==(const Key& o) const {
-    return theEtaCode==o.theEtaCode && thePtCode==o.thePtCode && theCharge==o.theCharge && theNumber==o.theNumber;
-  }
-  
-  friend std::ostream & operator << (std::ostream &out, const Key & o) {
-    out << "Key_"<<o.theNumber<<": (eta="<<o.theEtaCode<<", pt="<<o.thePtCode<<", charge="<<o.theCharge<<")";
-    return out;
-  }
-
-  unsigned int number() const {return theNumber;}
-
-  int theEtaCode;
-  unsigned int thePtCode; 
-  int          theCharge;
-  unsigned int theNumber;
-
- };
 //////////////////////////////////
 // Golden Pattern
 //////////////////////////////////
-class OMTFinput;
 
-class GoldenPattern {
+class GoldenPattern : public GoldenPatternBase {
 
- public:
-
-  typedef std::vector<int> vector1D;
-  typedef std::vector<vector1D> vector2D;
-  typedef std::vector<vector2D> vector3D;
-  typedef std::pair<int,bool> layerResult;
-
+public:
+  typedef boost::multi_array<omtfPdfValueType, 3> pdfArrayType;
+  typedef boost::multi_array<short, 3> meanDistPhiArrayType;
   //
   // GoldenPatterns methods
   //
- GoldenPattern(const Key & aKey, const OMTFConfiguration * omtfConfig) : theKey(aKey), myOmtfConfig(omtfConfig){}
-  
-  Key key() const {return theKey;}
+  GoldenPattern(const Key & aKey, unsigned int nLayers, unsigned int nRefLayers, unsigned int nPdfAddrBits): GoldenPatternBase(aKey),
+    pdfAllRef(boost::extents[nLayers][nRefLayers][1<<nPdfAddrBits]),
+    meanDistPhi(boost::extents[nLayers][nRefLayers][2]),
+    distPhiBitShift(boost::extents[nLayers][nRefLayers])
+  {
+    reset();
+  }
 
-  void setMeanDistPhi(const vector2D & aMeanDistPhi){ meanDistPhi = aMeanDistPhi; }
+  GoldenPattern(const Key & aKey, const OMTFConfiguration* omtfConfig): GoldenPatternBase(aKey, omtfConfig),
+      pdfAllRef(boost::extents[omtfConfig->nLayers()][omtfConfig->nRefLayers()][omtfConfig->nPdfBins()]),
+      meanDistPhi(boost::extents[omtfConfig->nLayers()][omtfConfig->nRefLayers()][2]),
+      distPhiBitShift(boost::extents[omtfConfig->nLayers()][omtfConfig->nRefLayers()]) {
+    reset();
+  }
 
-  const vector2D & getMeanDistPhi() const {return meanDistPhi;}
+  virtual ~GoldenPattern() {};
 
-  const vector3D & getPdf() const {return pdfAllRef;}
+  virtual void setMeanDistPhi(const meanDistPhiArrayType& aMeanDistPhi) { meanDistPhi = aMeanDistPhi; }
 
-  void setPdf(const vector3D & aPdf){  pdfAllRef = aPdf; }
+  virtual const meanDistPhiArrayType& getMeanDistPhi() const { return meanDistPhi; }
 
-  int meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer) const { return meanDistPhi[iLayer][iRefLayer];}
+  virtual const pdfArrayType& getPdf() const {return pdfAllRef;}
 
-  int pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin) const {return pdfAllRef[iLayer][iRefLayer][iBin];}
+  virtual void setPdf(pdfArrayType& aPdf){  pdfAllRef = aPdf; }
 
-  ///Process single measurement layer with a single ref layer
-  ///Method should be thread safe
-  GoldenPattern::layerResult process1Layer1RefLayer(unsigned int iRefLayer,
-						    unsigned int iLayer,
-						    const int refPhi,
-						    const OMTFinput::vector1D & layerHits);
+  virtual int meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB = 0) const;
+
+  virtual omtfPdfValueType pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) const {return pdfAllRef[iLayer][iRefLayer][iBin];}
+
+  virtual void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, unsigned int paramIndex = 0) {
+    meanDistPhi[iLayer][iRefLayer][paramIndex] = value;
+  }
+
+  virtual void setPdfValue(omtfPdfValueType value, unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) {
+    pdfAllRef[iLayer][iRefLayer][iBin] = value;
+  }
+
+/*  virtual const boost::multi_array<short, 2>& getDistPhiBitShift() const {
+    return distPhiBitShift;
+  }*/
+
+  virtual int getDistPhiBitShift(unsigned int iLayer, unsigned int iRefLayer) const {
+    return distPhiBitShift[iLayer][iRefLayer];
+  }
+
+  virtual void setDistPhiBitShift(int value, unsigned int iLayer, unsigned int iRefLayer)  {
+    distPhiBitShift[iLayer][iRefLayer] = value;
+  }
 
   friend std::ostream & operator << (std::ostream &out, const GoldenPattern & aPattern);
-    
-  ///Add a single count to the relevant pdf bin in three dimensions
-  void addCount(unsigned int iRefLayer,
-		unsigned int iLayer,
-		const int refPhi,
-		const OMTFinput::vector1D & layerHits);
 
   ///Reset contents of all data vectors, keeping the vectors size
-  void reset();
+  virtual void reset();
+/*  virtual void reset(unsigned int nLayers, unsigned int nRefLayers, unsigned int nPdfAddrBits);
 
-  ///Normalise event counts in mean dist phi, and pdf vectors to get
-  ///the real values of meand dist phi and probability.
-  ///The pdf width is passed to this method, since the width stored in
-  ///configuration is extended during the pattern making phase.
-  void normalise(unsigned int nPdfAddrBits);
+  virtual void reset(const OMTFConfiguration* omtfConfig) {
+    reset(omtfConfig->nLayers(), omtfConfig->nRefLayers(), omtfConfig->nPdfAddrBits());
+  }*/
 
   ///Propagate phi from given reference layer to MB2 or ME2
   ///ME2 is used if eta of reference hit is larger than 1.1
   ///expressed in ingerer MicroGMT scale: 1.1/2.61*240 = 101
-  int propagateRefPhi(int phiRef, int etaRef, unsigned int iRefLayer);
+  virtual int propagateRefPhi(int phiRef, int etaRef, unsigned int iRefLayer);
 
-  ///Check if the GP has any counts in any of referecne layers;
-  bool hasCounts();
-
- private:
-
-  ///Pattern kinematical identification (iEta,iPt,iCharge)
-  Key theKey;
-  
+protected:
   ///Distributions for all reference layers
   ///First index: measurement layer number
   ///Second index: refLayer number
   ///Third index: pdf bin number within layer 
-  vector3D pdfAllRef;
+  pdfArrayType pdfAllRef;
 
   ///Mean positions in each layer
   ///First index: measurement layer number 
   ///Second index: refLayer number
-  vector2D meanDistPhi;
+  ///Third index: index = 0 - a0, index = 1 - a1 for the linear fit meanDistPhi = a0 + a1 * phi_b
+  meanDistPhiArrayType meanDistPhi;
 
-  ///Vector holding number of counts.
-  ///Used for making the patterns
-  vector2D meanDistPhiCounts;
+  ///distPhi resolution can be reduced to reduce the number of bit on the LUT input
+  ///distPhi = distPhi<<distPhiBitShift[layer][refLayer] (i.e. division by 2)
+  ///First index: measurement layer number
+  ///Second index: refLayer number
+  boost::multi_array<short, 2> distPhiBitShift;
+};
 
-  const OMTFConfiguration  * myOmtfConfig;
+class GoldenPatternWithThresh : public GoldenPattern {
+private:
+  std::vector<omtfPdfValueType> thresholds;
+public:
+  //
+  // GoldenPatterns methods
+  //
+  GoldenPatternWithThresh(const Key & aKey, unsigned int nLayers, unsigned int nRefLayers, unsigned int nPdfAddrBits):
+    GoldenPattern(aKey, nLayers, nRefLayers, nPdfAddrBits),
+    thresholds(nRefLayers, 0) {
 
+  }
+
+  GoldenPatternWithThresh(const Key & aKey, const OMTFConfiguration* omtfConfig):
+    GoldenPattern(aKey, omtfConfig),
+    thresholds(myOmtfConfig->nRefLayers(), 0) {
+
+  }
+
+  virtual ~GoldenPatternWithThresh() {};
+
+  omtfPdfValueType getThreshold(unsigned int iRefLayer) const {
+    return thresholds.at(iRefLayer);
+  }
+
+  void setThresholds(std::vector<omtfPdfValueType>& tresholds) {
+    this->thresholds = tresholds;
+  }
+
+  void setThreshold(unsigned int iRefLayer, omtfPdfValueType treshold) {
+    this->thresholds[iRefLayer] = treshold;
+  }
 };
 //////////////////////////////////
 //////////////////////////////////

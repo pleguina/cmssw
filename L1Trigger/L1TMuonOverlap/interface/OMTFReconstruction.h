@@ -18,11 +18,12 @@
 #include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinputMaker.h"
-#include "L1Trigger/L1TMuonOverlap/interface/OMTFSorter.h"
+#include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessor.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GhostBuster.h"
+#include "L1Trigger/L1TMuonOverlap/interface/IProcessorEmulator.h"
+#include "L1Trigger/L1TMuonOverlap/interface/IOMTFEmulationObserver.h"
 
 class L1TMuonOverlapParams;
-class OMTFProcessor;
 class OMTFConfiguration;
 class OMTFConfigMaker;
 class XMLConfigWriter;
@@ -35,7 +36,7 @@ namespace XERCES_CPP_NAMESPACE{
 
 class OMTFReconstruction {
   public:
-    OMTFReconstruction();
+    //OMTFReconstruction();
 
     OMTFReconstruction(const edm::ParameterSet&);
 
@@ -63,8 +64,9 @@ class OMTFReconstruction {
     void getProcessorCandidates(unsigned int iProcessor, l1t::tftype mtfType, int bx,
             l1t::RegionalMuonCandBxCollection & myCandidates);
   
+    //FIXME do it better
     void writeResultToXML(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &myInput, 
-      const std::vector<OMTFProcessor::resultsMap> & myResults,
+      const std::vector<AlgoMuon>& algoCandidates,
       const std::vector<l1t::RegionalMuonCand> & candMuons);
 
 
@@ -74,14 +76,15 @@ class OMTFReconstruction {
   ///OMTF objects
     OMTFConfiguration   *m_OMTFConfig;
     OMTFinputMaker       m_InputMaker;
-    OMTFSorter           m_Sorter;
-    std::unique_ptr<IGhostBuster> m_GhostBuster;
-    OMTFProcessor       *m_OMTF;    
+    //OMTFProcessor<GoldenPattern>  *m_OMTF;
+    IProcessorEmulator* m_OMTF;
   ///
-    xercesc::DOMElement *aTopElement;
+    //xercesc::DOMElement *aTopElement;
     OMTFConfigMaker     *m_OMTFConfigMaker;
-    XMLConfigWriter     *m_Writer;
-	
+    //XMLConfigWriter     *m_Writer;
+
+    std::vector<std::unique_ptr<IOMTFEmulationObserver> > observers;
+    unsigned int theEvent;
 };
 
 #endif

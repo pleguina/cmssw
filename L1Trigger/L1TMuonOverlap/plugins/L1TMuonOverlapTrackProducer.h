@@ -10,7 +10,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/Framework/interface/one/EDProducer.h"
+#include "FWCore/Framework/interface/EDProducer.h"
 
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhContainer.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
@@ -20,11 +20,10 @@
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFReconstruction.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinputMaker.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFSorter.h"
-
+#include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessor.h"
 
 
 class L1TMuonOverlapParams;
-class OMTFProcessor;
 class OMTFConfiguration;
 class OMTFConfigMaker;
 class XMLConfigWriter;
@@ -38,7 +37,7 @@ namespace XERCES_CPP_NAMESPACE{
 }
 
 
-class L1TMuonOverlapTrackProducer : public edm::one::EDProducer<edm::one::WatchRuns> {
+class L1TMuonOverlapTrackProducer : public edm::EDProducer {
  public:
   L1TMuonOverlapTrackProducer(const edm::ParameterSet&);
 
@@ -49,8 +48,7 @@ class L1TMuonOverlapTrackProducer : public edm::one::EDProducer<edm::one::WatchR
   void endJob() override;
 
   void beginRun(edm::Run const& run, edm::EventSetup const& iSetup) override;
-  void endRun(edm::Run const&, edm::EventSetup const&) override {}
-
+  
   void produce(edm::Event&, const edm::EventSetup&) override;
 
  private:

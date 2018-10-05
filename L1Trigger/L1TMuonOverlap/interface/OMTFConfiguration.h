@@ -7,7 +7,14 @@
 #include <ostream>
 #include <memory>
 
+//#undef BOOST_DISABLE_ASSERTS
+#include "boost/multi_array.hpp"
+
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
+#include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
+
+//typedef int omtfPdfValueType; //normal emulation is with int type
+typedef float omtfPdfValueType; //but floats are needed for the PatternOptimizer
 
 namespace edm{
   class ParameterSet;
@@ -100,11 +107,16 @@ class OMTFConfiguration{
   unsigned int nRefLayers() const {return rawParams.nRefLayers();};
   unsigned int nPhiBits() const {return rawParams.nPhiBits();};
   unsigned int nPdfAddrBits() const {return rawParams.nPdfAddrBits();};
+  unsigned int nPdfBins() const {return pdfBins;};
   unsigned int nPdfValBits() const {return rawParams.nPdfValBits();};
+  int pdfMaxValue() const {return pdfMaxVal; };
   unsigned int nPhiBins() const {return rawParams.nPhiBins();};
   unsigned int nRefHits() const {return rawParams.nRefHits();};
   unsigned int nTestRefHits() const {return rawParams.nTestRefHits();};
+  //processors number per detector side
   unsigned int nProcessors() const {return rawParams.nProcessors();};
+  //total number of processors in the system
+  unsigned int processorCnt() const {return 2*rawParams.nProcessors();};
   unsigned int nLogicRegions() const {return rawParams.nLogicRegions();};
   unsigned int nInputs() const {return rawParams.nInputs();};
   unsigned int nGoldenPatterns() const {return rawParams.nGoldenPatterns();};
@@ -133,7 +145,58 @@ class OMTFConfiguration{
 
   const vector4D & getMeasurements4D() const {return measurements4D;}
   const vector4D & getMeasurements4Dref() const {return measurements4Dref;}
+
+  ///uGMT pt scale conversion
+  static double hwPtToGev(unsigned int hwPt) {
+    return (hwPt - 1.) * 0.5;
+  }
+
+  ///Continuous processor number [0...12], to be used in as array index,
+  unsigned int getProcIndx(unsigned int iProcessor, l1t::tftype mtfType) const {
+    return ( (mtfType - l1t::tftype::omtf_neg) * rawParams.nProcessors() + iProcessor );
+  };
+
+  ///pattern pt range in Gev
+  struct PatternPt {
+    double ptFrom = 0;
+    double ptTo = 0;
+    int charge = 0;
+  };
   
+  PatternPt getPatternPtRange(unsigned int patNum) const ;
+
+  void initPatternPtRange();
+
+  //call it when the patterns are read directly from the xml, without using the LUTs
+  void setPatternPtRange(const std::vector<PatternPt>& patternPts) {
+    this->patternPts = patternPts;
+  }
+
+  ///charge: -1 - negative, +1 - positive
+  unsigned int getPatternNum(double pt, int charge) const;
+
+
+  ///[index1][index2] = patternNum
+  ///contains each row (index1) contain the vector of up to 4 patterns (i.e. its numbers) that are merged in the firmware
+  ///(i.e. are in the same BRAM and have common meanDistPhi)
+  ///in some cases only 2 patterns are merged, then the getMergedPartters()[index1] has only 2 entries
+  ///this version gives the groups based on the LUT data
+  vector2D getMergedPatterns() const;
+
+  ///and this based on the actual goldenPats
+  template <class GoldenPatternType>
+  vector2D getMergedPatterns(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats) const {
+    unsigned int mergedCnt = 4;
+    vector2D mergedPatterns(nGoldenPatterns()/mergedCnt, vector1D());
+    for(unsigned int iPat = 0; iPat < goldenPats.size(); iPat++) {
+      if(goldenPats[iPat]->key().thePt != 0) {
+        mergedPatterns[iPat/mergedCnt].push_back(iPat);
+      }
+    }
+    return mergedPatterns;
+  }
+
+
   friend std::ostream & operator << (std::ostream &out, const OMTFConfiguration & aConfig);
 
  private:
@@ -184,6 +247,10 @@ class OMTFConfiguration{
   vector4D measurements4D;
   vector4D measurements4Dref;
 
+  std::vector<PatternPt> patternPts;
+
+  int pdfMaxVal = 0;
+  unsigned int pdfBins = 0;
 };
 
 

@@ -13,7 +13,7 @@
 class GoldenPattern;
 class OMTFConfiguration;
 class OMTFinput;
-class OMTFResult;
+class GoldenPatternResult;
 class AlgoMuon;
 namespace l1t {class RegionalMuonCand; }
 struct Key;
@@ -28,7 +28,7 @@ class XMLConfigWriter{
 
  public:
 
-  XMLConfigWriter(const OMTFConfiguration* aOMTFConfig);
+  XMLConfigWriter(const OMTFConfiguration* aOMTFConfig, bool writePdfThresholds = false, bool writeMeanDistPhi1 = false);
 
   void initialiseXMLDocument(const std::string & docName);
 
@@ -51,15 +51,18 @@ class XMLConfigWriter{
   void writeResultsData(xercesc::DOMElement *aTopElement,
 			unsigned int iRegion,
 			const Key& aKey,
-			const OMTFResult & aResult);
+			const GoldenPatternResult & aResult);
 
   void writeGPData(const GoldenPattern & aGP);
 
-  void writeGPData(const GoldenPattern & aGP1,
-		   const GoldenPattern & aGP2,
-		   const GoldenPattern & aGP3,
-		   const GoldenPattern & aGP4);
-		   
+  void writeGPData(const GoldenPattern* aGP1,
+		   const GoldenPattern* aGP2,
+		   const GoldenPattern* aGP3,
+		   const GoldenPattern* aGP4);
+
+  template <class GoldenPatternType>
+  void writeGPs(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats, std::string fName );
+
   void writeConnectionsData(const std::vector<std::vector <OMTFConfiguration::vector2D> > & measurements4D);
 
   unsigned int findMaxInput(const OMTFConfiguration::vector1D & myCounts);
@@ -71,6 +74,9 @@ class XMLConfigWriter{
   xercesc::DOMDocument* theDoc;
 
   const OMTFConfiguration* myOMTFConfig;
+
+  bool writePdfThresholds = false;
+  bool writeMeanDistPhi1 = false;
 
 };
 

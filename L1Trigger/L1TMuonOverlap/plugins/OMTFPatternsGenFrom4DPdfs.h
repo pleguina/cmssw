@@ -1,5 +1,5 @@
-#ifndef OMTFPatternMaker_H
-#define OMTFPatternMaker_H
+#ifndef OMTFPatternsGenFrom4DPdfs_H
+#define OMTFPatternsGenFrom4DPdfs_H
 
 #include "xercesc/util/XercesDefs.hpp"
 
@@ -17,13 +17,14 @@
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 
-#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternPdfGen.h"
-#include "L1Trigger/L1TMuonOverlap/interface/PdfGeneratorProcessor.h"
+#include "L1Trigger/L1TMuonOverlap/interface/PatternsGeneratorProcessor.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternPdf4D.h"
+
+#include <TH1.h>
 
 class OMTFConfiguration;
 class OMTFConfigMaker;
 class OMTFinputMaker;
-class GoldenPattern;
 
 class SimTrack;
 
@@ -35,24 +36,23 @@ namespace XERCES_CPP_NAMESPACE{
   class DOMImplementation;
 }
 
-class OMTFPatternMaker : public edm::EDAnalyzer {
+class OMTFPatternsGenFrom4DPdfs : public edm::EDAnalyzer {
 public:
 
-  OMTFPatternMaker(const edm::ParameterSet & cfg);
+	OMTFPatternsGenFrom4DPdfs(const edm::ParameterSet & cfg);
 
-  ~OMTFPatternMaker() override;
+  virtual ~OMTFPatternsGenFrom4DPdfs();
 
-  void beginRun(edm::Run const& run, edm::EventSetup const& iSetup) override;
+  virtual void beginRun(edm::Run const& run, edm::EventSetup const& iSetup);
 
-  void beginJob() override;
+  virtual void beginJob();
 
-  void endJob() override;
+  virtual void endJob();
   
-  void analyze(const edm::Event&, const edm::EventSetup&) override;  
+  virtual void analyze(const edm::Event&, const edm::EventSetup&);  
 
 private:
-
-  const SimTrack *findSimMuon(const edm::Event &ev, const edm::EventSetup &es, const SimTrack *previous=nullptr);
+  const SimTrack *findSimMuon(const edm::Event &ev, const edm::EventSetup &es, const SimTrack *previous=0);
 
   edm::ParameterSet theConfig;
   edm::InputTag g4SimTrackSrc;
@@ -63,7 +63,7 @@ private:
   edm::EDGetTokenT<RPCDigiCollection> inputTokenRPC;
   edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimHit;
 
-  void writeMergedGPs();
+  void writeGPs();
   
   bool makeConnectionsMaps, makeGoldenPatterns, mergeXMLFiles;
 
@@ -73,12 +73,11 @@ private:
   ///OMTF objects
   OMTFConfiguration *myOMTFConfig;
   OMTFinputMaker *myInputMaker;
-  PdfGeneratorProcessor<GoldenPatternPdfGen>* myOMTF;
+  PatternsGeneratorProcessor* processor;
   ///
   xercesc::DOMElement *aTopElement;
   OMTFConfigMaker *myOMTFConfigMaker;
   XMLConfigWriter *myWriter;
-
 }; 
 
 #endif

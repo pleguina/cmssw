@@ -35,8 +35,8 @@ std::vector<AlgoMuon> GhostBuster::select(std::vector<AlgoMuon> refHitCands, int
     if(it1->getQ()>0 && !isGhost) refHitCleanCands.push_back(*it1);
   }
 
-  refHitCleanCands.resize( 3, AlgoMuon(0,999,9999,0,0,0,0,0) ); //FIXME
-  //refHitCleanCands.resize( 3, AlgoMuon() );
+  //refHitCleanCands.resize( 3, AlgoMuon(0,999,9999,0,0,0,0,0) ); //FIXME
+  refHitCleanCands.resize( 3, AlgoMuon() );
 
 
   std::stringstream myStr;

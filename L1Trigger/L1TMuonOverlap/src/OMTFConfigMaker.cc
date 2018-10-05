@@ -4,7 +4,7 @@
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h"
 #include "L1Trigger/L1TMuonOverlap/interface/XMLConfigReader.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
-#include "L1Trigger/L1TMuonOverlap/interface/OMTFResult.h"
+#include <L1Trigger/L1TMuonOverlap/interface/GoldenPatternResult.h>
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 

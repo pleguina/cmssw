@@ -164,18 +164,22 @@ void OMTFConfiguration::configure(const L1TMuonOverlapParams *omtfParams){
   }
 
   initCounterMatrices();
-  
+
+  pdfBins = (1<<rawParams.nPdfAddrBits());
+  pdfMaxVal = (1<<rawParams.nPdfValBits() ) - 1;
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 std::ostream & operator << (std::ostream &out, const OMTFConfiguration & aConfig){
 
 
-  out<<"nLayers(): "<<aConfig.nLayers()
-     <<" nHitsPerLayer(): "<<aConfig.nHitsPerLayer()
-     <<" nRefLayers(): "<<aConfig.nRefLayers()
-     <<" nPdfAddrBits: "<<aConfig.nPdfAddrBits()
-     <<" nPdfValBits: "<<aConfig.nPdfValBits()
+  out<<"nLayers(): "<<aConfig.nLayers()<<std::endl
+     <<" nHitsPerLayer(): "<<aConfig.nHitsPerLayer()<<std::endl
+     <<" nRefLayers(): "<<aConfig.nRefLayers()<<std::endl
+     <<" nPdfAddrBits: "<<aConfig.nPdfAddrBits()<<std::endl
+     <<" nPdfValBits: "<<aConfig.nPdfValBits()<<std::endl
+	   <<" nPhiBins(): "<<aConfig.nPhiBins()<<std::endl
+	   <<" nPdfAddrBits(): "<<aConfig.nPdfAddrBits()<<std::endl
      <<std::endl;
 
   for(unsigned int iProcessor = 0;iProcessor<aConfig.nProcessors(); ++iProcessor){
@@ -274,3 +278,71 @@ uint32_t OMTFConfiguration::getLayerNumber(uint32_t rawId) const {
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
+OMTFConfiguration::PatternPt OMTFConfiguration::getPatternPtRange(unsigned int patNum) const {
+  if(patNum > patternPts.size() ) {
+    if(patternPts.size() == 0)
+      throw cms::Exception("OMTFConfiguration::getPatternPtRange: patternPts vector not initialized");
+
+    throw cms::Exception("OMTFConfiguration::getPatternPtRange: patNum > patternPts.size()");
+  }
+  return patternPts[patNum];
+}
+
+void OMTFConfiguration::initPatternPtRange() {
+  patternPts.clear();
+  for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
+    PatternPt patternPt;
+    int charge = rawParams.chargeLUT()->data(iPat);
+    if(rawParams.ptLUT()->data(iPat) == 0) {
+      patternPts.push_back(patternPt);
+      continue;
+    }
+
+    patternPt.ptFrom = hwPtToGev(rawParams.ptLUT()->data(iPat));
+
+    unsigned int iPat1 = iPat;
+    while(true) { //to skip the empty patterns with pt=0 and patterns with opposite charge
+      iPat1++;
+      if(iPat1 == nGoldenPatterns())
+        break;
+      if(rawParams.ptLUT()->data(iPat1) != 0 && rawParams.chargeLUT()->data(iPat1) == charge)
+        break;
+    }
+
+    if(iPat1 == nGoldenPatterns())
+      patternPt.ptTo = 10000; //inf
+    else
+      patternPt.ptTo = hwPtToGev(rawParams.ptLUT()->data(iPat1));
+
+    patternPt.charge = charge;
+    patternPts.push_back(patternPt);
+  }
+}
+
+unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
+  //in LUT the charge is in convention 0 is -, 1 is + (so it is not the uGMT convention!!!)
+  //so we change the charge here
+  //if(charge == -1)
+    //charge = 0;  //TODO but in the xml (and in GPs) the charge is +1 and -1, so it is important from where the patternPts is loaded FIXME!!!
+  for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
+    //std::cout<<"iPAt "<<iPat<<" ptFrom "<<getPatternPtRange(iPat).ptFrom<<" "<<getPatternPtRange(iPat).ptTo<<" "<<rawParams.chargeLUT()->data(iPat)<<std::endl;
+    PatternPt patternPt = getPatternPtRange(iPat);
+    if(pt >= patternPt.ptFrom &&
+       pt  < patternPt.ptTo   &&
+       charge == patternPt.charge )
+      return iPat;
+  }
+  return  0; //FIXME in this way if pt < 4GeV, the pattern = 0 is return , regardless of sign!
+}
+
+//FIXME does not work if patterns not loaded from LUTs, but only directly from file
+OMTFConfiguration::vector2D OMTFConfiguration::getMergedPatterns() const {
+  unsigned int mergedCnt = 4;
+  vector2D mergedPatterns(nGoldenPatterns()/mergedCnt, vector1D());
+  for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
+    if(rawParams.ptLUT()->data(iPat) != 0) {
+      mergedPatterns[iPat/mergedCnt].push_back(iPat);
+    }
+  }
+  return mergedPatterns;
+}

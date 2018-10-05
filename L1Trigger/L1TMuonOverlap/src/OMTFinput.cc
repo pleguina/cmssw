@@ -49,7 +49,7 @@ bool OMTFinput::addLayerHit(unsigned int iLayer,
 
   bool overwrite = false;
   assert(iLayer<myOmtfConfig->nLayers());
-  assert(iInput<14);
+  assert(iInput<14); //FIXME define parameters for this 14
 
   if(iPhi>=(int)myOmtfConfig->nPhiBins()) return true;
 

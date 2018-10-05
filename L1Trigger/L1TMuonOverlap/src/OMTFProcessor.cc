@@ -1,6 +1,17 @@
+/*
+ * OMTFProcessor.cpp
+ *
+ *  Created on: Oct 7, 2017
+ *      Author: kbunkow
+ */
+
 #include <iostream>
 #include <algorithm>
 #include <strstream>
+
+#include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessor.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternParametrised.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternWithStat.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -9,316 +20,237 @@
 
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
 
-#include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessor.h"
-#include "L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h"
-#include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
-#include "L1Trigger/L1TMuonOverlap/interface/OMTFResult.h"
 
-#include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 
-#include "SimDataFormats/Track/interface/SimTrack.h"
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
-OMTFProcessor::~OMTFProcessor(){
+template <class GoldenPatternType>
+OMTFProcessor<GoldenPatternType>::OMTFProcessor(const OMTFConfiguration* myOmtfConfig): ProcessorBase<GoldenPatternType>(myOmtfConfig)  {
+  setSorter(new OMTFSorter<GoldenPatternType>()); //initialize with the default sorter
+  setGhostBuster(new GhostBuster()); //initialize with the default sorter
+};
 
-   for(auto it: theGPs) delete it.second;
-   
+template <class GoldenPatternType>
+OMTFProcessor<GoldenPatternType>::~OMTFProcessor() {
+
 }
-///////////////////////////////////////////////
-///////////////////////////////////////////////
-void OMTFProcessor::resetConfiguration(){
 
-  myResults.clear();
-  for(auto it: theGPs) delete it.second;
-  theGPs.clear();
+template <class GoldenPatternType>
+std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcandidates(unsigned int iProcessor, l1t::tftype mtfType, const std::vector<AlgoMuon> & algoCands) {
+
+  std::vector<l1t::RegionalMuonCand> result;
+
+  for(auto myCand: algoCands){
+    l1t::RegionalMuonCand candidate;
+    candidate.setHwPt(myCand.getPt());
+    candidate.setHwEta(myCand.getEta());
+
+    int phiValue = myCand.getPhi();
+    if(phiValue>= int(this->myOmtfConfig->nPhiBins()) )
+      phiValue -= this->myOmtfConfig->nPhiBins();
+    ///conversion factor from OMTF to uGMT scale is  5400/576 i.e. phiValue/=9.375;
+    phiValue = floor(phiValue*437./pow(2,12));    // ie. use as in hw: 9.3729977
+    candidate.setHwPhi(phiValue);
+
+    candidate.setHwSign(myCand.getCharge()<0 ? 1:0  );
+    candidate.setHwSignValid(1);
+
+    unsigned int quality = checkHitPatternValidity(myCand.getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3)
+                                                                     : 0 | (1 << 2);
+    if (    abs(myCand.getEta()) == 115
+        && (    static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000001110000000").to_ulong()
+             || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000001110000000").to_ulong()
+             || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000000110000000").to_ulong()
+             || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000001100000000").to_ulong()
+             || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000001010000000").to_ulong()
+           )
+       ) quality =4;
+    if( this->myOmtfConfig->fwVersion() >= 5 ) {
+      if (    static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000010000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000100000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000001000000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000010000000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000100000000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("001000000000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("010000000000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000000000000011").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000010000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000100000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000001000000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000010000000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000100000000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("001000000000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("010000000000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000000000001100").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000010000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000000100000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000001000000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000010000000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("000100000000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("001000000000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("010000000000110000").to_ulong()
+           || static_cast<unsigned int>(myCand.getFiredLayerBits()) == std::bitset<18>("100000000000110000").to_ulong()
+         ) quality = 1;
 }
-///////////////////////////////////////////////
-///////////////////////////////////////////////
-bool OMTFProcessor::configure(const OMTFConfiguration * omtfConfig,
-			      const L1TMuonOverlapParams * omtfPatterns){
-			      
-  resetConfiguration();
+//  if (abs(myCand.getEta()) == 121) quality = 4;
+    if (abs(myCand.getEta()) == 121) quality = 0; // changed on request from HI
 
-  myOmtfConfig = omtfConfig;
-  
-  myResults.assign(myOmtfConfig->nTestRefHits(),OMTFProcessor::resultsMap());
-  
-  const l1t::LUT* chargeLUT =  omtfPatterns->chargeLUT();
-  const l1t::LUT* etaLUT =  omtfPatterns->etaLUT();
-  const l1t::LUT* ptLUT =  omtfPatterns->ptLUT();
-  const l1t::LUT* pdfLUT =  omtfPatterns->pdfLUT();
-  const l1t::LUT* meanDistPhiLUT =  omtfPatterns->meanDistPhiLUT();
+    candidate.setHwQual (quality);
 
-  unsigned int nGPs = myOmtfConfig->nGoldenPatterns();
-  unsigned int address = 0;
-  unsigned int iEta, iPt;
-  int iCharge;
-  for(unsigned int iGP=0;iGP<nGPs;++iGP){
-    address = iGP;
-    iEta = etaLUT->data(address);
-    iCharge = chargeLUT->data(address)==0? -1:1;
-    iPt = ptLUT->data(address);
-
-    GoldenPattern::vector2D meanDistPhi2D(myOmtfConfig->nLayers());
-    GoldenPattern::vector1D pdf1D(exp2(myOmtfConfig->nPdfAddrBits()));
-    GoldenPattern::vector3D pdf3D(myOmtfConfig->nLayers());
-    GoldenPattern::vector2D pdf2D(myOmtfConfig->nRefLayers());
-    ///Mean dist phi data
-    for(unsigned int iLayer=0;iLayer<myOmtfConfig->nLayers();++iLayer){
-      GoldenPattern::vector1D meanDistPhi1D(myOmtfConfig->nRefLayers());
-      for(unsigned int iRefLayer=0;iRefLayer<myOmtfConfig->nRefLayers();++iRefLayer){
-	address = iRefLayer + iLayer*myOmtfConfig->nRefLayers() + iGP*(myOmtfConfig->nRefLayers()*myOmtfConfig->nLayers());
-	meanDistPhi1D[iRefLayer] = meanDistPhiLUT->data(address) - (1<<(meanDistPhiLUT->nrBitsData() -1));	
-      }
-      meanDistPhi2D[iLayer] = meanDistPhi1D;    
-      ///Pdf data
-      for(unsigned int iRefLayer=0;iRefLayer<myOmtfConfig->nRefLayers();++iRefLayer){
-	pdf1D.assign(1<<myOmtfConfig->nPdfAddrBits(),0);
-	for(unsigned int iPdf=0;iPdf<(unsigned int)(1<<myOmtfConfig->nPdfAddrBits());++iPdf){
-	  address = iPdf + iRefLayer*(1<<myOmtfConfig->nPdfAddrBits()) +
-	    iLayer*myOmtfConfig->nRefLayers()*(1<<myOmtfConfig->nPdfAddrBits()) +
-	    iGP*myOmtfConfig->nLayers()*myOmtfConfig->nRefLayers()*(1<<myOmtfConfig->nPdfAddrBits());
-	  pdf1D[iPdf] = pdfLUT->data(address);
-	}
-	pdf2D[iRefLayer] = pdf1D;
-      }
-      pdf3D[iLayer] = pdf2D;
-    }
-    Key aKey(iEta,iPt,iCharge,iGP);
-
-    GoldenPattern *aGP = new GoldenPattern(aKey, myOmtfConfig);
-    aGP->setMeanDistPhi(meanDistPhi2D);
-    aGP->setPdf(pdf3D);
-    addGP(aGP);    
+    std::map<int, int> trackAddr;
+    trackAddr[0] = myCand.getFiredLayerBits();
+    trackAddr[1] = myCand.getRefLayer();
+    trackAddr[2] = myCand.getDisc();
+    candidate.setTrackAddress(trackAddr);
+    candidate.setTFIdentifiers(iProcessor,mtfType);
+    if (candidate.hwPt() >= 0)  result.push_back(candidate);
   }
+  return result;
+}
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+template<class GoldenPatternType>
+bool OMTFProcessor<GoldenPatternType>::checkHitPatternValidity(unsigned int hits) {
+  ///FIXME: read the list from configuration so this can be controlled at runtime.
+  std::vector<unsigned int> badPatterns = {99840, 34304, 3075, 36928, 12300, 98816, 98944, 33408, 66688, 66176, 7171, 20528, 33856, 35840, 4156, 34880};
+
+  /*
+99840 01100001 1000 000000
+34304 00100001 1000 000000
+ 3075 00000011 0000 000011
+36928 00100100 0001 000000
+12300 00001100 0000 001100
+98816 01100000 1000 000000
+98944 01100000 1010 000000
+33408 00100000 1010 000000
+66688 01000001 0010 000000
+66176 01000000 1010 000000
+ 7171 00000111 0000 000011
+20528 00010100 0000 110000
+33856 00100001 0001 000000
+35840 00100011 0000 000000
+ 4156 00000100 0000 111100
+34880 00100010 0001 000000
+   */
+  for(auto aHitPattern: badPatterns){
+    if(hits==aHitPattern) return false;
+  }
+
   return true;
 }
-///////////////////////////////////////////////
-///////////////////////////////////////////////
-bool OMTFProcessor::addGP(GoldenPattern *aGP){
-
-  if(theGPs.find(aGP->key())!=theGPs.end()){
-    throw cms::Exception("Corrupted Golden Patterns data")
-      <<"OMTFProcessor::addGP(...) "
-      <<" Reading two Golden Patterns with the same key: "
-      <<aGP->key()<<std::endl;
-  }
-  else theGPs[aGP->key()] = aGP;
-
-  for(auto & itRegion: myResults){
-    OMTFResult aResult;
-    aResult.configure(myOmtfConfig);    
-    itRegion[aGP->key()] = aResult;
-  }
-
-  return true;
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+template<class GoldenPatternType>
+std::vector<AlgoMuon> OMTFProcessor<GoldenPatternType>::sortResults(unsigned int iProcessor, l1t::tftype mtfType, int charge) {
+  unsigned int procIndx = this->myOmtfConfig->getProcIndx(iProcessor, mtfType);
+  std::vector<AlgoMuon> algoCandidates = sorter->sortResults(procIndx, this->getPatterns(), charge);
+  return algoCandidates;
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
-void  OMTFProcessor::averagePatterns(int charge){
-
-  Key aKey(0, 9, charge);
-
-  while(theGPs.find(aKey)!=theGPs.end()){
-
-    GoldenPattern *aGP1 = theGPs.find(aKey)->second;
-    GoldenPattern *aGP2 = aGP1;
-    GoldenPattern *aGP3 = aGP1;
-    GoldenPattern *aGP4 = aGP1;
-
-    ++aKey.thePtCode;
-    while(theGPs.find(aKey)==theGPs.end() && aKey.thePtCode<=401) ++aKey.thePtCode;    
-    if(aKey.thePtCode<=401 && theGPs.find(aKey)!=theGPs.end()) aGP2 =  theGPs.find(aKey)->second;
-    
-    if(aKey.thePtCode>71){
-      ++aKey.thePtCode;
-      while(theGPs.find(aKey)==theGPs.end() && aKey.thePtCode<=401) ++aKey.thePtCode;    
-      if(aKey.thePtCode<=401 && theGPs.find(aKey)!=theGPs.end()) aGP3 =  theGPs.find(aKey)->second;
-
-      ++aKey.thePtCode;
-      while(theGPs.find(aKey)==theGPs.end() && aKey.thePtCode<=401) ++aKey.thePtCode;    
-      if(aKey.thePtCode<=401 && theGPs.find(aKey)!=theGPs.end()) aGP4 =  theGPs.find(aKey)->second;
-    }
-    else{
-      aGP3 = aGP1;
-      aGP4 = aGP2;
-    }    
-    //HACK. Have to clean this up.
-    ///Previously pt codes were going by steps of 1, now this is not the case
-    ++aKey.thePtCode;
-    while(theGPs.find(aKey)==theGPs.end() && aKey.thePtCode<=401) ++aKey.thePtCode;    
-    ///////////////////////////////
-    
-    
-    GoldenPattern::vector2D meanDistPhi  = aGP1->getMeanDistPhi();
-
-    GoldenPattern::vector2D meanDistPhi1  = aGP1->getMeanDistPhi();
-    GoldenPattern::vector2D meanDistPhi2  = aGP2->getMeanDistPhi();
-    GoldenPattern::vector2D meanDistPhi3  = aGP3->getMeanDistPhi();
-    GoldenPattern::vector2D meanDistPhi4  = aGP4->getMeanDistPhi();
-   
-    for(unsigned int iLayer=0;iLayer<myOmtfConfig->nLayers();++iLayer){
-      for(unsigned int iRefLayer=0;iRefLayer<myOmtfConfig->nRefLayers();++iRefLayer){
-      	meanDistPhi[iLayer][iRefLayer]+=meanDistPhi2[iLayer][iRefLayer];
-      	meanDistPhi[iLayer][iRefLayer]+=meanDistPhi3[iLayer][iRefLayer];
-      	meanDistPhi[iLayer][iRefLayer]+=meanDistPhi4[iLayer][iRefLayer];
-      	meanDistPhi[iLayer][iRefLayer]/=4;
-      }
-    }
-    
-    aGP1->setMeanDistPhi(meanDistPhi);
-    aGP2->setMeanDistPhi(meanDistPhi);
-
-    shiftGP(aGP1,meanDistPhi, meanDistPhi1);
-    shiftGP(aGP2,meanDistPhi, meanDistPhi2);   
-    if(aGP3!=aGP1 && aGP4!=aGP2){
-      aGP3->setMeanDistPhi(meanDistPhi);
-      aGP4->setMeanDistPhi(meanDistPhi);
-      shiftGP(aGP3,meanDistPhi, meanDistPhi3);   
-      shiftGP(aGP4,meanDistPhi, meanDistPhi4);   
+//const std::vector<OMTFProcessor::resultsMap> &
+template<class GoldenPatternType>
+const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor, l1t::tftype mtfType,
+    const OMTFinput & aInput){
+  unsigned int procIndx = this->myOmtfConfig->getProcIndx(iProcessor, mtfType);
+  for(auto& itGP: this->theGPs) {
+    for(auto& result : itGP->getResults()[procIndx]) {
+      result.reset();
     }
   }
-}
-///////////////////////////////////////////////
-///////////////////////////////////////////////
-void OMTFProcessor::shiftGP(GoldenPattern *aGP,
-			    const GoldenPattern::vector2D & meanDistPhiNew,
-			    const GoldenPattern::vector2D & meanDistPhiOld){
-
-  ///Shift pdfs by differecne between original menaDistPhi, and
-  ///the averaged value
-  unsigned int nPdfBins =  exp2(myOmtfConfig->nPdfAddrBits());
-  GoldenPattern::vector3D pdfAllRef = aGP->getPdf();
-
-  int indexShift = 0;
-  for(unsigned int iLayer=0;iLayer<myOmtfConfig->nLayers();++iLayer){
-    for(unsigned int iRefLayer=0;iRefLayer<myOmtfConfig->nRefLayers();++iRefLayer){
-      indexShift = meanDistPhiOld[iLayer][iRefLayer] - meanDistPhiNew[iLayer][iRefLayer];
-      for(unsigned int iPdfBin=0;iPdfBin<nPdfBins;++iPdfBin) pdfAllRef[iLayer][iRefLayer][iPdfBin] = 0;
-	for(unsigned int iPdfBin=0;iPdfBin<nPdfBins;++iPdfBin){
-	  if((int)(iPdfBin)+indexShift>=0 && iPdfBin+indexShift<nPdfBins)
-	    pdfAllRef[iLayer][iRefLayer][iPdfBin+indexShift] = aGP->pdfValue(iLayer, iRefLayer, iPdfBin);
-	}
-      }
-    }
-    aGP->setPdf(pdfAllRef);
-}
-///////////////////////////////////////////////
-///////////////////////////////////////////////
-const std::map<Key,GoldenPattern*> & OMTFProcessor::getPatterns() const{ return theGPs; }
-///////////////////////////////////////////////
-///////////////////////////////////////////////
-const std::vector<OMTFProcessor::resultsMap> & OMTFProcessor::processInput(unsigned int iProcessor,
-									   const OMTFinput & aInput){
-
-  for(auto & itRegion: myResults) for(auto & itKey: itRegion) itKey.second.clear();
 
   //////////////////////////////////////
-  //////////////////////////////////////  
+  //////////////////////////////////////
   std::bitset<128> refHitsBits = aInput.getRefHits(iProcessor);
-  if(refHitsBits.none()) return myResults;
-   
-  for(unsigned int iLayer=0;iLayer<myOmtfConfig->nLayers();++iLayer){
+  if(refHitsBits.none())
+    return; // myResults;
+
+  for(unsigned int iLayer=0; iLayer < this->myOmtfConfig->nLayers(); ++iLayer) {
     const OMTFinput::vector1D & layerHits = aInput.getLayerData(iLayer);
-    if(layerHits.empty()) continue;
-    ///Number of reference hits to be checked. 
-    unsigned int nTestedRefHits = myOmtfConfig->nTestRefHits();
-    for(unsigned int iRefHit=0;iRefHit<myOmtfConfig->nRefHits();++iRefHit){
+    /*for(auto& h : layerHits) {
+      if(h != 5400)
+        std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" layerHit "<<h<<std::endl;
+    }*/
+    if(layerHits.empty()) continue; //in principle not needed, the size is always 14
+    ///Number of reference hits to be checked.
+    unsigned int nTestedRefHits = this->myOmtfConfig->nTestRefHits();
+    for(unsigned int iRefHit = 0; iRefHit < this->myOmtfConfig->nRefHits(); ++iRefHit) { //loop over all possible refHits, i.e. 128
       if(!refHitsBits[iRefHit]) continue;
-      if(nTestedRefHits--==0) break;
-      const RefHitDef & aRefHitDef = myOmtfConfig->getRefHitsDefs()[iProcessor][iRefHit];
-      
-      int phiRef = aInput.getLayerData(myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer])[aRefHitDef.iInput];
-      int etaRef = aInput.getLayerData(myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer],true)[aRefHitDef.iInput];
+      if(nTestedRefHits-- == 0) break;
+
+      const RefHitDef& aRefHitDef = this->myOmtfConfig->getRefHitsDefs()[iProcessor][iRefHit];
+
+      int phiRef = aInput.getLayerData(this->myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer])[aRefHitDef.iInput];
+      int etaRef = aInput.getLayerData(this->myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer],true)[aRefHitDef.iInput];
       unsigned int iRegion = aRefHitDef.iRegion;
-      
-      if(myOmtfConfig->getBendingLayers().count(iLayer)) phiRef = 0;
-      const OMTFinput::vector1D restrictedLayerHits = restrictInput(iProcessor, iRegion, iLayer,layerHits);
-      for(auto itGP: theGPs){
-      	GoldenPattern::layerResult aLayerResult = itGP.second->process1Layer1RefLayer(aRefHitDef.iRefLayer,iLayer,
-      										      phiRef,
-      										      restrictedLayerHits);             
-      	int phiRefSt2 = itGP.second->propagateRefPhi(phiRef, etaRef, aRefHitDef.iRefLayer);       	
-      	myResults[myOmtfConfig->nTestRefHits()-nTestedRefHits-1][itGP.second->key()].setRefPhiRHits(aRefHitDef.iRefLayer, phiRef); 
-        myResults[myOmtfConfig->nTestRefHits()-nTestedRefHits-1][itGP.second->key()].addResult(aRefHitDef.iRefLayer,iLayer,
-													      aLayerResult.first,
-													      phiRefSt2,etaRef);	 
+
+      if(this->myOmtfConfig->getBendingLayers().count(iLayer)) //this iLayer is a banding layer
+        phiRef = 0;  //then in the delta_phi in process1Layer1RefLayer one obtains simply the iLayer phi
+
+      const OMTFinput::vector1D restrictedLayerHits = this->restrictInput(iProcessor, iRegion, iLayer, layerHits);
+      //std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" iRefLayer "<<aRefHitDef.iRefLayer<<" hits.size "<<restrictedLayerHits.size()<<std::endl;
+      //std::cout<<"iLayer "<<iLayer<<" refHitNum "<<myOmtfConfig->nTestRefHits()-nTestedRefHits-1<<" iRefHit "<<iRefHit;
+      //std::cout<<" nTestedRefHits "<<nTestedRefHits<<" aRefHitDef "<<aRefHitDef<<std::endl;
+
+      int refLayerLogicNumber = this->myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer];
+      int refLayerPhiB = 0;
+      if(refLayerLogicNumber < 6) {//is DT layer TODO - check
+        refLayerPhiB = aInput.getLayerData(refLayerLogicNumber+1)[aRefHitDef.iInput]; //corresponding bending layer has number +1 versus the phi DT layer - this is configured in the XML
+        if(this->myOmtfConfig->getBendingLayers().count(refLayerLogicNumber+1) == 0) {
+          throw cms::Exception("not good: the layer is not bending layer");
+        }
+      }
+
+      for(auto& itGP: this->theGPs) {
+        if(itGP->key().thePt == 0) //empty pattern
+          continue;
+        GoldenPatternResult::LayerResult layerResult = itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer,
+            phiRef,
+            restrictedLayerHits,
+            refLayerPhiB);
+        int phiRefSt2 = itGP->propagateRefPhi(phiRef, etaRef, aRefHitDef.iRefLayer);
+/*        myResults[myOmtfConfig->nTestRefHits()-nTestedRefHits-1][itGP.second->key()].setRefPhiRHits(aRefHitDef.iRefLayer, phiRef);
+        myResults[myOmtfConfig->nTestRefHits()-nTestedRefHits-1][itGP.second->key()].addResult(aRefHitDef.iRefLayer, iLayer,
+            aLayerResult.first,
+            phiRefSt2, etaRef);*/
+
+        itGP->getResults()[procIndx][this->myOmtfConfig->nTestRefHits()-nTestedRefHits-1].set(aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef, iLayer, layerResult);
       }
     }
   }
   //////////////////////////////////////
-  ////////////////////////////////////// 
-  for(auto & itRefHit: myResults) for(auto & itKey: itRefHit) itKey.second.finalise();
+  //////////////////////////////////////
+  {
+    /*unsigned int iRefHitNum  = 0;
+    for(auto & itRefHit: myResults) {
+      for(auto & itKey: itRefHit) {
+        itKey.second.finalise();
+        if(itKey.second.isValid())
+          std::cout<<"iRefHitNum "<<iRefHitNum<<" "<<itKey.first<<"\t"<<itKey.second<<std::endl;
+      }
+      iRefHitNum++;
+    }*/
 
-  std::ostringstream myStr;
-  myStr<<"iProcessor: "<<iProcessor<<std::endl;
-  myStr<<"Input: ------------"<<std::endl;
-  myStr<<aInput<<std::endl; 
-  edm::LogInfo("OMTF processor")<<myStr.str();
+    for(auto& itGP: this->theGPs) {
+      itGP->finalise(procIndx);
+    }
+  }
 
-
-  return myResults;
-}   
-////////////////////////////////////////////
-////////////////////////////////////////////
-OMTFinput::vector1D OMTFProcessor::restrictInput(unsigned int iProcessor,
-						 unsigned int iRegion,
-						 unsigned int iLayer,
-						 const OMTFinput::vector1D & layerHits){
-
-  OMTFinput::vector1D myHits = layerHits;
-  
-  unsigned int iStart = myOmtfConfig->getConnections()[iProcessor][iRegion][iLayer].first;
-  unsigned int iEnd = iStart + myOmtfConfig->getConnections()[iProcessor][iRegion][iLayer].second -1;
-
-  for(unsigned int iInput=0;iInput<14;++iInput){    
-    if(iInput<iStart || iInput>iEnd) myHits[iInput] = myOmtfConfig->nPhiBins();
-  }  
-  return myHits;
-}
-////////////////////////////////////////////
-////////////////////////////////////////////
-void OMTFProcessor::fillCounts(unsigned int iProcessor,
-			       const OMTFinput & aInput,
-			       const SimTrack* aSimMuon){
-
-  int theCharge = (abs(aSimMuon->type()) == 13) ? aSimMuon->type()/-13 : 0; 
-  unsigned int  iPt =  RPCConst::iptFromPt(aSimMuon->momentum().pt());
-  ///Stupid conersion. Have to go through PAC pt scale, as we later
-  ///shift resulting pt code by +1
-  iPt+=1;
-  if(iPt>31) iPt=200*2+1;
-  else iPt = RPCConst::ptFromIpt(iPt)*2.0+1;//MicroGMT has 0.5 GeV step size, with lower bin edge  (uGMT_pt_code - 1)*step_size
-  //////
-
-  //////////////////////////////////////  
-  std::bitset<128> refHitsBits = aInput.getRefHits(iProcessor);
-  if(refHitsBits.none()) return;
-
-  std::ostringstream myStr;
+/*  std::ostringstream myStr;
   myStr<<"iProcessor: "<<iProcessor<<std::endl;
   myStr<<"Input: ------------"<<std::endl;
   myStr<<aInput<<std::endl;
-  edm::LogInfo("OMTF processor")<<myStr.str();
-   
-  for(unsigned int iLayer=0;iLayer<myOmtfConfig->nLayers();++iLayer){
-    const OMTFinput::vector1D & layerHits = aInput.getLayerData(iLayer);
-    if(layerHits.empty()) continue;
-    ///Number of reference hits to be checked. 
-    for(unsigned int iRefHit=0;iRefHit<myOmtfConfig->nRefHits();++iRefHit){
-      if(!refHitsBits[iRefHit]) continue;
-      const RefHitDef & aRefHitDef = myOmtfConfig->getRefHitsDefs()[iProcessor][iRefHit];
-      int phiRef = aInput.getLayerData(myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer])[aRefHitDef.iInput]; 
-      unsigned int iRegion = aRefHitDef.iRegion;
-      if(myOmtfConfig->getBendingLayers().count(iLayer)) phiRef = 0;
-      const OMTFinput::vector1D restrictedLayerHits = restrictInput(iProcessor, iRegion, iLayer,layerHits);
-      for(auto itGP: theGPs){	
-	if(itGP.first.theCharge!=theCharge) continue;
-	if(itGP.first.thePtCode!=iPt) continue;
-        itGP.second->addCount(aRefHitDef.iRefLayer,iLayer,phiRef,restrictedLayerHits);
-      }
-    }
-  }
+  edm::LogInfo("OMTF processor")<<myStr.str();*/
+
+  return;
 }
-////////////////////////////////////////////
-////////////////////////////////////////////
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+
+template class OMTFProcessor<GoldenPattern>;
+template class OMTFProcessor<GoldenPatternParametrised>;
+template class OMTFProcessor<GoldenPatternWithStat>;
+template class OMTFProcessor<GoldenPatternWithThresh>;

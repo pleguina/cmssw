@@ -6,6 +6,7 @@
 #include "CondFormats/DataRecord/interface/L1TMuonOverlapParamsRcd.h"
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
 
+#include "L1Trigger/L1TMuonOverlap/plugins/L1TMuonOverlapTrackProducer.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessor.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFinput.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFReconstruction.h"
@@ -13,15 +14,24 @@
 #include "L1Trigger/L1TMuonOverlap/interface/XMLConfigWriter.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OmtfName.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GhostBusterPreferRefDt.h"
+#include "L1Trigger/L1TMuonOverlap/interface/OMTFSorterWithThreshold.h"
+#include "L1Trigger/L1TMuonOverlap/interface/XMLConfigReader.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternParametrised.h"
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternWithStat.h"
+#include "L1Trigger/L1TMuonOverlap/interface/PatternOptimizer.h"
+
+#include "L1Trigger/L1TMuonOverlap/interface/XMLEventWriter.h"
 
 #include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 
-OMTFReconstruction::OMTFReconstruction() :
-  m_OMTFConfig(nullptr), m_OMTF(nullptr), aTopElement(nullptr), m_OMTFConfigMaker(nullptr), m_Writer(nullptr){}
+#include <boost/timer/timer.hpp>
+
+/*OMTFReconstruction::OMTFReconstruction() :
+  m_OMTFConfig(nullptr), m_OMTF(nullptr), aTopElement(nullptr), m_OMTFConfigMaker(nullptr), m_Writer(nullptr){}*/
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 OMTFReconstruction::OMTFReconstruction(const edm::ParameterSet& theConfig) :
-  m_Config(theConfig), m_OMTFConfig(nullptr), m_OMTF(nullptr), aTopElement(nullptr), m_OMTFConfigMaker(nullptr), m_Writer(nullptr) {
+  m_Config(theConfig), m_OMTFConfig(nullptr), m_OMTF(nullptr), m_OMTFConfigMaker(nullptr) {
 
   dumpResultToXML = m_Config.getParameter<bool>("dumpResultToXML");
   dumpDetailedResultToXML = m_Config.getParameter<bool>("dumpDetailedResultToXML");
@@ -36,64 +46,192 @@ OMTFReconstruction::~OMTFReconstruction(){
   delete m_OMTFConfig;
   delete m_OMTF;  
 
-  if (m_Writer) delete m_Writer;
+  //if (m_Writer) delete m_Writer;
 }
 
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFReconstruction::beginJob() {
-  
+    //std::cout<<__FUNCTION__<<":"<<__LINE__<<"test!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<std::endl;
     m_OMTFConfig = new OMTFConfiguration();
-    m_OMTF = new OMTFProcessor();
+    //m_OMTF = new OMTFProcessor<GoldenPattern>();
+    //m_OMTF = new OMTFProcessor<GoldenPatternParametrised>();
 
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFReconstruction::endJob(){
-
-  if(dumpResultToXML){
+/*  if(dumpResultToXML){
     std::string fName = m_Config.getParameter<std::string>("XMLDumpFileName");
     m_Writer->finaliseXMLDocument(fName);
-  } 
+  } */
+
+  for(auto& obs : observers) {
+    obs->endJob();
+  }
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iSetup) {
+  const L1TMuonOverlapParams* omtfParams = 0;
+  if(m_OMTF == 0 || m_Config.exists("patternsXMLFile") == false) {
+    edm::LogImportant("OMTFReconstruction") << "retrieving parameters from Event Setup" << std::endl;
 
-  const L1TMuonOverlapParamsRcd& omtfRcd = iSetup.get<L1TMuonOverlapParamsRcd>();
-  
-  edm::ESHandle<L1TMuonOverlapParams> omtfParamsHandle;
-  omtfRcd.get(omtfParamsHandle);
+    const L1TMuonOverlapParamsRcd& omtfRcd = iSetup.get<L1TMuonOverlapParamsRcd>();
+    edm::ESHandle<L1TMuonOverlapParams> omtfParamsHandle;
+    omtfRcd.get(omtfParamsHandle);
+    omtfParams = omtfParamsHandle.product();
+    if (!omtfParams) {
+      edm::LogError("OMTFReconstruction") << "Could not retrieve parameters from Event Setup" << std::endl;
+    }
+    m_OMTFConfig->configure(omtfParams);
 
-  const L1TMuonOverlapParams* omtfParams = omtfParamsHandle.product();
+    //patterns from the L1TMuonOverlapParamsESProducer, are reloaded every run begin
+    if(m_OMTF == 0 && m_Config.exists("patternsXMLFile") == false) {
+      edm::LogInfo("OMTFReconstruction") << "getting patterns from L1TMuonOverlapParamsESProducer" << std::endl;
+      //m_OMTFConfig->initPatternPtRange();
+      OMTFProcessor<GoldenPattern>* proc =  new OMTFProcessor<GoldenPattern>(m_OMTFConfig);
+      m_OMTF = proc;
 
-  if (!omtfParams) {
-    edm::LogError("L1TMuonOverlapTrackProducer") << "Could not retrieve parameters from Event Setup" << std::endl;
+      m_OMTF->configure(m_OMTFConfig, omtfParams);
+      m_OMTFConfig->setPatternPtRange(proc->getPatternPtRange() );
+    }
   }
+  if(m_OMTF == 0 && m_Config.exists("patternsXMLFile") ) {//if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
+    std::string patternsXMLFile = m_Config.getParameter<edm::FileInPath>("patternsXMLFile").fullPath();
+    edm::LogImportant("OMTFReconstruction") << "reading patterns from "<<patternsXMLFile << std::endl;
+    XMLConfigReader xmlReader;
+    xmlReader.setPatternsFile(patternsXMLFile);
 
-  m_OMTFConfig->configure(omtfParams);
-  m_OMTF->configure(m_OMTFConfig, omtfParams);
-  //m_GhostBuster.setNphiBins(m_OMTFConfig->nPhiBins());
+    std::string patternType = "GoldenPattern"; //GoldenPatternParametrised GoldenPatternWithStat GoldenPattern
+    if(m_Config.exists("patternType") ){
+      patternType = m_Config.getParameter<std::string>("patternType");
+    }
+    std::cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;
+    if(patternType == "GoldenPattern") {
+      OMTFProcessor<GoldenPattern>* proc =  new OMTFProcessor<GoldenPattern>(m_OMTFConfig);
+      m_OMTF = proc;
 
-  if (m_OMTFConfig->fwVersion() >= 5) {
-//  if(m_Config.exists("ghostBusterType") ) {
-//    if(m_Config.getParameter<std::string>("ghostBusterType") == "GhostBusterPreferRefDt")
-    	m_GhostBuster.reset(new GhostBusterPreferRefDt(m_OMTFConfig) );
+      auto const& gps = xmlReader.readPatterns<GoldenPattern>(*omtfParams);
+      proc->setGPs(gps);
+      m_OMTFConfig->setPatternPtRange(proc->getPatternPtRange() );
+      edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. GoldenPattern type: "<<patternType<<" size: "<<gps.size() << std::endl;
+    }
+    else if(patternType == "GoldenPatternWithStat") {
+      std::cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;
+      OMTFProcessor<GoldenPatternWithStat>* proc =  new OMTFProcessor<GoldenPatternWithStat>(m_OMTFConfig);
+      m_OMTF = proc;
+
+      auto gps = xmlReader.readPatterns<GoldenPatternWithStat>(*omtfParams);
+      proc->setGPs(gps);
+      m_OMTFConfig->setPatternPtRange(proc->getPatternPtRange() );
+      edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. GoldenPattern type: "<<patternType<<" size: "<<gps.size() << std::endl;
+
+      std::unique_ptr<IOMTFEmulationObserver> obs(new PatternOptimizer(m_Config, m_OMTFConfig, gps));
+      observers.emplace_back(std::move(obs));
+
+      for(auto gp : gps) {
+        gp->init();
+      }
+
+      for(auto& gp : gps) {
+        edm::LogImportant("OMTFReconstruction")<<gp->key()<<" "
+            <<m_OMTFConfig->getPatternPtRange(gp->key().theNumber).ptFrom
+            <<" - "<<m_OMTFConfig->getPatternPtRange(gp->key().theNumber).ptTo<<" GeV"<<std::endl;
+      }
+
+      if(m_Config.exists("sorterType") ) {//TODO add it also for the patternType == "GoldenPattern" - if needed
+        string sorterType = m_Config.getParameter<std::string>("sorterType");
+        edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. sorterType: "<<sorterType<< std::endl;
+        if(sorterType == "sorterWithThreshold") {
+          GoldenPatternResult::setFinalizeFunction(2);
+
+          OMTFSorterWithThreshold<GoldenPatternWithStat>::Mode mode = OMTFSorterWithThreshold<GoldenPatternWithStat>::bestGPByMaxGpProbability1;
+          string modeStr = m_Config.getParameter<std::string>("sorterWithThresholdMode");
+          if(modeStr == "bestGPByThresholdOnProbability2")
+            mode = OMTFSorterWithThreshold<GoldenPatternWithStat>::bestGPByThresholdOnProbability2;
+          else if(modeStr == "bestGPByMaxGpProbability1")
+            mode = OMTFSorterWithThreshold<GoldenPatternWithStat>::bestGPByMaxGpProbability1;
+
+          proc->setSorter(new OMTFSorterWithThreshold<GoldenPatternWithStat>(m_OMTFConfig, mode));
+        }
+      }
+    }
+    else if(patternType == "GoldenPatternWithThresh") {
+      std::cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;
+      OMTFProcessor<GoldenPatternWithThresh>* proc =  new OMTFProcessor<GoldenPatternWithThresh>(m_OMTFConfig);
+      m_OMTF = proc;
+
+      auto gps = xmlReader.readPatterns<GoldenPatternWithThresh>(*omtfParams);
+      proc->setGPs(gps);
+      m_OMTFConfig->setPatternPtRange(proc->getPatternPtRange() );
+      edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. GoldenPattern type: "<<patternType<<" size: "<<gps.size() << std::endl;
+
+      //std::unique_ptr<IOMTFEmulationObserver> obs(new PatternOptimizer(m_Config, m_OMTFConfig, gps));
+      //observers.emplace_back(std::move(obs));
+
+      for(auto& gp : gps) {
+        edm::LogImportant("OMTFReconstruction")<<gp->key()<<" "
+            <<m_OMTFConfig->getPatternPtRange(gp->key().theNumber).ptFrom
+            <<" - "<<m_OMTFConfig->getPatternPtRange(gp->key().theNumber).ptTo<<" GeV"<<" threshold "<<gp->getThreshold(0)<<std::endl;
+      }
+
+      if(m_Config.exists("sorterType") ) {//TODO add it also for the patternType == "GoldenPattern" - if needed
+        string sorterType = m_Config.getParameter<std::string>("sorterType");
+        edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. sorterType: "<<sorterType<< std::endl;
+        if(sorterType == "sorterWithThreshold") {
+          GoldenPatternResult::setFinalizeFunction(2);
+
+          OMTFSorterWithThreshold<GoldenPatternWithThresh>::Mode mode = OMTFSorterWithThreshold<GoldenPatternWithThresh>::bestGPByMaxGpProbability1;
+          string modeStr = m_Config.getParameter<std::string>("sorterWithThresholdMode");
+          if(modeStr == "bestGPByThresholdOnProbability2")
+            mode = OMTFSorterWithThreshold<GoldenPatternWithThresh>::bestGPByThresholdOnProbability2;
+          else if(modeStr == "bestGPByMaxGpProbability1")
+            mode = OMTFSorterWithThreshold<GoldenPatternWithThresh>::bestGPByMaxGpProbability1;
+
+          proc->setSorter(new OMTFSorterWithThreshold<GoldenPatternWithThresh>(m_OMTFConfig, mode));
+        }
+      }
+    }
+    else if(patternType == "GoldenPatternParametrised") {
+      OMTFProcessor<GoldenPatternParametrised>* proc = new OMTFProcessor<GoldenPatternParametrised>(m_OMTFConfig);
+      m_OMTF = proc;
+
+      auto const& gps = xmlReader.readPatterns<GoldenPattern>(*omtfParams);
+      proc->resetConfiguration();
+      for(auto& gp :  gps) {
+        if(gp.get() != 0) {
+          gp->setConfig(m_OMTFConfig);
+          edm::LogImportant("OMTFReconstruction") <<gp->key()<< std::endl;
+          GoldenPatternParametrised* newGp = new GoldenPatternParametrised(gp.get());
+          proc->addGP(newGp);
+        }
+      }
+
+      m_OMTFConfig->setPatternPtRange(proc->getPatternPtRange() );
+      edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. GoldenPattern type: "<<patternType<<" size: "<<gps.size() << std::endl;
+    }
+    else {
+      throw cms::Exception("OMTFReconstruction::beginRun: unknown GoldenPattern type: " + patternType);
+    }
+
   }
-  else {
-	  m_GhostBuster.reset(new GhostBuster() );
-  }
-
-  m_Sorter.initialize(m_OMTFConfig);
-  m_Sorter.setNphiBins(m_OMTFConfig->nPhiBins());
 
   m_InputMaker.initialize(iSetup, m_OMTFConfig);
 
   if(dumpResultToXML){
-    m_Writer = new XMLConfigWriter(m_OMTFConfig);
-    std::string fName = "OMTF";
-    m_Writer->initialiseXMLDocument(fName);
+    std::unique_ptr<IOMTFEmulationObserver> obs(new XMLEventWriter(m_OMTFConfig, m_Config.getParameter<std::string>("XMLDumpFileName")));
+    observers.emplace_back(std::move(obs));
   }
+
+  if(m_Config.exists("ghostBusterType") ) {
+    if(m_Config.getParameter<std::string>("ghostBusterType") == "GhostBusterPreferRefDt")
+      m_OMTF->setGhostBuster(new GhostBusterPreferRefDt(m_OMTFConfig));
+  }
+  else if (m_OMTFConfig->fwVersion() >= 5) {
+	  m_OMTF->setGhostBuster(new GhostBusterPreferRefDt(m_OMTFConfig) );
+  }
+  
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -101,21 +239,30 @@ std::unique_ptr<l1t::RegionalMuonCandBxCollection> OMTFReconstruction::reconstru
 
   loadAndFilterDigis(iEvent);
 
-  if(dumpResultToXML) aTopElement = m_Writer->writeEventHeader(iEvent.id().event());
+  //if(dumpResultToXML) aTopElement = m_Writer->writeEventHeader(iEvent.id().event());
+  theEvent = iEvent.id().event();
+  
+  for(auto& obs : observers) {
+    obs->observeEventBegin(iEvent);
+  }
 
-  std::unique_ptr<l1t::RegionalMuonCandBxCollection> candidates(new l1t::RegionalMuonCandBxCollection );
+  std::unique_ptr<l1t::RegionalMuonCandBxCollection> candidates(new l1t::RegionalMuonCandBxCollection);
   candidates->setBXRange(bxMin, bxMax);
 
   ///The order is important: first put omtf_pos candidates, then omtf_neg.
   for(int bx = bxMin; bx<= bxMax; bx++) {
-
+  
     for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor)
       getProcessorCandidates(iProcessor, l1t::tftype::omtf_pos, bx, *candidates);
 
     for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor)
       getProcessorCandidates(iProcessor, l1t::tftype::omtf_neg, bx, *candidates);
-    
-    edm::LogInfo("OMTFReconstruction") <<"OMTF:  Number of candidates in BX="<<bx<<": "<<candidates->size(bx) << std::endl;;
+      
+    edm::LogInfo("OMTFReconstruction") <<"OMTF:  Number of candidates in BX="<<bx<<": "<<candidates->size(bx) << std::endl;;  
+  }
+  
+  for(auto& obs : observers) {
+    obs->observeEventEnd(iEvent);
   }
 
   return candidates;
@@ -140,7 +287,7 @@ void OMTFReconstruction::loadAndFilterDigis(const edm::Event& iEvent){
 void OMTFReconstruction::getProcessorCandidates(unsigned int iProcessor, l1t::tftype mtfType, int bx,
                l1t::RegionalMuonCandBxCollection & omtfCandidates){
 
-  
+  //boost::timer::auto_cpu_timer t("%ws wall, %us user in getProcessorCandidates\n");
   m_InputMaker.setFlag(0);
   OMTFinput input = m_InputMaker.buildInputForProcessor(dtPhDigis.product(),
                 dtThDigis.product(),
@@ -148,53 +295,28 @@ void OMTFReconstruction::getProcessorCandidates(unsigned int iProcessor, l1t::tf
                 rpcDigis.product(),
                 iProcessor, mtfType, bx);
   int flag = m_InputMaker.getFlag();
-  
-  const std::vector<OMTFProcessor::resultsMap> & results = m_OMTF->processInput(iProcessor,input);
-
-  std::vector<AlgoMuon> algoCandidates;
-
-  m_Sorter.sortRefHitResults(results, algoCandidates);  
-
+  //cout<<"buildInputForProce "; t.report();
+  m_OMTF->processInput(iProcessor, mtfType, input);
+  //cout<<"processInput       "; t.report();
+  std::vector<AlgoMuon> algoCandidates =  m_OMTF->sortResults(iProcessor, mtfType);
+  //cout<<"sortResults        "; t.report();
   // perform GB 
-  std::vector<AlgoMuon> gbCandidates =  m_GhostBuster->select(algoCandidates);
-  
+  std::vector<AlgoMuon> gbCandidates =  m_OMTF->ghostBust(algoCandidates);
+  //cout<<"ghostBust          "; t.report();
   // fill RegionalMuonCand colleciton
-  std::vector<l1t::RegionalMuonCand> candMuons = m_Sorter.candidates(iProcessor, mtfType, gbCandidates);
-
+  std::vector<l1t::RegionalMuonCand> candMuons = m_OMTF->getFinalcandidates(iProcessor, mtfType, gbCandidates);
+  //cout<<"getFinalcandidates "; t.report();
   //fill outgoing collection
   for (auto & candMuon :  candMuons) {
      candMuon.setHwQual( candMuon.hwQual() | flag);         //FIXME temporary debug fix
      omtfCandidates.push_back(bx, candMuon);
   }
-  
   //dump to XML
-  if(bx==0)writeResultToXML(iProcessor, mtfType,  input, results, candMuons);
-}
-/////////////////////////////////////////////////////
-/////////////////////////////////////////////////////
-void OMTFReconstruction::writeResultToXML(unsigned int iProcessor,  l1t::tftype mtfType,  const OMTFinput &input, 
-               const std::vector<OMTFProcessor::resultsMap> & results,
-               const std::vector<l1t::RegionalMuonCand> & candMuons ){
-
-  int endcap =  (mtfType == l1t::omtf_neg) ? -1 : ( ( mtfType == l1t::omtf_pos) ? +1 : 0 );
-  OmtfName board(iProcessor, endcap); 
-
-  //Write data to XML file
-  if(dumpResultToXML){
-    xercesc::DOMElement * aProcElement = m_Writer->writeEventData(aTopElement, board, input);
-    for(unsigned int iRefHit=0;iRefHit<m_OMTFConfig->nTestRefHits();++iRefHit){
-      ///Dump only regions, where a candidate was found
-      AlgoMuon algoMuon = m_Sorter.sortRefHitResults(results[iRefHit],0);//charge=0 means ignore charge
-      if(algoMuon.getPt()) {
-        m_Writer->writeAlgoMuon(aProcElement,iRefHit,algoMuon);
-        if(dumpDetailedResultToXML){
-          for(auto & itKey: results[iRefHit])
-            m_Writer->writeResultsData(aProcElement, iRefHit, itKey.first,itKey.second);
-        }
-      }
+  //if(bx==0) writeResultToXML(iProcessor, mtfType,  input, algoCandidates, candMuons); //TODO handle bx
+  //if(bx==0)
+    for(auto& obs : observers) {
+      obs->observeProcesorEmulation(iProcessor, mtfType,  input, algoCandidates, gbCandidates, candMuons);
     }
-    for (auto & candMuon :  candMuons) m_Writer->writeCandMuon(aProcElement, candMuon);
-  }
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
-#ifndef OMTFPatternMaker_H
-#define OMTFPatternMaker_H
+#ifndef OMTFTrainer_H
+#define OMTFTrainer_H
 
 #include "xercesc/util/XercesDefs.hpp"
 
@@ -7,7 +7,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/EDProducer.h"
 
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhContainer.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
@@ -17,13 +17,13 @@
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 
-#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternPdfGen.h"
-#include "L1Trigger/L1TMuonOverlap/interface/PdfGeneratorProcessor.h"
+#include "L1Trigger/L1TMuonOverlap/interface/OMTFReconstruction.h"
+
+#include <TH1.h>
 
 class OMTFConfiguration;
 class OMTFConfigMaker;
 class OMTFinputMaker;
-class GoldenPattern;
 
 class SimTrack;
 
@@ -35,24 +35,23 @@ namespace XERCES_CPP_NAMESPACE{
   class DOMImplementation;
 }
 
-class OMTFPatternMaker : public edm::EDAnalyzer {
+class OMTFTrainer : public edm::EDProducer {
 public:
 
-  OMTFPatternMaker(const edm::ParameterSet & cfg);
+	OMTFTrainer(const edm::ParameterSet & cfg);
 
-  ~OMTFPatternMaker() override;
+  virtual ~OMTFTrainer();
 
-  void beginRun(edm::Run const& run, edm::EventSetup const& iSetup) override;
+  virtual void beginRun(edm::Run const& run, edm::EventSetup const& iSetup);
 
-  void beginJob() override;
+  virtual void beginJob();
 
-  void endJob() override;
+  virtual void endJob();
   
-  void analyze(const edm::Event&, const edm::EventSetup&) override;  
+  virtual void produce(edm::Event&, const edm::EventSetup&);
 
 private:
-
-  const SimTrack *findSimMuon(const edm::Event &ev, const edm::EventSetup &es, const SimTrack *previous=nullptr);
+ // const SimTrack *findSimMuon(const edm::Event &ev, const edm::EventSetup &es, const SimTrack *previous=0);
 
   edm::ParameterSet theConfig;
   edm::InputTag g4SimTrackSrc;
@@ -62,22 +61,13 @@ private:
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> inputTokenCSC;
   edm::EDGetTokenT<RPCDigiCollection> inputTokenRPC;
   edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimHit;
-
-  void writeMergedGPs();
   
-  bool makeConnectionsMaps, makeGoldenPatterns, mergeXMLFiles;
+  OMTFReconstruction m_Reconstruction;
 
-  ///Original pdf width. read from configuration.
-  unsigned int nPdfAddrBits;
-  
-  ///OMTF objects
-  OMTFConfiguration *myOMTFConfig;
-  OMTFinputMaker *myInputMaker;
-  PdfGeneratorProcessor<GoldenPatternPdfGen>* myOMTF;
-  ///
-  xercesc::DOMElement *aTopElement;
-  OMTFConfigMaker *myOMTFConfigMaker;
-  XMLConfigWriter *myWriter;
+  TH1I* ptDist;
+
+  double etaCutFrom = 0;
+  double etaCutTo = 0;
 
 }; 
 
