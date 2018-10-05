@@ -68,7 +68,7 @@ std::vector<AlgoMuon> GhostBusterPreferRefDt::select(std::vector<AlgoMuon> muons
     refHitCleanCands.push_back(fixed);
   } 
 
-  refHitCleanCands.resize( 3, AlgoMuon(0,999,9999,0,0,0,0,0) ); 
+  refHitCleanCands.resize( 3, AlgoMuon() ); 
 /*
   std::stringstream myStr;
   bool hasCandidates = false;

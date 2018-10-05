@@ -31,7 +31,7 @@
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 OMTFReconstruction::OMTFReconstruction(const edm::ParameterSet& theConfig) :
-  m_Config(theConfig), m_OMTFConfig(nullptr), m_OMTF(nullptr), aTopElement(nullptr), m_OMTFConfigMaker(nullptr), m_Writer(nullptr) {
+  m_Config(theConfig), m_OMTFConfig(nullptr), m_OMTF(nullptr), m_OMTFConfigMaker(nullptr) {
 
   dumpResultToXML = m_Config.getParameter<bool>("dumpResultToXML");
   dumpDetailedResultToXML = m_Config.getParameter<bool>("dumpDetailedResultToXML");
@@ -229,7 +229,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
       m_OMTF->setGhostBuster(new GhostBusterPreferRefDt(m_OMTFConfig));
   }
   else if (m_OMTFConfig->fwVersion() >= 5) {
-    	m_GhostBuster.reset(new GhostBusterPreferRefDt(m_OMTFConfig) );
+	  m_OMTF->setGhostBuster(new GhostBusterPreferRefDt(m_OMTFConfig) );
   }
   
 }
@@ -313,9 +313,10 @@ void OMTFReconstruction::getProcessorCandidates(unsigned int iProcessor, l1t::tf
   }
   //dump to XML
   //if(bx==0) writeResultToXML(iProcessor, mtfType,  input, algoCandidates, candMuons); //TODO handle bx
-  for(auto& obs : observers) {
-    obs->observeProcesorEmulation(iProcessor, mtfType,  input, algoCandidates, gbCandidates, candMuons);
-  }
+  //if(bx==0)
+    for(auto& obs : observers) {
+      obs->observeProcesorEmulation(iProcessor, mtfType,  input, algoCandidates, gbCandidates, candMuons);
+    }
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////

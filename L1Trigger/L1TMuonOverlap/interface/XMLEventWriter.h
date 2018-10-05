@@ -17,22 +17,26 @@ public:
 
   virtual ~XMLEventWriter();
 
-  virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
+  void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
       const std::vector<AlgoMuon>& algoCandidates,
       std::vector<AlgoMuon>& gbCandidates,
-      const std::vector<l1t::RegionalMuonCand> & candMuons);
+      const std::vector<l1t::RegionalMuonCand> & candMuons) override;
 
-  virtual void observeEventBegin(const edm::Event& iEvent);
+  void observeEventBegin(const edm::Event& iEvent) override;
 
-  virtual void endJob();
+  void observeEventEnd(const edm::Event& iEvent) override;
+
+  void endJob() override;
 private:
   const OMTFConfiguration* omtfConfig;
   XMLConfigWriter xmlWriter;
-  xercesc::DOMElement* topElement;
+  xercesc::DOMElement* currentElement;
 
   std::string fName;
 
   unsigned int eventNum = 0;
+
+  unsigned int eventId = 0;
 };
 
 #endif /* INTERFACE_XMLEVENTWRITER_H_ */
