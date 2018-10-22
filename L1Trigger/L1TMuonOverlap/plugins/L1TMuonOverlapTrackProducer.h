@@ -22,6 +22,7 @@
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFSorter.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessor.h"
 
+#include "SimDataFormats/Track/interface/SimTrackContainer.h"
 
 class L1TMuonOverlapParams;
 class OMTFConfiguration;
@@ -59,6 +60,8 @@ class L1TMuonOverlapTrackProducer : public edm::EDProducer {
   edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDTTh;
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> inputTokenCSC;
   edm::EDGetTokenT<RPCDigiCollection> inputTokenRPC;
+
+  edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimHit; //TODO remove
 
   bool dumpResultToXML, dumpDetailedResultToXML;
 

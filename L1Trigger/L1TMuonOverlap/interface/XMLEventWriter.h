@@ -18,8 +18,8 @@ public:
   virtual ~XMLEventWriter();
 
   void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
-      const std::vector<AlgoMuon>& algoCandidates,
-      std::vector<AlgoMuon>& gbCandidates,
+      const AlgoMuons& algoCandidates,
+      const AlgoMuons& gbCandidates,
       const std::vector<l1t::RegionalMuonCand> & candMuons) override;
 
   void observeEventBegin(const edm::Event& iEvent) override;

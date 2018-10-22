@@ -21,7 +21,14 @@ class ProcessorBase {
 public:
   typedef std::vector< std::shared_ptr<GoldenPatternType> > GoldenPatternVec;
 
-  ProcessorBase(const OMTFConfiguration* omtfConfig): myOmtfConfig(omtfConfig)  {
+  ProcessorBase(OMTFConfiguration* omtfConfig, const L1TMuonOverlapParams* omtfPatterns): myOmtfConfig(omtfConfig)  {
+    configure(omtfConfig, omtfPatterns);
+  };
+
+  ProcessorBase(OMTFConfiguration* omtfConfig, const GoldenPatternVec& gps): myOmtfConfig(omtfConfig)  {
+    setGPs(gps);
+    initPatternPtRange(true);
+    omtfConfig->setPatternPtRange( getPatternPtRange() );
   };
 
   virtual ~ProcessorBase() {
@@ -33,7 +40,7 @@ public:
   };
 
   ///Fill GP vec with patterns from CondFormats object
-  virtual bool configure(const OMTFConfiguration * omtfParams, const L1TMuonOverlapParams* omtfPatterns);
+  virtual bool configure(OMTFConfiguration * omtfParams, const L1TMuonOverlapParams* omtfPatterns);
 
   ///Add GoldenPattern to pattern vec.
   virtual void addGP(GoldenPatternType *aGP);

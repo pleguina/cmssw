@@ -17,7 +17,8 @@
 
 class PatternsGeneratorProcessor: public ProcessorBase<GoldenPattern> {
 public:
-  PatternsGeneratorProcessor(const OMTFConfiguration* omtfConfig);
+  PatternsGeneratorProcessor(OMTFConfiguration* omtfConfig, const L1TMuonOverlapParams* omtfPatterns): ProcessorBase<GoldenPattern>(omtfConfig, omtfPatterns) {};
+
   virtual ~PatternsGeneratorProcessor();
 
   void generatePatterns();

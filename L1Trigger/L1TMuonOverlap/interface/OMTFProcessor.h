@@ -3,24 +3,31 @@
 
 #include <memory>
 
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
+
+#include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhContainer.h"
+#include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
+#include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigiCollection.h"
+#include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 
 #include "L1Trigger/L1TMuonOverlap/interface/IProcessorEmulator.h"
 #include "L1Trigger/L1TMuonOverlap/interface/ProcessorBase.h"
 #include "L1Trigger/L1TMuonOverlap/interface/SorterBase.h"
 
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPattern.h"
-#include <L1Trigger/L1TMuonOverlap/interface/GoldenPatternResult.h>
-#include <L1Trigger/L1TMuonOverlap/interface/SorterBase.h>
+#include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternResult.h"
+#include "L1Trigger/L1TMuonOverlap/interface/SorterBase.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
 #include "L1Trigger/L1TMuonOverlap/interface/AlgoMuon.h"
 #include "L1Trigger/L1TMuonOverlap/interface/IGhostBuster.h"
+#include "L1Trigger/L1TMuonOverlap/interface/OMTFinputMaker.h"
 
 
 class OMTFinput;
-
-class SimTrack;
 
 namespace edm{
 class ParameterSet;
@@ -30,14 +37,16 @@ template <class GoldenPatternType>
 class OMTFProcessor: public ProcessorBase<GoldenPatternType>, public IProcessorEmulator {
  public:
 
-  OMTFProcessor(const OMTFConfiguration* myOmtfConfig);
+  OMTFProcessor(OMTFConfiguration* omtfConfig, const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup, const L1TMuonOverlapParams* omtfPatterns);
+
+  OMTFProcessor(OMTFConfiguration* omtfConfig, const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup, const typename ProcessorBase<GoldenPatternType>::GoldenPatternVec& gps);
 
   virtual ~OMTFProcessor();
 
   ///Fill GP vec with patterns from CondFormats object
-  virtual bool configure(const OMTFConfiguration* omtfParams, const L1TMuonOverlapParams* omtfPatterns) {
+/*  virtual bool configure(const OMTFConfiguration* omtfParams, const L1TMuonOverlapParams* omtfPatterns) {
     return ProcessorBase<GoldenPatternType>::configure(omtfParams, omtfPatterns);
-  }
+  }*/
 
    ///Process input data from a single event
   ///Input data is represented by hits in logic layers expressed in local coordinates
@@ -47,16 +56,16 @@ class OMTFProcessor: public ProcessorBase<GoldenPatternType>, public IProcessorE
   virtual const void processInput(unsigned int iProcessor, l1t::tftype mtfType,
 							      const OMTFinput & aInput);
   
-  virtual std::vector<AlgoMuon> sortResults(unsigned int iProcessor, l1t::tftype mtfType, int charge=0);
+  virtual AlgoMuons sortResults(unsigned int iProcessor, l1t::tftype mtfType, int charge=0);
 
-  virtual std::vector<AlgoMuon> ghostBust(std::vector<AlgoMuon> refHitCands, int charge=0) {
+  virtual AlgoMuons ghostBust(AlgoMuons refHitCands, int charge=0) {
     return ghostBuster->select(refHitCands, charge);
   }
 
   //convert algo muon to outgoing Candidates
   virtual std::vector<l1t::RegionalMuonCand> getFinalcandidates(
                  unsigned int iProcessor, l1t::tftype mtfType,
-                 const std::vector<AlgoMuon> & algoCands);
+                 const AlgoMuons& algoCands);
 
   ///allows to use other sorter implementation than the default one
   virtual void setSorter(SorterBase<GoldenPatternType>* sorter) {
@@ -68,9 +77,22 @@ class OMTFProcessor: public ProcessorBase<GoldenPatternType>, public IProcessorE
     this->ghostBuster.reset(ghostBuster);
   }
 
- protected:
+  virtual void loadAndFilterDigis(const edm::Event& iEvent, const edm::ParameterSet& edmCfg);
+
+  virtual std::vector<l1t::RegionalMuonCand> run(unsigned int iProcessor, l1t::tftype mtfType, int bx, std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers);
+
+protected:
+
+  edm::Handle<L1MuDTChambPhContainer> dtPhDigis;
+  edm::Handle<L1MuDTChambThContainer> dtThDigis;
+  edm::Handle<CSCCorrelatedLCTDigiCollection> cscDigis;
+  edm::Handle<RPCDigiCollection> rpcDigis;
+
+  OMTFinputMaker       inputMaker;
 
  private:
+  virtual void init(const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup);
+
   ///Check if the hit pattern of given OMTF candite is not on the list
   ///of invalid hit patterns. Invalid hit patterns provode very little
   ///to efficiency, but gives high contribution to rate.

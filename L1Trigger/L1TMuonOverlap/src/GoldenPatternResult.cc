@@ -27,17 +27,19 @@ GoldenPatternResult::GoldenPatternResult(const OMTFConfiguration * omtfConfig): 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 
-void GoldenPatternResult::set(int refLayer_, unsigned int phi, unsigned int eta, unsigned int refHitPhi,
-    unsigned int iLayer, GoldenPatternResult::LayerResult layerResult) {
+void GoldenPatternResult::set(int refLayer_, int phi, int eta, int refHitPhi) {
   if( isValid() && this->refLayer != refLayer_) {
     std::cout<<__FUNCTION__<<" "<<__LINE__<<" this->refLayer "<<this->refLayer<<" refLayer_ "<<refLayer_<<std::endl;
   }
   assert( !isValid() || this->refLayer == refLayer_);
 
-  refLayer = refLayer_;
+  this->refLayer = refLayer_;
   this->phi = phi;
   this->eta = eta;
   this->refHitPhi = refHitPhi;
+}
+
+void GoldenPatternResult::setLayerResult(unsigned int iLayer, GoldenPatternResult::LayerResult layerResult) {
   pdfValues.at(iLayer) = layerResult.pdfVal;
   if(layerResult.valid) {
     firedLayerBits |= (1<< iLayer);
@@ -49,7 +51,6 @@ void GoldenPatternResult::set(int refLayer_, unsigned int phi, unsigned int eta,
  */ //pdfSum += pdfVal; - this cannot be done here, because the pdfVal for the banding layer must be added only
   //if hit in the corresponding phi layer was accpeted (i.e. its pdfVal > 0. therefore it is done in finalise()
 }
-
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
@@ -66,12 +67,12 @@ void GoldenPatternResult::reset() {
   std::fill(hitPdfBins.begin(), hitPdfBins.end(), 0);
   valid = false;
   refLayer = -1;
-  phi = 1024;
-  eta = 1024;
+  phi = 0;
+  eta = 0;
   pdfSum = 0;
   firedLayerCnt = 0;
   firedLayerBits = 0;
-  refHitPhi = 1024;
+  refHitPhi = 0;
   gpProbability1 = 0;
   gpProbability2 = 0;
 }

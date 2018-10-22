@@ -14,7 +14,7 @@ class IGhostBuster {
 public:
   virtual ~IGhostBuster() {}
 
-  virtual std::vector<AlgoMuon> select(std::vector<AlgoMuon> refHitCands, int charge=0) = 0;
+  virtual AlgoMuons select(AlgoMuons refHitCands, int charge=0) = 0;
 
 };
 

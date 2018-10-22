@@ -277,12 +277,30 @@ uint32_t OMTFConfiguration::getLayerNumber(uint32_t rawId) const {
   return hwNumber;
 }
 ///////////////////////////////////////////////
+// phiRad [-pi,pi]
+int OMTFConfiguration::getProcScalePhi(unsigned int iProcessor, double phiRad) const {
+  double phi15deg =  M_PI/3.*(iProcessor)+M_PI/12.;                    // "0" is 15degree moved cyclicaly to each processor, note [0,2pi]
+
+  const double phiUnit = 2*M_PI/nPhiBins(); //rad/unit
+
+  // adjust [0,2pi] and [-pi,pi] to get deltaPhi difference properly
+  switch (iProcessor+1) {
+  case 1: break;
+  case 6: {phi15deg -= 2*M_PI; break; }
+  default : {if (phiRad < 0) phiRad += 2*M_PI; break; }
+  }
+
+  // local angle in CSC halfStrip usnits
+  return lround ( (phiRad-phi15deg)/phiUnit ); //FIXME lround or floor ???
+}
+
+///////////////////////////////////////////////
 ///////////////////////////////////////////////
 OMTFConfiguration::PatternPt OMTFConfiguration::getPatternPtRange(unsigned int patNum) const {
-  if(patNum > patternPts.size() ) {
-    if(patternPts.size() == 0)
-      throw cms::Exception("OMTFConfiguration::getPatternPtRange: patternPts vector not initialized");
+  if(patternPts.size() == 0)
+    throw cms::Exception("OMTFConfiguration::getPatternPtRange: patternPts vector not initialized");
 
+  if(patNum > patternPts.size() ) {
     throw cms::Exception("OMTFConfiguration::getPatternPtRange: patNum > patternPts.size()");
   }
   return patternPts[patNum];

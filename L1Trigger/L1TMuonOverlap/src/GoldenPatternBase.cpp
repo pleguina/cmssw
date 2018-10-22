@@ -41,10 +41,10 @@ GoldenPatternResult::LayerResult GoldenPatternBase::process1Layer1RefLayer(unsig
     int refLayerPhiB)
 {
   //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0) std::cout<<__FUNCTION__<<":"<<__LINE__<<key()<<this->getDistPhiBitShift(iLayer, iRefLayer)<<std::endl;
-  GoldenPatternResult::LayerResult aResult(0, 0, 0, 0); //0, 0
+  //GoldenPatternResult::LayerResult aResult(0, 0, 0, 0); //0, 0
 
   int phiMean = this->meanDistPhiValue(iLayer, iRefLayer, refLayerPhiB);
-  int phiDistMin = myOmtfConfig->nPdfBins(); //1<<(myOmtfConfig->nPdfAddrBits()); //"infinite" value for the beginning
+  int phiDistMin = myOmtfConfig->nPhiBins(); //1<<(myOmtfConfig->nPdfAddrBits()); //"infinite" value for the beginning
   ///Select hit closest to the mean of probability
   ///distribution in given layer
   int selHit = 0;
@@ -62,6 +62,8 @@ GoldenPatternResult::LayerResult GoldenPatternBase::process1Layer1RefLayer(unsig
     }
   }
 
+  int pdfMiddle = 1<<(myOmtfConfig->nPdfAddrBits()-1);
+
 /*  debug
   if(phiDistMin != 128 && iRefLayer == 0 && iLayer == 1)
     std::cout<<__FUNCTION__<<":"<<__LINE__<<" iRefLayer "<<iRefLayer<<" iLayer "<<iLayer<<" selHit "<<selHit<<" phiDistMin "
@@ -70,13 +72,13 @@ GoldenPatternResult::LayerResult GoldenPatternBase::process1Layer1RefLayer(unsig
   ///Check if phiDistMin is within pdf range -63 +63
   ///in firmware here the arithmetic "value and sign" is used, therefore the range is -63 +63, and not -64 +63
   if(abs(phiDistMin) > ( (1<<(myOmtfConfig->nPdfAddrBits()-1)) -1) ) {
-    return GoldenPatternResult::LayerResult(this->pdfValue(iLayer, iRefLayer, 0), false, 0, selHit);
+    return GoldenPatternResult::LayerResult(this->pdfValue(iLayer, iRefLayer, 0), false, phiDistMin + pdfMiddle, selHit);
     //in some algorithms versions with thresholds we use the bin 0 to store the pdf value returned when there was no hit.
     //in the version without thresholds, the value in the bin 0 should be 0
   }
 
   ///Shift phidist, so 0 is at the middle of the range
-  phiDistMin += 1<<(myOmtfConfig->nPdfAddrBits()-1);
+  phiDistMin += pdfMiddle;
   //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0) std::cout<<__FUNCTION__<<":"<<__LINE__<<" phiDistMin "<<phiDistMin<<std::endl;
   omtfPdfValueType pdfVal = this->pdfValue(iLayer, iRefLayer, phiDistMin);
   if(pdfVal <= 0)

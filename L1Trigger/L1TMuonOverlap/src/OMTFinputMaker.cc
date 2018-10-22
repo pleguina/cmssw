@@ -267,6 +267,9 @@ OMTFinput OMTFinputMaker::processCSC(const CSCCorrelatedLCTDigiCollection *cscDi
 	       unsigned int iProcessor,
 	       l1t::tftype type, int bxTrg){
 
+  int lctCentralBx = CSCConstants::LCT_CENTRAL_BX;
+  lctCentralBx = 6; //TODO this was changed in CMSSW 10(?) to 8 if the data were generated with the previous CMSSEW then you have to use 6
+
   OMTFinput result(myOmtfConfig);
   if(!cscDigis) return result;
 
@@ -282,7 +285,7 @@ OMTFinput OMTFinputMaker::processCSC(const CSCCorrelatedLCTDigiCollection *cscDi
     for( ; digi != dend; ++digi ) {
 
       ///Check if LCT trigger primitive has the right BX.
-      if (digi->getBX()-CSCConstants::LCT_CENTRAL_BX != bxTrg) continue;
+      if (digi->getBX()- lctCentralBx != bxTrg) continue;
 
       unsigned int hwNumber = myOmtfConfig->getLayerNumber(rawid);
       if(myOmtfConfig->getHwToLogicLayer().find(hwNumber)==myOmtfConfig->getHwToLogicLayer().end()) continue;

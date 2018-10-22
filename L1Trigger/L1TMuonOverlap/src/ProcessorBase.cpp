@@ -35,7 +35,7 @@ void ProcessorBase<GoldenPatternType>::resetConfiguration() {
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 template<class GoldenPatternType>
-bool ProcessorBase<GoldenPatternType>::configure(const OMTFConfiguration* omtfConfig,
+bool ProcessorBase<GoldenPatternType>::configure(OMTFConfiguration* omtfConfig,
     const L1TMuonOverlapParams* omtfPatterns){
   resetConfiguration();
 
@@ -94,6 +94,8 @@ bool ProcessorBase<GoldenPatternType>::configure(const OMTFConfiguration* omtfCo
   }
 
   initPatternPtRange(true);
+
+  omtfConfig->setPatternPtRange( getPatternPtRange() );
 
   return true;
 }
@@ -182,6 +184,8 @@ void ProcessorBase<GoldenPatternType>::initPatternPtRange(bool firstPatFrom0) {
 /*  for(unsigned int iPat = 0; iPat < theGPs.size(); iPat++) {
     std::cout<<theGPs[iPat]->key()<<" ptFrom "<<patternPts[iPat].ptFrom<<" ptFrom "<<patternPts[iPat].ptTo<<std::endl;
   }*/
+
+  cout<<__FUNCTION__<<":"<<__LINE__<<" patternPts.size() "<<patternPts.size()<<endl;
 }
 
 //to force compiler to compile the above methods with needed GoldenPatterns types

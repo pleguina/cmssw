@@ -18,8 +18,8 @@ public:
   virtual ~IOMTFEmulationObserver();
 
   virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
-      const std::vector<AlgoMuon>& algoCandidates,
-      std::vector<AlgoMuon>& gbCandidates,
+      const AlgoMuons& algoCandidates,
+      const AlgoMuons& gbCandidates,
       const std::vector<l1t::RegionalMuonCand> & candMuons ) = 0;
 
   virtual void observeEventBegin(const edm::Event& iEvent) {};

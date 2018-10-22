@@ -18,7 +18,7 @@
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
 template <class GoldenPatternType>
-AlgoMuon OMTFSorter<GoldenPatternType>::sortRefHitResults(unsigned int procIndx, unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPatternType> >& gPatterns,
+AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(unsigned int procIndx, unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPatternType> >& gPatterns,
 					  int charge){
   GoldenPatternType* bestGP = 0; //the GoldenPattern with the best result for this iRefHit
 //  std::cout <<" ====== sortRefHitResults: " << std::endl;
@@ -50,13 +50,13 @@ AlgoMuon OMTFSorter<GoldenPatternType>::sortRefHitResults(unsigned int procIndx,
     }
   }
   if(bestGP) {
-     AlgoMuon candidate(bestGP->getResults()[procIndx][iRefHit], bestGP, iRefHit);
+    AlgoMuons::value_type candidate(new AlgoMuon(bestGP->getResults()[procIndx][iRefHit], bestGP, iRefHit) );
      //std::cout<<__FUNCTION__<<" line "<<__LINE__ <<" return: " << candidate << std::endl;
      return candidate;
   }
   else {
-    AlgoMuon candidate;
-    candidate.setRefHitNumber(iRefHit);
+    AlgoMuons::value_type candidate(new AlgoMuon() );
+    candidate->setRefHitNumber(iRefHit);
     return candidate;
   }
 }

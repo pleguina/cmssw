@@ -20,8 +20,8 @@ XMLEventWriter::~XMLEventWriter() {
 }
 
 void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
-    const std::vector<AlgoMuon>& algoCandidates,
-    std::vector<AlgoMuon>& gbCandidates,
+    const AlgoMuons& algoCandidates,
+    const AlgoMuons& gbCandidates,
     const std::vector<l1t::RegionalMuonCand> & candMuons)
 {
   if(eventNum > 1000)
@@ -37,18 +37,20 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor, l1t::tfty
     currentElement = xmlWriter.writeEventHeader(eventId);
 
   xercesc::DOMElement * aProcElement = xmlWriter.writeEventData(currentElement, board, input);
-  for(unsigned int iRefHit=0;iRefHit < omtfConfig->nTestRefHits();++iRefHit){
+
+  for(auto& algoCand : algoCandidates) {
     ///Dump only regions, where a candidate was found
-    const AlgoMuon& algoMuon = algoCandidates.at(iRefHit);//charge=0 means ignore charge
-    if(algoMuon.isValid()) {
-      xmlWriter.writeAlgoMuon(aProcElement,iRefHit,algoMuon);
+    if(algoCand->isValid()) {
+      xmlWriter.writeAlgoMuon(aProcElement, *algoCand);
       /*if(dumpDetailedResultToXML){
         for(auto & itKey: results[iRefHit])
           xmlWriter.writeResultsData(aProcElement, iRefHit, itKey.first,itKey.second);
       }*/
     }
   }
-  for (auto & candMuon :  candMuons) xmlWriter.writeCandMuon(aProcElement, candMuon);
+
+  for (auto & candMuon :  candMuons)
+    xmlWriter.writeCandMuon(aProcElement, candMuon);
 
 }
 

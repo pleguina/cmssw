@@ -83,8 +83,8 @@ void OMTFPatternsGenFrom4DPdfs::beginRun(edm::Run const& run, edm::EventSetup co
   myOMTFConfig->configure(&omtfParamsMutable);*/
 
   myOMTFConfig->configure(omtfParams);
-  processor->configure(myOMTFConfig, omtfParams);
-  myOMTFConfig->setPatternPtRange(processor->getPatternPtRange() );
+
+  processor = new PatternsGeneratorProcessor(myOMTFConfig, omtfParams);
 
 /*  int ptCode = theConfig.getParameter<int>("ptCode"); //assuming that here the legay PAC pt code is given
   int charge = theConfig.getParameter<int>("charge");
@@ -103,7 +103,6 @@ void OMTFPatternsGenFrom4DPdfs::beginRun(edm::Run const& run, edm::EventSetup co
 void OMTFPatternsGenFrom4DPdfs::beginJob(){
 
   myOMTFConfig = new OMTFConfiguration();
-  processor = new PatternsGeneratorProcessor(myOMTFConfig);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////  

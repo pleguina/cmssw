@@ -7,7 +7,7 @@
 #include <ostream>
 #include <memory>
 
-//#undef BOOST_DISABLE_ASSERTS
+#undef BOOST_DISABLE_ASSERTS
 #include "boost/multi_array.hpp"
 
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
@@ -146,10 +146,32 @@ class OMTFConfiguration{
   const vector4D & getMeasurements4D() const {return measurements4D;}
   const vector4D & getMeasurements4Dref() const {return measurements4Dref;}
 
+
+  static constexpr double ptUnit = 0.5; // GeV/unit
   ///uGMT pt scale conversion
   static double hwPtToGev(unsigned int hwPt) {
-    return (hwPt - 1.) * 0.5;
+    return (hwPt - 1.) * ptUnit;
   }
+
+  ///uGMT pt scale conversion: [0GeV, 0.5GeV) = 1 [0.5GeV, 1 Gev) = 2
+  static int ptGevToHw(double ptGev) {
+    return (ptGev / ptUnit + 1);
+  }
+
+  static constexpr double etaUnit = 0.010875; //TODO from the interface not, should be defined somewhere globally
+  ///center of eta bin
+  static double hwEtaToEta(int hwEta) {
+    return (hwEta * etaUnit);
+  }
+
+  static int etaToHwEta(double eta) {
+    return (eta / etaUnit);
+  }
+
+  ///iProcessor - 0...5
+  ///phiRad [-pi,pi]
+  ///return phi inside the processor
+  int getProcScalePhi(unsigned int iProcessor, double phiRad) const;
 
   ///Continuous processor number [0...12], to be used in as array index,
   unsigned int getProcIndx(unsigned int iProcessor, l1t::tftype mtfType) const {

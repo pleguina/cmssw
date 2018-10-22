@@ -73,7 +73,7 @@ private:
   ///OMTF objects
   OMTFConfiguration *myOMTFConfig;
   OMTFinputMaker *myInputMaker;
-  PdfGeneratorProcessor<GoldenPatternPdfGen>* myOMTF;
+  std::unique_ptr<PdfGeneratorProcessor<GoldenPatternPdfGen>> myOMTF;
   ///
   xercesc::DOMElement *aTopElement;
   OMTFConfigMaker *myOMTFConfigMaker;

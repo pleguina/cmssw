@@ -12,6 +12,7 @@
 
 #include "L1Trigger/L1TMuonOverlap/interface/IOMTFEmulationObserver.h"
 #include "L1Trigger/L1TMuonOverlap/interface/GoldenPatternWithStat.h"
+#include "L1Trigger/L1TMuonOverlap/interface/PatternOptimizerBase.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -21,17 +22,17 @@
 #include "TH1I.h"
 #include "TH2I.h"
 
-class PatternOptimizer: public IOMTFEmulationObserver {
+class PatternOptimizer: public PatternOptimizerBase {
 public:
   PatternOptimizer(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
   virtual ~PatternOptimizer();
 
-  virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
+/*  virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
       const std::vector<AlgoMuon>& algoCandidates,
       std::vector<AlgoMuon>& gbCandidates,
       const std::vector<l1t::RegionalMuonCand> & candMuons);
 
-  virtual void observeEventBegin(const edm::Event& iEvent);
+  virtual void observeEventBegin(const edm::Event& iEvent);*/
 
   virtual void observeEventEnd(const edm::Event& iEvent);
 
@@ -44,14 +45,13 @@ public:
   static const unsigned int whatOmtfVal = 2;
   static const unsigned int whatOmtfNorm = 3;
 private:
+
+  virtual void saveHists(TFile& outfile);
+
   //candidate found by omtf in a given event
-  AlgoMuon omtfCand;
-  l1t::RegionalMuonCand regionalMuonCand;
-
-  unsigned int candProcIndx;
-
-  GoldenPatternResult omtfResult;
+  //GoldenPatternResult omtfResult;
   GoldenPatternResult exptResult;
+
   double errorSum;
   int nEvents = 0;
   std::vector<double> errorSumRefL = std::vector<double>(8, 0.0);
@@ -67,18 +67,7 @@ private:
 
   double deltaPdf = 0.01;
 
-  edm::ParameterSet edmCfg;
   //edm::Handle<edm::SimTrackContainer> simTks;
-
-  const OMTFConfiguration* omtfConfig;
-  std::vector<std::shared_ptr<GoldenPatternWithStat> > goldenPatterns;
-
-  const SimTrack* simMuon;
-
-  TH1I* simMuPt;
-  TH1I* simMuFoundByOmtfPt;
-
-  TH1F* simMuPtSpectrum;
 
   std::vector<TH2I*> deltaPhi1_deltaPhi2_hits;
   std::vector<TH2I*> deltaPhi1_deltaPhi2_omtf;
@@ -101,7 +90,7 @@ private:
 
   void initRateWeights();
 
-  double getEventRateWeight(double pt);
+  virtual double getEventRateWeight(double pt);
 
   std::function<void (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp)> updateStatFunc;
 
@@ -146,12 +135,8 @@ private:
   void updatePdfsAnaDeriv(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate);
   void updatePdfsNumDeriv(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate);
 
-  void savePatternsInRoot(std::string rootFileName);
-
   void modifyPatterns();
   void modifyPatterns1(double step);
-
-  void printPatterns();
 };
 
 #endif /* OMTF_PATTERNOPTIMIZER_H_ */

@@ -76,7 +76,7 @@ private:
   ///OMTF objects
   OMTFConfiguration *myOMTFConfig;
   OMTFinputMaker *myInputMaker;
-  Pdf4DGeneratorProcessor* myOMTF;
+  std::unique_ptr<Pdf4DGeneratorProcessor > myOMTF;
   ///
   xercesc::DOMElement *aTopElement;
   OMTFConfigMaker *myOMTFConfigMaker;

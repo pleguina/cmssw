@@ -13,7 +13,10 @@
 template <class GoldenPatternType>
 class PdfGeneratorProcessor: public ProcessorBase<GoldenPatternType>  {
 public:
-  PdfGeneratorProcessor(const OMTFConfiguration* omtfConfig): ProcessorBase<GoldenPatternType>(omtfConfig) {};
+  PdfGeneratorProcessor(OMTFConfiguration* omtfConfig, const L1TMuonOverlapParams* omtfPatterns): ProcessorBase<GoldenPatternType>(omtfConfig, omtfPatterns) {};
+
+  PdfGeneratorProcessor(OMTFConfiguration* omtfConfig, const typename ProcessorBase<GoldenPatternType>::GoldenPatternVec& gps): ProcessorBase<GoldenPatternType>(omtfConfig, gps) {};
+
 
   virtual ~PdfGeneratorProcessor() {};
 

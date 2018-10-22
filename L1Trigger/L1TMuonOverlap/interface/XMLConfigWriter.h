@@ -41,9 +41,7 @@ class XMLConfigWriter{
                                const OmtfName & board,
 				       const OMTFinput & aInput);
 
-  void writeAlgoMuon(xercesc::DOMElement *aTopElement,
-			  unsigned int iRefHit,
-			  const AlgoMuon & aMuon);
+  void writeAlgoMuon(xercesc::DOMElement *aTopElement, const AlgoMuon & aMuon);
 
   void writeCandMuon(xercesc::DOMElement *aTopElement,
                     const l1t::RegionalMuonCand& aCand);

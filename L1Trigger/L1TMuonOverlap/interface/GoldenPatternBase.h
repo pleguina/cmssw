@@ -148,7 +148,7 @@ class GoldenPatternBase {
 
   //std::vector<GoldenPatternResult> results;
 
-  //first index:processorNum (0...5)
+  //first index:processorNum (0...11)
   //second index: myOmtfConfig->nTestRefHits
   resultsArrayType results;
 };

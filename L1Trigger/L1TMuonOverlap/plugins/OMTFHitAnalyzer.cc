@@ -53,8 +53,6 @@ OMTFHitAnalyzer::~OMTFHitAnalyzer(){
 
   delete myOMTFConfig;
   //delete myOMTFConfigMaker;
-  delete myOMTF;
-
 }
 /////////////////////////////////////////////////////
 void OMTFHitAnalyzer::configureProcesor(const OMTFConfiguration * omtfConfig,
@@ -63,12 +61,12 @@ void OMTFHitAnalyzer::configureProcesor(const OMTFConfiguration * omtfConfig,
 
   //myResults.assign(omtfConfig->nTestRefHits(),OMTFProcessor::resultsMap()); FIXME is it needed???
 
-  const l1t::LUT* chargeLUT =  omtfPatterns->chargeLUT();
+/*  const l1t::LUT* chargeLUT =  omtfPatterns->chargeLUT();
   const l1t::LUT* etaLUT =  omtfPatterns->etaLUT();
   const l1t::LUT* ptLUT =  omtfPatterns->ptLUT();
 
   unsigned int nGPs = omtfConfig->nGoldenPatterns();
-  unsigned int address = 0;
+  unsigned int address = 0;*/
   unsigned int iEta = 0;
   unsigned int iPt = ptCode;
   int iCharge = charge;
@@ -92,7 +90,11 @@ void OMTFHitAnalyzer::configureProcesor(const OMTFConfiguration * omtfConfig,
   GoldenPatternPdf4D* aGP = new GoldenPatternPdf4D(aKey, omtfConfig);
   std::cout<<"adding GoldenPatternPdf4D "<<aGP->key()<<std::endl;
   //aGP->reset();
-  myOMTF->addGP(aGP);
+  Pdf4DGeneratorProcessor::GoldenPatternVec gps;
+  gps.emplace_back(aGP);
+
+  myOMTF.reset(new Pdf4DGeneratorProcessor(myOMTFConfig, gps) );
+
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -152,7 +154,6 @@ void OMTFHitAnalyzer::beginRun(edm::Run const& run, edm::EventSetup const& iSetu
 void OMTFHitAnalyzer::beginJob(){
 
   myOMTFConfig = new OMTFConfiguration();
-  myOMTF = new Pdf4DGeneratorProcessor(myOMTFConfig);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////  

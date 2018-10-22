@@ -29,11 +29,6 @@
 
 #include <climits>
 
-PatternsGeneratorProcessor::PatternsGeneratorProcessor(const OMTFConfiguration* omtfConfig): ProcessorBase<GoldenPattern>(omtfConfig) {
-  // TODO Auto-generated constructor stub
-
-}
-
 PatternsGeneratorProcessor::~PatternsGeneratorProcessor() {
   // TODO Auto-generated destructor stub
 }

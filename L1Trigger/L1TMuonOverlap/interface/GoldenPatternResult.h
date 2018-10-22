@@ -9,21 +9,22 @@
 //result for one refHit of one GoldenPattern
 class GoldenPatternResult {
 public:
-  typedef std::vector<unsigned int> vector1D;
   struct LayerResult {
     omtfPdfValueType pdfVal = 0;
     bool valid = false;
-    int pdfBin = 0; //hit deltaPhi, bin=0 is reserved for no valid hit, see GoldenPatternBase::process1Layer1RefLayer
-    int hit = 0;
+    int pdfBin = 0; //hit deltaPhi, bin=0 is reserved for no valid hit, see GoldenPatternBase::process1Layer1RefLayer, is obtained from it, see GoldenPatternBase::process1Layer1RefLayer
+    int hit = 0; //original hit phi
 
-    LayerResult(omtfPdfValueType pdfVal, bool valid, int pdfBin, int hit): pdfVal(pdfVal), valid(valid), pdfBin(pdfBin), hit(hit) {};
+    LayerResult(omtfPdfValueType pdfVal, bool valid, int pdfBin, int hit) :
+        pdfVal(pdfVal), valid(valid), pdfBin(pdfBin), hit(hit) {
+    };
   };
 
 private:
-  bool valid;
+  bool valid = false;
 
   //number of the layer from which the reference hit originated
-  int refLayer;
+  int refLayer = 0;
 
   ///Pdf value found for each layer
   ///First index: layer number
@@ -31,28 +32,28 @@ private:
 
   ///pdfBins for each for each layer
   ///First index: layer number
-  vector1D hitPdfBins;
+  std::vector<int> hitPdfBins;
 
-  vector1D hits;
+  std::vector<int> hits;
 
   ///phi at the 2nd muon station (propagated refHitPhi)
-  unsigned int phi;
+  int phi = 0;
 
   ///eta at the 2nd muon station
-  unsigned int eta;
+  int eta = 0;
 
   ///Sum of pdfValues
   //omtfPdfValueType
-  double pdfSum;
+  double pdfSum = 0;
 
   ///Number of fired layers - excluding banding layers
-  unsigned int firedLayerCnt;
+  unsigned int firedLayerCnt = 0;
 
   ///bits representing fired logicLayers (including banding layers),
-  unsigned int firedLayerBits;
+  unsigned int firedLayerBits = 0;
 
   ///phi of the reference hits
-  unsigned int refHitPhi;
+  int refHitPhi = 0;
 
   static int finalizeFunction;
 
@@ -72,8 +73,9 @@ public:
     this->valid = valid;
   }
 
-  void set(int refLayer, unsigned int phi, unsigned int eta, unsigned int refHitPhi,
-      unsigned int iLayer, LayerResult layerResult);
+  void set(int refLayer, int phi, int eta, int refHitPhi);
+
+  void setLayerResult(unsigned int iLayer, GoldenPatternResult::LayerResult layerResult);
 
   int getRefLayer() const {
     return this->refLayer;
@@ -83,11 +85,11 @@ public:
     this->refLayer = refLayer;
   }
 
-  unsigned int getEta() const {
+  int getEta() const {
     return eta;
   }
 
-  void setEta(unsigned int eta) {
+  void setEta(int eta) {
     this->eta = eta;
   }
 
@@ -122,23 +124,27 @@ public:
     return pdfSum;
   }
 
-  const vector1D& getHitPdfBins()  {
+  const std::vector<int>& getHitPdfBins() const {
     return hitPdfBins;
   }
 
-  unsigned int getPhi() const {
+  const std::vector<int>& getHits() const {
+    return hits;
+  }
+
+  int getPhi() const {
     return phi;
   }
 
-  void setPhi(unsigned int phi) {
+  void setPhi(int phi) {
     this->phi = phi;
   }
 
-  unsigned int getRefHitPhi() const {
+  int getRefHitPhi() const {
     return refHitPhi;
   }
 
-  void setRefHitPhi(unsigned int refHitPhi) {
+  void setRefHitPhi(int refHitPhi) {
     this->refHitPhi = refHitPhi;
   }
 
@@ -146,7 +152,7 @@ public:
     return firedLayerBits & (1<<iLayer);
   }
 
-  GoldenPatternResult():  valid(0), refLayer(-2), firedLayerCnt(0), myOmtfConfig(0)  {
+  GoldenPatternResult() {
   };
 
   //dont use this in the pattern construction, since the myOmtfConfig is null then
@@ -198,7 +204,7 @@ public:
 
 private:
 
-  const OMTFConfiguration *myOmtfConfig;
+  const OMTFConfiguration* myOmtfConfig =  nullptr;
 
 };
 

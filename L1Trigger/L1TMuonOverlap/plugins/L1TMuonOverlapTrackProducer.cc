@@ -28,6 +28,7 @@ L1TMuonOverlapTrackProducer::L1TMuonOverlapTrackProducer(const edm::ParameterSet
   inputTokenCSC = consumes<CSCCorrelatedLCTDigiCollection>(theConfig.getParameter<edm::InputTag>("srcCSC"));
   inputTokenRPC = consumes<RPCDigiCollection>(theConfig.getParameter<edm::InputTag>("srcRPC"));
 
+  inputTokenSimHit = consumes<edm::SimTrackContainer>(theConfig.getParameter<edm::InputTag>("g4SimTrackSrc")); //TODO remove
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////

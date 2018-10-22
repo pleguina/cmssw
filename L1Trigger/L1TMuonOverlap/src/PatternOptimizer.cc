@@ -26,7 +26,7 @@
 
 
 PatternOptimizer::PatternOptimizer(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps):
-  edmCfg(edmCfg), omtfConfig(omtfConfig), goldenPatterns(gps), simMuon(0),
+  PatternOptimizerBase(edmCfg, omtfConfig, gps),
   //TODO set desire function here, see https://www.cprogramming.com/c++11/c++11-lambda-closures.html
   updateStatFunc([this] (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) { updateStatCollectProb(omtfCandGp, exptCandGp); } ),
   //updateStatFunc([this] (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) { updateStatForAllGps(omtfCandGp, exptCandGp); } ),
@@ -45,11 +45,6 @@ PatternOptimizer::PatternOptimizer(const edm::ParameterSet& edmCfg, const OMTFCo
   //updatePdfsFunc([this] (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) { updatePdfsNumDeriv(gp, iLayer, iRefLayer, learingRate); })
 {
   //modifyPatterns(); //TODO remove if not needed!!!!!!!!!!!!!!!!
-
-  simMuPt =  new TH1I("simMuPt", "simMuPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
-  simMuFoundByOmtfPt =  new TH1I("simMuFoundByOmtfPt", "simMuFoundByOmtfPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
-
-  simMuPtSpectrum = new TH1F("simMuPtSpectrum", "simMuPtSpectrum", 400, 0, 400);
 
   //ptRangeFrom = edmCfg.getParameter<double>("ptRangeFrom");
   //ptRangeFrom = edmCfg.getParameter<double>("ptRangeTo");
@@ -82,10 +77,15 @@ PatternOptimizer::PatternOptimizer(const edm::ParameterSet& edmCfg, const OMTFCo
   deltaPhi1_deltaPhi2_hits.assign(goldenPatterns.size(), 0);
   deltaPhi1_deltaPhi2_omtf.assign(goldenPatterns.size(), 0);
 
+
   ostringstream ostrName, ostrTtle;
   for(auto& gp : goldenPatterns) {
       if(gp->key().thePt == 0)
         continue;
+
+      gp->iniStatisitics(gp->pdfAllRef[0][0].size(), 4); //TODO
+
+      gp->initGpProbabilityStat();
 
       ostrName.str("");
       ostrName<<"PatNum_"<<gp->key().theNumber;
@@ -134,111 +134,30 @@ void PatternOptimizer::modifyPatterns() {
   }
 }
 
-void PatternOptimizer::printPatterns() {
-  cout<<__FUNCTION__<<": "<<__LINE__<<" called!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! "<<std::endl;
-  for(int patNum = goldenPatterns.size() -1; patNum >= 0; patNum--  ) {
-    double pt = omtfConfig->getPatternPtRange(patNum).ptFrom;
-    if(pt > 0) {
-      cout<<"cmsRun runThresholdCalc.py "<<patNum<<" "<<(patNum+1)<<" _"<<RPCConst::iptFromPt(pt)<<"_";
-      if(goldenPatterns[patNum]->key().theCharge == -1)
-        cout<<"m_";
-      else
-        cout<<"p_";
-
-      cout<<" > out"<<patNum<<".txt"<<std::endl;
-    }
-  }
-}
 
 PatternOptimizer::~PatternOptimizer() {
 }
 
-void PatternOptimizer::observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
-    const std::vector<AlgoMuon>& algoCandidates,
-    std::vector<AlgoMuon>& gbCandidates,
-    const std::vector<l1t::RegionalMuonCand> & candMuons) {
-
-  unsigned int procIndx = omtfConfig->getProcIndx(iProcessor, mtfType);
-
-/*
-  double ptSim = simMuon->momentum().pt();
-  int chargeSim = (abs(simMuon->type()) == 13) ? simMuon->type()/-13 : 0;
-  int patNum = omtfConfig->getPatternNum(ptSim, chargeSim);
-  GoldenPatternWithStat* exptCandGp = goldenPatterns.at(patNum).get(); // expected pattern
-*/
-
-  //bool found = false;
-  unsigned int i = 0;
-  for(auto& gbCandidate : gbCandidates) {
-    int iRefHit = gbCandidate.getRefHitNumber();
-    if(gbCandidate.getGoldenPatern() != 0 && gbCandidate.getGoldenPatern()->getResults()[procIndx][iRefHit].getFiredLayerCnt() > omtfResult.getFiredLayerCnt() ) {
-      //cout<<__FUNCTION__<<":"<<__LINE__<<" gbCandidate "<<gbCandidate<<" "<<std::endl;
-      omtfCand = gbCandidate;
-      omtfResult = gbCandidate.getGoldenPatern()->getResults()[procIndx][iRefHit];
-      //exptResult = exptCandGp->getResults()[procIndx][iRefHit];
-      candProcIndx = procIndx;
-
-      regionalMuonCand = candMuons[i]; //not necessary good, but needed only for debug printout
-      //found = true;
-    }
-    i++;
-  }
-
-  //////////////////////debug printout/////////////////////////////
-  /*if(found) {
-    GoldenPatternWithStat* omtfCandGp = static_cast<GoldenPatternWithStat*>(omtfCand.getGoldenPatern());
-    if( omtfCandGp->key().thePt > 100 && exptCandGp->key().thePt <= 15 ) {
-      //std::cout<<iEvent.id()<<std::endl;
-      cout<<" ptSim "<<ptSim<<" chargeSim "<<chargeSim<<std::endl;
-      std::cout<<"iProcessor "<<iProcessor<<" exptCandGp "<<exptCandGp->key()<<std::endl;
-      std::cout<<"iProcessor "<<iProcessor<<" omtfCandGp "<<omtfCandGp->key()<<std::endl;
-      std::cout<<"omtfResult "<<std::endl<<omtfResult<<std::endl;
-      int refHitNum = omtfCand.getRefHitNumber();
-      std::cout<<"other gps results"<<endl;
-      for(auto& gp : goldenPatterns) {
-        if(omtfResult.getFiredLayerCnt() == gp->getResults()[procIndx][iRefHit].getFiredLayerCnt() )
-        {
-          cout<<gp->key()<<std::endl<<gp->getResults()[procIndx][iRefHit]<<std::endl;
-        }
-      }
-      std::cout<<std::endl;
-    }
-  }*/
-}
-
-void PatternOptimizer::observeEventBegin(const edm::Event& iEvent) {
-  omtfCand = AlgoMuon();
-  candProcIndx = 0xffff;
-  omtfResult =  GoldenPatternResult();
-  //exptResult =  GoldenPatternResult();
-
-  simMuon = findSimMuon(iEvent);
-  //cout<<__FUNCTION__<<":"<<__LINE__<<" evevt "<<iEvent.id().event()<<" simMuon pt "<<simMuon->momentum().pt()<<" GeV "<<std::endl;
-}
-
 void PatternOptimizer::observeEventEnd(const edm::Event& iEvent) {
-  if(simMuon == 0 || omtfCand.getGoldenPatern() == 0)//no sim muon or empty candidate
+  if(simMuon == 0 || omtfCand->getGoldenPatern() == 0)//no sim muon or empty candidate
     return;
 
   //cout<<__FUNCTION__<<":"<<__LINE__<<" event "<<iEvent.id().event()<<endl;
   //cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCand "<<omtfCand<<std::endl;
-  //cout<<__FUNCTION__<<":"<<__LINE__<<" omtfResult "<<std::endl<<omtfResult<<std::endl;
+  //cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCand->getGpResult() "<<std::endl<<omtfCand->getGpResult()<<std::endl;
+  PatternOptimizerBase::observeEventEnd(iEvent);
+
+  GoldenPatternWithStat* omtfCandGp = static_cast<GoldenPatternWithStat*>(omtfCand->getGoldenPatern());
 
   double ptSim = simMuon->momentum().pt();
   int chargeSim = (abs(simMuon->type()) == 13) ? simMuon->type()/-13 : 0;
 
-  GoldenPatternWithStat* omtfCandGp = static_cast<GoldenPatternWithStat*>(omtfCand.getGoldenPatern());
-
-  exptPatNum = omtfConfig->getPatternNum(ptSim, chargeSim);
+  unsigned int exptPatNum = omtfConfig->getPatternNum(ptSim, chargeSim);
   GoldenPatternWithStat* exptCandGp = goldenPatterns.at(exptPatNum).get(); // expected pattern
 
-  int iRefHit = omtfCand.getRefHitNumber();
-  //GoldenPatternResult omtfResult = omtfCandGp->getResults()[candProcIndx][iRefHit];
+  int iRefHit = omtfCand->getRefHitNumber();
+  //GoldenPatternResult omtfCand->getGpResult() = omtfCandGp->getResults()[candProcIndx][iRefHit];
   exptResult = exptCandGp->getResults()[candProcIndx][iRefHit];
-
-  simMuFoundByOmtfPt->Fill(exptCandGp->key().theNumber); //TODO add weight of the muons pt spectrum
-
-  simMuPtSpectrum->Fill(ptSim, getEventRateWeight(ptSim));
 
   updateStatFunc(omtfCandGp, exptCandGp);
 
@@ -251,10 +170,10 @@ void PatternOptimizer::observeEventEnd(const edm::Event& iEvent) {
 //    std::cout<<"exptResult "<<std::endl<<exptResult<<std::endl;
 //
 //    std::cout<<"omtfCandGp "<<omtfCandGp->key()<<std::endl;
-//    std::cout<<"omtfResult "<<std::endl<<omtfResult<<std::endl;
+//    std::cout<<"omtfCand->getGpResult() "<<std::endl<<omtfCand->getGpResult()<<std::endl;
 //    /*std::cout<<"other gps results"<<endl;
 //    for(auto& gp : goldenPatterns) {
-//      if(omtfResult.getFiredLayerCnt() == gp->getResults()[candProcIndx][iRefHit].getFiredLayerCnt() )
+//      if(omtfCand->getGpResult().getFiredLayerCnt() == gp->getResults()[candProcIndx][iRefHit].getFiredLayerCnt() )
 //      {
 //        cout<<gp->key()<<std::endl<<gp->getResults()[candProcIndx][iRefHit]<<std::endl;
 //      }
@@ -289,10 +208,7 @@ void PatternOptimizer::endJob() {
   modifyPatterns1(step); //TODO remove!!!!!!!!!!!!!!!!!!!!!!!!
 */
 
-  std::string fName = edmCfg.getParameter<std::string>("optimisedPatsXmlFile");
-  edm::LogImportant("PatternOptimizer") << " Writing optimized patterns to "<<fName << std::endl;
-  XMLConfigWriter xmlWriter(omtfConfig, true, false);
-  xmlWriter.writeGPs(goldenPatterns, fName);
+
 
   //calculateThresholds
 /*  for(int i = 0; i <= 10; i++) {
@@ -313,8 +229,7 @@ void PatternOptimizer::endJob() {
     xmlWriter.writeGPs(goldenPatterns, fName.str());
   }*/
 
-  fName.replace(fName.find('.'), fName.length(), ".root");
-  savePatternsInRoot(fName);
+  PatternOptimizerBase::endJob();
 
   std::ofstream outfile;
   outfile.open("test.txt", std::ios_base::app);
@@ -327,24 +242,6 @@ void PatternOptimizer::endJob() {
   }
   outfile << std::endl;
 }
-
-const SimTrack* PatternOptimizer::findSimMuon(const edm::Event &event, const SimTrack * previous) {
-  const SimTrack* result = 0;
-  edm::Handle<edm::SimTrackContainer> simTks;
-  event.getByLabel(edmCfg.getParameter<edm::InputTag>("g4SimTrackSrc"), simTks);
-
-  for (std::vector<SimTrack>::const_iterator it=simTks->begin(); it< simTks->end(); it++) {
-    const SimTrack& aTrack = *it;
-    if ( !(aTrack.type() == 13 || aTrack.type() == -13) )
-      continue;
-    if(previous && ROOT::Math::VectorUtil::DeltaR(aTrack.momentum(), previous->momentum()) < 0.07)
-      continue;
-    if ( !result || aTrack.momentum().pt() > result->momentum().pt())
-      result = &aTrack;
-  }
-return result;
-}
-
 
 void PatternOptimizer::updateStatCollectProb(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) {
 /*  for(unsigned int iLayer = 0;  iLayer < exptResult.getHitPdfBins().size(); iLayer++) {
@@ -360,7 +257,7 @@ void PatternOptimizer::updateStatCollectProb(GoldenPatternWithStat* omtfCandGp, 
   if(regionalMuonCand.hwQual() >= 12 && exptCandGp->key().thePt <= 12 &&  omtfCandGp->key().thePt >= 30) {
     cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCand "<<omtfCand<<std::endl;
     cout<<__FUNCTION__<<":"<<__LINE__<<" regionalMuonCand hwPt "<<regionalMuonCand.hwPt()<<" hwQual "<<regionalMuonCand.hwQual()<<std::endl;
-    cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfResult\n"<<omtfResult<<std::endl;
+    cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfCand->getGpResult()\n"<<omtfCand->getGpResult()<<std::endl;
     cout<<__FUNCTION__<<":"<<__LINE__<<" "<<exptCandGp->key()<<" exptResult\n"<<exptResult<<std::endl;
     cout<<"-------------------------------------"<<endl;
   }
@@ -398,9 +295,9 @@ void PatternOptimizer::updateStatCollectProb(GoldenPatternWithStat* omtfCandGp, 
     }
   }
 
-  if(omtfResult.getRefLayer() == selRefL) {
-    int delatPhi1 = omtfResult.getHitPdfBins()[selL1];
-    int delatPhi2 = omtfResult.getHitPdfBins()[selL2];
+  if(omtfCand->getGpResult().getRefLayer() == selRefL) {
+    int delatPhi1 = omtfCand->getGpResult().getHitPdfBins()[selL1];
+    int delatPhi2 = omtfCand->getGpResult().getHitPdfBins()[selL2];
     if(delatPhi1 && delatPhi2) {
       delatPhi1 += omtfCandGp->meanDistPhiValue(selL1, selRefL);
       delatPhi2 += omtfCandGp->meanDistPhiValue(selL2, selRefL);
@@ -423,15 +320,15 @@ void PatternOptimizer::calulateProb() {
         double pdfCnt = 0;
         double pdfNorm = 0;
         for(unsigned int iPdf = 0; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
-          pdfCnt  += (double)gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptVal];
-          pdfNorm += (double)gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptNorm];
+          pdfCnt  += (double)gp->statistics[iLayer][iRefLayer][iPdf][ whatExptVal];
+          pdfNorm += (double)gp->statistics[iLayer][iRefLayer][iPdf][ whatExptNorm];
         }
 
         cout<<__FUNCTION__<<":"<<__LINE__<<" : iLayer "<<iLayer<<" RefLayer "<<iRefLayer<<" pdfNorm "<<pdfNorm<<" pdfCnt "<<pdfCnt<<std::endl;
 
         for(unsigned int iPdf = 0; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
           if(pdfCnt > 500) {//50 is to reject the one with very small statistics
-            double prob = (double)gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptNorm] / pdfNorm;
+            double prob = (double)gp->statistics[iLayer][iRefLayer][iPdf][ whatExptNorm] / pdfNorm;
             gp->pdfAllRef[iLayer][iRefLayer][iPdf] = prob;
           }
           else
@@ -451,8 +348,8 @@ void PatternOptimizer::calulateProb() {
     for(auto& gp : goldenPatterns) {
       if(gp->key().thePt == 0)
         continue;
-      cnt  += (double)gp->statisitics[refLayerLogicNumber][iRefLayer][iPdf][ whatExptVal];
-      norm += (double)gp->statisitics[refLayerLogicNumber][iRefLayer][iPdf][ whatExptNorm];
+      cnt  += (double)gp->statistics[refLayerLogicNumber][iRefLayer][iPdf][ whatExptVal];
+      norm += (double)gp->statistics[refLayerLogicNumber][iRefLayer][iPdf][ whatExptNorm];
     }
 
     cout<<__FUNCTION__<<" Calculating P(C_k) "<<":"<<__LINE__<<" RefLayer "<<iRefLayer<<" norm "<<norm<<std::endl;
@@ -461,7 +358,7 @@ void PatternOptimizer::calulateProb() {
         continue;
       cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" Calculating P(C_k) "<<std::endl;
       if(cnt > 500)
-        gp->pdfAllRef[refLayerLogicNumber][iRefLayer][iPdf] = (double)gp->statisitics[refLayerLogicNumber][iRefLayer][iPdf][ whatExptNorm] / norm;
+        gp->pdfAllRef[refLayerLogicNumber][iRefLayer][iPdf] = (double)gp->statistics[refLayerLogicNumber][iRefLayer][iPdf][ whatExptNorm] / norm;
       else
         gp->pdfAllRef[refLayerLogicNumber][iRefLayer][iPdf] = 0;
     }
@@ -496,7 +393,7 @@ void PatternOptimizer::updateStatForAllGps(GoldenPatternWithStat* omtfCandGp, Go
       1     //11
   };*/
   //boost::timer::auto_cpu_timer t("%ws wall, %us user in " + string(__FUNCTION__) + "\n");
-  unsigned int iRefHit = omtfCand.getRefHitNumber();
+  unsigned int iRefHit = omtfCand->getRefHitNumber();
 
   double eventWeight = 1;
 
@@ -510,33 +407,33 @@ void PatternOptimizer::updateStatForAllGps(GoldenPatternWithStat* omtfCandGp, Go
 
 //  if(exptCandGp->key().thePt >= 41 && omtfCandGp->key().thePt < 41) {
 //    eventWeight = sqrt(patternPtCodes[exptCandGp->key().theNumber] - patternPtCodes[omtfCandGp->key().theNumber]);
-//    if(omtfCand.getRefLayer() == 1)
+//    if(omtfCand->getRefLayer() == 1)
 //      eventWeight *= 10;
 //  }
 //  else if(exptCandGp->key().thePt < 37 && omtfCandGp->key().thePt >= 41) {
 //    //eventWeight = 6./sqrt(exptCandGp->key().thePt);
 //    //eventWeight = sqrt(patternPtCodes[omtfCandGp->key().theNumber] - patternPtCodes[exptCandGp->key().theNumber]);
-///*    if(omtfCand.getRefLayer() == 1 || omtfCand.getRefLayer() == 4 || omtfCand.getRefLayer() == 5)
+///*    if(omtfCand->getRefLayer() == 1 || omtfCand->getRefLayer() == 4 || omtfCand->getRefLayer() == 5)
 //      eventWeight = 55./patternPtCodes[exptCandGp->key().theNumber] - 4;
-//    else if(omtfCand.getRefLayer() == 3 )
+//    else if(omtfCand->getRefLayer() == 3 )
 //      eventWeight = 33./patternPtCodes[exptCandGp->key().theNumber] - 2;
-//    else if(omtfCand.getRefLayer() == 0) {
+//    else if(omtfCand->getRefLayer() == 0) {
 //      eventWeight = 5500./patternPtCodes[exptCandGp->key().theNumber] - 499; //Key_41: (eta=0, pt=41, charge=1) ptCode 12; Key_40: (eta=0, pt=37, charge=1) ptCode 11
 //    }
-//    else if(omtfCand.getRefLayer() == 2) {
+//    else if(omtfCand->getRefLayer() == 2) {
 //      eventWeight = 5500./patternPtCodes[exptCandGp->key().theNumber] - 499; //Key_41: (eta=0, pt=41, charge=1) ptCode 12; Key_40: (eta=0, pt=37, charge=1) ptCode 11
 //    }
 //    else {
 //      eventWeight = 110./patternPtCodes[exptCandGp->key().theNumber] - 9;
 //    }*/
 //
-//    /*if(omtfCand.getRefLayer() == 3 || omtfCand.getRefLayer() == 5)
+//    /*if(omtfCand->getRefLayer() == 3 || omtfCand->getRefLayer() == 5)
 //      eventWeight = 110./patternPtCodes[exptCandGp->key().theNumber] - 9;*/
 //
 //    eventWeight = weights[patternPtCodes[exptCandGp->key().theNumber] ];
-//    if(omtfCand.getRefLayer() == 1 || omtfCand.getRefLayer() == 3 || omtfCand.getRefLayer() == 4 || omtfCand.getRefLayer() == 5)
+//    if(omtfCand->getRefLayer() == 1 || omtfCand->getRefLayer() == 3 || omtfCand->getRefLayer() == 4 || omtfCand->getRefLayer() == 5)
 //      eventWeight *= 0.2 ;
-//    else if(omtfCand.getRefLayer() == 2)
+//    else if(omtfCand->getRefLayer() == 2)
 //      eventWeight *= 0.5 ;
 //  }
 
@@ -549,9 +446,9 @@ void PatternOptimizer::updateStatForAllGps(GoldenPatternWithStat* omtfCandGp, Go
   //eventWeight = 1; //TODO remove!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
   nEvents++;
-  nEventsRefL.at(omtfCand.getRefLayer()) += eventWeight;
+  nEventsRefL.at(omtfCand->getRefLayer()) += eventWeight;
 
-  //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfResult\n"<<omtfResult<<std::endl;
+  //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfCand->getGpResult()\n"<<omtfCand->getGpResult()<<std::endl;
   //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<exptCandGp->key()<<" exptResult\n"<<exptResult<<std::endl;
   double probSum = 0;
   double errorFun = 0;
@@ -560,7 +457,7 @@ void PatternOptimizer::updateStatForAllGps(GoldenPatternWithStat* omtfCandGp, Go
       continue;
 
     auto& result = itGP->getResults()[candProcIndx][iRefHit];
-    if(result.getFiredLayerCnt() < omtfResult.getFiredLayerCnt())
+    if(result.getFiredLayerCnt() < omtfCand->getGpResult().getFiredLayerCnt())
       itGP->gpProbabilityStat[result.getRefLayer()]->Fill(0);
     else {
       double gpProbability = result.getGpProbability1();
@@ -583,7 +480,7 @@ void PatternOptimizer::updateStatForAllGps(GoldenPatternWithStat* omtfCandGp, Go
       if(gpProbability > 1. || gpProbability < 0) {
         cout<<__FUNCTION__<<":"<<__LINE__<<" gpProbability = "<<gpProbability<<" err "<<errorFun<<" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
         cout<<__FUNCTION__<<":"<<__LINE__<<" "<<itGP->key()<<"\n"<<itGP->getResults()[candProcIndx][iRefHit]
-            <<"\n omtfResult "<<omtfCandGp->key()<<"\n"<<omtfResult<<"\n"
+            <<"\n omtfCand->getGpResult() "<<omtfCandGp->key()<<"\n"<<omtfCand->getGpResult()<<"\n"
             <<"exptCandGp"<<exptCandGp->key()<<endl<<"---------------------------------------------"<<endl;
       }
 
@@ -604,7 +501,7 @@ void PatternOptimizer::updateStatForAllGps(GoldenPatternWithStat* omtfCandGp, Go
 
           for(auto& itGPk: goldenPatterns)
           {
-            if( itGPk->getResults()[candProcIndx][iRefHit].getFiredLayerCnt() < omtfResult.getFiredLayerCnt())
+            if( itGPk->getResults()[candProcIndx][iRefHit].getFiredLayerCnt() < omtfCand->getGpResult().getFiredLayerCnt())
               continue;
 
             //here y corresponds to itGPk
@@ -640,7 +537,7 @@ void PatternOptimizer::updateStatForAllGps(GoldenPatternWithStat* omtfCandGp, Go
     }
   }
   errorSum += errorFun;
-  errorSumRefL.at(omtfCand.getRefLayer() ) += (errorFun * eventWeight);
+  errorSumRefL.at(omtfCand->getRefLayer() ) += (errorFun * eventWeight);
   if(probSum > 1.0001 || probSum < 0.99) {
     cout<<__FUNCTION__<<":"<<__LINE__<<" probSum "<<probSum<<" err "<<errorFun<<(probSum > 1 || probSum < 0.99 ? " !!!!!!!!!!!!!!!!!!!!" : " ----------------------------------\n")<<endl;
   }
@@ -649,13 +546,13 @@ void PatternOptimizer::updateStatForAllGps(GoldenPatternWithStat* omtfCandGp, Go
 /////////////////////////////////////////////////////////////////////////////////////
 
 void PatternOptimizer::updateStatCloseResults(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) {
-  unsigned int iRefHit = omtfCand.getRefHitNumber();
-  //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfResult\n"<<omtfResult<<std::endl;
+  unsigned int iRefHit = omtfCand->getRefHitNumber();
+  //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfCand->getGpResult()\n"<<omtfCand->getGpResult()<<std::endl;
   //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<exptCandGp->key()<<" exptResult\n"<<exptResult<<std::endl;
 
   if(omtfCandGp->key().theCharge != exptCandGp->key().theCharge) {
     /*cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCandGp->key().theCharge != exptCandGp->key().theCharge"<<endl;
-    cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfResult\n"<<omtfResult<<std::endl;
+    cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfCand->getGpResult()\n"<<omtfCand->getGpResult()<<std::endl;
     cout<<__FUNCTION__<<":"<<__LINE__<<" "<<exptCandGp->key()<<" exptResult\n"<<exptResult<<std::endl;
     cout<<__FUNCTION__<<":"<<__LINE__<<" --------------------------------"<<std::endl;*/
     return;
@@ -669,7 +566,7 @@ void PatternOptimizer::updateStatCloseResults(GoldenPatternWithStat* omtfCandGp,
     if(itGP->key().thePt == 0 || omtfCandGp->key().theCharge != itGP->key().theCharge)
       continue;
     auto& result = itGP->getResults()[candProcIndx][iRefHit];
-    if(result.getFiredLayerCnt() < omtfResult.getFiredLayerCnt()) {
+    if(result.getFiredLayerCnt() < omtfCand->getGpResult().getFiredLayerCnt()) {
       //itGP->gpProbabilityStat.Fill(0);
     }
     else {
@@ -683,13 +580,13 @@ void PatternOptimizer::updateStatCloseResults(GoldenPatternWithStat* omtfCandGp,
           delta = 0;
 
         int thisGpPtCode = patternPtCodes[itGP->key().theNumber];
-        if(omtfResult.getPdfSum() - result.getPdfSum() == delta) {
+        if(omtfCand->getGpResult().getPdfSum() - result.getPdfSum() == delta) {
           if(secondBestGp != 0) {
             if(abs(patternPtCodes[secondBestGp->key().theNumber] - exptCandPtCode) > abs(thisGpPtCode - exptCandPtCode) ) {
               /*cout<<__FUNCTION__<<":"<<__LINE__<<" changing secondBestGp from "
                   <<secondBestGp->key()<<"\n"<<secondBestGp->getResults()[candProcIndx][iRefHit]<<"\nto "
-                  <<itGP->key()<<result<<"\n omtfResult "
-                  <<omtfCandGp->key()<<"\n"<<omtfResult<<"\n"
+                  <<itGP->key()<<result<<"\n omtfCand->getGpResult() "
+                  <<omtfCandGp->key()<<"\n"<<omtfCand->getGpResult()<<"\n"
                   <<"exptCandGp"<<exptCandGp->key()<<endl;*/
               secondBestGp = itGP.get();
               // selecting secondBestGp that is closer to the exptCandGp
@@ -701,7 +598,7 @@ void PatternOptimizer::updateStatCloseResults(GoldenPatternWithStat* omtfCandGp,
 
           //updating stat for any gp if the omtfCand is closer to the exptCand then this gp
           if( abs(omtfCandPtCode - exptCandPtCode) < abs(thisGpPtCode - exptCandPtCode) ) {
-            for(unsigned int iLayer = 0;  iLayer < omtfResult.getHitPdfBins().size(); iLayer++) {
+            for(unsigned int iLayer = 0;  iLayer < omtfCand->getGpResult().getHitPdfBins().size(); iLayer++) {
               itGP->updateStat(iLayer, result.getRefLayer(), result.getHitPdfBins()[iLayer], goodSmaller, 1);
             }
           }
@@ -715,21 +612,21 @@ void PatternOptimizer::updateStatCloseResults(GoldenPatternWithStat* omtfCandGp,
     int secondBestGpPtCode = patternPtCodes[secondBestGp->key().theNumber];
 
     if( abs(omtfCandPtCode - exptCandPtCode) < abs(secondBestGpPtCode - exptCandPtCode) ) {
-      for(unsigned int iLayer = 0;  iLayer < omtfResult.getHitPdfBins().size(); iLayer++) {
-        omtfCandGp->updateStat(iLayer, omtfResult.getRefLayer(), omtfResult.getHitPdfBins()[iLayer], goodBigger, 1);
+      for(unsigned int iLayer = 0;  iLayer < omtfCand->getGpResult().getHitPdfBins().size(); iLayer++) {
+        omtfCandGp->updateStat(iLayer, omtfCand->getGpResult().getRefLayer(), omtfCand->getGpResult().getHitPdfBins()[iLayer], goodBigger, 1);
         //secondBestGp->updateStat(iLayer, secondBestResult.getRefLayer(), secondBestResult.getHitPdfBins()[iLayer], goodSmaller, 1);
       }
     }
     else if( (omtfCandPtCode - exptCandPtCode) > 2 && abs(omtfCandPtCode - exptCandPtCode) > abs(secondBestGpPtCode - exptCandPtCode) ) {
-      for(unsigned int iLayer = 0;  iLayer < omtfResult.getHitPdfBins().size(); iLayer++) {
-        //cout<<__FUNCTION__<<":"<<__LINE__<<" badBigger "<<iLayer<<" "<<omtfResult.getRefLayer()<<" "<<omtfResult.getHitPdfBins()[iLayer]<<endl;
+      for(unsigned int iLayer = 0;  iLayer < omtfCand->getGpResult().getHitPdfBins().size(); iLayer++) {
+        //cout<<__FUNCTION__<<":"<<__LINE__<<" badBigger "<<iLayer<<" "<<omtfCand->getGpResult().getRefLayer()<<" "<<omtfCand->getGpResult().getHitPdfBins()[iLayer]<<endl;
         //cout<<__FUNCTION__<<":"<<__LINE__<<" badSmaller "<<iLayer<<" "<<secondBestResult.getRefLayer()<<" "<<secondBestResult.getHitPdfBins()[iLayer]<<endl;
-        omtfCandGp->updateStat(iLayer, omtfResult.getRefLayer(), omtfResult.getHitPdfBins()[iLayer], badBigger, 1);
+        omtfCandGp->updateStat(iLayer, omtfCand->getGpResult().getRefLayer(), omtfCand->getGpResult().getHitPdfBins()[iLayer], badBigger, 1);
         secondBestGp->updateStat(iLayer, secondBestResult.getRefLayer(), secondBestResult.getHitPdfBins()[iLayer], badSmaller, 1);
       }
       /*cout<<__FUNCTION__<<":"<<__LINE__<<" omtf cand id bad. secondBestGp "
           <<secondBestGp->key()<<"\n"<<secondBestGp->getResults()[candProcIndx][iRefHit]
-          <<"\n omtfResult "<<omtfCandGp->key()<<"\n"<<omtfResult<<"\n"
+          <<"\n omtfCand->getGpResult() "<<omtfCandGp->key()<<"\n"<<omtfCand->getGpResult()<<"\n"
           <<"exptCandGp"<<exptCandGp->key()<<endl<<"---------------------------------------------"<<endl;*/
     }
     else {//equall
@@ -761,14 +658,14 @@ void PatternOptimizer::updatePdfCloseResults() {
           continue; //not taking into account the class probability*/
 
         for(unsigned int iPdf = 1; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
-          int diffBigger = gp->statisitics[iLayer][iRefLayer][iPdf][badBigger] - gp->statisitics[iLayer][iRefLayer][iPdf][goodBigger];
+          int diffBigger = gp->statistics[iLayer][iRefLayer][iPdf][badBigger] - gp->statistics[iLayer][iRefLayer][iPdf][goodBigger];
           if(diffBigger > maxDiffBigger) {
             selectedBiggerLayer = iLayer;
             selectedBiggerBin = iPdf;
             maxDiffBigger = diffBigger;
           }
 
-          int diffSmaller = gp->statisitics[iLayer][iRefLayer][iPdf][badSmaller] - gp->statisitics[iLayer][iRefLayer][iPdf][goodSmaller];
+          int diffSmaller = gp->statistics[iLayer][iRefLayer][iPdf][badSmaller] - gp->statistics[iLayer][iRefLayer][iPdf][goodSmaller];
           if(diffSmaller > maxDiffSmaller) {
             selectedSmallerLayer = iLayer;
             selectedSmallerBin = iPdf;
@@ -780,14 +677,14 @@ void PatternOptimizer::updatePdfCloseResults() {
       if(selectedBiggerBin != 0 && maxDiffBigger > 5) {
         gp->pdfAllRef[selectedBiggerLayer][iRefLayer][selectedBiggerBin]--;
         cout<<__FUNCTION__<<":"<<__LINE__<<" decreasing the pdf "<<gp->key()<<" iRefLayer "<<iRefLayer<<" layer "<<selectedBiggerLayer<<" bin "<<selectedBiggerBin
-            <<" badBigger "<<gp->statisitics[selectedBiggerLayer][iRefLayer][selectedBiggerBin][badBigger]<<" goodBigger "<<gp->statisitics[selectedBiggerLayer][iRefLayer][selectedBiggerBin][goodBigger]
+            <<" badBigger "<<gp->statistics[selectedBiggerLayer][iRefLayer][selectedBiggerBin][badBigger]<<" goodBigger "<<gp->statistics[selectedBiggerLayer][iRefLayer][selectedBiggerBin][goodBigger]
             <<" maxDiffBigger "<<maxDiffBigger<<endl;
       }
 
       if(selectedSmallerBin != 0 && maxDiffSmaller > 5) {
         gp->pdfAllRef[selectedSmallerLayer][iRefLayer][selectedSmallerBin]++;
         cout<<__FUNCTION__<<":"<<__LINE__<<" increasing the pdf "<<gp->key()<<" iRefLayer "<<iRefLayer<<" layer "<<selectedSmallerLayer<<" bin "<<selectedSmallerBin
-            <<" badSmaller "<<gp->statisitics[selectedSmallerLayer][iRefLayer][selectedSmallerBin][badSmaller]<<" goodSmaller "<<gp->statisitics[selectedSmallerLayer][iRefLayer][selectedSmallerBin][goodSmaller]
+            <<" badSmaller "<<gp->statistics[selectedSmallerLayer][iRefLayer][selectedSmallerBin][badSmaller]<<" goodSmaller "<<gp->statistics[selectedSmallerLayer][iRefLayer][selectedSmallerBin][goodSmaller]
             <<" maxDiffSmaller "<<maxDiffSmaller<<endl;
       }
     }
@@ -799,12 +696,12 @@ void PatternOptimizer::updatePdfCloseResults() {
 
 
 void PatternOptimizer::calculateThresholds(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) {
-  unsigned int iRefHit = omtfCand.getRefHitNumber();
-/*  cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfResult\n"<<omtfResult<<std::endl;
+  unsigned int iRefHit = omtfCand->getRefHitNumber();
+/*  cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfCand->getGpResult()\n"<<omtfCand->getGpResult()<<std::endl;
   cout<<__FUNCTION__<<":"<<__LINE__<<" "<<exptCandGp->key()<<" exptResult\n"<<exptResult<<std::endl;
   cout<<"all golden patterns:"<<endl;
   for(auto& gp : goldenPatterns) {
-    if(omtfResult.getFiredLayerCnt() == gp->getResults()[candProcIndx][iRefHit].getFiredLayerCnt() )
+    if(omtfCand->getGpResult().getFiredLayerCnt() == gp->getResults()[candProcIndx][iRefHit].getFiredLayerCnt() )
     {
       cout<<gp->key()<<std::endl<<gp->getResults()[candProcIndx][iRefHit]<<std::endl;
     }
@@ -829,12 +726,12 @@ void PatternOptimizer::calculateThresholds(GoldenPatternWithStat* omtfCandGp, Go
 
     //debug
     /*if( gpProbability <= 0.002 ) {
-      std::cout<<"omtfResult "<<omtfCandGp->key()<<std::endl;
-      std::cout<<std::endl<<omtfResult<<std::endl;
-      //int refHitNum = omtfCand.getRefHitNumber();
+      std::cout<<"omtfCand->getGpResult() "<<omtfCandGp->key()<<std::endl;
+      std::cout<<std::endl<<omtfCand->getGpResult()<<std::endl;
+      //int refHitNum = omtfCand->getRefHitNumber();
       std::cout<<"other gps results"<<endl;
       for(auto& gp : goldenPatterns) {
-        if(omtfResult.getFiredLayerCnt() == gp->getResults()[candProcIndx][iRefHit].getFiredLayerCnt() )
+        if(omtfCand->getGpResult().getFiredLayerCnt() == gp->getResults()[candProcIndx][iRefHit].getFiredLayerCnt() )
         {
           cout<<gp->key()<<std::endl<<gp->getResults()[candProcIndx][iRefHit]<<std::endl;
         }
@@ -846,13 +743,13 @@ void PatternOptimizer::calculateThresholds(GoldenPatternWithStat* omtfCandGp, Go
   else if(omtfCandGp->key().thePt >= exptCandGp->key().thePt) {//= matters for the highest patterns with oposite signs
     exptCandGp->gpProbabilityStat[exptResult.getRefLayer()]->Fill(1.1); //filling overflow bin in this case
     /*cout<<"--------OVERflow--------"<<endl;
-    cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfResult\n"<<omtfResult<<std::endl;
+    cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfCand->getGpResult()\n"<<omtfCand->getGpResult()<<std::endl;
     cout<<__FUNCTION__<<":"<<__LINE__<<" "<<exptCandGp->key()<<" exptResult\n"<<exptResult<<std::endl;*/
   }
   else {//it can happened if the exptCandGp has lower FiredLayerCnt then the omtfCandG, or omtfCandGp (o has lower pt than exptCandGp because it is of opposite sign
     exptCandGp->gpProbabilityStat[exptResult.getRefLayer()]->Fill(-0.1); //filling underflow bin in this case
     /*cout<<"--------underflow--------"<<endl;
-    cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfResult\n"<<omtfResult<<std::endl;
+    cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfCand->getGpResult()\n"<<omtfCand->getGpResult()<<std::endl;
     cout<<__FUNCTION__<<":"<<__LINE__<<" "<<exptCandGp->key()<<" exptResult\n"<<exptResult<<std::endl;*/
   }
 }
@@ -877,7 +774,7 @@ void PatternOptimizer::calculateThresholds(double targetEff) {
   }
   *
 
-  //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfResult\n"<<omtfResult<<std::endl;
+  //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfCand->getGpResult()\n"<<omtfCand->getGpResult()<<std::endl;
   //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<exptCandGp->key()<<" exptResult\n"<<exptResult<<std::endl;
 
   int takenMuCnt = 0;
@@ -899,7 +796,7 @@ void PatternOptimizer::calculateThresholds(double targetEff) {
 
 void PatternOptimizer::calculateThresholds(double targetEff) {
   cout<<__FUNCTION__<<":"<<__LINE__<<" targetEff "<<targetEff<<std::endl;
-  //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfResult\n"<<omtfResult<<std::endl;
+  //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfCand->getGpResult()\n"<<omtfCand->getGpResult()<<std::endl;
   //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<exptCandGp->key()<<" exptResult\n"<<exptResult<<std::endl;
 
   for(auto& gp : goldenPatterns) {
@@ -931,8 +828,8 @@ void PatternOptimizer::calculateThresholds(double targetEff) {
 
 
 /*void PatternOptimizer::tuneClassProb(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) {
-  unsigned int iRefHit = omtfCand.getRefHitNumber();
-  //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfResult\n"<<omtfResult<<std::endl;
+  unsigned int iRefHit = omtfCand->getRefHitNumber();
+  //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfCand->getGpResult()\n"<<omtfCand->getGpResult()<<std::endl;
   //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<exptCandGp->key()<<" exptResult\n"<<exptResult<<std::endl;
 
   *
@@ -956,7 +853,7 @@ void PatternOptimizer::calculateThresholds(double targetEff) {
       continue;
 
     auto& result = goldenPatterns[iPat]->getResults()[candProcIndx][iRefHit];
-    if(result.getFiredLayerCnt() == omtfResult.getFiredLayerCnt() ) {
+    if(result.getFiredLayerCnt() == omtfCand->getGpResult().getFiredLayerCnt() ) {
       if(result.getPdfSum() > maxPdfSum) {
         maxPdfSum = result.getPdfSum();
         maxResult = result;
@@ -974,7 +871,7 @@ void PatternOptimizer::calculateThresholds(double targetEff) {
       if(goldenPatterns[iPat]->key().theCharge != goldenPatterns[exptPatNum]->key().theCharge)
         continue;
 
-      unsigned int iRefLayer = omtfCand.getRefLayer();
+      unsigned int iRefLayer = omtfCand->getRefLayer();
       unsigned int refLayerLogicNumber = omtfConfig->getRefToLogicNumber()[iRefLayer];
 
       if(goldenPatterns[iPat]->key().thePt < ptCut) {
@@ -982,10 +879,10 @@ void PatternOptimizer::calculateThresholds(double targetEff) {
 
         double diff = maxDiffBin -1; //in the bin maxDiffBin -1 will go the events that are below the threshold
 
-        if(maxPdfSum > 0  &&  result.getFiredLayerCnt() == omtfResult.getFiredLayerCnt()) {
+        if(maxPdfSum > 0  &&  result.getFiredLayerCnt() == omtfCand->getGpResult().getFiredLayerCnt()) {
           diff = maxResult.getPdfSum() - result.getPdfSum();
 
-          if(result.getFiredLayerCnt() == omtfResult.getFiredLayerCnt() &&  diff < 0 ) {//debug
+          if(result.getFiredLayerCnt() == omtfCand->getGpResult().getFiredLayerCnt() &&  diff < 0 ) {//debug
             cout<<__FUNCTION__<<":"<<__LINE__<<" diff = "<<diff<<std::endl;
             cout<<__FUNCTION__<<":"<<__LINE__<<" gp "<<goldenPatterns[iPat]->key()<<"\n"<<result<<std::endl;
             cout<<__FUNCTION__<<":"<<__LINE__<<" maxResultPat "<<goldenPatterns[maxResultPat]->key()<<"\n"<<maxResult<<std::endl;
@@ -1003,7 +900,7 @@ void PatternOptimizer::calculateThresholds(double targetEff) {
           if(diff < maxDiffBin/2) {
           cout<<__FUNCTION__<<":"<<__LINE__<<" diff < 0 !!!!!! diff = "<<diff<<std::endl;
           cout<<__FUNCTION__<<":"<<__LINE__<<" gp "<<goldenPatterns[iPat]->key()<<"\n"<<result<<std::endl;
-          cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCandGp "<<omtfCandGp->key()<<"\n"<<omtfResult<<std::endl;
+          cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCandGp "<<omtfCandGp->key()<<"\n"<<omtfCand->getGpResult()<<std::endl;
         }
         }
         //cout<<__FUNCTION__<<":"<<__LINE__<<goldenPatterns[iPat]->key()<<" iRefLayer "<<iRefLayer<<" diff = "<<diff<<std::endl;
@@ -1099,11 +996,11 @@ void PatternOptimizer::calculateThresholds(double targetEff) {
 }*/
 
 void PatternOptimizer::tuneClassProb(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) {
-  unsigned int iRefHit = omtfCand.getRefHitNumber();
-  //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfResult\n"<<omtfResult<<std::endl;
+  unsigned int iRefHit = omtfCand->getRefHitNumber();
+  //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfCand->getGpResult()\n"<<omtfCand->getGpResult()<<std::endl;
   //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<exptCandGp->key()<<" exptResult\n"<<exptResult<<std::endl;
 
-  unsigned int iRefLayer = omtfCand.getRefLayer();
+  unsigned int iRefLayer = omtfCand->getRefLayer();
   unsigned int refLayerLogicNumber = omtfConfig->getRefToLogicNumber()[iRefLayer];
   unsigned int iPdf = omtfConfig->nPdfBins()/2;//
 
@@ -1115,10 +1012,10 @@ void PatternOptimizer::tuneClassProb(GoldenPatternWithStat* omtfCandGp, GoldenPa
     return;
 
   if( (expPatternPt.ptTo - 0.5) <= ptSim) {
-    exptCandGp->statisitics[refLayerLogicNumber][iRefLayer][iPdf][whatExptNorm]++;
+    exptCandGp->statistics[refLayerLogicNumber][iRefLayer][iPdf][whatExptNorm]++;
     //cout<<__FUNCTION__<<":"<<__LINE__<<" filling lower bound norm ";
     if(omtfCandGp->key().thePt >=  exptCandGp->key().thePt) {
-      exptCandGp->statisitics[refLayerLogicNumber][iRefLayer][iPdf][whatExptVal]++;
+      exptCandGp->statistics[refLayerLogicNumber][iRefLayer][iPdf][whatExptVal]++;
       //cout<<" end val";
     }
     //cout<<"\n\n";
@@ -1127,9 +1024,9 @@ void PatternOptimizer::tuneClassProb(GoldenPatternWithStat* omtfCandGp, GoldenPa
     unsigned int prevPatNum = omtfConfig->getPatternNum(expPatternPt.ptFrom - 0.25, exptCandGp->key().theCharge);
     auto& prevPat = goldenPatterns[prevPatNum];
     //cout<<__FUNCTION__<<":"<<__LINE__<<" filling upper bound for pattern "<<prevPat->key()<<" norm ";
-    prevPat->statisitics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptNorm]++;
+    prevPat->statistics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptNorm]++;
     if(omtfCandGp->key().thePt >=  prevPat->key().thePt) {
-      prevPat->statisitics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptVal]++;
+      prevPat->statistics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptVal]++;
       //cout<<" end val";
     }
     //cout<<"\n\n";
@@ -1148,28 +1045,28 @@ void PatternOptimizer::tuneClassProb(double targetEff) {
     for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[0].size(); ++iRefLayer) {
       unsigned int refLayerLogicNumber = omtfConfig->getRefToLogicNumber()[iRefLayer];
 
-      if(gp->statisitics[refLayerLogicNumber][iRefLayer][iPdf][whatExptNorm] < 100 ||
-         gp->statisitics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptNorm] < 100 ) {
+      if(gp->statistics[refLayerLogicNumber][iRefLayer][iPdf][whatExptNorm] < 100 ||
+         gp->statistics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptNorm] < 100 ) {
         cout<<__FUNCTION__<<":"<<__LINE__<<" "<<gp->key()<<" iRefLayer "<<iRefLayer<<" less than 100 in norm "<<endl;
         continue;
       }
 
-      double effLower = gp->statisitics[refLayerLogicNumber][iRefLayer][iPdf][whatExptVal]
-                      / gp->statisitics[refLayerLogicNumber][iRefLayer][iPdf][whatExptNorm];
+      double effLower = gp->statistics[refLayerLogicNumber][iRefLayer][iPdf][whatExptVal]
+                      / gp->statistics[refLayerLogicNumber][iRefLayer][iPdf][whatExptNorm];
 
-      double effUpper = gp->statisitics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptVal]
-                      / gp->statisitics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptNorm];
+      double effUpper = gp->statistics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptVal]
+                      / gp->statistics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptNorm];
 
       double effMean = (effLower + effUpper)/2.;
 
       double delta = gp->pdfAllRef[refLayerLogicNumber][iRefLayer][iPdf] * ( (targetEff - effMean));
 
       cout<<__FUNCTION__<<":"<<__LINE__<<" "<<gp->key()<<" iRefLayer "<<iRefLayer
-          <<" lowerCnt "<<gp->statisitics[refLayerLogicNumber][iRefLayer][iPdf][whatExptVal]
-          <<" lowerNorm "<<gp->statisitics[refLayerLogicNumber][iRefLayer][iPdf][whatExptNorm]
+          <<" lowerCnt "<<gp->statistics[refLayerLogicNumber][iRefLayer][iPdf][whatExptVal]
+          <<" lowerNorm "<<gp->statistics[refLayerLogicNumber][iRefLayer][iPdf][whatExptNorm]
           <<" effLower "<<effLower
-          <<" upperCnt "<<gp->statisitics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptVal]
-          <<" upperNorm "<<gp->statisitics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptNorm]
+          <<" upperCnt "<<gp->statistics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptVal]
+          <<" upperNorm "<<gp->statistics[refLayerLogicNumber][iRefLayer][iPdf + 1][whatExptNorm]
           <<" effUpper "<<effUpper
           <<" effMean "<<effMean
           <<" curPdfVal "<<gp->pdfAllRef[refLayerLogicNumber][iRefLayer][iPdf]
@@ -1183,7 +1080,7 @@ void PatternOptimizer::tuneClassProb(double targetEff) {
 void PatternOptimizer::updateStat(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp, double delta, double norm) {
   //cout<<__FUNCTION__<<":"<<__LINE__<<" exptCandGp Pt "<<exptCandGp->key().thePt<<std::endl;
   //cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCandGp Pt "<<omtfCandGp->key().thePt<<" delta "<<delta<<" norm "<<norm<<std::endl;
-  for(unsigned int iLayer = 0;  iLayer < omtfResult.getHitPdfBins().size(); iLayer++) {
+  for(unsigned int iLayer = 0;  iLayer < omtfCand->getGpResult().getHitPdfBins().size(); iLayer++) {
     //updating statistic for the gp which should have fired
     int iBinExpt = exptResult.getHitPdfBins()[iLayer];
     if(iBinExpt != 0) {
@@ -1192,12 +1089,12 @@ void PatternOptimizer::updateStat(GoldenPatternWithStat* omtfCandGp, GoldenPatte
       //cout<<__FUNCTION__<<":"<<__LINE__<<" updating statistic for exptCandGp: iLayer "<<iLayer<<" RefLayer "<<exptResult.getRefLayer()<<" iBinExpt "<<iBinExpt<<" fired "<<exptResult.isLayerFired(iLayer)<<std::endl;
     }
 
-    if(omtfResult.getHitPdfBins()[iLayer] != 0 ) {
+    if(omtfCand->getGpResult().isLayerFired(iLayer) != 0 ) {
       //updating statistic for the gp which found the candidate
       //cout<<__FUNCTION__<<":"<<__LINE__<<" updating statistic for omtf gp "<<omtfCandGp<<std::endl;
-      omtfCandGp->updateStat(iLayer, omtfCand.getRefLayer(), omtfResult.getHitPdfBins()[iLayer], whatOmtfVal, -delta);
-      omtfCandGp->updateStat(iLayer, omtfCand.getRefLayer(), omtfResult.getHitPdfBins()[iLayer], whatOmtfNorm, norm);
-      //cout<<__FUNCTION__<<":"<<__LINE__<<" updating statistic for omtfCandGp: iLayer "<<iLayer<<" RefLayer "<<omtfCand.getRefLayer()<<" iBinOmtf "<<omtfResult.getHitPdfBins()[iLayer]<<" fired "<<omtfResult.isLayerFired(iLayer)<<std::endl;
+      omtfCandGp->updateStat(iLayer, omtfCand->getRefLayer(), omtfCand->getGpResult().getHitPdfBins()[iLayer], whatOmtfVal, -delta);
+      omtfCandGp->updateStat(iLayer, omtfCand->getRefLayer(), omtfCand->getGpResult().getHitPdfBins()[iLayer], whatOmtfNorm, norm);
+      //cout<<__FUNCTION__<<":"<<__LINE__<<" updating statistic for omtfCandGp: iLayer "<<iLayer<<" RefLayer "<<omtfCand->getRefLayer()<<" iBinOmtf "<<omtfCand->getGpResult().getHitPdfBins()[iLayer]<<" fired "<<omtfCand->getGpResult().isLayerFired(iLayer)<<std::endl;
     }
   }
 }
@@ -1297,12 +1194,12 @@ void PatternOptimizer::updateStatPtLogDiff_2(GoldenPatternWithStat* omtfCandGp, 
 void PatternOptimizer::updatePdfsMean_1(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) {
   for(unsigned int iPdf = 1; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
     double d = 0;
-    if(gp->statisitics[iLayer][iRefLayer][iPdf][whatExptNorm] != 0) {
-      d += gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptVal]/(double)gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptNorm];
+    if(gp->statistics[iLayer][iRefLayer][iPdf][whatExptNorm] != 0) {
+      d += gp->statistics[iLayer][iRefLayer][iPdf][ whatExptVal]/(double)gp->statistics[iLayer][iRefLayer][iPdf][ whatExptNorm];
     }
 
-    if(gp->statisitics[iLayer][iRefLayer][iPdf][whatOmtfNorm] != 0)
-      d += gp->statisitics[iLayer][iRefLayer][iPdf][whatOmtfVal]/(double)gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfNorm] ;
+    if(gp->statistics[iLayer][iRefLayer][iPdf][whatOmtfNorm] != 0)
+      d += gp->statistics[iLayer][iRefLayer][iPdf][whatOmtfVal]/(double)gp->statistics[iLayer][iRefLayer][iPdf][ whatOmtfNorm] ;
 
 
     d = d * learingRate;
@@ -1323,10 +1220,10 @@ void PatternOptimizer::updatePdfsMean_1(GoldenPatternWithStat* gp, unsigned int&
     if(d != 0) {
       std::cout<<__FUNCTION__<<":"<<__LINE__<<" "<< gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" iBin "
           <<iPdf<<" pdfVal "<<gp->pdfAllRef[iLayer][iRefLayer][iPdf]
-          <<" ExptVal "<<gp->statisitics[iLayer][iRefLayer][iPdf][whatExptVal]
-          <<" ExptNorm "<<gp->statisitics[iLayer][iRefLayer][iPdf][whatExptNorm]
-          <<" OmtfVal "<<gp->statisitics[iLayer][iRefLayer][iPdf][whatOmtfVal]
-          <<" OmtfNorm "<<gp->statisitics[iLayer][iRefLayer][iPdf][whatOmtfNorm]
+          <<" ExptVal "<<gp->statistics[iLayer][iRefLayer][iPdf][whatExptVal]
+          <<" ExptNorm "<<gp->statistics[iLayer][iRefLayer][iPdf][whatExptNorm]
+          <<" OmtfVal "<<gp->statistics[iLayer][iRefLayer][iPdf][whatOmtfVal]
+          <<" OmtfNorm "<<gp->statistics[iLayer][iRefLayer][iPdf][whatOmtfNorm]
           <<" d "<<d<<std::endl;
     }
   }
@@ -1335,9 +1232,9 @@ void PatternOptimizer::updatePdfsMean_1(GoldenPatternWithStat* gp, unsigned int&
 void PatternOptimizer::updatePdfsMean_2(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) {
   for(unsigned int iPdf = 1; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
     double d = 0;
-    double norm = (double)gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptNorm] + (double)gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfNorm];
+    double norm = (double)gp->statistics[iLayer][iRefLayer][iPdf][ whatExptNorm] + (double)gp->statistics[iLayer][iRefLayer][iPdf][ whatOmtfNorm];
     if(norm != 0)
-      d += (gp->statisitics[iLayer][iRefLayer][iPdf][whatExptVal] + gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfVal])/norm;
+      d += (gp->statistics[iLayer][iRefLayer][iPdf][whatExptVal] + gp->statistics[iLayer][iRefLayer][iPdf][ whatOmtfVal])/norm;
 
     d = d * learingRate;
 
@@ -1354,10 +1251,10 @@ void PatternOptimizer::updatePdfsMean_2(GoldenPatternWithStat* gp, unsigned int&
     if(d != 0) {
       std::cout<<__FUNCTION__<<":"<<__LINE__<<" "<< gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" iBin "
           <<iPdf<<" pdfVal "<<gp->pdfAllRef[iLayer][iRefLayer][iPdf]
-          <<" ExptVal "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptVal]
-          <<" ExptNorm "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptNorm]
-          <<" OmtfVal "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfVal]
-          <<" OmtfNorm "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfNorm]
+          <<" ExptVal "<<gp->statistics[iLayer][iRefLayer][iPdf][ whatExptVal]
+          <<" ExptNorm "<<gp->statistics[iLayer][iRefLayer][iPdf][ whatExptNorm]
+          <<" OmtfVal "<<gp->statistics[iLayer][iRefLayer][iPdf][ whatOmtfVal]
+          <<" OmtfNorm "<<gp->statistics[iLayer][iRefLayer][iPdf][ whatOmtfNorm]
           <<" d "<<d<<std::endl;
     }
   }
@@ -1366,9 +1263,9 @@ void PatternOptimizer::updatePdfsMean_2(GoldenPatternWithStat* gp, unsigned int&
 void PatternOptimizer::updatePdfsVoter_1(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) {
   for(unsigned int iPdf = 1; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
     double d = 0;
-    double norm = (double)gp->statisitics[iLayer][iRefLayer][iPdf][whatExptNorm] + (double)gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfNorm];
+    double norm = (double)gp->statistics[iLayer][iRefLayer][iPdf][whatExptNorm] + (double)gp->statistics[iLayer][iRefLayer][iPdf][ whatOmtfNorm];
     if(norm != 0)
-      d += (gp->statisitics[iLayer][iRefLayer][iPdf][whatExptVal] + gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfVal]); // /norm;
+      d += (gp->statistics[iLayer][iRefLayer][iPdf][whatExptVal] + gp->statistics[iLayer][iRefLayer][iPdf][ whatOmtfVal]); // /norm;
 
     //d = d * learingRate;
 
@@ -1376,7 +1273,7 @@ void PatternOptimizer::updatePdfsVoter_1(GoldenPatternWithStat* gp, unsigned int
       d = 0; //don't add additional non zero beans for the high pt
     }
 
-    if(gp->statisitics[iLayer][iRefLayer][iPdf][whatExptNorm] > 5 || gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfNorm] > 5) {
+    if(gp->statistics[iLayer][iRefLayer][iPdf][whatExptNorm] > 5 || gp->statistics[iLayer][iRefLayer][iPdf][ whatOmtfNorm] > 5) {
       if(d >= 2)
         d = 1.0;
       else if(d <= 2)
@@ -1394,10 +1291,10 @@ void PatternOptimizer::updatePdfsVoter_1(GoldenPatternWithStat* gp, unsigned int
     if(d != 0) {
       std::cout<<__FUNCTION__<<":"<<__LINE__<<" "<< gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" iBin "
           <<iPdf<<" pdfVal "<<gp->pdfAllRef[iLayer][iRefLayer][iPdf]
-          <<" ExptVal "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptVal]
-          <<" ExptNorm "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptNorm]
-          <<" OmtfVal "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfVal]
-          <<" OmtfNorm "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfNorm]
+          <<" ExptVal "<<gp->statistics[iLayer][iRefLayer][iPdf][ whatExptVal]
+          <<" ExptNorm "<<gp->statistics[iLayer][iRefLayer][iPdf][ whatExptNorm]
+          <<" OmtfVal "<<gp->statistics[iLayer][iRefLayer][iPdf][ whatOmtfVal]
+          <<" OmtfNorm "<<gp->statistics[iLayer][iRefLayer][iPdf][ whatOmtfNorm]
           <<" d "<<d<<std::endl;
     }
   }
@@ -1409,7 +1306,7 @@ void PatternOptimizer::updatePdfsAnaDeriv(GoldenPatternWithStat* gp, unsigned in
       continue;
 
     double d = 0;
-    d -= gp->statisitics[iLayer][iRefLayer][iPdf][whatExptVal];
+    d -= gp->statistics[iLayer][iRefLayer][iPdf][whatExptVal];
     d = d * learingRate ; //* gp->pdfAllRef[iLayer][iRefLayer][iPdf];
     if (nEventsRefL.at(iRefLayer))
       d /= 2.0 * nEventsRefL.at(iRefLayer);// nEvents;
@@ -1435,9 +1332,9 @@ void PatternOptimizer::updatePdfsAnaDeriv(GoldenPatternWithStat* gp, unsigned in
       std::cout<<__FUNCTION__<<":"<<__LINE__<<" "<< gp->key()<<" iLayer "<<setw(2)<<iLayer<<" iRefLayer "<<iRefLayer<<" iBin "
           <<setw(3)<<iPdf<<" pdfVal "<<setw(12)<<left<<gp->pdfAllRef[iLayer][iRefLayer][iPdf]
           <<iPdf<<" OldPdf "<<setw(12)<<left<<pdfOld
-          <<" AnaDeriv "<<setw(12)<<left<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptVal]
+          <<" AnaDeriv "<<setw(12)<<left<<gp->statistics[iLayer][iRefLayer][iPdf][ whatExptVal]
           //<<" NumDeriv "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptNorm]
-          <<" AnaDeriv/2N "<<setw(12)<<left<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptVal] / 2.0 / nEventsRefL.at(iRefLayer)
+          <<" AnaDeriv/2N "<<setw(12)<<left<<gp->statistics[iLayer][iRefLayer][iPdf][ whatExptVal] / 2.0 / nEventsRefL.at(iRefLayer)
           <<" d "<<setw(12)<<left<< d
           <<" d/PdfVal "<<setw(12)<<left <<  ((pdfOld > 0) ? d / pdfOld : 0)
           <<" nEvents "<<setw(5)<< nEventsRefL.at(iRefLayer)
@@ -1449,7 +1346,7 @@ void PatternOptimizer::updatePdfsAnaDeriv(GoldenPatternWithStat* gp, unsigned in
 void PatternOptimizer::updatePdfsNumDeriv(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) {
   for(unsigned int iPdf = 1; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
     double d = 0;
-    d -= gp->statisitics[iLayer][iRefLayer][iPdf][whatExptNorm];
+    d -= gp->statistics[iLayer][iRefLayer][iPdf][whatExptNorm];
     d = d * learingRate;
     d /= 2.0 * nEvents;
 
@@ -1462,99 +1359,16 @@ void PatternOptimizer::updatePdfsNumDeriv(GoldenPatternWithStat* gp, unsigned in
     if(d != 0) {
       std::cout<<__FUNCTION__<<":"<<__LINE__<<" "<< gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" iBin "
           <<iPdf<<" pdfVal "<<gp->pdfAllRef[iLayer][iRefLayer][iPdf]
-          <<" AnaDeriv "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptVal]
-          <<" NumDeriv "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatExptNorm]
-          <<" OmtfVal "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfVal]
-          <<" OmtfNorm "<<gp->statisitics[iLayer][iRefLayer][iPdf][ whatOmtfNorm]
+          <<" AnaDeriv "<<gp->statistics[iLayer][iRefLayer][iPdf][ whatExptVal]
+          <<" NumDeriv "<<gp->statistics[iLayer][iRefLayer][iPdf][ whatExptNorm]
+          <<" OmtfVal "<<gp->statistics[iLayer][iRefLayer][iPdf][ whatOmtfVal]
+          <<" OmtfNorm "<<gp->statistics[iLayer][iRefLayer][iPdf][ whatOmtfNorm]
           <<" d "<<d<<std::endl;
     }
   }
 }
 
-void PatternOptimizer::savePatternsInRoot(std::string rootFileName) {
-  gStyle->SetOptStat(111111);
-  TFile outfile(rootFileName.c_str(), "RECREATE");
-  cout<<__FUNCTION__<<": "<<__LINE__<<" out fileName "<<rootFileName<<" outfile->GetName() "<<outfile.GetName()<<endl;
-
-  outfile.cd();
-  simMuFoundByOmtfPt->Write();
-
-  simMuPtSpectrum->Write();
-
-  outfile.mkdir("patternsPdfs")->cd();
-  outfile.mkdir("patternsPdfs/canvases");
-  ostringstream ostrName;
-  ostringstream ostrTtle;
-  vector<TH1F*> classProbHists;
-  for(unsigned int iRefLayer = 0; iRefLayer < goldenPatterns[0]->getPdf()[0].size(); ++iRefLayer) {
-    ostrName.str("");
-    ostrName<<"Neg_RefLayer_"<<iRefLayer;
-    ostrTtle.str("");
-    ostrTtle<<"Neg_RefLayer_"<<iRefLayer;
-    classProbHists.push_back(new TH1F(ostrName.str().c_str(), ostrTtle.str().c_str(), goldenPatterns.size(), -0.5, goldenPatterns.size() - 0.5) );
-
-    ostrName.str("");
-    ostrName<<"Pos_RefLayer_"<<iRefLayer;
-    ostrTtle.str("");
-    ostrTtle<<"Pos_RefLayer_"<<iRefLayer;
-    classProbHists.push_back(new TH1F(ostrName.str().c_str(), ostrTtle.str().c_str(), goldenPatterns.size(), -0.5, goldenPatterns.size() - 0.5) );
-  }
-  for(auto& gp : goldenPatterns) {
-    OMTFConfiguration::PatternPt patternPt = omtfConfig->getPatternPtRange(gp->key().theNumber);
-    if(gp->key().thePt == 0)
-      continue;
-    //cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<std::endl;
-    ostrName.str("");
-    ostrName<<"PatNum_"<<gp->key().theNumber;
-    ostrTtle.str("");
-    ostrTtle<<"PatNum_"<<gp->key().theNumber<<"_ptCode_"<<gp->key().thePt<<"_Pt_"<<patternPt.ptFrom<<"_"<<patternPt.ptTo<<"_GeV";
-    TCanvas* canvas = new TCanvas(ostrName.str().c_str(), ostrTtle.str().c_str(), 1200, 1000);
-    canvas->Divide(gp->getPdf().size(), gp->getPdf()[0].size(), 0, 0);
-    outfile.cd("patternsPdfs");
-    for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
-      for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
-        canvas->cd(1 + iLayer + iRefLayer * gp->getPdf().size());
-        //unsigned int refLayerLogicNumber = omtfConfig->getRefToLogicNumber()[iRefLayer];
-        ostrName.str("");
-        ostrName<<"PatNum_"<<gp->key().theNumber<<"_refLayer_"<<iRefLayer<<"_Layer_"<<iLayer;
-        ostrTtle.str("");
-        ostrTtle<<"PatNum "<<gp->key().theNumber<<" ptCode "<<gp->key().thePt<<" refLayer "<<iRefLayer<<" Layer "<<iLayer<<" meanDistPhi "<<gp->meanDistPhi[iLayer][iRefLayer][0]; //"_Pt_"<<patternPt.ptFrom<<"_"<<patternPt.ptTo<<"_GeV
-        //cout<<__FUNCTION__<<": "<<__LINE__<<" creating hist "<<ostrTtle.str()<<std::endl;
-        TH1F* hist = new TH1F(ostrName.str().c_str(), ostrTtle.str().c_str(), omtfConfig->nPdfBins(), -0.5, omtfConfig->nPdfBins()-0.5);
-        for(unsigned int iPdf = 0; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
-          hist->Fill(iPdf, gp->pdfAllRef[iLayer][iRefLayer][iPdf]);
-        }
-        hist->Write();
-        hist->Draw("hist");
-      }
-    }
-    outfile.cd("patternsPdfs/canvases");
-    canvas->Write();
-    delete canvas;
-
-    unsigned int iPdf = omtfConfig->nPdfBins()/2;
-    for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[0].size(); ++iRefLayer) {
-      unsigned int refLayerLogicNumber = omtfConfig->getRefToLogicNumber()[iRefLayer];
-      if(gp->key().theCharge == -1) {
-        classProbHists[2 * iRefLayer]->Fill(gp->key().theNumber, gp->pdfAllRef[refLayerLogicNumber][iRefLayer][iPdf]);
-      }
-      else
-        classProbHists[2 * iRefLayer +1]->Fill(gp->key().theNumber, gp->pdfAllRef[refLayerLogicNumber][iRefLayer][iPdf]);
-    }
-  }
-
-  outfile.mkdir("patternsPdfSumStat")->cd();
-  for(auto& gp : goldenPatterns) {
-    for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[0].size(); ++iRefLayer) {
-      gp->gpProbabilityStat[iRefLayer]->Write();
-    }
-  }
-
-  outfile.cd();
-  for(auto& classProbHist : classProbHists) {
-    classProbHist->Write();
-  }
-
+void PatternOptimizer::saveHists(TFile& outfile) {
   ostringstream ostr;
   ostr<<"hitsCorrelation_refL_"<<selRefL<<"_firstL_"<<selL1<<"_secondL_"<<selL2;
   outfile.mkdir(ostr.str().c_str() )->cd();
@@ -1566,10 +1380,7 @@ void PatternOptimizer::savePatternsInRoot(std::string rootFileName) {
     if(hist )
       hist->Write();
   }
-
-  outfile.Close();
 }
-
 
 
 double vxMuRate(double pt_GeV)

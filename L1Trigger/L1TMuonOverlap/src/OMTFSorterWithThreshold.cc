@@ -15,7 +15,7 @@
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
 template <class GoldenPatternType>
-AlgoMuon OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResults(unsigned int procIndx, unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPatternType> >& gPatterns,
+AlgoMuons::value_type OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResults(unsigned int procIndx, unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPatternType> >& gPatterns,
 					  int charge) {
 
   //this sorting is needed for the bestGPByThresholdOnProbability2 due to sum of the probabilities of gp with >= pt ten the current onegetGpProbability2
@@ -146,13 +146,13 @@ AlgoMuon OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResults(unsigned 
 
 
   if(bestGP) {
-     AlgoMuon candidate(bestGP->getResults()[procIndx][iRefHit], bestGP, iRefHit);
+    AlgoMuons::value_type candidate(new AlgoMuon(bestGP->getResults()[procIndx][iRefHit], bestGP, iRefHit) );
      //std::cout<<__FUNCTION__<<" line "<<__LINE__ <<" return: " << candidate << std::endl;
      return candidate;
   }
   else {
-    AlgoMuon candidate;
-    candidate.setRefHitNumber(iRefHit);
+    AlgoMuons::value_type candidate(new AlgoMuon());
+    candidate->setRefHitNumber(iRefHit);
     return candidate;
   }
 }

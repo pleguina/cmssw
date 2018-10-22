@@ -208,14 +208,12 @@ xercesc::DOMElement * XMLConfigWriter::writeEventData(xercesc::DOMElement *aTopE
 }
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-void  XMLConfigWriter::writeAlgoMuon(xercesc::DOMElement *aTopElement,
-    unsigned int iRefHit,
-    const AlgoMuon & aCand){
+void  XMLConfigWriter::writeAlgoMuon(xercesc::DOMElement *aTopElement, const AlgoMuon & aCand){
 
   xercesc::DOMElement* aResult = theDoc->createElement(_toDOMS("AlgoMuon"));
   std::ostringstream stringStr;
   stringStr.str("");
-  stringStr<<iRefHit;
+  stringStr<<aCand.getRefHitNumber();
   aResult->setAttribute(_toDOMS("iRefHit"),_toDOMS(stringStr.str()));
   stringStr.str("");
   stringStr<<aCand.getPt();

@@ -44,8 +44,6 @@ OMTFPatternMaker::~OMTFPatternMaker(){
 
   delete myOMTFConfig;
   delete myOMTFConfigMaker;
-  delete myOMTF;
-
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -75,7 +73,8 @@ void OMTFPatternMaker::beginRun(edm::Run const& run, edm::EventSetup const& iSet
   omtfParamsMutable.setGeneralParams(generalParams);
   
   myOMTFConfig->configure(&omtfParamsMutable);
-  myOMTF->configure(myOMTFConfig, omtfParams);
+  myOMTF.reset(new PdfGeneratorProcessor<GoldenPatternPdfGen>(myOMTFConfig, omtfParams) );
+
   myOMTFConfigMaker = new OMTFConfigMaker(myOMTFConfig);
   
   ///Clear existing GoldenPatterns
@@ -90,7 +89,7 @@ void OMTFPatternMaker::beginRun(edm::Run const& run, edm::EventSetup const& iSet
 void OMTFPatternMaker::beginJob(){
 
     myOMTFConfig = new OMTFConfiguration();
-    myOMTF = new PdfGeneratorProcessor<GoldenPatternPdfGen>(myOMTFConfig);
+    //myOMTF = new PdfGeneratorProcessor<GoldenPatternPdfGen>(myOMTFConfig);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////  

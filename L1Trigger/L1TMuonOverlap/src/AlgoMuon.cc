@@ -4,7 +4,7 @@
 #include <iostream>
 
 bool AlgoMuon::isValid() const{
- return m_pt >= 0; //should this realy be pt or quality ?? FIXME
+ return getPt() > 0; //should this realy be pt or quality ?? FIXME
 }
 
 bool AlgoMuon::operator< (const AlgoMuon & o) const{ 

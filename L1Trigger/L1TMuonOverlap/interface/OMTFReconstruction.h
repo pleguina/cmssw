@@ -54,30 +54,20 @@ class OMTFReconstruction {
 
     edm::ParameterSet m_Config;
 
-    edm::Handle<L1MuDTChambPhContainer> dtPhDigis;
-    edm::Handle<L1MuDTChambThContainer> dtThDigis;
-    edm::Handle<CSCCorrelatedLCTDigiCollection> cscDigis;
-    edm::Handle<RPCDigiCollection> rpcDigis;
-
-    void loadAndFilterDigis(const edm::Event&);    
+/*    void loadAndFilterDigis(const edm::Event&);
 
     void getProcessorCandidates(unsigned int iProcessor, l1t::tftype mtfType, int bx,
-            l1t::RegionalMuonCandBxCollection & myCandidates);
+            l1t::RegionalMuonCandBxCollection & myCandidates);*/
   
-    //FIXME do it better
-    void writeResultToXML(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &myInput, 
-      const std::vector<AlgoMuon>& algoCandidates,
-      const std::vector<l1t::RegionalMuonCand> & candMuons);
-
 
     bool dumpResultToXML, dumpDetailedResultToXML;
     int bxMin, bxMax;
 
   ///OMTF objects
     OMTFConfiguration   *m_OMTFConfig;
-    OMTFinputMaker       m_InputMaker;
+
     //OMTFProcessor<GoldenPattern>  *m_OMTF;
-    IProcessorEmulator* m_OMTF;
+    unique_ptr<IProcessorEmulator> m_OMTF;
   ///
     //xercesc::DOMElement *aTopElement;
     OMTFConfigMaker     *m_OMTFConfigMaker;
