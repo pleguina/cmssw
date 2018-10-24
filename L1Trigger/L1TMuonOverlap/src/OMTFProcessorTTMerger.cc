@@ -36,6 +36,8 @@ OMTFProcessor<GoldenPatternType>(omtfConfig, edmCfg, evSetup, omtfPatterns),
     else if(trackSrc == "L1_TRACKER")
       ttTracksSource = L1_TRACKER;
   }
+
+  //edm::LogImportant("OMTFProcessorTTMerger") << "ttTracksSource "<<ttTracksSource << std::endl;
 };
 
 template <class GoldenPatternType>
@@ -43,7 +45,15 @@ OMTFProcessorTTMerger<GoldenPatternType>::OMTFProcessorTTMerger(OMTFConfiguratio
 OMTFProcessor<GoldenPatternType>(omtfConfig, edmCfg, evSetup, gps),
   ghostBustFunc(ghostBust1)
 {
+  if(edmCfg.exists("ttTracksSource") ){
+    std::string trackSrc = edmCfg.getParameter<std::string>("ttTracksSource");
+    if(trackSrc == "SIM_TRACKS")
+      ttTracksSource = SIM_TRACKS;
+    else if(trackSrc == "L1_TRACKER")
+      ttTracksSource = L1_TRACKER;
+  }
 
+  //edm::LogImportant("OMTFProcessorTTMerger") << "ttTracksSource "<<ttTracksSource << std::endl;
 };
 
 template <class GoldenPatternType>
@@ -186,7 +196,7 @@ TTTracks OMTFProcessorTTMerger<GoldenPatternType>::getTTTrackForProcessor(unsign
   TTTracks procTTTRacks;
 
   double phiUnit = 2*M_PI/this->myOmtfConfig->nPhiBins();
-  int marginLeft =  - 2*M_PI / 36 / phiUnit; //10 deg margin in phiUnits - TODO move to config, find optimal value
+  int marginLeft =  - 2*M_PI * 70. / 360. / phiUnit; //70 deg margin in phiUnits - TODO move to config, find optimal value
   int marginRight =   2*M_PI / this->myOmtfConfig->nProcessors() / phiUnit - marginLeft; //10 deg margin in phiUnits - TODO move to config, find optimal value
 
   //TODO move to config
@@ -320,9 +330,9 @@ const void OMTFProcessorTTMerger<GoldenPatternType>::processInput(unsigned int i
 
       gpResult.finalise();
 
-      if(printCtn++ < 200)
+/*      if(printCtn++ < 200)
       cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<" ttTrack Pt "<<ttTrack.getPt()<<" charge "<<ttTrack.getCharge()<<" refLayerLogicNum "<<refLayerLogicNum
-          <<" iRefHit "<<iRefHit<<"\n"<<gpResult<<endl;
+          <<" iRefHit "<<iRefHit<<"\n"<<gpResult<<endl;*/
 
       if(gpResult.isValid()) {
         if( bestResult == nullptr ||
@@ -418,14 +428,14 @@ run(unsigned int iProcessor, l1t::tftype mtfType, int bx, std::vector<std::uniqu
 
   TTTracks procTTTracks = getTTTrackForProcessor(iProcessor, mtfType, ttTracks);
 
-  //cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<" procTTTracks.size() "<<procTTTracks.size()<<endl;
+  cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<" procTTTracks.size() "<<procTTTracks.size()<<endl;
 
   //cout<<"buildInputForProce "; t.report();
   selectedTTMuons.clear();
 
   processInput(iProcessor, mtfType, input, procTTTracks);
 
-  //cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<" selectedTTMuons.size() "<<selectedTTMuons.size()<<endl;
+  cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<" selectedTTMuons.size() "<<selectedTTMuons.size()<<endl;
 
   //cout<<"processInput       "; t.report();
 

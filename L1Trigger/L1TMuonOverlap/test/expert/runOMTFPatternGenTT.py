@@ -113,7 +113,7 @@ for chFile in chosenFiles:
     print chFile
 
 firstEv = 0#40000
-nEvents = 100000
+nEvents = 10000
 
 # input files (up to 255 files accepted)
 process.source = cms.Source('PoolSource',
