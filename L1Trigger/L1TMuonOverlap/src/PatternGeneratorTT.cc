@@ -67,7 +67,7 @@ PatternGeneratorTT::~PatternGeneratorTT() {
 }
 
 void PatternGeneratorTT::updateStat() {
-  cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCand "<<*omtfCand<<std::endl;;
+  //cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCand "<<*omtfCand<<std::endl;;
   TTAlgoMuon* ttAlgoMuon = dynamic_cast<TTAlgoMuon*>(omtfCand.get());
   if(!ttAlgoMuon) {
     cout<<__FUNCTION__<<":"<<__LINE__<<" ttAlgoMuon is null"<<std::endl;
@@ -87,7 +87,7 @@ void PatternGeneratorTT::updateStat() {
     unsigned int iRefLayer =  gpResult.getRefLayer();
     unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
 
-    cout<<gpResult;
+    //cout<<gpResult;
     //if(gpResult.isValid() )
     {
       for(unsigned int iLayer = 0;  iLayer < gpResult.getHitPdfBins().size(); iLayer++) {
@@ -99,10 +99,10 @@ void PatternGeneratorTT::updateStat() {
         if(iLayer == refLayerLogicNum) //TODO remove if needed to far all layers
           ptDeltaPhiHists[iCharge][refLayerLogicNum]->Fill(ttAlgoMuon->getTtTrack().getPt(), phiDist);
 
-        if(omtfCand->getCharge() == 1) //positive muons has negative banding, so we shift the phiDist up
+        if(omtfCand->getCharge() == 1) ////TODO watch out!!!!! - positive muons has negative banding, so we shift the phiDist up
           phiDist += omtfCandGp->getStatistics()[iLayer][iRefLayer].size();
 
-        cout<<__FUNCTION__<<":"<<__LINE__<<" iLayer "<<iLayer<<" phiDist "<<phiDist<<std::endl;
+        //cout<<__FUNCTION__<<":"<<__LINE__<<" iLayer "<<iLayer<<" phiDist "<<phiDist<<std::endl;
         if( phiDist >= 0 && phiDist < (int)(omtfCandGp->getStatistics()[iLayer][iRefLayer].size()) ) {
           //updating statistic for the gp which found the candidate
           //cout<<__FUNCTION__<<":"<<__LINE__<<" updating statistic for omtf gp "<<omtfCandGp<<std::endl;
@@ -131,7 +131,11 @@ void PatternGeneratorTT::endJob() {
 
 void PatternGeneratorTT::upadatePdfRefLay() {
   cout<<__FUNCTION__<<": "<<__LINE__<<endl;
+
+  //
   for(auto& gp : goldenPatterns) {
+    if(gp->key().thePt == 0)
+      continue;
     for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
 
       for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
@@ -149,7 +153,7 @@ void PatternGeneratorTT::upadatePdfRefLay() {
           if(count != 0) {
             meanDistPhi /= count;
 
-            if(gp->key().theCharge == 1)
+            if(gp->key().theCharge == 1) //TODO watch out!!!!!
               meanDistPhi -= gp->getStatistics()[iLayer][iRefLayer].size();
 
             cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" count "<<count<<" meanDistPhi "<<meanDistPhi<<endl;
@@ -184,25 +188,78 @@ void PatternGeneratorTT::upadatePdfRefLay() {
     }
   }
 
+
+  //setting the DistPhiBitShift i.e. grouping of the pdfBins
   for(auto& gp : goldenPatterns) {
+    if(gp->key().thePt == 0)
+      continue;
+    for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
+      for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
+        if(gp->getDistPhiBitShift(iLayer, iRefLayer) ) {
+          throw runtime_error(string(__FUNCTION__) + ":" + to_string(__LINE__) + "gp->getDistPhiBitShift(iLayer, iRefLayer) != 0 -  cannot change DistPhiBitShift then!!!!");
+        }
+
+        unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
+        if(refLayerLogicNum == iLayer)
+        {
+          //TODO the thresholds depends on the pdfWidth i.e. address bits count
+          if( omtfConfig->hwPtToGev(gp->key().thePt) < 5  ) {
+            gp->setDistPhiBitShift(2, iLayer, iRefLayer);
+          }
+          else if( omtfConfig->hwPtToGev(gp->key().thePt) < 10  ) {
+            gp->setDistPhiBitShift(1, iLayer, iRefLayer);
+          }
+        }
+      }
+    }
+  }
+
+  //calculating the pdfs
+  for(auto& gp : goldenPatterns) {
+    if(gp->key().thePt == 0)
+      continue;
     for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
 
       for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
         unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
         if(refLayerLogicNum == iLayer)
         {
-
-          for(unsigned int iBinPdf = 0; iBinPdf < gp->getStatistics()[iLayer][iRefLayer].size(); iBinPdf++) {
-
-            double pdfVal = 0;
-            gp->setPdfValue(pdfVal,iLayer, iRefLayer, iBinPdf );
-
+          double norm = 0;
+          for(unsigned int iBin = 0; iBin < gp->getStatistics()[iLayer][iRefLayer].size(); iBin++) {
+            norm += gp->getStatistics()[iLayer][iRefLayer][iBin][0];
           }
 
-          for(unsigned int iBinStat = 0; iBinStat < gp->getStatistics()[iLayer][iRefLayer].size(); iBinStat++) {
-            gp->getStatistics()[iLayer][iRefLayer][iBinStat][0];
+          int pdfMiddle = gp->getPdf()[iLayer][iRefLayer].size() / 2;
+          int statBinGroupSize = 1<<gp->getDistPhiBitShift(iLayer, iRefLayer);
+          for(unsigned int iBinPdf = 0; iBinPdf < gp->getPdf()[iLayer][iRefLayer].size(); iBinPdf++) {
+            double pdfVal = 0;
+            int groupedBins = 0;
+            for(int i = 0; i < statBinGroupSize; i++) {
+              int iBinStat = statBinGroupSize * ((int)(iBinPdf) - pdfMiddle) + i + gp->meanDistPhiValue(iLayer, iRefLayer);
+              if(gp->key().theCharge == 1) //TODO watch out!!!!!
+                iBinStat += gp->getStatistics()[iLayer][iRefLayer].size();
 
+              if(iBinStat >= 0 && iBinStat < (int)gp->getStatistics()[iLayer][iRefLayer].size() ) {
+                pdfVal += gp->getStatistics()[iLayer][iRefLayer][iBinStat][0];
+                groupedBins++;
+                cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" iBinStat "<<iBinStat<<" iBinPdf "<<iBinPdf<<" statVal "<<gp->getStatistics()[iLayer][iRefLayer][iBinStat][0]<<endl;
+              }
+            }
+            if(norm)
+              pdfVal /= norm;
 
+            const double minPlog =  log(omtfConfig->minPdfVal());
+            const double pdfMaxVal = omtfConfig->pdfMaxValue();
+
+            int digitisedVal = 0;
+            if(pdfVal < omtfConfig->minPdfVal()) {
+              //pdfVal = 0;
+            }
+            else
+              digitisedVal = rint(pdfMaxVal - log(pdfVal) / minPlog * pdfMaxVal);
+
+            gp->setPdfValue(digitisedVal, iLayer, iRefLayer, iBinPdf );
+            cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" iBinPdf "<<iBinPdf<<" pdfVal "<<pdfVal<<" digitisedVal "<<digitisedVal<<endl;
           }
 
         }

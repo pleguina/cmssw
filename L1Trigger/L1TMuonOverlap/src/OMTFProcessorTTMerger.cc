@@ -68,17 +68,18 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessorTTMerger<GoldenPatternType>::get
 
   for(auto myCand: algoCands){
     l1t::RegionalMuonCand candidate;
-    candidate.setHwPt(myCand->getPt());
-    candidate.setHwEta(myCand->getEta());
-//FIXME which phi it should take here? Probably at vertex
-    int phiValue = myCand->getPhi();
+    TTAlgoMuon* ttAlgoMuon = static_cast<TTAlgoMuon*>(myCand.get());
+    candidate.setHwPt(ttAlgoMuon->getTtTrack().getPtHw());
+    candidate.setHwEta(ttAlgoMuon->getTtTrack().getEtaHw());
+    candidate.setHwPhi(this->myOmtfConfig->phiToGlobalHwPhi(ttAlgoMuon->getTtTrack().getPhi()));
+/*    int phiValue = myCand->getPhi();
     if(phiValue>= int(this->myOmtfConfig->nPhiBins()) )
       phiValue -= this->myOmtfConfig->nPhiBins();
     ///conversion factor from OMTF to uGMT scale is  5400/576 i.e. phiValue/=9.375;
     phiValue = floor(phiValue*437./pow(2,12));    // ie. use as in hw: 9.3729977
-    candidate.setHwPhi(phiValue);
+    candidate.setHwPhi(phiValue);*/
 
-    candidate.setHwSign(myCand->getCharge()<0 ? 1:0  );
+    candidate.setHwSign(ttAlgoMuon->getTtTrack().getCharge()<0 ? 1:0  );
     candidate.setHwSignValid(1);
 
     unsigned int quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3)
@@ -428,14 +429,14 @@ run(unsigned int iProcessor, l1t::tftype mtfType, int bx, std::vector<std::uniqu
 
   TTTracks procTTTracks = getTTTrackForProcessor(iProcessor, mtfType, ttTracks);
 
-  cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<" procTTTracks.size() "<<procTTTracks.size()<<endl;
+  //cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<" procTTTracks.size() "<<procTTTracks.size()<<endl;
 
   //cout<<"buildInputForProce "; t.report();
   selectedTTMuons.clear();
 
   processInput(iProcessor, mtfType, input, procTTTracks);
 
-  cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<" selectedTTMuons.size() "<<selectedTTMuons.size()<<endl;
+  //cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<" selectedTTMuons.size() "<<selectedTTMuons.size()<<endl;
 
   //cout<<"processInput       "; t.report();
 

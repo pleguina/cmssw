@@ -168,6 +168,12 @@ class OMTFConfiguration{
     return (eta / etaUnit);
   }
 
+  static constexpr double phiGmtUnit = 2. * M_PI / 576; //TODO from the interface not, should be defined somewhere globally
+  //phi in radians
+  static int phiToGlobalHwPhi(double phi) {
+    return std::floor(phi / phiGmtUnit);
+  }
+
   ///iProcessor - 0...5
   ///phiRad [-pi,pi]
   ///return phi inside the processor
