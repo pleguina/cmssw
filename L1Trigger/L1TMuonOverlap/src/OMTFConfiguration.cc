@@ -342,7 +342,7 @@ unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
   //so we change the charge here
   //if(charge == -1)
     //charge = 0;  //TODO but in the xml (and in GPs) the charge is +1 and -1, so it is important from where the patternPts is loaded FIXME!!!
-  for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
+  for(unsigned int iPat = 0; iPat < patternPts.size(); iPat++) {
     //std::cout<<"iPAt "<<iPat<<" ptFrom "<<getPatternPtRange(iPat).ptFrom<<" "<<getPatternPtRange(iPat).ptTo<<" "<<rawParams.chargeLUT()->data(iPat)<<std::endl;
     PatternPt patternPt = getPatternPtRange(iPat);
     if(pt >= patternPt.ptFrom &&

@@ -47,6 +47,14 @@ public:
     return statistics;
   }
 
+  void setKeyPt(unsigned int pt) {
+    theKey.thePt = pt;
+  }
+
+  void setKeyNumber(unsigned int number) {
+    theKey.theNumber = number;
+  }
+
 private:
   StatArrayType statistics;
 

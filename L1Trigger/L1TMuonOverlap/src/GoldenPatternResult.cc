@@ -164,6 +164,25 @@ void GoldenPatternResult::finalise2() {
   //by default result becomes valid here, but can be overwritten later
 }
 
+////////////////////////////////////////////
+////////////////////////////////////////////
+//for patterns generation
+void GoldenPatternResult::finalise3() {
+  firedLayerCnt = 0;
+  for(unsigned int iLogicLayer=0; iLogicLayer < pdfValues.size(); ++iLogicLayer) {
+    //in this version we do not require that both phi and phiB is fired (non-zero), we thread them just independent
+    //watch out that then the number of fired layers is bigger, and the cut on the minimal number of fired layers dies not work in the same way as when the dt chamber is counted as one layer
+    //TODO check if it affects performance
+    pdfSum += pdfValues[iLogicLayer];
+
+    if(hitPdfBins[iLogicLayer] != 5464 )//TODO in principle should (int)myOmtfConfig->nPhiBins(), but in GoldenPatternBase::process1Layer1RefLayer pdfMiddle is added
+      firedLayerCnt ++;
+  }
+
+  valid = true;
+  //by default result becomes valid here, but can be overwritten later
+}
+
 /*void GoldenPatternResult::finalise2() {
   pdfSum = 1.;
   for(unsigned int iLogicLayer=0; iLogicLayer < pdfValues.size(); ++iLogicLayer) {

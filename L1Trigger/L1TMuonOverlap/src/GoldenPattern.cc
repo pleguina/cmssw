@@ -83,6 +83,12 @@ void GoldenPattern::reset() {
     }
   }
 
+  for (unsigned int iLayer=0; iLayer < distPhiBitShift.size(); ++iLayer) {
+    for (unsigned int iRefLayer=0; iRefLayer < distPhiBitShift[iLayer].size(); ++iRefLayer) {
+      distPhiBitShift[iLayer][iRefLayer] = 0;
+    }
+  }
+
   for (unsigned int iLayer=0; iLayer < pdfAllRef.size(); ++iLayer) {
     for (unsigned int iRefLayer=0; iRefLayer < pdfAllRef[iLayer].size(); ++iRefLayer) {
       for (unsigned int iPdf=0; iPdf < pdfAllRef[iLayer][iRefLayer].size(); ++iPdf) {

@@ -165,6 +165,8 @@ public:
       finalise1();
     else if(finalizeFunction == 2)
       finalise2();
+    else if(finalizeFunction == 3)
+      finalise3();
     else
       finalise0();
   }
@@ -177,6 +179,9 @@ public:
 
   //multiplication of PDF values instead of sum
   void finalise2();
+
+  //for patterns generation
+  void finalise3();
 
   //bool empty() const;
 

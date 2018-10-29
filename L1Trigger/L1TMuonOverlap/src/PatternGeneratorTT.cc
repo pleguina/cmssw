@@ -5,6 +5,8 @@
  *      Author: kbunkow
  */
 
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
 #include "L1Trigger/L1TMuonOverlap/interface/PatternGeneratorTT.h"
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFProcessorTTMerger.h"
 
@@ -13,15 +15,47 @@
 PatternGeneratorTT::PatternGeneratorTT(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps):
   PatternOptimizerBase(edmCfg, omtfConfig, gps)
 {
-  // TODO Auto-generated constructor stub
+  //adding new patterns!!!!!!!!!!!!
+  //GoldenPatternWithStat(const Key & aKey, const OMTFConfiguration* omtfConfig);
 
+  edm::LogImportant("PatternGeneratorTT") << "PatternGeneratorTT: adding new patterns and modifying existing!!!!!" << std::endl;
+
+  gps[46]->setKeyPt(45);
+  gps[47]->setKeyPt(49);
+  gps[52]->setKeyPt(53);
+
+  gps[42]->setKeyPt(45);
+  gps[43]->setKeyPt(49);
+  gps[48]->setKeyPt(53);
+
+  auto pos = gps.begin();
+  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, -1, 0), omtfConfig)); pos = gps.begin();
+  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, -1, 0), omtfConfig)); pos = gps.begin();
+  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 8, -1, 0), omtfConfig)); pos = gps.begin();
+  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 7, -1, 0), omtfConfig)); pos = gps.begin();
+
+  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, 1, 0), omtfConfig)); pos = gps.begin();
+  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, 1, 0), omtfConfig)); pos = gps.begin();
+  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 8, 1, 0), omtfConfig)); pos = gps.begin();
+  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 7, 1, 0), omtfConfig)); pos = gps.begin();
+
+  goldenPatterns = gps;
+
+  unsigned int i = 0;
   for(auto& gp : goldenPatterns) {
+      gp->setKeyNumber(i++);
+
       if(gp->key().thePt == 0)
         continue;
 
-      int statBinsCnt = gp->getPdf()[0][0].size() * 8;
+      gp->reset();
+
+      int statBinsCnt = gp->getPdf()[0][0].size() * 8 *2;
       gp->iniStatisitics(statBinsCnt, 1); //TODO
   }
+
+  edm::LogImportant("PatternGeneratorTT") << "reseting golden pattern !!!!!" << std::endl;
+  GoldenPatternResult::setFinalizeFunction(3);
 
   //TODO remove, it is needed only for the patterns generation
 /*  for(auto& gp : goldenPatterns) {
@@ -40,7 +74,9 @@ PatternGeneratorTT::PatternGeneratorTT(const edm::ParameterSet& edmCfg, const OM
   ptDeltaPhiHists.resize(2);
   for(unsigned int iCharge = 0; iCharge <= 1; iCharge++) {
     for(unsigned int iLayer = 0; iLayer < omtfConfig->nLayers(); ++iLayer) { //for the moment filing only ref layer, remove whe
-      if(iLayer == 0 || iLayer == 2 || iLayer == 4 || iLayer == 6 || iLayer == 7 || iLayer == 10 || iLayer == 11  || iLayer == 16) {
+      if(iLayer == 0 || iLayer == 2 || iLayer == 4 || iLayer == 6 || iLayer == 7 || iLayer == 10 || iLayer == 11  || iLayer == 16 || //refLayars
+         iLayer == 1 || iLayer == 3 || iLayer == 5  ) //banding layers
+      {
         ostringstream name;
         name<<"ptDeltaPhiHist_ch_"<<iCharge<<"_Layer_"<<iLayer;
         int phiFrom = -10;
@@ -88,19 +124,20 @@ void PatternGeneratorTT::updateStat() {
     unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
 
     //cout<<gpResult;
-    //if(gpResult.isValid() )
+    if(gpResult.getFiredLayerCnt() >= 3 )
     {
+      //cout<<__FUNCTION__<<":"<<__LINE__<<" updating statistic"<<std::endl;
       for(unsigned int iLayer = 0;  iLayer < gpResult.getHitPdfBins().size(); iLayer++) {
         //updating statistic for the gp which should have fired
 
         int phiDist = gpResult.getHitPdfBins()[iLayer];
         phiDist += omtfCandGp->meanDistPhiValue(iLayer, iRefLayer) - pdfMiddle; //removing the shift applied in the GoldenPatternBase::process1Layer1RefLayer
 
-        if(iLayer == refLayerLogicNum) //TODO remove if needed to far all layers
-          ptDeltaPhiHists[iCharge][refLayerLogicNum]->Fill(ttAlgoMuon->getTtTrack().getPt(), phiDist);
+        if(ptDeltaPhiHists[iCharge][iLayer] != nullptr &&
+            (iLayer == refLayerLogicNum || omtfConfig->getLogicToLogic().at(iLayer) == (int)refLayerLogicNum) )
+          ptDeltaPhiHists[iCharge][iLayer]->Fill(ttAlgoMuon->getTtTrack().getPt(), phiDist);
 
-        if(omtfCand->getCharge() == 1) ////TODO watch out!!!!! - positive muons has negative banding, so we shift the phiDist up
-          phiDist += omtfCandGp->getStatistics()[iLayer][iRefLayer].size();
+        phiDist += omtfCandGp->getStatistics()[iLayer][iRefLayer].size()/2;
 
         //cout<<__FUNCTION__<<":"<<__LINE__<<" iLayer "<<iLayer<<" phiDist "<<phiDist<<std::endl;
         if( phiDist >= 0 && phiDist < (int)(omtfCandGp->getStatistics()[iLayer][iRefLayer].size()) ) {
@@ -124,23 +161,24 @@ void PatternGeneratorTT::observeEventEnd(const edm::Event& iEvent) {
 
 void PatternGeneratorTT::endJob() {
 
-  upadatePdfRefLay();
+  upadatePdfs();
 
   PatternOptimizerBase::endJob();
 }
 
-void PatternGeneratorTT::upadatePdfRefLay() {
+void PatternGeneratorTT::upadatePdfs() {
   cout<<__FUNCTION__<<": "<<__LINE__<<endl;
 
-  //
+  int minHitCnt = 300;
+  //Calculating meanDistPhi
   for(auto& gp : goldenPatterns) {
     if(gp->key().thePt == 0)
       continue;
     for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
 
       for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
-        unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
-        if(refLayerLogicNum == iLayer)
+        //unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
+        //if(refLayerLogicNum == iLayer)
         {
 
           //calculate meanDistPhi
@@ -153,10 +191,11 @@ void PatternGeneratorTT::upadatePdfRefLay() {
           if(count != 0) {
             meanDistPhi /= count;
 
-            if(gp->key().theCharge == 1) //TODO watch out!!!!!
-              meanDistPhi -= gp->getStatistics()[iLayer][iRefLayer].size();
+            meanDistPhi -= (gp->getStatistics()[iLayer][iRefLayer].size() / 2);
 
-            cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" count "<<count<<" meanDistPhi "<<meanDistPhi<<endl;
+            if(count < minHitCnt)
+              meanDistPhi = 0;
+            cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" count "<<count<<" meanDistPhi "<<meanDistPhi<<endl;
             gp->setMeanDistPhiValue(round(meanDistPhi), iLayer, iRefLayer);
           }
         }
@@ -168,20 +207,23 @@ void PatternGeneratorTT::upadatePdfRefLay() {
   OMTFConfiguration::vector2D mergedPartters = omtfConfig->getMergedPatterns(goldenPatterns);
   for(unsigned int iLayer = 0; iLayer < goldenPatterns.at(0)->getPdf().size(); ++iLayer) {
     for(unsigned int iRefLayer = 0; iRefLayer < goldenPatterns.at(0)->getPdf()[iLayer].size(); ++iRefLayer) {
-      unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
-      if(refLayerLogicNum == iLayer)
+      //unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
+      //if(refLayerLogicNum == iLayer)
       {
         for(unsigned int iGroup = 0; iGroup < mergedPartters.size(); iGroup++) {
           double meanDistPhi = 0;
+          int mergedCnt = 0;
           for(unsigned int i = 0; i < mergedPartters[iGroup].size(); i++) {
             auto gp = goldenPatterns.at(mergedPartters[iGroup][i]).get();
             meanDistPhi += gp->meanDistPhiValue(iLayer, iRefLayer);
+            if(gp->meanDistPhiValue(iLayer, iRefLayer) != 0)
+              mergedCnt++;
           }
-          meanDistPhi /= mergedPartters[iGroup].size();
+          meanDistPhi /= mergedCnt; //because for some gps the statistics can be too low, and then the meanDistPhiValue is 0, so it should not contribute
           for(unsigned int i = 0; i < mergedPartters[iGroup].size(); i++) {
             auto gp = goldenPatterns.at(mergedPartters[iGroup][i]).get();
             gp->setMeanDistPhiValue(round(meanDistPhi), iLayer, iRefLayer);
-            cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" meanDistPhi after averaging "<<meanDistPhi<<endl;
+            cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" meanDistPhi after averaging "<<meanDistPhi<<endl;
           }
         }
       }
@@ -204,11 +246,23 @@ void PatternGeneratorTT::upadatePdfRefLay() {
         {
           //TODO the thresholds depends on the pdfWidth i.e. address bits count
           if( omtfConfig->hwPtToGev(gp->key().thePt) < 5  ) {
-            gp->setDistPhiBitShift(2, iLayer, iRefLayer);
+            if(iLayer == 0 || iLayer == 10 || iLayer == 11)
+              gp->setDistPhiBitShift(3, iLayer, iRefLayer);
+            else
+              gp->setDistPhiBitShift(2, iLayer, iRefLayer);
           }
           else if( omtfConfig->hwPtToGev(gp->key().thePt) < 10  ) {
             gp->setDistPhiBitShift(1, iLayer, iRefLayer);
           }
+        }
+        else if( ( (gp->key().thePt <= 8) && (iLayer == 1 || iLayer == 3 || (iLayer == 5) ) ) ) {
+          gp->setDistPhiBitShift(2, iLayer, iRefLayer);
+        }
+        else if( ( (gp->key().thePt <= 10) && (                              (iLayer == 5) ) ) ) {
+          gp->setDistPhiBitShift(2, iLayer, iRefLayer);
+        }
+        else if( ( (gp->key().thePt <= 10) && (iLayer == 1 || iLayer == 3                  ) ) ) {
+          gp->setDistPhiBitShift(1, iLayer, iRefLayer);
         }
       }
     }
@@ -221,8 +275,8 @@ void PatternGeneratorTT::upadatePdfRefLay() {
     for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
 
       for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
-        unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
-        if(refLayerLogicNum == iLayer)
+        //unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
+        //if(refLayerLogicNum == iLayer)
         {
           double norm = 0;
           for(unsigned int iBin = 0; iBin < gp->getStatistics()[iLayer][iRefLayer].size(); iBin++) {
@@ -236,30 +290,31 @@ void PatternGeneratorTT::upadatePdfRefLay() {
             int groupedBins = 0;
             for(int i = 0; i < statBinGroupSize; i++) {
               int iBinStat = statBinGroupSize * ((int)(iBinPdf) - pdfMiddle) + i + gp->meanDistPhiValue(iLayer, iRefLayer);
-              if(gp->key().theCharge == 1) //TODO watch out!!!!!
-                iBinStat += gp->getStatistics()[iLayer][iRefLayer].size();
+
+              iBinStat += (gp->getStatistics()[iLayer][iRefLayer].size()/2);
 
               if(iBinStat >= 0 && iBinStat < (int)gp->getStatistics()[iLayer][iRefLayer].size() ) {
                 pdfVal += gp->getStatistics()[iLayer][iRefLayer][iBinStat][0];
                 groupedBins++;
-                cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" iBinStat "<<iBinStat<<" iBinPdf "<<iBinPdf<<" statVal "<<gp->getStatistics()[iLayer][iRefLayer][iBinStat][0]<<endl;
+                //cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" iBinStat "<<iBinStat<<" iBinPdf "<<iBinPdf<<" statVal "<<gp->getStatistics()[iLayer][iRefLayer][iBinStat][0]<<endl;
               }
             }
-            if(norm)
+            if(norm > minHitCnt) {
               pdfVal /= norm;
+            }
+            else
+              pdfVal = 0;
 
             const double minPlog =  log(omtfConfig->minPdfVal());
             const double pdfMaxVal = omtfConfig->pdfMaxValue();
 
             int digitisedVal = 0;
-            if(pdfVal < omtfConfig->minPdfVal()) {
-              //pdfVal = 0;
-            }
-            else
+            if(pdfVal >= omtfConfig->minPdfVal()) {
               digitisedVal = rint(pdfMaxVal - log(pdfVal) / minPlog * pdfMaxVal);
+            }
 
             gp->setPdfValue(digitisedVal, iLayer, iRefLayer, iBinPdf );
-            cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" iBinPdf "<<iBinPdf<<" pdfVal "<<pdfVal<<" digitisedVal "<<digitisedVal<<endl;
+            //cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" iBinPdf "<<iBinPdf<<" pdfVal "<<pdfVal<<" digitisedVal "<<digitisedVal<<endl;
           }
 
         }

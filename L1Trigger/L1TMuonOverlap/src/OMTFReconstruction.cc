@@ -123,16 +123,15 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
 
       auto gps = xmlReader.readPatterns<GoldenPatternWithStat>(*omtfParams);
 
-
       if(processorType == "OMTFProcessor") {
-        m_OMTF.reset(new OMTFProcessor<GoldenPatternWithStat>(m_OMTFConfig, m_Config, iSetup, gps) );
         std::unique_ptr<IOMTFEmulationObserver> obs(new PatternOptimizer(m_Config, m_OMTFConfig, gps));
+        m_OMTF.reset(new OMTFProcessor<GoldenPatternWithStat>(m_OMTFConfig, m_Config, iSetup, gps) );
         observers.emplace_back(std::move(obs));
       }
       else if(processorType == "OMTFProcessorTTMerger") {
-        m_OMTF.reset(new OMTFProcessorTTMerger<GoldenPatternWithStat>(m_OMTFConfig, m_Config, iSetup, gps) );
         std::unique_ptr<IOMTFEmulationObserver> obs(new PatternGeneratorTT(m_Config, m_OMTFConfig, gps));
         observers.emplace_back(std::move(obs));
+        m_OMTF.reset(new OMTFProcessorTTMerger<GoldenPatternWithStat>(m_OMTFConfig, m_Config, iSetup, gps) );
       }
       edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. GoldenPattern type: "<<patternType<<" size: "<<gps.size() << std::endl;
 

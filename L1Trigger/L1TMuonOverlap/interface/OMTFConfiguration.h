@@ -215,7 +215,7 @@ class OMTFConfiguration{
   template <class GoldenPatternType>
   vector2D getMergedPatterns(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats) const {
     unsigned int mergedCnt = 4;
-    vector2D mergedPatterns(nGoldenPatterns()/mergedCnt, vector1D());
+    vector2D mergedPatterns(goldenPats.size()/mergedCnt, vector1D());
     for(unsigned int iPat = 0; iPat < goldenPats.size(); iPat++) {
       if(goldenPats[iPat]->key().thePt != 0) {
         mergedPatterns[iPat/mergedCnt].push_back(iPat);

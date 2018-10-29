@@ -204,12 +204,15 @@ void PatternOptimizerBase::savePatternsInRoot(std::string rootFileName) {
         ostrName.str("");
         ostrName<<"PatNum_"<<gp->key().theNumber<<"_refLayer_"<<iRefLayer<<"_Layer_"<<iLayer;
         ostrTtle.str("");
-        ostrTtle<<"PatNum "<<gp->key().theNumber<<" ptCode "<<gp->key().thePt<<" refLayer "<<iRefLayer<<" Layer "<<iLayer<<" meanDistPhi "<<gp->meanDistPhi[iLayer][iRefLayer][0]; //"_Pt_"<<patternPt.ptFrom<<"_"<<patternPt.ptTo<<"_GeV
+        ostrTtle<<"PatNum "<<gp->key().theNumber<<" ptCode "<<gp->key().thePt<<" refLayer "<<iRefLayer<<" Layer "<<iLayer
+            <<" meanDistPhi "<<gp->meanDistPhi[iLayer][iRefLayer][0]<<" distPhiBitShift "<<gp->getDistPhiBitShift(iLayer, iRefLayer); //"_Pt_"<<patternPt.ptFrom<<"_"<<patternPt.ptTo<<"_GeV
         //cout<<__FUNCTION__<<": "<<__LINE__<<" creating hist "<<ostrTtle.str()<<std::endl;
         TH1F* hist = new TH1F(ostrName.str().c_str(), ostrTtle.str().c_str(), omtfConfig->nPdfBins(), -0.5, omtfConfig->nPdfBins()-0.5);
         for(unsigned int iPdf = 0; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
           hist->Fill(iPdf, gp->pdfAllRef[iLayer][iRefLayer][iPdf]);
         }
+        if((int)iLayer == (omtfConfig->getRefToLogicNumber()[iRefLayer]))
+          hist->SetLineColor(kGreen);
         hist->Write();
         hist->Draw("hist");
       }

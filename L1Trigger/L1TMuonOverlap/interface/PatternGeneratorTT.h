@@ -22,7 +22,7 @@ public:
 protected:
   void updateStat();
 
-  void upadatePdfRefLay();
+  void upadatePdfs();
 
   virtual void saveHists(TFile& outfile);
 
