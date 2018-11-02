@@ -28,6 +28,7 @@ simOmtfDigis = cms.EDProducer("L1TMuonOverlapTTMergerTrackProducer",
                MCTruthStubInputTag = cms.InputTag("TTStubAssociatorFromPixelDigis", "StubAccepted"),
                TrackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
+               l1Tk_nPar = cms.int32(4),         # use 4 or 5-parameter L1 track fit ??
                                                
   patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/Patterns_0x0003_TT_withBitShiftAndHighDtQual.xml"),
   #ghostBusterType = cms.string("GhostBusterPreferRefDt"),

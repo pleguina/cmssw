@@ -53,7 +53,14 @@ void OMTFProcessorTTMerger<GoldenPatternType>::inti(const edm::ParameterSet& edm
       ttTracksSource = SIM_TRACKS;
     else if(trackSrc == "L1_TRACKER") {
       ttTracksSource = L1_TRACKER;
+      if(edmCfg.exists("l1Tk_nPar") ) {
+        l1Tk_nPar = edmCfg.getParameter<int>("l1Tk_nPar");
+      }
     }
+  }
+
+  if(edmCfg.exists("refLayerMustBeValid") ) {
+    refLayerMustBeValid = edmCfg.getParameter<bool>("refLayerMustBeValid");
   }
 
   //edm::LogImportant("OMTFProcessorTTMerger") << "ttTracksSource "<<ttTracksSource << std::endl;
@@ -189,7 +196,6 @@ void OMTFProcessorTTMerger<GoldenPatternType>::laodTTTracks(const edm::Event &ev
 	  edm::Handle< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > > tTTrackHandle;
 	  event.getByLabel(edmCfg.getParameter<edm::InputTag>("L1TrackInputTag"), tTTrackHandle);
     //cout << __FUNCTION__<<":"<<__LINE__ << " LTTTrackHandle->size() "<<tTTrackHandle->size() << endl;
-	  int l1Tk_nPar = 4;
 
     for (auto iterL1Track = tTTrackHandle->begin(); iterL1Track != tTTrackHandle->end(); iterL1Track++ ) {
       ttTracks.emplace_back(*iterL1Track, l1Tk_nPar);
@@ -333,9 +339,11 @@ const void OMTFProcessorTTMerger<GoldenPatternType>::processInput(unsigned int i
 
       gpResult->set(aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef);
 
-      gpResult->finalise();
+      gpResult->finalise(); //this sets result to valid, without any conditions
 
-      if(!refLayerValid || gpResult->getFiredLayerCnt() < 2) { //TODO optimize the cut on the FiredLayerCnt
+      if(!refLayerMustBeValid)
+        refLayerValid = true;
+      if( !refLayerValid || gpResult->getFiredLayerCnt() < 2) { //TODO optimize the cut on the FiredLayerCnt
         gpResult->setValid(false);
       }
 
@@ -343,7 +351,8 @@ const void OMTFProcessorTTMerger<GoldenPatternType>::processInput(unsigned int i
         cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<" ttTrack Pt "<<ttTrack.getPt()<<" charge "<<ttTrack.getCharge()<<" refLayerLogicNum "<<refLayerLogicNum
           <<" iRefHit "<<iRefHit<<"\n"<<*gpResult<<endl;*/
 
-      if(gpResult->isValid()) {
+      if(gpResult->isValid())
+      {
         if( bestResult == nullptr ||
             (gpResult->getFiredLayerCnt() >  bestResult->getFiredLayerCnt() ) ||
             (gpResult->getFiredLayerCnt() == bestResult->getFiredLayerCnt() && gpResult->getPdfSum() > bestResult->getPdfSum() )

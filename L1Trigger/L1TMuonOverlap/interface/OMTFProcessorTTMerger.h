@@ -117,6 +117,11 @@ class OMTFProcessorTTMerger: public OMTFProcessor<GoldenPatternType> {
    */
   std::function<int (std::shared_ptr<AlgoMuon> first, std::shared_ptr<AlgoMuon> second)> ghostBustFunc;
 
+
+  int l1Tk_nPar = 4;
+
+  ///for patterns generation this shpuld be false, for normal running - true
+  bool refLayerMustBeValid = true;
 };
 
 #endif
