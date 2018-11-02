@@ -10,6 +10,9 @@
 
 #include "SimDataFormats/Track/interface/SimTrack.h"
 
+#include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
+#include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
+
 #include "L1Trigger/L1TMuonOverlap/interface/OMTFConfiguration.h"
 #include "L1Trigger/L1TMuonOverlap/interface/AlgoMuon.h"
 
@@ -25,7 +28,7 @@ public:
 
   TrackingTriggerTrack(const SimTrack& simMuon);
 
-  //TrackingTriggerTrack(const TTTRack& ttTRack); TODO implement
+  TrackingTriggerTrack(const TTTrack< Ref_Phase2TrackerDigi_>& ttTRack, int l1Tk_nPar);
 
   int getCharge() const {
     return charge;
@@ -88,7 +91,7 @@ class TTAlgoMuon: public AlgoMuon {
 public:
   //move the gpResults content to the this->gpResults, gpResults is empty after that
   TTAlgoMuon(const TrackingTriggerTrack& ttTrack, const GoldenPatternResult& gpResult, GoldenPatternBase* goldenPatern,
-      std::vector<GoldenPatternResult>& gpResults, unsigned int refHitNum, int bx = 0):
+      std::vector<std::shared_ptr<GoldenPatternResult> >& gpResults, unsigned int refHitNum, int bx = 0):
     AlgoMuon(gpResult, goldenPatern,  refHitNum, bx),
     ttTrack(ttTrack) {
     this->gpResults.swap(gpResults);
@@ -99,12 +102,12 @@ public:
   }
 
   ///
-  void setGpResults(std::vector<GoldenPatternResult>& gpResults) {
+  void setGpResults(std::vector<std::shared_ptr<GoldenPatternResult> >& gpResults) {
     this->gpResults.swap(gpResults);
     gpResults.clear(); //in case there was something before in the this->gpResults
   }
 
-  std::vector<GoldenPatternResult>& getGpResults() {
+  std::vector<std::shared_ptr<GoldenPatternResult> >& getGpResults() {
     return gpResults;
   }
 
@@ -116,7 +119,7 @@ private:
   ///results for all the reference layers processed for this ttTrack
   ///we cannot use the GoldenPatternResuls stored by the GoldenPatternBase, because in one event the same goldePattern
   ///may be hit many times by different ttTracks
-  std::vector<GoldenPatternResult> gpResults;
+  std::vector<std::shared_ptr<GoldenPatternResult> > gpResults;
 };
 
 typedef std::vector<std::shared_ptr<TTAlgoMuon> > TTMuons;

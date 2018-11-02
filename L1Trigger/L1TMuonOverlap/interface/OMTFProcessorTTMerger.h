@@ -100,10 +100,15 @@ class OMTFProcessorTTMerger: public OMTFProcessor<GoldenPatternType> {
   ///all ttTracks in a event
   TTTracks ttTracks;
 
+  ///TTMuons before ghostbusting, altered by each the processInput() and run()
+  ///thus should not be used outside the processor
+  AlgoMuons ttMuons;
 
   ///TTMuons after ghostbusting, altered by each the processInput() and run()
   ///thus should not be used outside the processor
   AlgoMuons selectedTTMuons;
+
+  void inti(const edm::ParameterSet& edmCfg);
 
   /**should return:
    * 0 if first kills second
@@ -111,6 +116,7 @@ class OMTFProcessorTTMerger: public OMTFProcessor<GoldenPatternType> {
    * 2 otherwise (none is killed)
    */
   std::function<int (std::shared_ptr<AlgoMuon> first, std::shared_ptr<AlgoMuon> second)> ghostBustFunc;
+
 };
 
 #endif

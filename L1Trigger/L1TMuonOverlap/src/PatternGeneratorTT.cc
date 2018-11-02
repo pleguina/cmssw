@@ -120,17 +120,17 @@ void PatternGeneratorTT::updateStat() {
   int pdfMiddle = 1<<(omtfConfig->nPdfAddrBits()-1);
 
   for(auto& gpResult : ttAlgoMuon->getGpResults()) {
-    unsigned int iRefLayer =  gpResult.getRefLayer();
+    unsigned int iRefLayer =  gpResult->getRefLayer();
     unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
 
     //cout<<gpResult;
-    if(gpResult.getFiredLayerCnt() >= 3 )
+    if(gpResult->getFiredLayerCnt() >= 3 )
     {
       //cout<<__FUNCTION__<<":"<<__LINE__<<" updating statistic"<<std::endl;
-      for(unsigned int iLayer = 0;  iLayer < gpResult.getHitPdfBins().size(); iLayer++) {
+      for(unsigned int iLayer = 0;  iLayer < gpResult->getHitPdfBins().size(); iLayer++) {
         //updating statistic for the gp which should have fired
 
-        int phiDist = gpResult.getHitPdfBins()[iLayer];
+        int phiDist = gpResult->getHitPdfBins()[iLayer];
         phiDist += omtfCandGp->meanDistPhiValue(iLayer, iRefLayer) - pdfMiddle; //removing the shift applied in the GoldenPatternBase::process1Layer1RefLayer
 
         if(ptDeltaPhiHists[iCharge][iLayer] != nullptr &&

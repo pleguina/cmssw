@@ -114,9 +114,20 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
     if(patternType == "GoldenPattern") {
       auto const& gps = xmlReader.readPatterns<GoldenPattern>(*omtfParams);
 
-      m_OMTF.reset(new OMTFProcessor<GoldenPattern>(m_OMTFConfig, m_Config, iSetup, gps) );
+      if(processorType == "OMTFProcessor") {
+        m_OMTF.reset(new OMTFProcessor<GoldenPattern>(m_OMTFConfig, m_Config, iSetup, gps) );
+      }
+      else if(processorType == "OMTFProcessorTTMerger") {
+        m_OMTF.reset(new OMTFProcessorTTMerger<GoldenPattern>(m_OMTFConfig, m_Config, iSetup, gps) );
+      }
 
-      edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. GoldenPattern type: "<<patternType<<" size: "<<gps.size() << std::endl;
+      edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. processorType "<<processorType<<". GoldenPattern type: "<<patternType<<" size: "<<gps.size() << std::endl;
+
+      for(auto& gp : gps) {
+        edm::LogImportant("OMTFReconstruction")<<gp->key()<<" "
+            <<m_OMTFConfig->getPatternPtRange(gp->key().theNumber).ptFrom
+            <<" - "<<m_OMTFConfig->getPatternPtRange(gp->key().theNumber).ptTo<<" GeV"<<std::endl;
+      }
     }
     else if(patternType == "GoldenPatternWithStat") {
       std::cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;

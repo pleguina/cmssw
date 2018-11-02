@@ -213,9 +213,12 @@ void GoldenPatternResult::finalise3() {
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 std::ostream & operator << (std::ostream &out, const GoldenPatternResult & gpResult) {
-  for(unsigned int iLogicLayer=0; iLogicLayer < gpResult.getPdfValues().size(); ++iLogicLayer){
-    out<<" layer: "<<std::setw(2)<<iLogicLayer<<" hit: "<<std::setw(3)<<gpResult.hits[iLogicLayer]<<" pdfBin: "<<std::setw(3)<<gpResult.hitPdfBins[iLogicLayer]<<" pdfVal: "<<std::setw(3)<<gpResult.getPdfValues()[iLogicLayer]
-       <<" fired "<<gpResult.isLayerFired(iLogicLayer)<<std::endl;
+  unsigned int refLayerLogicNum = gpResult.myOmtfConfig->getRefToLogicNumber()[gpResult.getRefLayer()];
+
+  for(unsigned int iLogicLayer=0; iLogicLayer < gpResult.getPdfValues().size(); ++iLogicLayer) {
+    out<<" layer: "<<std::setw(2)<<iLogicLayer<<" hit: "<<std::setw(4)<<gpResult.hits[iLogicLayer]<<" pdfBin: "<<std::setw(4)<<gpResult.hitPdfBins[iLogicLayer]<<" pdfVal: "<<std::setw(3)<<gpResult.getPdfValues()[iLogicLayer]
+       <<" fired "<<gpResult.isLayerFired(iLogicLayer)
+       <<(iLogicLayer == refLayerLogicNum ? " <<< refLayer" : "")<<std::endl;
   }
 
   out<<"  refLayer: ";

@@ -95,7 +95,7 @@ chosenFiles = []
 if filesNameLike == 'allPt' :
     for ptCode in range(31, 3, -1) :
         for sign in ['_m', '_p'] : #, m
-            for i in range(20, 21, 1):
+            for i in range(1, 11, 1):
                 for f in onlyfiles:
                    if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): 
                         #print f
