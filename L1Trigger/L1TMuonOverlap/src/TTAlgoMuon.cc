@@ -15,10 +15,12 @@ TrackingTriggerTrack::TrackingTriggerTrack(const SimTrack& simMuon) {
   charge = simMuon.type()/-13;
 }
 
-TrackingTriggerTrack::TrackingTriggerTrack(const TTTrack< Ref_Phase2TrackerDigi_>& ttTRack, int l1Tk_nPar) {
-    pt   = ttTRack.getMomentum(l1Tk_nPar).perp();
-    eta  = ttTRack.getMomentum(l1Tk_nPar).eta();
-    phi  = ttTRack.getMomentum(l1Tk_nPar).phi();
+TrackingTriggerTrack::TrackingTriggerTrack(const TTTrack< Ref_Phase2TrackerDigi_>& ttTRack, unsigned int index, int l1Tk_nPar) :
+        index(index)
+{
+  pt   = ttTRack.getMomentum(l1Tk_nPar).perp();
+  eta  = ttTRack.getMomentum(l1Tk_nPar).eta();
+  phi  = ttTRack.getMomentum(l1Tk_nPar).phi();
 
-    charge = (ttTRack.getRInv() > 0 ? 1 : -1); //ttTRack.ge //where is the charge???? TODO
+  charge = (ttTRack.getRInv() > 0 ? 1 : -1); //ttTRack.ge //where is the charge???? TODO
 }

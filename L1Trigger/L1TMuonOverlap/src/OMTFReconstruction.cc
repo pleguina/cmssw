@@ -211,14 +211,27 @@ std::unique_ptr<l1t::RegionalMuonCandBxCollection> OMTFReconstruction::reconstru
   std::unique_ptr<l1t::RegionalMuonCandBxCollection> candidates(new l1t::RegionalMuonCandBxCollection);
   candidates->setBXRange(bxMin, bxMax);
 
+
   ///The order is important: first put omtf_pos candidates, then omtf_neg.
   for(int bx = bxMin; bx<= bxMax; bx++) {
   
-    for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor)
-      m_OMTF->run(iProcessor, l1t::tftype::omtf_pos, bx, observers);
+    for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor) {
+      std::vector<l1t::RegionalMuonCand> candMuons = m_OMTF->run(iProcessor, l1t::tftype::omtf_pos, bx, observers);
 
-    for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor)
-      m_OMTF->run(iProcessor, l1t::tftype::omtf_neg, bx, observers);
+      //fill outgoing collection
+      for (auto & candMuon :  candMuons) {
+        candidates->push_back(bx, candMuon);
+      }
+    }
+
+    for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor) {
+      std::vector<l1t::RegionalMuonCand> candMuons = m_OMTF->run(iProcessor, l1t::tftype::omtf_neg, bx, observers);
+
+      //fill outgoing collection
+      for (auto & candMuon :  candMuons) {
+        candidates->push_back(bx, candMuon);
+      }
+    }
 
     edm::LogInfo("OMTFReconstruction") <<"OMTF:  Number of candidates in BX="<<bx<<": "<<candidates->size(bx) << std::endl;;  
   }

@@ -174,6 +174,11 @@ class OMTFConfiguration{
     return std::floor(phi / phiGmtUnit);
   }
 
+  //phi in radians
+  static double hwPhiToGlobalPhi(int phi) {
+    return phi * phiGmtUnit;
+  }
+
   ///iProcessor - 0...5
   ///phiRad [-pi,pi]
   ///return phi inside the processor

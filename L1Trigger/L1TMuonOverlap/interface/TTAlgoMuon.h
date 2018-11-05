@@ -28,7 +28,7 @@ public:
 
   TrackingTriggerTrack(const SimTrack& simMuon);
 
-  TrackingTriggerTrack(const TTTrack< Ref_Phase2TrackerDigi_>& ttTRack, int l1Tk_nPar);
+  TrackingTriggerTrack(const TTTrack< Ref_Phase2TrackerDigi_>& ttTRack, unsigned int index, int l1Tk_nPar);
 
   int getCharge() const {
     return charge;
@@ -70,6 +70,11 @@ public:
     this->ptHw = ptHw;
   }
 
+  //index in the tTTrackHandle
+  unsigned int getIndex() const {
+    return index;
+  }
+
 private:
   double phi = 0;
   double eta = 0;
@@ -82,7 +87,7 @@ private:
   int etaHw = 0;
   int ptHw = 0;
 
-  int indx = -1;
+  unsigned int index = -1;
 };
 
 typedef std::vector<TrackingTriggerTrack> TTTracks;

@@ -123,7 +123,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessorTTMerger<GoldenPatternType>::get
            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000000000110000").to_ulong()
            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000000110000").to_ulong()
          ) quality = 1;
-}
+    }
 //  if (abs(myCand->getEta()) == 121) quality = 4;
     if (abs(myCand->getEta()) == 121) quality = 0; // changed on request from HI
 
@@ -133,6 +133,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessorTTMerger<GoldenPatternType>::get
     trackAddr[0] = myCand->getFiredLayerBits();
     trackAddr[1] = myCand->getRefLayer();
     trackAddr[2] = myCand->getDisc();
+    trackAddr[3] = ttAlgoMuon->getTtTrack().getIndex();
     candidate.setTrackAddress(trackAddr);
     candidate.setTFIdentifiers(iProcessor,mtfType);
     if (candidate.hwPt() > 0)  result.push_back(candidate);
@@ -197,8 +198,10 @@ void OMTFProcessorTTMerger<GoldenPatternType>::laodTTTracks(const edm::Event &ev
 	  event.getByLabel(edmCfg.getParameter<edm::InputTag>("L1TrackInputTag"), tTTrackHandle);
     //cout << __FUNCTION__<<":"<<__LINE__ << " LTTTrackHandle->size() "<<tTTrackHandle->size() << endl;
 
+	  unsigned int index = 0;
     for (auto iterL1Track = tTTrackHandle->begin(); iterL1Track != tTTrackHandle->end(); iterL1Track++ ) {
-      ttTracks.emplace_back(*iterL1Track, l1Tk_nPar);
+      ttTracks.emplace_back(*iterL1Track, index, l1Tk_nPar);
+      index++;
       //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<*iterL1Track<<" Momentum "<<iterL1Track->getMomentum(l1Tk_nPar)<<" RInv "<<iterL1Track->getRInv(l1Tk_nPar)<<endl;
     }
   }
@@ -214,7 +217,7 @@ TTTracks OMTFProcessorTTMerger<GoldenPatternType>::getTTTrackForProcessor(unsign
   int marginRight =   2*M_PI / this->myOmtfConfig->nProcessors() / phiUnit - marginLeft; //10 deg margin in phiUnits - TODO move to config, find optimal value
 
   //TODO move to config
-  float etaCutFrom = 0.82;
+  double etaCutFrom = 0.82;
   double etaCutTo = 1.24;
   if(mtfType == l1t::tftype::omtf_neg) {
     etaCutFrom = -1.24;
