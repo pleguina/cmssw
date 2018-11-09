@@ -27,17 +27,17 @@
 template <class GoldenPatternType>
 OMTFProcessorTTMerger<GoldenPatternType>::OMTFProcessorTTMerger(OMTFConfiguration* omtfConfig, const edm::ParameterSet& edmCfg, const edm::EventSetup & evSetup, const L1TMuonOverlapParams* omtfPatterns):
 OMTFProcessor<GoldenPatternType>(omtfConfig, edmCfg, evSetup, omtfPatterns),
-  ghostBustFunc(ghostBust1)
+  ghostBustFunc(ghostBust2)
 {
-  inti(edmCfg);
+  init(edmCfg);
 };
 
 template <class GoldenPatternType>
 OMTFProcessorTTMerger<GoldenPatternType>::OMTFProcessorTTMerger(OMTFConfiguration* omtfConfig, const edm::ParameterSet& edmCfg, const edm::EventSetup& evSetup, const typename ProcessorBase<GoldenPatternType>::GoldenPatternVec& gps):
 OMTFProcessor<GoldenPatternType>(omtfConfig, edmCfg, evSetup, gps),
-  ghostBustFunc(ghostBust1)
+  ghostBustFunc(ghostBust2)
 {
-  inti(edmCfg);
+  init(edmCfg);
 };
 
 template <class GoldenPatternType>
@@ -46,7 +46,7 @@ OMTFProcessorTTMerger<GoldenPatternType>::~OMTFProcessorTTMerger() {
 }
 
 template<class GoldenPatternType>
-void OMTFProcessorTTMerger<GoldenPatternType>::inti(const edm::ParameterSet& edmCfg) {
+void OMTFProcessorTTMerger<GoldenPatternType>::init(const edm::ParameterSet& edmCfg) {
   if(edmCfg.exists("ttTracksSource") ) {
     std::string trackSrc = edmCfg.getParameter<std::string>("ttTracksSource");
     if(trackSrc == "SIM_TRACKS")
@@ -63,6 +63,7 @@ void OMTFProcessorTTMerger<GoldenPatternType>::inti(const edm::ParameterSet& edm
     refLayerMustBeValid = edmCfg.getParameter<bool>("refLayerMustBeValid");
   }
 
+  GoldenPatternResult::setFinalizeFunction(1); //TODO movo to config!!!!
   //edm::LogImportant("OMTFProcessorTTMerger") << "ttTracksSource "<<ttTracksSource << std::endl;
 }
 
@@ -87,8 +88,8 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessorTTMerger<GoldenPatternType>::get
     candidate.setHwSign(ttAlgoMuon->getTtTrack().getCharge()<0 ? 1:0  );
     candidate.setHwSignValid(1);
 
-    unsigned int quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3)
-                                                                     : 0 | (1 << 2);
+    unsigned int quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3) //=12
+                                                                     : 0 | (1 << 2);                      //=4
     if (    abs(myCand->getEta()) == 115
         && (    static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001110000000").to_ulong()
              || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000001110000000").to_ulong()
@@ -136,7 +137,9 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessorTTMerger<GoldenPatternType>::get
     trackAddr[3] = ttAlgoMuon->getTtTrack().getIndex();
     candidate.setTrackAddress(trackAddr);
     candidate.setTFIdentifiers(iProcessor,mtfType);
-    if (candidate.hwPt() > 0)  result.push_back(candidate);
+
+    if (candidate.hwPt() > 0 && quality > 0)  //rejecting here the candidates with eta 121, i.e. > 1.31
+      result.push_back(candidate);
   }
   return result;
 }
@@ -250,7 +253,6 @@ TTTracks OMTFProcessorTTMerger<GoldenPatternType>::getTTTrackForProcessor(unsign
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 int printCtn = 0; //TODO remove, it is just for debug
-
 template<class GoldenPatternType>
 const void OMTFProcessorTTMerger<GoldenPatternType>::processInput(unsigned int iProcessor, l1t::tftype mtfType,
     const OMTFinput & aInput, const TTTracks& ttTracks)
@@ -367,8 +369,10 @@ const void OMTFProcessorTTMerger<GoldenPatternType>::processInput(unsigned int i
       }
     }
     if(bestResult != nullptr) {
-      /*cout<<__FUNCTION__<<":"<<__LINE__<<">>>>>>>>>>>>>>>>>>>>>bestResult: \niProcessor "<<iProcessor<<" ttTrack Pt "<<ttTrack.getPt()<<" charge "<<ttTrack.getCharge()
-        <<" bestResultIRefHit "<<bestResultIRefHit<<"\n"<<*bestResult<<endl;*/
+/*      cout<<__FUNCTION__<<":"<<__LINE__<<">>>>>>>>>>>>>>>>>>>>>bestResult: \niProcessor "<<iProcessor
+          <<" ttTrack Pt "<<ttTrack.getPt()<<" charge "<<ttTrack.getCharge()
+          <<" eta "<<ttTrack.getEta()<<" phi "<<ttTrack.getPhi()<<" index  "<<ttTrack.getIndex()
+          <<" bestResultIRefHit "<<bestResultIRefHit<<"\n"<<*bestResult<<endl;*/
 
       ttMuons.emplace_back(std::make_shared<TTAlgoMuon>(ttTrack, *bestResult, itGP.get(), gpResults, bestResultIRefHit ) );
       //N.B. gpResults is empty after that
@@ -445,6 +449,51 @@ int OMTFProcessorTTMerger<GoldenPatternType>::ghostBust1(std::shared_ptr<AlgoMuo
         else
           return 1;
       }
+    }
+  }
+  return 2;
+}
+
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+/**should return:
+ * 0 if first kills second
+ * 1 if second kills first
+ * 2 otherwise (none is killed)
+ */
+template<class GoldenPatternType>
+int OMTFProcessorTTMerger<GoldenPatternType>::ghostBust2(std::shared_ptr<AlgoMuon> first, std::shared_ptr<AlgoMuon> second) {
+  //cout<<__FUNCTION__<<":"<<__LINE__<<endl;
+  //good ghost bust function looks on the hits indexes in each candidate and check how many hits are common, kill one of them if more then e.g. 1
+  int commonHits = 0;
+  for(unsigned int iLayer=0; iLayer < first->getGpResult().getHits().size(); ++iLayer) {
+    if( first->getGpResult().isLayerFired(iLayer) &&
+       second->getGpResult().isLayerFired(iLayer) &&
+       first->getGpResult().getHits()[iLayer] == second->getGpResult().getHits()[iLayer]) { //TODO this is hit phi, not the hit index, but in principle the result should be the same
+      commonHits++;
+    }
+  }
+
+  if(commonHits >= 1) { //probably to sharp...
+    if( abs( (int)first->getGpResult().getFiredLayerCnt() - (int)second->getGpResult().getFiredLayerCnt()) <= 1 ) {
+      if(      first->getGpResult().getPdfSum() > second->getGpResult().getPdfSum() ) {
+        return 0;
+      }
+      else if( first->getGpResult().getPdfSum() < second->getGpResult().getPdfSum() ) {
+        return 1;
+      }
+      else {// first->getGpResult().getPdfSum()== second->getGpResult().getPdfSum()
+        if( first->getPt() > second->getPt() )
+          return 0;
+        else
+          return 1;
+      }
+    }
+    else if(      first->getGpResult().getFiredLayerCnt() >  second->getGpResult().getFiredLayerCnt()  ) {
+      return 0;
+    }
+    else if( first->getGpResult().getFiredLayerCnt() <  second->getGpResult().getFiredLayerCnt()  ) {
+      return 1;
     }
   }
   return 2;

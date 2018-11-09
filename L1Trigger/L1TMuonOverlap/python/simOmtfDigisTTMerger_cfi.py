@@ -31,6 +31,7 @@ simOmtfDigis = cms.EDProducer("L1TMuonOverlapTTMergerTrackProducer",
                l1Tk_nPar = cms.int32(4),         # use 4 or 5-parameter L1 track fit ??
                                                
   patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/Patterns_0x0003_TT_withBitShiftAndHighDtQual.xml"),
+  refLayerMustBeValid = cms.bool(True),
   #ghostBusterType = cms.string("GhostBusterPreferRefDt"),
   #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlap/test/expert/optimisedPats0.xml"),
   #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00020007.xml")

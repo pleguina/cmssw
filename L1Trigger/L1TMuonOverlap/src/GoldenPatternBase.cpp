@@ -72,7 +72,8 @@ GoldenPatternResult::LayerResult GoldenPatternBase::process1Layer1RefLayer(unsig
   ///Check if phiDistMin is within pdf range -63 +63
   ///in firmware here the arithmetic "value and sign" is used, therefore the range is -63 +63, and not -64 +63
   if(abs(phiDistMin) > ( (1<<(myOmtfConfig->nPdfAddrBits()-1)) -1) ) {
-    return GoldenPatternResult::LayerResult(this->pdfValue(iLayer, iRefLayer, 0), false, phiDistMin + pdfMiddle, selHit);
+    return GoldenPatternResult::LayerResult(0, false, phiDistMin + pdfMiddle, selHit);
+    //return GoldenPatternResult::LayerResult(this->pdfValue(iLayer, iRefLayer, 0), false, phiDistMin + pdfMiddle, selHit);
     //in some algorithms versions with thresholds we use the bin 0 to store the pdf value returned when there was no hit.
     //in the version without thresholds, the value in the bin 0 should be 0
   }
@@ -82,7 +83,8 @@ GoldenPatternResult::LayerResult GoldenPatternBase::process1Layer1RefLayer(unsig
   //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0) std::cout<<__FUNCTION__<<":"<<__LINE__<<" phiDistMin "<<phiDistMin<<std::endl;
   omtfPdfValueType pdfVal = this->pdfValue(iLayer, iRefLayer, phiDistMin);
   if(pdfVal <= 0)
-    return GoldenPatternResult::LayerResult(this->pdfValue(iLayer, iRefLayer, 0), false, phiDistMin, selHit); //the pdf[0] needed in some versions of algorithm with threshold
+    return GoldenPatternResult::LayerResult(0, false, phiDistMin, selHit);
+    //return GoldenPatternResult::LayerResult(this->pdfValue(iLayer, iRefLayer, 0), false, phiDistMin, selHit); //the pdf[0] needed in some versions of algorithm with threshold
   return GoldenPatternResult::LayerResult(pdfVal, true, phiDistMin, selHit);
 }
 

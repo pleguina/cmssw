@@ -61,6 +61,7 @@ class OMTFProcessorTTMerger: public OMTFProcessor<GoldenPatternType> {
   virtual std::vector<l1t::RegionalMuonCand> run(unsigned int iProcessor, l1t::tftype mtfType, int bx, std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers);
 
   static int ghostBust1(std::shared_ptr<AlgoMuon> first, std::shared_ptr<AlgoMuon> second);
+  static int ghostBust2(std::shared_ptr<AlgoMuon> first, std::shared_ptr<AlgoMuon> second);
 
   void setGhostBustFunc(
       const std::function<
@@ -108,7 +109,7 @@ class OMTFProcessorTTMerger: public OMTFProcessor<GoldenPatternType> {
   ///thus should not be used outside the processor
   AlgoMuons selectedTTMuons;
 
-  void inti(const edm::ParameterSet& edmCfg);
+  void init(const edm::ParameterSet& edmCfg);
 
   /**should return:
    * 0 if first kills second

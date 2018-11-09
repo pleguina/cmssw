@@ -124,9 +124,10 @@ void GoldenPatternResult::finalise0() {
 ////////////////////////////////////////////
 //for the algo version with thresholds
 void GoldenPatternResult::finalise1() {
+  //cout<<__FUNCTION__<<":"<<__LINE__<<endl;
   for(unsigned int iLogicLayer=0; iLogicLayer < pdfValues.size(); ++iLogicLayer) {
     //in this version we do not require that both phi and phiB is fired (non-zero), we thread them just independent
-    //watch out that then the number of fired layers is bigger, and the cut on the minimal number of fired layers dies not work in the same way as when the dt chamber is counted as one layer
+    //watch out that then the number of fired layers is bigger, and the cut on the minimal number of fired layers does not work in the same way as when the dt chamber is counted as one layer
     //TODO check if it affects performance
     pdfSum += pdfValues[iLogicLayer];
     firedLayerCnt += ( (firedLayerBits & (1<<iLogicLayer)) != 0 );
