@@ -27,7 +27,7 @@
 template <class GoldenPatternType>
 OMTFProcessorTTMerger<GoldenPatternType>::OMTFProcessorTTMerger(OMTFConfiguration* omtfConfig, const edm::ParameterSet& edmCfg, const edm::EventSetup & evSetup, const L1TMuonOverlapParams* omtfPatterns):
 OMTFProcessor<GoldenPatternType>(omtfConfig, edmCfg, evSetup, omtfPatterns),
-  ghostBustFunc(ghostBust2)
+  ghostBustFunc(ghostBust3)
 {
   init(edmCfg);
 };
@@ -35,7 +35,7 @@ OMTFProcessor<GoldenPatternType>(omtfConfig, edmCfg, evSetup, omtfPatterns),
 template <class GoldenPatternType>
 OMTFProcessorTTMerger<GoldenPatternType>::OMTFProcessorTTMerger(OMTFConfiguration* omtfConfig, const edm::ParameterSet& edmCfg, const edm::EventSetup& evSetup, const typename ProcessorBase<GoldenPatternType>::GoldenPatternVec& gps):
 OMTFProcessor<GoldenPatternType>(omtfConfig, edmCfg, evSetup, gps),
-  ghostBustFunc(ghostBust2)
+  ghostBustFunc(ghostBust3)
 {
   init(edmCfg);
 };
@@ -62,7 +62,7 @@ void OMTFProcessorTTMerger<GoldenPatternType>::init(const edm::ParameterSet& edm
   if(edmCfg.exists("refLayerMustBeValid") ) {
     refLayerMustBeValid = edmCfg.getParameter<bool>("refLayerMustBeValid");
   }
-
+  //modifyPatterns(); //TODO<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<remove<<<<<<<<<<<<<<<<<<<<<<<
   GoldenPatternResult::setFinalizeFunction(1); //TODO movo to config!!!!
   //edm::LogImportant("OMTFProcessorTTMerger") << "ttTracksSource "<<ttTracksSource << std::endl;
 }
@@ -499,6 +499,43 @@ int OMTFProcessorTTMerger<GoldenPatternType>::ghostBust2(std::shared_ptr<AlgoMuo
   return 2;
 }
 
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+/**should return:
+ * 0 if first kills second
+ * 1 if second kills first
+ * 2 otherwise (none is killed)
+ */
+template<class GoldenPatternType>
+int OMTFProcessorTTMerger<GoldenPatternType>::ghostBust3(std::shared_ptr<AlgoMuon> first, std::shared_ptr<AlgoMuon> second) {
+  //cout<<__FUNCTION__<<":"<<__LINE__<<endl;
+  //good ghost bust function looks on the hits indexes in each candidate and check how many hits are common, kill one of them if more then e.g. 1
+  int commonHits = 0;
+  for(unsigned int iLayer=0; iLayer < first->getGpResult().getHits().size(); ++iLayer) {
+    if( first->getGpResult().isLayerFired(iLayer) &&
+       second->getGpResult().isLayerFired(iLayer) &&
+       first->getGpResult().getHits()[iLayer] == second->getGpResult().getHits()[iLayer]) { //TODO this is hit phi, not the hit index, but in principle the result should be the same
+      commonHits++;
+    }
+  }
+
+  if(commonHits >= 1) { //probably to sharp...
+    if(      first->getGpResult().getPdfSum() > second->getGpResult().getPdfSum() ) {
+      return 0;
+    }
+    else if( first->getGpResult().getPdfSum() < second->getGpResult().getPdfSum() ) {
+      return 1;
+    }
+    else {// first->getGpResult().getPdfSum()== second->getGpResult().getPdfSum()
+      if( first->getPt() > second->getPt() )
+        return 0;
+      else
+        return 1;
+    }
+  }
+  return 2;
+}
+
 template<class GoldenPatternType>
 std::vector<l1t::RegionalMuonCand> OMTFProcessorTTMerger<GoldenPatternType>::
 run(unsigned int iProcessor, l1t::tftype mtfType, int bx, std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
@@ -541,6 +578,54 @@ run(unsigned int iProcessor, l1t::tftype mtfType, int bx, std::vector<std::uniqu
 
   return candMuons;
 }
+
+
+template<class GoldenPatternType>
+void OMTFProcessorTTMerger<GoldenPatternType>::modifyPatterns() {
+  for(auto& gp : this->theGPs) {
+    if(gp->key().thePt == 0)
+      continue;
+    for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
+      for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
+        //unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
+        //if(refLayerLogicNum == iLayer)
+        {
+          int binsToSet = 20; //TODO
+          unsigned int pdfSize = gp->getPdf()[iLayer][iRefLayer].size();
+
+          unsigned int iBinMax = 0;
+          double maxVal = 0;
+          for(unsigned int iBin = 0; iBin < pdfSize; iBin++) {
+            if(maxVal < gp->getPdf()[iLayer][iRefLayer][iBin] ) {
+              maxVal = gp->getPdf()[iLayer][iRefLayer][iBin];
+              iBinMax = iBin;
+            }
+          }
+
+          for(unsigned int iBin = iBinMax; iBin < pdfSize; iBin++) {
+            if( gp->getPdf()[iLayer][iRefLayer][iBin] == 0) {
+              gp->setPdfValue(1, iLayer, iRefLayer, iBin);
+              binsToSet--;
+              if(binsToSet == 0)
+                break;
+            }
+          }
+
+          binsToSet = 20; //TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,
+          for(int iBin = iBinMax; iBin >= 0; iBin--) {
+            if( gp->getPdf()[iLayer][iRefLayer][iBin] == 0) {
+              gp->setPdfValue(1, iLayer, iRefLayer, iBin);
+              binsToSet--;
+              if(binsToSet == 0)
+                break;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 
 template class OMTFProcessorTTMerger<GoldenPattern>;
 template class OMTFProcessorTTMerger<GoldenPatternParametrised>;

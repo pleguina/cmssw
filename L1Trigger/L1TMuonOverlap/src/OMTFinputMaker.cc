@@ -239,11 +239,12 @@ OMTFinput OMTFinputMaker::processDT(const L1MuDTChambPhContainer *dtPhDigis,
 
     if (digiIt.bxNum()!= bxTrg) continue;
     
-    if (myOmtfConfig->fwVersion() <= 4) {
+    /*if (myOmtfConfig->fwVersion() <= 4) {
       if (digiIt.code() != 4 && digiIt.code() != 5 && digiIt.code() != 6) continue;
     } else {
       if (digiIt.code() != 2 && digiIt.code() != 3 && digiIt.code() != 4 && digiIt.code() != 5 && digiIt.code() != 6) continue;
-    }
+    }*/ //TODO!!!!!!!!!!!!!!!!!!!!!
+    if (digiIt.code() != 4 && digiIt.code() != 5 && digiIt.code() != 6) continue;
 
     unsigned int hwNumber = myOmtfConfig->getLayerNumber(detid.rawId());
     if(myOmtfConfig->getHwToLogicLayer().find(hwNumber)==myOmtfConfig->getHwToLogicLayer().end()) continue;
@@ -268,7 +269,7 @@ OMTFinput OMTFinputMaker::processCSC(const CSCCorrelatedLCTDigiCollection *cscDi
 	       l1t::tftype type, int bxTrg){
 
   int lctCentralBx = CSCConstants::LCT_CENTRAL_BX;
-  lctCentralBx = 6; //TODO this was changed in CMSSW 10(?) to 8 if the data were generated with the previous CMSSEW then you have to use 6
+  lctCentralBx = 6; //TODO this was changed in CMSSW 10(?) to 8 if the data were generated with the previous CMSSW then you have to use 6
 
   OMTFinput result(myOmtfConfig);
   if(!cscDigis) return result;

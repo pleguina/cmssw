@@ -62,6 +62,7 @@ class OMTFProcessorTTMerger: public OMTFProcessor<GoldenPatternType> {
 
   static int ghostBust1(std::shared_ptr<AlgoMuon> first, std::shared_ptr<AlgoMuon> second);
   static int ghostBust2(std::shared_ptr<AlgoMuon> first, std::shared_ptr<AlgoMuon> second);
+  static int ghostBust3(std::shared_ptr<AlgoMuon> first, std::shared_ptr<AlgoMuon> second);
 
   void setGhostBustFunc(
       const std::function<
@@ -123,6 +124,9 @@ class OMTFProcessorTTMerger: public OMTFProcessor<GoldenPatternType> {
 
   ///for patterns generation this shpuld be false, for normal running - true
   bool refLayerMustBeValid = true;
+
+  //for testing and debugging
+  void modifyPatterns();
 };
 
 #endif
