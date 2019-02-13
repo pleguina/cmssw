@@ -1,0 +1,128 @@
+/*
+ * MuCorrelatorConfig.cc
+ *
+ *  Created on: Jan 30, 2019
+ *      Author: Karol Bunkowski kbunkow@cern.ch
+ */
+
+#include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/MuCorrelatorConfig.h"
+
+#include <math.h>
+
+unsigned int MuCorrelatorConfig::logLayerToRefLayar(unsigned int logicLayer, unsigned int etaBin) const {
+  //TODO implement
+  return 0;
+}
+
+int MuCorrelatorConfig::getProcScalePhi(double phiRad, double procPhiZeroRad) const {
+  const double phiUnit = 2*M_PI/nPhiBins(); //rad/unit
+
+  // local angle in CSC halfStrip usnits
+  return foldPhi( lround ( (phiRad - procPhiZeroRad)/phiUnit ) );
+}
+
+float MuCorrelatorConfig::getProcScalePhiToRad(int phiHw) const {
+  const double phiUnit = 2*M_PI/nPhiBins();
+  return phiHw * phiUnit;
+}
+
+unsigned int MuCorrelatorConfig::ptGeVToPtBin(float ptGeV) const {
+  //TODO implement nonlinear scale;
+  //ptBin = ptHw / 8; //TODO some implementation, probably not optimal, do it in a batter way
+/*  double  ptBin = 40 * log10(1 + (ptGeV - 2.5) * 0.15);
+  if(ptBin < 0)
+    return 0;
+  if(ptBin >= ptBins)
+    return ptBins -1;
+
+  return  round(ptBin);*/
+
+  return ptHwToPtBin(ptGevToHw(ptGeV));
+}
+
+unsigned int MuCorrelatorConfig::ptHwToPtBin(int ptHw) const {
+  float stride = 1;
+  int iPt = 6;
+  for(unsigned int ptBin = 0; ptBin < ptBins; ptBin++) {
+    if(iPt >= ptHw)
+      return ptBin;
+
+    iPt += stride;
+    stride += 0.2;
+  }
+  return ptBins -1;
+}
+
+unsigned int MuCorrelatorConfig::etaHwToEtaBin(int etaHw) const {
+  int endcapBorder = 80; //= 0.87
+  if(abs(etaHw) < endcapBorder)
+    return 0;
+
+  //TODO optimize e.g. use scale 8 (easier for firmware), but then check what is the eta dependence above eta 2.175
+  //if 10 is kept then use firmware friendly division, i.e. e.g.:
+  //((abs(etaHw) - endcapBorder) * 102) >> 10 where 102 = 2^10 / 10
+  int scale = 10;
+  unsigned int etaBin = (abs(etaHw) - endcapBorder)/scale;
+
+  if(etaBin < etaBins)
+    return etaBin;
+
+  return etaBins-1;
+
+}
+/*
+ 0  - MB1 phi
+ 1  - MB1 phiB
+ 2  - MB2 phi
+ 3  - MB3 phiB
+ 4  - MB3 phi
+ 5  - MB3 phiB
+ 6  - MB4 phi
+ 7  - MB5 phiB
+
+ 8  - ME1 phi
+ 9  - ME2 phi
+ 10 - ME3 phi
+ 11 - ME4 phi
+
+ 12 - RB1in phi
+ 13 - RB1out phi
+ 14 - RB2in phi
+ 15 - RB2out phi
+ 16 - RB3 phi
+ 17 - RB4 phi
+
+ 18 - RE1 phi
+ 19 - RE2 phi
+ 20 - RE3 phi
+ 21 - RE4 phi
+
+ 22 - MB1 eta
+ 23 - MB2 eta
+ 24 - MB3 eta
+    - MB4 has no eta TODO check
+
+ 25 - ME1 eta
+ 26 - ME2 eta
+ 27 - ME3 eta
+ 28 - ME4 eta
+ */
+bool MuCorrelatorConfig::isEndcapLayer(unsigned int layer) const {
+  if(layer >= 8 && layer <= 11)
+    return true;
+
+  if(layer >= 18 && layer <= 21)
+    return true;
+
+  if(layer >= 25 && layer <= 28)
+    return true;
+
+  return false;
+}
+
+bool MuCorrelatorConfig::isPhiLayer(unsigned int layer) const {
+  if(layer < phiLayers)
+    return true;
+  return false;
+}
+
