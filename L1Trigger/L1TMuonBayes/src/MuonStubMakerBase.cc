@@ -125,6 +125,12 @@ void MuonStubMakerBase::processRPC(MuonStubPtrs2D& muonStubsInLayers, const RPCD
     RPCDetId roll = rollDigis.first;    
     unsigned int rawid = roll.rawId();
 
+    if(roll.region() != 0  &&  abs(roll.station()) >= 3 && roll.ring() == 1 ) {
+      //iRPC TODO add iRPC handling
+      //std::cout<<__FUNCTION__<<":"<<__LINE__<<" ignoring hit from iRPC "<<roll<<std::endl;
+      continue;
+    }
+
     if(!acceptDigi(rawid, iProcessor, procTyp))
       continue;
 

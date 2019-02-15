@@ -109,6 +109,14 @@ public:
     return maxMuStubsPerLayer;
   }
 
+  virtual float minPdfVal() const {
+    return 0.001;
+  };
+
+  virtual int pdfMaxLogValue() const {
+    return pdfMaxVal;
+  };
+
 private:
   unsigned int layers = 29;
 
@@ -128,6 +136,8 @@ private:
   unsigned int minFiredLayers = 2;
 
   unsigned int maxMuStubsPerLayer = 200; //TODO change to the value reasonable for the firmware
+
+  unsigned int  pdfMaxVal = 1023;
 };
 
 typedef std::shared_ptr<const MuCorrelatorConfig> MuCorrelatorConfigPtr;

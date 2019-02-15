@@ -34,7 +34,8 @@ void MuCorrelatorInputMaker::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, con
   //    if (digiIt.bxNum()!= 0 || digiIt.BxCnt()!= 0 || digiIt.Ts2Tag()!= 0 || digiIt.code()<4) continue;
 
   //if (digi.code() != 4 && digi.code() != 5 && digi.code() != 6) return;
-  if (digi.code() != 2 && digi.code() != 3 && digi.code() != 4 && digi.code() != 5 && digi.code() != 6) return;
+  if (digi.code() != 2 && digi.code() != 3 && digi.code() != 4 && digi.code() != 5 && digi.code() != 6)
+    return;
 
   unsigned int iLayer = getLayerNumber(detid);
 
@@ -252,9 +253,18 @@ uint32_t MuCorrelatorInputMaker::getLayerNumber(const CSCDetId& detid, bool eta)
 
 uint32_t MuCorrelatorInputMaker::getLayerNumber(const RPCDetId& detid) const {
   //TODO configure somehow from config?
-  if(detid.region() == 0) //barrel
-    return (detid.station() -1) + 8 + 4; //8 is DT layers number - two per station, 4 is CSC layer number
+  if(detid.region() == 0) { //barrel
+    uint32_t rpcLogLayer = 0;
+    if(detid.station() == 1)
+      rpcLogLayer = 0 + detid.layer() -1;
+    else if(detid.station() == 2)
+      rpcLogLayer = 2 + detid.layer() -1;
+    else //station 3 and 4
+      rpcLogLayer = detid.station() + 1;
 
+    //cout<<__FUNCTION__<<":"<<__LINE__<<" RPC detid "<<detid<<" rpcLogLayer "<<rpcLogLayer<<endl;
+    return (rpcLogLayer + 8 + 4); //8 is DT layers number - two per station, 4 is CSC layer number
+  }
   //endcap
   return (detid.station() -1) + 8 + 4 + 6; //8 is DT layers number - two per station, 4 is CSC layer number, 6 is RPC barrel station number
 }

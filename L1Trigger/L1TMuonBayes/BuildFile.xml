@@ -31,4 +31,7 @@
 <use name="L1Trigger/CSCCommonTrigger"/>
 <use name="L1Trigger/DTUtilities"/>
 
+<use   name="PhysicsTools/UtilAlgos"/>
+<use   name="FWCore/ServiceRegistry"/>
+
 

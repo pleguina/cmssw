@@ -10,6 +10,9 @@
 
 #include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/PdfModule.h"
 
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+
 #include "TH2I.h"
 
 class PdfModuleWithStats: public PdfModule {
@@ -21,10 +24,14 @@ public:
   virtual float getPdfVal(unsigned int layer, unsigned int etaBin, unsigned int refLayer, unsigned int ptBin, int pdfBin);
 
   //writes pdfHists to current root file
-  virtual void write() const;
+  //virtual void write() const;
+
+  virtual void generateCoefficients() const;
 private:
   //[layer][etaBin][refLayer](ptBin, pdfBin)
-  std::vector<std::vector<std::vector< std::unique_ptr<TH2I> > > > pdfHists;
+  std::vector<std::vector<std::vector<TH2I* > > > pdfHists;
+
+  edm::Service<TFileService> fs;
 };
 
 #endif /* INTERFACE_MUCORRELATOR_PDFMODULEWITHSTATS_H_ */

@@ -74,14 +74,17 @@ void L1TMuonBayesMuCorrelatorTrackProducer::endJob(){
   IPdfModule* pdfModule = muCorrelatorProcessor->getPdfModule();
   const PdfModuleWithStats* pdfModuleWithStats = dynamic_cast<const PdfModuleWithStats*>(pdfModule);
   if(pdfModuleWithStats) {
-    gStyle->SetOptStat(111111);
+    // using TFileService insteed
+    /*gStyle->SetOptStat(111111);
     TFile outfile("muCorrPdfs.root", "RECREATE");
     cout<<__FUNCTION__<<": "<<__LINE__<<" creating file "<<outfile.GetName()<<endl;
 
     outfile.cd();
-    pdfModuleWithStats->write();
+    //pdfModuleWithStats->write();
 
-    writePdfs(pdfModule, pdfModuleFileName);
+    writePdfs(pdfModule, pdfModuleFileName);*/
+
+    pdfModuleWithStats->generateCoefficients();
   }
 }
 /////////////////////////////////////////////////////
