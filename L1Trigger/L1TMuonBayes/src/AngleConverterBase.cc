@@ -111,6 +111,7 @@ int AngleConverterBase::getProcessorPhi(int phiZero, l1t::tftype part, const CSC
   offsetLoc = config->foldPhi(offsetLoc);
 
   int halfStrip = digi.getStrip(); // returns halfStrip 0..159
+
   //FIXME: to be checked (only important for ME1/3) keep more bits for offset, truncate at the end
 
   // a quick fix for towards geometry changes due to global tag.
@@ -250,11 +251,11 @@ std::vector<EtaValue> AngleConverterBase::getGlobalEta(const L1MuDTChambThContai
 
 //just read from the drawing
 float AngleConverterBase::cscChamberEtaSize(const CSCDetId& detId) {
-  if(detId.station() == 1 || detId.station() == 1) { //TODO there is some mess with ME1, looks that detId.station() gives 4 for ME1a (or ME1b, i dont know which is which), but the eta of the chamber middle the same for a and b. Should be checked haw the hardware really gives this
-    //ME1a, ME1b, ME12, ME13 are rings 1, 2, 3, 4
-    if(detId.ring() == 1) return (2.5 - 1.6)/2.;
+  if(detId.station() == 1) {
+    if(detId.ring() == 1) return (2.5 - 1.6)/2.; ///ME1/1 lower eta (b?, eta < ~2.1), muCorrelator eta bins 6-11 - but getGlobalEtaCsc(const CSCDetId& detId) gives the midle of the full chamber, so here we put the size of the full chamber
     if(detId.ring() == 2) return (1.7 - 1.2)/2.;
     if(detId.ring() == 3) return (1.12- 0.9)/2.;
+    if(detId.ring() == 4) return (2.5 - 1.6)/2.; ///ME1/1 higher eta (a?, eta > ~2.1), muCorrelator eta bins 10-15
   }
   else if(detId.station() == 2) {
     if(detId.ring() == 1) return (2.5 - 1.6)/2.;
@@ -357,6 +358,8 @@ EtaValue AngleConverterBase::getGlobalEta(const CSCDetId& detId, const CSCCorrel
 
 }
 
+
+//TODO the CSC ME1/1 has strips divided int tow part a nad b, so this function in principle ca include that, then it should also receive the roll number as parameter, off course implementation should be different then
 EtaValue AngleConverterBase::getGlobalEtaCsc(const CSCDetId& detId) {
   std::unique_ptr<const CSCChamber> chamb(_geocsc->chamber(detId));
 

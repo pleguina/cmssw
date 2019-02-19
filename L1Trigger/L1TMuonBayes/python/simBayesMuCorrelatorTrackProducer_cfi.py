@@ -30,12 +30,12 @@ simBayesMuCorrelatorTrackProducer = cms.EDProducer("L1TMuonBayesMuCorrelatorTrac
                l1Tk_nPar = cms.int32(4),         # use 4 or 5-parameter L1 track fit ??
                                                
   #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/Patterns_0x0003_TT_withBitShiftAndHighDtQual.xml"),
-  pdfModuleFileName = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModule.xml"),
+  #pdfModuleFileName = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModule.xml"),
   #pdfModuleType = cms.string("PdfModuleWithStats")
   #refLayerMustBeValid = cms.bool(True),
 
-  #bxRangeMin = cms.int32(-3),
-  #bxRangeMax = cms.int32(4),
+  #bxRangeMin = cms.int32(-10),
+  #bxRangeMax = cms.int32(10),
   #useStubsFromAdditionalBxs = cms.int32(1), #default is 0, if 1 it allows trigger on HSPCs
 )
 

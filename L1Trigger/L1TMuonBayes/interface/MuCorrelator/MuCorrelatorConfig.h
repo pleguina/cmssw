@@ -118,11 +118,11 @@ public:
   };
 
 private:
-  unsigned int layers = 29;
+  unsigned int layers = 30;
 
   unsigned int refLayers = 1;
 
-  unsigned int phiLayers = 22;
+  unsigned int phiLayers = 23;
 
   //phiBins in 2Pi
   unsigned int phiBins = 5400;

@@ -40,7 +40,7 @@ class L1TMuonBayesMuCorrelatorTrackProducer : public edm::EDProducer {
  private:
 
 
-  std::unique_ptr<PdfModule> readPdfs(std::string fileName);
+  void readPdfs(IPdfModule* pdfModule, std::string fileName);
   void writePdfs(const IPdfModule* pdfModule, std::string fileName);
 
 

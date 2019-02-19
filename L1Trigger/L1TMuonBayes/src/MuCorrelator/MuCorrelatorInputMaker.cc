@@ -131,6 +131,8 @@ void MuCorrelatorInputMaker::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers, unsi
     stub.eta = config->hwEtaToEta(stub.etaHw);
 
     addStub(muonStubsInLayers, iLayer, stub);
+
+    //cout<<__FUNCTION__<<":"<<__LINE__<<" adding CSC phi stub from chamber "<<detId<<" "<<stub<<endl;
   }
 
   { //adding eta stub
@@ -158,6 +160,8 @@ void MuCorrelatorInputMaker::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers, unsi
     stub.eta = config->hwEtaToEta(stub.etaHw);
 
     addStub(muonStubsInLayers, iLayer, stub);
+
+    //cout<<__FUNCTION__<<":"<<__LINE__<<" adding CSC eta stub from chamber "<<detId<<" "<<stub<<endl;
   }
 
 }
@@ -248,7 +252,11 @@ uint32_t MuCorrelatorInputMaker::getLayerNumber(const CSCDetId& detid, bool eta)
   if(eta)
     return (detid.station() -1)+ 3 + config->nPhiLayers() ;
 
-  return (detid.station() -1) + 8; //8 is DT layers number - two per station
+  if(detid.station() == 1 && (detid.ring() ==  1 || detid.ring() == 4) ){ //ME1/1 phi
+    return 8;
+  }
+
+  return (detid.station() -1) + 8 + 1; //8 is DT layers number - two per station + ME1/1
 }
 
 uint32_t MuCorrelatorInputMaker::getLayerNumber(const RPCDetId& detid) const {
@@ -263,10 +271,10 @@ uint32_t MuCorrelatorInputMaker::getLayerNumber(const RPCDetId& detid) const {
       rpcLogLayer = detid.station() + 1;
 
     //cout<<__FUNCTION__<<":"<<__LINE__<<" RPC detid "<<detid<<" rpcLogLayer "<<rpcLogLayer<<endl;
-    return (rpcLogLayer + 8 + 4); //8 is DT layers number - two per station, 4 is CSC layer number
+    return (rpcLogLayer + 8 + 5); //8 is DT layers number - two per station, 5 is CSC layer number
   }
   //endcap
-  return (detid.station() -1) + 8 + 4 + 6; //8 is DT layers number - two per station, 4 is CSC layer number, 6 is RPC barrel station number
+  return (detid.station() -1) + 8 + 5 + 6; //8 is DT layers number - two per station, 5 is CSC layer number, 6 is RPC barrel station number
 }
 
 

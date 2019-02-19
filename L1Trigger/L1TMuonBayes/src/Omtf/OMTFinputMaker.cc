@@ -251,15 +251,15 @@ void OMTFinputMaker::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1MuD
   // FIXME (MK): at least Ts2Tag selection is not correct! Check it
   //    if (digiIt.bxNum()!= 0 || digiIt.BxCnt()!= 0 || digiIt.Ts2Tag()!= 0 || digiIt.code()<4) continue;
 
-/*  if (config->fwVersion() <= 4) {
+  if (config->fwVersion() <= 4) {
     if (digi.code() != 4 && digi.code() != 5 && digi.code() != 6)
       return;
   } else {
     if (digi.code() != 2 && digi.code() != 3 && digi.code() != 4 && digi.code() != 5 && digi.code() != 6)
       return;
-  }*/ //TODO!!!!!!!!!!!!!!!!!!!!!
-  if (digi.code() != 4 && digi.code() != 5 && digi.code() != 6)
-    return;
+  }
+/*  if (digi.code() != 4 && digi.code() != 5 && digi.code() != 6)
+    return;*/
   //if (digiIt.code() != 2 && digiIt.code() != 3 && digiIt.code() != 4 && digiIt.code() != 5 && digiIt.code() != 6) continue;
 
   unsigned int hwNumber = config->getLayerNumber(detid.rawId());

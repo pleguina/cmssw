@@ -80,41 +80,42 @@ unsigned int MuCorrelatorConfig::etaHwToEtaBin(int etaHw) const {
  6  - MB4 phi
  7  - MB5 phiB
 
- 8  - ME1 phi
- 9  - ME2 phi
- 10 - ME3 phi
- 11 - ME4 phi
+ 8  - ME1/1 phi
+ 9    - ME1/2 and ME1/3 phi
+ 10 - ME2 phi
+ 11 - ME3 phi
+ 12 - ME4 phi
 
- 12 - RB1in phi
- 13 - RB1out phi
- 14 - RB2in phi
- 15 - RB2out phi
- 16 - RB3 phi
- 17 - RB4 phi
+ 13 - RB1in phi
+ 14 - RB1out phi
+ 15 - RB2in phi
+ 16 - RB2out phi
+ 17 - RB3 phi
+ 18 - RB4 phi
 
- 18 - RE1 phi
- 19 - RE2 phi
- 20 - RE3 phi
- 21 - RE4 phi
+ 19 - RE1 phi
+ 20 - RE2 phi
+ 21 - RE3 phi
+ 22 - RE4 phi
 
- 22 - MB1 eta
- 23 - MB2 eta
- 24 - MB3 eta
+ 23 - MB1 eta
+ 24 - MB2 eta
+ 25 - MB3 eta
     - MB4 has no eta TODO check
-
- 25 - ME1 eta
- 26 - ME2 eta
- 27 - ME3 eta
- 28 - ME4 eta
+//TODO add separate eta layer for the ME1/1???
+ 26 - ME1 eta
+ 27 - ME2 eta
+ 28 - ME3 eta
+ 29 - ME4 eta
  */
 bool MuCorrelatorConfig::isEndcapLayer(unsigned int layer) const {
-  if(layer >= 8 && layer <= 11)
+  if(layer >= 8 && layer <= 12)
     return true;
 
-  if(layer >= 18 && layer <= 21)
+  if(layer >= 19 && layer <= 22)
     return true;
 
-  if(layer >= 25 && layer <= 28)
+  if(layer >= 26 && layer <= 29)
     return true;
 
   return false;
