@@ -261,7 +261,7 @@ std::vector<l1t::RegionalMuonCand> MuCorrelatorProcessor::getFinalCandidates(uns
 
     std::map<int, int> trackAddr;
     trackAddr[0] = algoTTMuon->getFiredLayerBits().to_ulong();
-    //trackAddr[1] = algoTTMuon->getRefLayer(); TODO
+    trackAddr[1] = 1234;//algoTTMuon->getRefLayer();
     trackAddr[2] = algoTTMuon->getPdfSum();
     trackAddr[3] = algoTTMuon->getTTTrack()->getIndex();
     candidate.setTrackAddress(trackAddr);

@@ -26,7 +26,7 @@ public:
   //writes pdfHists to current root file
   //virtual void write() const;
 
-  virtual void generateCoefficients() const;
+  virtual void generateCoefficients();
 private:
   //[layer][etaBin][refLayer](ptBin, pdfBin)
   std::vector<std::vector<std::vector<TH2I* > > > pdfHists;

@@ -40,7 +40,7 @@ void PdfModule::init() {
 
 float PdfModule::getPdfVal(unsigned int layer, unsigned int etaBin, unsigned int refLayer, unsigned int ptBin, int pdfBin) {
   std::vector<int>& coeff = coefficients.at(layer).at(etaBin).at(refLayer).at(ptBin);
-  return coeff.at(2) * pow( pdfBin, 2 ) +  coeff.at(0);
+  return  (-1) * ( (coeff.at(2) * pdfBin * ((int64_t)pdfBin) )>>bitShift ) + coeff.at(0);
 }
 
 float PdfModule::getExtrapolation(unsigned int layer, unsigned int etaBin, unsigned int refLayer, unsigned int ptBin) {

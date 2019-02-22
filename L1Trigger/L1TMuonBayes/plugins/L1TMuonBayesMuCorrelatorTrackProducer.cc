@@ -72,7 +72,7 @@ void L1TMuonBayesMuCorrelatorTrackProducer::endJob(){
   //m_Reconstruction.endJob();
 
   IPdfModule* pdfModule = muCorrelatorProcessor->getPdfModule();
-  const PdfModuleWithStats* pdfModuleWithStats = dynamic_cast<const PdfModuleWithStats*>(pdfModule);
+  PdfModuleWithStats* pdfModuleWithStats = dynamic_cast<PdfModuleWithStats*>(pdfModule);
   if(pdfModuleWithStats) {
     // using TFileService insteed
     /*gStyle->SetOptStat(111111);
@@ -139,7 +139,7 @@ void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const ed
   std::unique_ptr<l1t::RegionalMuonCandBxCollection> candidates(new l1t::RegionalMuonCandBxCollection);
   candidates->setBXRange(bxRangeMin, bxRangeMax);
 
-  std::cout<<"\n"<<__FUNCTION__<<":"<<__LINE__<<" iEvent "<<iEvent.id().event()<<" #####################################################################"<<endl;
+  //std::cout<<"\n"<<__FUNCTION__<<":"<<__LINE__<<" iEvent "<<iEvent.id().event()<<" #####################################################################"<<endl;
   for(int bx = bxRangeMin; bx <= bxRangeMax; bx++) {
 
     auto muonStubsInput = inputMaker->MuCorrelatorInputMaker::buildInputForProcessor(0, l1t::tftype::bmtf, bx, bx + useStubsFromAdditionalBxs);

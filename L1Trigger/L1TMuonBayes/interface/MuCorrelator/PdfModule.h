@@ -57,7 +57,7 @@ public:
   }
 
   //delta phi or delta eta to the given layer
-  //virtual int getExtrapolation(int layer, const TrackingTriggerTrackPtr& ttTrack, const MuonStubPtr refStub);
+  //virtual int getExtrapolation(int layer, cogenerateCoefficients: 155 iLayer 0 iEtaBin 0 iRefLayer 0 ptBin 63 a       2799 b         10 c        902nst TrackingTriggerTrackPtr& ttTrack, const MuonStubPtr refStub);
 
   //typedef boost::multi_array<PdfValueType, 3> pdfArrayType;
   //typedef boost::multi_array<short, 3> meanDistPhiArrayType;
@@ -67,6 +67,7 @@ public:
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version)
   {
+      ar & BOOST_SERIALIZATION_NVP(bitShift);
       ar & BOOST_SERIALIZATION_NVP(coefficients);
   }
 
@@ -80,6 +81,8 @@ protected:
   //[layer][etaBin][refLayerNum][ptBin][coefficient index] refLayer = 0 means no ref layer, i.e. pdfBin = phiHit - phiTTTrack, otherwise pdfBin = phiHit - phiTTTrack - phiRefHit
   //pdfVal = a2(pdfBin -a1)^2 - a0
   std::vector<std::vector<std::vector<std::vector<std::vector<int> > > > > coefficients;
+
+  int bitShift = 9;
 
   //boost::multi_array<short, 3> coefficients; -  cannot be use since the lengths of vectors varies between layers (1 eta bin for barrel layer, 8 or 16 for endcap)
 };

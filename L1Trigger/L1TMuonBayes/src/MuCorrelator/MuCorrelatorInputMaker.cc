@@ -33,7 +33,7 @@ void MuCorrelatorInputMaker::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, con
   // FIXME (MK): at least Ts2Tag selection is not correct! Check it
   //    if (digiIt.bxNum()!= 0 || digiIt.BxCnt()!= 0 || digiIt.Ts2Tag()!= 0 || digiIt.code()<4) continue;
 
-  //if (digi.code() != 4 && digi.code() != 5 && digi.code() != 6) return;
+  //if (digi.code() != 4 && digi.code() != 5 && digi.code() != 6) return; //TODO onluy for the pdf generation
   if (digi.code() != 2 && digi.code() != 3 && digi.code() != 4 && digi.code() != 5 && digi.code() != 6)
     return;
 
