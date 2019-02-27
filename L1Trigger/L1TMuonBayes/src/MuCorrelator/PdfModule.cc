@@ -113,8 +113,9 @@ void PdfModule::processStubs(const MuonStubsInput& muonStubs, unsigned int layer
   float pdfVal = getPdfVal(layer, etaBin, refLayerNum, ptBin, minPdfBin);
   //std::cout<<__FUNCTION__<<":"<<__LINE__<<" selectedStub\n"<<(*selectedStub)<<" minPdfBin "<<minPdfBin<<" pdfVal "<<pdfVal<<std::endl;
 
-  //if pdfVal <= 0, the stub result is not vaid, todo - maybe then simply dont add it? on the other hand may be needed for debugging or optimization
-  algoTTMuon->addStubResult(pdfVal, (pdfVal > 0), minPdfBin, layer, selectedStub );
+  //if pdfVal <= 0, the stub result is not valid, todo - maybe then simply dont add it? on the other hand may be needed for debugging or optimization
+  bool phiHitValid = pdfVal > 0;
+  algoTTMuon->addStubResult(pdfVal, phiHitValid, minPdfBin, layer, selectedStub );
 
   //handling of the phiB
   if(selectedStub->type == MuonStub::DT_PHI || selectedStub->type == MuonStub::DT_PHI_ETA ) {
@@ -123,7 +124,7 @@ void PdfModule::processStubs(const MuonStubsInput& muonStubs, unsigned int layer
     int pdfBin = charge * selectedStub->phiBHw - extrapolation;
     pdfVal = getPdfVal(layer +1, etaBin, refLayerNum, ptBin, pdfBin);
 
-    algoTTMuon->addStubResult(pdfVal, (pdfVal > 0), pdfBin, layer + 1, selectedStub );
+    algoTTMuon->addStubResult(pdfVal, phiHitValid & (pdfVal > 0), pdfBin, layer + 1, selectedStub );
   }
 
   return;

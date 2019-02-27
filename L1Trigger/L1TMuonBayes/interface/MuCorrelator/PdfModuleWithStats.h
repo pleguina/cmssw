@@ -27,6 +27,8 @@ public:
   //virtual void write() const;
 
   virtual void generateCoefficients();
+
+  virtual void generateCoefficients1();
 private:
   //[layer][etaBin][refLayer](ptBin, pdfBin)
   std::vector<std::vector<std::vector<TH2I* > > > pdfHists;

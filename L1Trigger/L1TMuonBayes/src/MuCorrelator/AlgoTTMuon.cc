@@ -28,7 +28,7 @@ std::ostream & operator << (std::ostream &out, const AlgoTTMuon& algoTTMuon) {
   out <<"stubResults: "<<std::endl;
   for(auto& stubResult : algoTTMuon.stubResults) {
     if(stubResult.getMuonStub() ) {
-      out <<"layer "<<std::setw(2)<<stubResult.getLayer()<<" valid "<<stubResult.getValid()<<" pdfBin "<<std::setw(3)<<stubResult.getPdfBin()
+      out <<"layer "<<std::setw(2)<<stubResult.getLayer()<<" valid "<<stubResult.getValid()<<" pdfBin "<<std::setw(4)<<stubResult.getPdfBin()
         <<" pdfVal "<<std::setw(8)<<stubResult.getPdfVal()<<" "<<(*stubResult.getMuonStub())<<std::endl;
     }
   }

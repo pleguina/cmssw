@@ -20,6 +20,9 @@ TTTracksInputMaker::TTTracksInputMaker(const edm::ParameterSet& edmCfg) {
       if(edmCfg.exists("l1Tk_nPar") ) {
         l1Tk_nPar = edmCfg.getParameter<int>("l1Tk_nPar");
       }
+      if(edmCfg.exists("l1Tk_minNStub") ) {
+        l1Tk_minNStub = edmCfg.getParameter<int>("l1Tk_minNStub");
+      }
     }
   }
 }
@@ -35,6 +38,7 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event &event, 
   if(ttTracksSource == SIM_TRACKS) {
     edm::Handle<edm::SimTrackContainer> simTks;
     event.getByLabel(edmCfg.getParameter<edm::InputTag>("g4SimTrackSrc"), simTks);
+    //std::cout<<__FUNCTION__<<":"<<__LINE__<<" simTks.size() "<<simTks->size()<<std::endl;
 
     for (std::vector<SimTrack>::const_iterator it=simTks->begin(); it< simTks->end(); it++) {
       const SimTrack& simMuon = *it;
@@ -55,7 +59,8 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event &event, 
     for (auto iterL1Track = tTTrackHandle->begin(); iterL1Track != tTTrackHandle->end(); iterL1Track++ ) {
       auto ttTrack = std::make_shared<TrackingTriggerTrack>(*iterL1Track, index, l1Tk_nPar);
 
-      addTTTrack(ttTracks, ttTrack, procConf);
+      if(iterL1Track->getStubRefs().size() >= l1Tk_minNStub) //TODO is this cut possible to apply in the firmware? there should be "Hit mask" so should be used whenever available
+        addTTTrack(ttTracks, ttTrack, procConf);
 
       index++;
       //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<*iterL1Track<<" Momentum "<<iterL1Track->getMomentum(l1Tk_nPar)<<" RInv "<<iterL1Track->getRInv(l1Tk_nPar)<<endl;

@@ -36,6 +36,8 @@ public:
 private:
   int l1Tk_nPar = 4;
 
+  unsigned int l1Tk_minNStub = 4;
+
   TTTracksSource ttTracksSource = SIM_TRACKS;
 
   void addTTTrack(TrackingTriggerTracks& ttTracks, std::shared_ptr<TrackingTriggerTrack>& ttTrack, const ProcConfigurationBase* procConf);

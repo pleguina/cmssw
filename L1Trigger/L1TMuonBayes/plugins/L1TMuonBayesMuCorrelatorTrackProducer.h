@@ -46,10 +46,12 @@ class L1TMuonBayesMuCorrelatorTrackProducer : public edm::EDProducer {
 
   edm::ParameterSet edmParameterSet;
   
-  edm::EDGetTokenT<L1MuDTChambPhContainer> inputTokenDTPh;
+/*  edm::EDGetTokenT<L1MuDTChambPhContainer> inputTokenDTPh;
   edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDTTh;
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> inputTokenCSC;
-  edm::EDGetTokenT<RPCDigiCollection> inputTokenRPC;
+  edm::EDGetTokenT<RPCDigiCollection> inputTokenRPC;*/
+
+  MuStubsInputTokens muStubsInputTokens;
 
   edm::EDGetTokenT< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > > ttTrackToken;
 

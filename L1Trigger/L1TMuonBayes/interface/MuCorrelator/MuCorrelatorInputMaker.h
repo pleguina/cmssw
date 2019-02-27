@@ -30,12 +30,19 @@ namespace edm {
   class EventSetup;
 }
 
+struct MuStubsInputTokens {
+  edm::EDGetTokenT<L1MuDTChambPhContainer> inputTokenDTPh;
+  edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDTTh;
+  edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> inputTokenCSC;
+  edm::EDGetTokenT<RPCDigiCollection> inputTokenRPC;
+};
+
 class MuCorrelatorInputMaker : public MuonStubMakerBase {
 public:
-  MuCorrelatorInputMaker(const edm::EventSetup& es, MuCorrelatorConfigPtr config);
+  MuCorrelatorInputMaker(const edm::ParameterSet& edmCfg, const edm::EventSetup& es, MuCorrelatorConfigPtr config, MuStubsInputTokens muStubsInputTokens);
   virtual ~MuCorrelatorInputMaker();
 
-  void loadAndFilterDigis(const edm::Event& event, const edm::ParameterSet& edmCfg);
+  void loadAndFilterDigis(const edm::Event& event);
 
   ///Method translating trigger digis into input matrix with global phi coordinates
   const MuonStubsInput buildInputForProcessor(unsigned int iProcessor,
@@ -78,6 +85,14 @@ private:
   edm::Handle<L1MuDTChambThContainer> dtThDigis;
   edm::Handle<CSCCorrelatedLCTDigiCollection> cscDigis;
   edm::Handle<RPCDigiCollection> rpcDigis;
+
+  MuStubsInputTokens muStubsInputTokens;
+
+  bool dropDTPrimitives = false;
+  bool dropRPCPrimitives = false;
+  bool dropCSCPrimitives = false;
+
+  int minDtPhQuality = 2;
 };
 
 #endif /* INTERFACE_MUCORRELATOR_MUONCORRELATORINPUTMAKER_H_ */

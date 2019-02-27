@@ -38,17 +38,21 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const MuonStubsInput& muonStubs
     if(algoTTMuon->getFiredLayerCnt() >= config->nMinFiredLayers()) {
       algoTTMuon->setValid(true);
       algoTTMuons.emplace_back(algoTTMuon);
-      //cout<<"\n"<<__FUNCTION__<<":"<<__LINE__<<" "<<*algoTTMuon<<endl;
+
+      LogTrace("omtfEventPrintout")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
+          <<" ttTrack Pt "<<ttTrack->getPt()<<" charge "<<ttTrack->getCharge()
+          <<" eta "<<ttTrack->getEta()<<" phi "<<ttTrack->getPhi()<<" index  "<<ttTrack->getIndex()
+          <<*algoTTMuon<<endl;
     }
-    //cout<<"\n";
   }
 
   auto ghostBustedTTmuons = ghostBust(algoTTMuons);
 
-  /*
-  for(auto& algoTTMuon : ghostBustedTTmuons) {
-    cout<<__FUNCTION__<<":"<<__LINE__<<" ghostBusted "<<*algoTTMuon<<endl;
-  }*/
+  //only debug
+  for(auto& ghostBustedTTmuon : ghostBustedTTmuons) {
+    LogTrace("omtfEventPrintout")<<">>>>>>>>>>>>>>>>>>>>> ghostBustedTTmuon: \n "
+        <<*ghostBustedTTmuon<<endl;
+  }
 
   return ghostBustedTTmuons;
 }
@@ -209,11 +213,23 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const StandaloneCandWithStubsVe
     //TODO add switch to use either processTrack or processTrackUsingRefStubs
     auto algoTTMuon = processTrack(candsWithStubs, ttTrack);
 
-    if(algoTTMuon->getFiredLayerCnt() >= config->nMinFiredLayers())
+    if(algoTTMuon->getFiredLayerCnt() >= config->nMinFiredLayers()) {
       algoTTMuons.emplace_back(algoTTMuon);
+
+      LogTrace("omtfEventPrintout")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
+          <<" ttTrack Pt "<<ttTrack->getPt()<<" charge "<<ttTrack->getCharge()
+          <<" eta "<<ttTrack->getEta()<<" phi "<<ttTrack->getPhi()<<" index  "<<ttTrack->getIndex()
+          <<*algoTTMuon<<endl;
+    }
   }
 
   auto ghostBustedTTmuons = ghostBust(algoTTMuons);
+
+  //only debug
+  for(auto& ghostBustedTTmuon : ghostBustedTTmuons) {
+    LogTrace("omtfEventPrintout")<<">>>>>>>>>>>>>>>>>>>>> ghostBustedTTmuon: \n "
+        <<*ghostBustedTTmuon<<endl;
+  }
 
   return ghostBustedTTmuons;
 }

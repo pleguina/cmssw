@@ -31,10 +31,10 @@ L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(con
 
   produces<l1t::RegionalMuonCandBxCollection >("MuCorr");
 
-  inputTokenDTPh = consumes<L1MuDTChambPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPh"));
-  inputTokenDTTh = consumes<L1MuDTChambThContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTTh"));
-  inputTokenCSC = consumes<CSCCorrelatedLCTDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcCSC"));
-  inputTokenRPC = consumes<RPCDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcRPC"));
+  muStubsInputTokens.inputTokenDTPh = consumes<L1MuDTChambPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPh"));
+  muStubsInputTokens.inputTokenDTTh = consumes<L1MuDTChambThContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTTh"));
+  muStubsInputTokens.inputTokenCSC = consumes<CSCCorrelatedLCTDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcCSC"));
+  muStubsInputTokens.inputTokenRPC = consumes<RPCDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcRPC"));
 
   edm::InputTag l1TrackInputTag = cfg.getParameter<edm::InputTag>("L1TrackInputTag");
   ttTrackToken = consumes< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > >(l1TrackInputTag);
@@ -82,9 +82,10 @@ void L1TMuonBayesMuCorrelatorTrackProducer::endJob(){
     outfile.cd();
     //pdfModuleWithStats->write();*/
 
-    pdfModuleWithStats->generateCoefficients();
-
-    writePdfs(pdfModule, pdfModuleFileName);
+    if(edmParameterSet.exists("generatePdfs") && edmParameterSet.getParameter<bool>("generatePdfs")) {
+      pdfModuleWithStats->generateCoefficients();
+      writePdfs(pdfModule, pdfModuleFileName);
+    }
   }
 }
 /////////////////////////////////////////////////////
@@ -94,12 +95,12 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
     cout<<"ptHw "<<setw(3)<<ptHw<<" = "<<setw(5)<<muCorrelatorConfig->hwPtToGev(ptHw)<<" GeV ptBin "<<muCorrelatorConfig->ptHwToPtBin(ptHw)<<endl;
   }*/
 
-  inputMaker = std::make_unique<MuCorrelatorInputMaker>(iSetup, muCorrelatorConfig);
+  inputMaker = std::make_unique<MuCorrelatorInputMaker>(edmParameterSet, iSetup, muCorrelatorConfig, muStubsInputTokens);
   ttTracksInputMaker = std::make_unique<TTTracksInputMaker>(edmParameterSet);;
 
   if(!muCorrelatorProcessor) {
     std::string pdfModuleType = "PdfModule"; //GoldenPatternParametrised GoldenPatternWithStat GoldenPattern
-    if(edmParameterSet.exists("pdfModuleType") ){
+    if(edmParameterSet.exists("pdfModuleType") ) {
       pdfModuleType = edmParameterSet.getParameter<std::string>("pdfModuleType");
     }
 
@@ -134,7 +135,7 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup){
-  inputMaker->loadAndFilterDigis(iEvent, edmParameterSet);
+  inputMaker->loadAndFilterDigis(iEvent);
 
   std::unique_ptr<l1t::RegionalMuonCandBxCollection> candidates(new l1t::RegionalMuonCandBxCollection);
   candidates->setBXRange(bxRangeMin, bxRangeMax);
@@ -147,6 +148,8 @@ void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const ed
 
     auto ttTRacks = ttTracksInputMaker->loadTTTracks(iEvent, edmParameterSet, muCorrelatorConfig.get());
 
+    LogTrace("omtfEventPrintout")<<"\n\nEvent "<<iEvent.id().event()<<" muonStubsInput bx "<<bx<<": \n "<<muonStubsInput<<endl;
+
     //for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor)
     {
       AlgoTTMuons algoTTMuons = muCorrelatorProcessor->processTracks(muonStubsInput, ttTRacks);
@@ -158,7 +161,7 @@ void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const ed
       }
     }
 
-    edm::LogInfo("L1TMuonBayesMuCorrelatorTrackProducer") <<"MuCorr:  Number of candidates in BX="<<bx<<": "<<candidates->size(bx) << std::endl;;
+    //edm::LogInfo("L1TMuonBayesMuCorrelatorTrackProducer") <<"MuCorr:  Number of candidates in BX="<<bx<<": "<<candidates->size(bx) << std::endl;;
   }
 
   iEvent.put(std::move(candidates), "MuCorr");

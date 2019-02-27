@@ -37,7 +37,8 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 # )
 
 
-path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/'
+#path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/'
+path = '/afs/cern.ch/work/a/akalinow/public/MuCorrelator/Data/SingleMu/9_3_14_FullEta_v1/'
 #path = '/afs/cern.ch/work/k/kbunkow/public/data/SingleMuFullEta/721_FullEta_v4/'
 
 onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
@@ -53,18 +54,27 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
+filesPerPtBin = 100
+
 if filesNameLike == 'allPt' :
     for ptCode in range(31, 3, -1) :
         for sign in ['_m', '_p'] : #, m
-            for i in range(1, 2, 1): #TODO
+            selFilesPerPtBin = 0
+            for i in range(1, 101, 1): #TODO
                 for f in onlyfiles:
-                   if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): 
+                   #if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): 
+                   if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f): 
                         #print f
                         chosenFiles.append('file://' + path + f) 
+                        selFilesPerPtBin += 1
+                if(selFilesPerPtBin >= filesPerPtBin):
+                    break
+                        
 else :
     for i in range(20, 21, 1):
         for f in onlyfiles:
-            if (( filesNameLike + '_' + str(i) + '_') in f): 
+            #if (( filesNameLike + '_' + str(i) + '_') in f): 
+            if (( filesNameLike + '_' + str(i) + '.') in f): 
                 print f
                 chosenFiles.append('file://' + path + f) 
          
@@ -72,6 +82,10 @@ else :
 print "chosenFiles"
 for chFile in chosenFiles:
     print chFile
+
+if len(chosenFiles) == 0 :
+    print "no files selected!!!!!!!!!!!!!!!"
+    exit
 
 firstEv = 0#40000
 nEvents = 100000
@@ -83,36 +97,36 @@ fileNames = cms.untracked.vstring(
     #'file:/afs/cern.ch/user/k/kpijanow/Neutrino_Pt-2to20_gun_50.root',
     list(chosenFiles),
                                   ),
-eventsToProcess = cms.untracked.VEventRange(
- '3:' + str(firstEv) + '-3:' +   str(firstEv + nEvents),
- '4:' + str(firstEv) + '-4:' +   str(firstEv + nEvents),
- '5:' + str(firstEv) + '-5:' +   str(firstEv + nEvents),
- '6:' + str(firstEv) + '-6:' +   str(firstEv + nEvents),
- '7:' + str(firstEv) + '-7:' +   str(firstEv + nEvents),
- '8:' + str(firstEv) + '-8:' +   str(firstEv + nEvents),
- '9:' + str(firstEv) + '-9:' +   str(firstEv + nEvents),
-'10:' + str(firstEv) + '-10:' +  str(firstEv + nEvents),
-'11:' + str(firstEv) + '-11:' +  str(firstEv + nEvents),
-'12:' + str(firstEv) + '-12:' +  str(firstEv + nEvents),
-'13:' + str(firstEv) + '-13:' +  str(firstEv + nEvents),
-'14:' + str(firstEv) + '-14:' +  str(firstEv + nEvents),
-'15:' + str(firstEv) + '-15:' +  str(firstEv + nEvents),
-'16:' + str(firstEv) + '-16:' +  str(firstEv + nEvents),
-'17:' + str(firstEv) + '-17:' +  str(firstEv + nEvents),
-'18:' + str(firstEv) + '-18:' +  str(firstEv + nEvents),
-'19:' + str(firstEv) + '-19:' +  str(firstEv + nEvents),
-'20:' + str(firstEv) + '-20:' +  str(firstEv + nEvents),
-'21:' + str(firstEv) + '-21:' +  str(firstEv + nEvents),
-'22:' + str(firstEv) + '-22:' +  str(firstEv + nEvents),
-'23:' + str(firstEv) + '-23:' +  str(firstEv + nEvents),
-'24:' + str(firstEv) + '-24:' +  str(firstEv + nEvents),
-'25:' + str(firstEv) + '-25:' +  str(firstEv + nEvents),
-'26:' + str(firstEv) + '-26:' +  str(firstEv + nEvents),
-'27:' + str(firstEv) + '-27:' +  str(firstEv + nEvents),
-'28:' + str(firstEv) + '-28:' +  str(firstEv + nEvents),
-'29:' + str(firstEv) + '-29:' +  str(firstEv + nEvents),
-'30:' + str(firstEv) + '-30:' +  str(firstEv + nEvents),
-'31:' + str(firstEv) + '-31:' +  str(firstEv + nEvents)),
+# eventsToProcess = cms.untracked.VEventRange(
+#  '3:' + str(firstEv) + '-3:' +   str(firstEv + nEvents),
+#  '4:' + str(firstEv) + '-4:' +   str(firstEv + nEvents),
+#  '5:' + str(firstEv) + '-5:' +   str(firstEv + nEvents),
+#  '6:' + str(firstEv) + '-6:' +   str(firstEv + nEvents),
+#  '7:' + str(firstEv) + '-7:' +   str(firstEv + nEvents),
+#  '8:' + str(firstEv) + '-8:' +   str(firstEv + nEvents),
+#  '9:' + str(firstEv) + '-9:' +   str(firstEv + nEvents),
+# '10:' + str(firstEv) + '-10:' +  str(firstEv + nEvents),
+# '11:' + str(firstEv) + '-11:' +  str(firstEv + nEvents),
+# '12:' + str(firstEv) + '-12:' +  str(firstEv + nEvents),
+# '13:' + str(firstEv) + '-13:' +  str(firstEv + nEvents),
+# '14:' + str(firstEv) + '-14:' +  str(firstEv + nEvents),
+# '15:' + str(firstEv) + '-15:' +  str(firstEv + nEvents),
+# '16:' + str(firstEv) + '-16:' +  str(firstEv + nEvents),
+# '17:' + str(firstEv) + '-17:' +  str(firstEv + nEvents),
+# '18:' + str(firstEv) + '-18:' +  str(firstEv + nEvents),
+# '19:' + str(firstEv) + '-19:' +  str(firstEv + nEvents),
+# '20:' + str(firstEv) + '-20:' +  str(firstEv + nEvents),
+# '21:' + str(firstEv) + '-21:' +  str(firstEv + nEvents),
+# '22:' + str(firstEv) + '-22:' +  str(firstEv + nEvents),
+# '23:' + str(firstEv) + '-23:' +  str(firstEv + nEvents),
+# '24:' + str(firstEv) + '-24:' +  str(firstEv + nEvents),
+# '25:' + str(firstEv) + '-25:' +  str(firstEv + nEvents),
+# '26:' + str(firstEv) + '-26:' +  str(firstEv + nEvents),
+# '27:' + str(firstEv) + '-27:' +  str(firstEv + nEvents),
+# '28:' + str(firstEv) + '-28:' +  str(firstEv + nEvents),
+# '29:' + str(firstEv) + '-29:' +  str(firstEv + nEvents),
+# '30:' + str(firstEv) + '-30:' +  str(firstEv + nEvents),
+# '31:' + str(firstEv) + '-31:' +  str(firstEv + nEvents)),
 skipEvents =  cms.untracked.uint32(0),
 
         inputCommands=cms.untracked.vstring(
@@ -141,6 +155,8 @@ process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorHists.root'), closeFileFast = cms.untracked.bool(True))
 
 process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
+process.simBayesMuCorrelatorTrackProducer.minDtPhQuality = cms.int32(4);
+process.simBayesMuCorrelatorTrackProducer.generatePdfs = cms.bool(True);
 
 process.L1TMuonSeq = cms.Sequence( #process.esProd +         
                                    process.simBayesMuCorrelatorTrackProducer 
