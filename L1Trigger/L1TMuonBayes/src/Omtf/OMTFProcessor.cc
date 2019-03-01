@@ -91,11 +91,11 @@ void OMTFProcessor<GoldenPatternType>::loadAndFilterDigis(const edm::Event& even
 }
 
 template <class GoldenPatternType>
-std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcandidates(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons & algoCands) {
+std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcandidates(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& algoCands) {
 
   std::vector<l1t::RegionalMuonCand> result;
 
-  for(auto& myCand: algoCands){
+  for(auto& myCand: algoCands) {
     l1t::RegionalMuonCand candidate;
     candidate.setHwPt(myCand->getPt());
     candidate.setHwEta(myCand->getEta());
@@ -146,7 +146,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000000000110000").to_ulong()
            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000000110000").to_ulong()
          ) quality = 1;
-}
+    }
 //  if (abs(myCand->getEta()) == 121) quality = 4;
     if (abs(myCand->getEta()) == 121) quality = 0; // changed on request from HI
 
@@ -318,9 +318,10 @@ run(unsigned int iProcessor, l1t::tftype mtfType, int bx, std::vector<std::uniqu
   // perform GB
   AlgoMuons gbCandidates =  ghostBust(algoCandidates);
 
-  //cout<<"ghostBust          "; t.report();
+  //cout<<"ghostBust"; t.report();
   // fill RegionalMuonCand colleciton
   std::vector<l1t::RegionalMuonCand> candMuons = getFinalcandidates(iProcessor, mtfType, gbCandidates);
+
   //cout<<"getFinalcandidates "; t.report();
   //fill outgoing collection
   for (auto & candMuon :  candMuons) {

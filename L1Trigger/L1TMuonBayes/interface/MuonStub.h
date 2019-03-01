@@ -70,8 +70,8 @@ public:
 
   int detId = 0;
 
-  float phi = 0; //radians
-  float eta = 0;
+  //float phi = 0; //radians
+  //float eta = 0;
 
   friend std::ostream & operator<< (std::ostream &out, const MuonStub& stub);
 };

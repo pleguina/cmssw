@@ -127,7 +127,9 @@ void MuonStubMakerBase::processRPC(MuonStubPtrs2D& muonStubsInLayers, const RPCD
 
     if(roll.region() != 0  &&  abs(roll.station()) >= 3 && roll.ring() == 1 ) {
       //iRPC TODO add iRPC handling
-      //std::cout<<__FUNCTION__<<":"<<__LINE__<<" ignoring hit from iRPC "<<roll<<std::endl;
+      /*for (auto& pDigi=rollDigis.second.first; pDigi != rollDigis.second.second; pDigi++) {
+        std::cout<<__FUNCTION__<<":"<<__LINE__<<" ignoring hit from irpc "<<roll<<" bx "<<pDigi->bx()<<" time "<<pDigi->time()<<std::endl;
+      }*/
       continue;
     }
 

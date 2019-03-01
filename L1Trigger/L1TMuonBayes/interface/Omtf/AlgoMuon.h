@@ -1,11 +1,12 @@
 #ifndef AlgoMuon_H
 #define AlgoMuon_H
 
+#include "L1Trigger/L1TMuonBayes/interface/AlgoMuonBase.h"
 #include <L1Trigger/L1TMuonBayes/interface/Omtf/GoldenPatternBase.h>
 #include <L1Trigger/L1TMuonBayes/interface/Omtf/GoldenPatternResult.h>
 #include <ostream>
 
-class AlgoMuon {
+class AlgoMuon: public AlgoMuonBase {
 
  public:
   AlgoMuon() {}
@@ -71,7 +72,23 @@ class AlgoMuon {
 
   void setRefHitNumber(unsigned int aRefHitNum) { m_rhitNumb = aRefHitNum; }
 
-  bool isValid() const;
+  bool isValid() const override;
+
+  unsigned int getFiredLayerCnt() const override {
+    return gpResult.getFiredLayerCnt();
+  }
+
+  double getPdfSum() const override {
+    return  gpResult.getPdfSum();
+  }
+
+  const StubResult& getStubResult(unsigned int iLayer) const override {
+    return gpResult.getStubResults().at(iLayer);
+  }
+
+  const StubResults& getStubResults() const override {
+    return gpResult.getStubResults();
+  }
 
   const bool isKilled() const {
     return killed;

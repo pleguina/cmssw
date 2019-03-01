@@ -136,8 +136,8 @@ void MuCorrelatorInputMaker::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers, unsi
     stub.logicLayer = iLayer;
     stub.detId = rawid;
 
-    stub.phi = config->getProcScalePhiToRad(stub.phiHw);
-    stub.eta = config->hwEtaToEta(stub.etaHw);
+    //stub.phi = config->getProcScalePhiToRad(stub.phiHw);
+    //stub.eta = config->hwEtaToEta(stub.etaHw);
 
     addStub(muonStubsInLayers, iLayer, stub);
 
@@ -166,7 +166,7 @@ void MuCorrelatorInputMaker::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers, unsi
     stub.detId = rawid;
 
     //stub.phi = config->getProcScalePhiToRad(stub.phiHw);
-    stub.eta = config->hwEtaToEta(stub.etaHw);
+    //stub.eta = config->hwEtaToEta(stub.etaHw);
 
     addStub(muonStubsInLayers, iLayer, stub);
 

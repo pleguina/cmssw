@@ -131,7 +131,7 @@ public:
     return hits;
   }*/
 
-  const StubResults getStubResults() const {
+  const StubResults& getStubResults() const {
     return stubResults;
   }
 

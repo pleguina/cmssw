@@ -310,7 +310,7 @@ const void OMTFProcessorTTMerger<GoldenPatternType>::processInput(unsigned int i
         MuonStubPtr newRefStubPtr = refStub;
         if(iLayer == refLayerLogicNum) { //we include the ttTrack phi only for the reference hit
           MuonStub newRefStub;
-          newRefStub.phi = ttTrack.getPhiHw();
+          newRefStub.phiHw = ttTrack.getPhiHw();
           newRefStub.type = MuonStub::TTTRACK_REF;
           newRefStubPtr = std::make_shared<MuonStub>(newRefStub);
         }

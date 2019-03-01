@@ -12,13 +12,14 @@
 #include <memory>
 #include "boost/dynamic_bitset.hpp"
 
+#include "L1Trigger/L1TMuonBayes/interface/AlgoMuonBase.h"
 #include "L1Trigger/L1TMuonBayes/interface/TrackingTriggerTrack.h"
 #include "L1Trigger/L1TMuonBayes/interface/MuonStub.h"
 #include "L1Trigger/L1TMuonBayes/interface/StubResult.h"
 
 #include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/MuCorrelatorConfig.h"
 
-class AlgoTTMuon {
+class AlgoTTMuon: public AlgoMuonBase {
 public:
   AlgoTTMuon(const TrackingTriggerTrackPtr& ttTrack, MuCorrelatorConfigPtr& config):
     firedLayerBits(config->nLayers()), ttTrack(ttTrack), stubResults(config->nLayers()) {};
@@ -30,7 +31,7 @@ public:
 
   virtual void addStubResult(float pdfVal, bool valid, int pdfBin, int layer, MuonStubPtr stub);
 
-  bool isValid() const {
+  bool isValid() const override {
     //TODO where and when it should be set?
     return valid;
   }
@@ -39,11 +40,11 @@ public:
     this->valid = valid;
   }
 
-  unsigned int getFiredLayerCnt() const {
+  unsigned int getFiredLayerCnt() const override {
     return firedLayerBits.count();
   }
 
-  double getPdfSum() const  {
+  double getPdfSum() const override {
     return pdfSum;
   }
 
@@ -64,11 +65,12 @@ public:
   const TrackingTriggerTrackPtr& getTTTrack() const {
     return ttTrack;
   }
-  const StubResult& getStubResult(unsigned int iLayer) const {
+
+  const StubResult& getStubResult(unsigned int iLayer) const  override{
     return stubResults.at(iLayer);
   }
 
-  const StubResults& getStubResults() const {
+  const StubResults& getStubResults() const override {
     return stubResults;
   }
 
