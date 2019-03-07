@@ -14,6 +14,24 @@ process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1000)
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
 
 #######################################TTTracks################################################
+GEOMETRY = "D17"
+
+if GEOMETRY == "D17":
+    print "using geometry " + GEOMETRY + " (tilted)"
+    process.load('Configuration.Geometry.GeometryExtended2023D17Reco_cff')
+    process.load('Configuration.Geometry.GeometryExtended2023D17_cff')
+elif GEOMETRY == "TkOnly":
+    print "using geometry " + GEOMETRY + " (tilted)"
+    process.load('L1Trigger.TrackTrigger.TkOnlyTiltedGeom_cff')
+else:
+    print "this is not a valid geometry!!!"
+
+process.load('Configuration.StandardSequences.EndOfProcess_cff')
+process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+
+from Configuration.AlCa.GlobalTag import GlobalTag
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
+
 
 ############################################################
 # input and output
@@ -38,7 +56,9 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 
 #path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/'
-path = '/afs/cern.ch/work/a/akalinow/public/MuCorrelator/Data/SingleMu/9_3_14_FullEta_v1/'
+#path = '/afs/cern.ch/work/a/akalinow/public/MuCorrelator/Data/SingleMu/9_3_14_FullEta_v1/'
+#path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v1/'
+path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/'
 #path = '/afs/cern.ch/work/k/kbunkow/public/data/SingleMuFullEta/721_FullEta_v4/'
 
 onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
@@ -71,7 +91,7 @@ if filesNameLike == 'allPt' :
                     break
                         
 else :
-    for i in range(20, 21, 1):
+    for i in range(1, 2, 1):
         for f in onlyfiles:
             #if (( filesNameLike + '_' + str(i) + '_') in f): 
             if (( filesNameLike + '_' + str(i) + '.') in f): 
@@ -139,12 +159,12 @@ skipEvents =  cms.untracked.uint32(0),
 )
 
 # PostLS1 geometry used TODO is this correct geometry for the phase 2?
-process.load('Configuration.Geometry.GeometryExtended2015Reco_cff')
-process.load('Configuration.Geometry.GeometryExtended2015_cff')
+#process.load('Configuration.Geometry.GeometryExtended2015Reco_cff')
+#process.load('Configuration.Geometry.GeometryExtended2015_cff')
 ############################
-process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
-from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
+#process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
+#from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
+#process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
 
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonBayes.simBayesMuCorrelatorTrackProducer_cfi')
@@ -152,11 +172,12 @@ process.load('L1Trigger.L1TMuonBayes.simBayesMuCorrelatorTrackProducer_cfi')
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorHists.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorHistsSimTracks100Files.root'), closeFileFast = cms.untracked.bool(True))
 
 process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
 process.simBayesMuCorrelatorTrackProducer.minDtPhQuality = cms.int32(4);
 process.simBayesMuCorrelatorTrackProducer.generatePdfs = cms.bool(True);
+process.simBayesMuCorrelatorTrackProducer.pdfModuleFileName = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModuleSimTracks100Files.xml")
 
 process.L1TMuonSeq = cms.Sequence( #process.esProd +         
                                    process.simBayesMuCorrelatorTrackProducer 

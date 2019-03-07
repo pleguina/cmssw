@@ -85,7 +85,8 @@ public:
   }
 
   virtual std::vector<l1t::RegionalMuonCand> getFinalCandidates(unsigned int iProcessor, l1t::tftype mtfType, AlgoTTMuons& algoTTMuons);
-  virtual bool checkHitPatternValidity(const boost::dynamic_bitset<>& firedLayerBits);
+
+  virtual bool assignQuality(AlgoTTMuons& algoTTMuons);
 private:
   MuCorrelatorConfigPtr config;
 
@@ -97,6 +98,8 @@ private:
   std::function<int (AlgoTTMuonPtr first, AlgoTTMuonPtr second)> ghostBustFunc;
 
   unique_ptr<IPdfModule> pdfModule;
+
+  std::vector< std::pair<int, boost::dynamic_bitset<> > > lowQualityHitPatterns;
 };
 
 #endif /* INTERFACE_MUCORRELATOR_MUCORRELATORPROCESSOR_H_ */

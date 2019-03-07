@@ -69,6 +69,8 @@ void PdfModuleWithStats::generateCoefficients() {
           std::ostringstream ostr;
           ostr<<pdfHist->GetName()<<"_ptBin_"<<ptBin;
           TH1D* pdfHistInPtBin = pdfHist->ProjectionY(ostr.str().c_str(), ptBin +1, ptBin +1); //+1 Because the bins in root hist are counted from 1
+          ostr<<" "<<config->ptBinString(ptBin, 1);
+          pdfHistInPtBin->SetTitle(ostr.str().c_str());
 
           pdfHistInPtBin->Sumw2();
           if(pdfHistInPtBin->Integral() <= 0) {
@@ -78,9 +80,6 @@ void PdfModuleWithStats::generateCoefficients() {
 
           pdfHistInPtBin->Scale(1./pdfHistInPtBin->Integral());
 
-          //pdfHistInPtBin->Write(); //TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,
-          //          continue;
-
           const double minPlog =  log(config->minPdfVal());
           const double pdfMaxLogVal = config->pdfMaxLogValue();
 
@@ -89,7 +88,7 @@ void PdfModuleWithStats::generateCoefficients() {
           for(int iBinPdf = 0; iBinPdf < pdfHistInPtBin->GetXaxis()->GetNbins(); iBinPdf++) {
             double pdfVal = pdfHistInPtBin->GetBinContent(iBinPdf);
 
-            if(pdfVal < config->minPdfVal())  //removing points with small statistics - TODO tune
+            if( (ptBin <= 16 && pdfVal < config->minPdfVal()) || (ptBin > 16 && pdfVal < config->minPdfVal() *2))  //removing points with small statistics - TODO tune
             {
               pdfHistInPtBin->SetBinContent(iBinPdf, 0);
               pdfHistInPtBin->SetBinError(iBinPdf, 0);

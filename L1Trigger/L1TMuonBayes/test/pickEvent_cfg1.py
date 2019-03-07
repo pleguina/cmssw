@@ -21,7 +21,14 @@ Source_Files = cms.untracked.vstring(
          #'file:///eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/SingleMu_20_p_118_1_sTk.root' ,
          #'file:///eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/SingleMu_5_p_81_1_Ql3.root',
          #'file:///eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/SingleMu_31_p_89_2_MJS.root',
-         "/store/mc/PhaseIIFall17D/SingleMu_FlatPt-2to100/GEN-SIM-DIGI-RAW/L1TnoPU_93X_upgrade2023_realistic_v5-v1/00000/F4EEAE55-C937-E811-8C29-48FD8EE739D1.root"
+         #"/store/mc/PhaseIIFall17D/SingleMu_FlatPt-2to100/GEN-SIM-DIGI-RAW/L1TnoPU_93X_upgrade2023_realistic_v5-v1/00000/F4EEAE55-C937-E811-8C29-48FD8EE739D1.root"
+        #"/store/mc/PhaseIIFall17D/HSCPppstau_M_871_TuneCUETP8M1_14TeV_pythia8/GEN-SIM-DIGI-RAW/L1TnoPU_93X_upgrade2023_realistic_v5-v1/120000/18156A80-66EC-E811-AE02-0CC47AFCC62A.root"
+        #"/store/mc/PhaseIIFall17D/HSCPppstau_M_200_TuneCUETP8M1_14TeV_pythia8/GEN-SIM-DIGI-RAW/L1TnoPU_93X_upgrade2023_realistic_v5-v1/120000/FE3D8AD6-B6D0-E811-8FBD-141877412793.root"
+        #'/store/mc/RunIISummer16DR80Premix/HSCPppstau_M-651_TuneZ2star_13TeV_pythia6/AODSIM/PUMoriond17_HSCP_customise_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/80000/0E0D542C-A9C8-E611-981C-A0000420FE80.root'
+        #'/store/mc/RunIISummer16DR80Premix/HSCPppstau_M-308_TuneZ2star_13TeV-pythia6/AODSIM/PUMoriond17_HSCP_customise_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/80000/3EAEE028-AED2-E611-83E8-002590E7DFEE.root'
+        #'/store/mc/RunIISummer16DR80Premix/HSCPppstau_M-308_TuneZ2star_13TeV-pythia6/AODSIM/PUMoriond17_HSCP_customise_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/80000/9A3F1E44-AED2-E611-9AD6-1CC1DE18CFDE.root'
+        #'/store/mc/PhaseIIFall17D/ZMM_14TeV_TuneCUETP8M1_Pythia8/GEN-SIM-DIGI-RAW/L1TnoPU_93X_upgrade2023_realistic_v5-v1/60000/EE29AF8E-51AF-E811-A2BD-484D7E8DF0D3.root'
+        '/store/mc/PhaseIITDRSpring17GS/HSCPppstau_M_1599_TuneCUETP8M1_14TeV_pythia8_Customised/GEN-SIM/Customised_91X_upgrade2023_realistic_v3-v2/00000/CC5458A2-5BA9-E711-86E1-0025905D1D7A.root'
 )
 
 process = cms.Process("PickEvent")
@@ -40,7 +47,8 @@ process.source = cms.Source ("PoolSource",
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1000))
 
 #outputFileNme = '/eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_FlatPt-2to100/GEN-SIM-DIGI-RAW/L1TnoPU_93X_upgrade2023_realistic_v5-v1/00000/F4EEAE55-C937-E811-8C29-48FD8EE739D1_dump1000Events.root'
-outputFileNme = 'F4EEAE55-C937-E811-8C29-48FD8EE739D1_dump1000Events.root'
+#outputFileNme = 'HSCPppstau_M-651_TuneZ2star_13TeV_0E0D542C-A9C8-E611-981C-A0000420FE80_dump100Events.root'
+outputFileNme = 'HSCPppstau_M_1599_CC5458A2-5BA9-E711-86E1-0025905D1D7A.root'
 
 process.Out = cms.OutputModule("PoolOutputModule",
         fileName = cms.untracked.string (outputFileNme)

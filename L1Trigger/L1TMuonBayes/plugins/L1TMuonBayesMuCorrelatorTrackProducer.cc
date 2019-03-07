@@ -53,6 +53,10 @@ L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(con
   if(edmParameterSet.exists("useStubsFromAdditionalBxs") ){
     useStubsFromAdditionalBxs = edmParameterSet.getParameter<int>("useStubsFromAdditionalBxs");
   }
+
+  for(unsigned int ptBin = 0; ptBin < muCorrelatorConfig->getPtHwBins().size(); ++ptBin) {
+    edm::LogImportant("L1TMuonBayesMuCorrelatorTrackProducer")<<"ptBin "<<setw(2)<<ptBin<<" range Hw: "<<muCorrelatorConfig->ptBinString(ptBin, 0)<<" = "<<muCorrelatorConfig->ptBinString(ptBin, 1)<<std::endl;
+  }
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -83,6 +87,9 @@ void L1TMuonBayesMuCorrelatorTrackProducer::endJob(){
     //pdfModuleWithStats->write();*/
 
     if(edmParameterSet.exists("generatePdfs") && edmParameterSet.getParameter<bool>("generatePdfs")) {
+      if(edmParameterSet.exists("pdfModuleFileName") ) {//if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
+        pdfModuleFileName = edmParameterSet.getParameter<edm::FileInPath>("pdfModuleFileName").fullPath();
+      }
       pdfModuleWithStats->generateCoefficients();
       writePdfs(pdfModule, pdfModuleFileName);
     }
@@ -119,7 +126,10 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
     }
 
 
-    if(edmParameterSet.exists("pdfModuleFileName") ) {//if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
+    if(edmParameterSet.exists("generatePdfs") && edmParameterSet.getParameter<bool>("generatePdfs")) {
+      //dont read the pdf is their are going to be generated
+    }
+    else if(edmParameterSet.exists("pdfModuleFileName") ) {//if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
       pdfModuleFileName = edmParameterSet.getParameter<edm::FileInPath>("pdfModuleFileName").fullPath();
       edm::LogImportant("L1TMuonBayesMuCorrelatorTrackProducer")<<" reading the pdfModule from file "<<pdfModuleFileName<<std::endl;
       readPdfs(pdfModule, pdfModuleFileName);
@@ -149,6 +159,10 @@ void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const ed
     auto ttTRacks = ttTracksInputMaker->loadTTTracks(iEvent, edmParameterSet, muCorrelatorConfig.get());
 
     LogTrace("omtfEventPrintout")<<"\n\nEvent "<<iEvent.id().event()<<" muonStubsInput bx "<<bx<<": \n "<<muonStubsInput<<endl;
+    for(auto& ttTRack : ttTRacks) {
+      LogTrace("omtfEventPrintout")<<*ttTRack<<endl;
+    }
+    LogTrace("omtfEventPrintout")<<"\n";
 
     //for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor)
     {

@@ -48,6 +48,8 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event &event, 
       auto ttTrack = std::make_shared<TrackingTriggerTrack>(simMuon);
 
       addTTTrack(ttTracks, ttTrack, procConf);
+      //if(ttTrack->getPt() > 20)
+        //LogTrace("omtfEventPrintout")<<__FUNCTION__<<":"<<__LINE__<<" sim.type() "<<simMuon.type()<<" genpartIndex "<<simMuon.genpartIndex()<<" added track "<<*ttTrack<<std::endl;
     }
   }
   else if(ttTracksSource == L1_TRACKER) {
@@ -80,5 +82,6 @@ void TTTracksInputMaker::addTTTrack(TrackingTriggerTracks& ttTracks, std::shared
   //ttTrack->setPtBin(procConf->ptGeVToPtBin(ttTrack->getPt() ) );
   ttTrack->setEtaBin(procConf->etaHwToEtaBin(ttTrack->getEtaHw() ) );
 
+  //std::cout << __FUNCTION__<<":"<<__LINE__ <<" pt "<<ttTrack->getPt()<<" PtHw "<<ttTrack->getPtHw()<<" PtBin "<<ttTrack->getPtBin()<<std::endl;
   ttTracks.emplace_back(ttTrack);
 }

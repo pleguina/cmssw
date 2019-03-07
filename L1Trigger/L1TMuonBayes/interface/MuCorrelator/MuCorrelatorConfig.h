@@ -12,9 +12,12 @@
 
 #include <memory>
 #include <math.h>
+#include <vector>
 
 class MuCorrelatorConfig: public ProcConfigurationBase {
 public:
+  MuCorrelatorConfig();
+
   virtual ~MuCorrelatorConfig() {}
 
   unsigned int nRefLayers() const {
@@ -115,7 +118,14 @@ public:
 
   virtual int pdfMaxLogValue() const {
     return pdfMaxVal;
-  };
+  }
+
+  const std::vector<int>& getPtHwBins() const {
+    return ptHwBins;
+  }
+
+  //mode 0 - ptHw, 1 - GeV
+  std::string ptBinString(unsigned int ptBin, int mode) const;
 
 private:
   unsigned int layers = 30;
@@ -138,6 +148,11 @@ private:
   unsigned int maxMuStubsPerLayer = 200; //TODO change to the value reasonable for the firmware
 
   unsigned int  pdfMaxVal = 1023;
+
+  //upper edges (ptHw) of the pt bins, the ptHwBins[ptBins] = 'inf'
+  std::vector<int> ptHwBins;
+
+  void buildPtHwBins();
 };
 
 typedef std::shared_ptr<const MuCorrelatorConfig> MuCorrelatorConfigPtr;

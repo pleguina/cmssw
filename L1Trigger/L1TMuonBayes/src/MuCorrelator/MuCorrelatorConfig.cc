@@ -8,6 +8,42 @@
 #include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/MuCorrelatorConfig.h"
 
 #include <math.h>
+#include <limits>
+#include <sstream>
+#include <iomanip>
+
+MuCorrelatorConfig::MuCorrelatorConfig() {
+  buildPtHwBins();
+}
+
+//TODO should be read from config
+void MuCorrelatorConfig::buildPtHwBins() {
+  float stride = 1;
+  int iPt = 6;
+  for(unsigned int ptBin = 0; ptBin < ptBins; ptBin++) {
+    ptHwBins.push_back(iPt);
+
+    if(ptBin < 8)
+      stride = 1;
+    else if(ptBin < 12)
+      stride = 1;
+    else if(ptBin < 24)
+      stride = 2;
+    else if(ptBin < 32)
+      stride = 3;
+    else if(ptBin < 40)
+      stride = 4;
+    else if(ptBin < 48)
+      stride = 6;
+    else if(ptBin < 56)
+      stride += 4;
+    else
+      stride += 8;
+
+    iPt += stride;
+  }
+  ptHwBins.push_back(std::numeric_limits<int>::max());
+}
 
 unsigned int MuCorrelatorConfig::logLayerToRefLayar(unsigned int logicLayer, unsigned int etaBin) const {
   //TODO implement
@@ -41,16 +77,12 @@ unsigned int MuCorrelatorConfig::ptGeVToPtBin(float ptGeV) const {
 }
 
 unsigned int MuCorrelatorConfig::ptHwToPtBin(int ptHw) const {
-  float stride = 1;
-  int iPt = 6;
   for(unsigned int ptBin = 0; ptBin < ptBins; ptBin++) {
-    if(iPt >= ptHw)
+    if(ptHwBins[ptBin] >= ptHw)
       return ptBin;
-
-    iPt += stride;
-    stride += 0.2;
   }
-  return ptBins -1;
+
+  return ptBins -1; //"to inf" bin
 }
 
 unsigned int MuCorrelatorConfig::etaHwToEtaBin(int etaHw) const {
@@ -127,3 +159,14 @@ bool MuCorrelatorConfig::isPhiLayer(unsigned int layer) const {
   return false;
 }
 
+std::string MuCorrelatorConfig::ptBinString(unsigned int ptBin, int mode) const {
+  int ptHwLow = ptBin > 0 ? ptHwBins.at(ptBin - 1) : 0;
+  int ptHwUp = ptHwBins.at(ptBin);
+  std::ostringstream ostr;
+  if(mode == 0)
+    ostr<<"ptHw: "<<std::setw(3)<<ptHwLow+1<<" - "<<std::setw(3)<<ptHwUp;
+  else if(mode == 1)
+    ostr<<hwPtToGev(ptHwLow+1)<<" - "<<hwPtToGev(ptHwUp+1)<<" GeV";
+
+  return ostr.str();
+}

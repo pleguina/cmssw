@@ -19,6 +19,21 @@ MuCorrelatorProcessor::MuCorrelatorProcessor(MuCorrelatorConfigPtr& config, std:
 
 MuCorrelatorProcessor::MuCorrelatorProcessor(MuCorrelatorConfigPtr& config, unique_ptr<IPdfModule> pdfModule): config(config), pdfModule(std::move(pdfModule) ) {
   ghostBustFunc = ghostBust3;
+
+  ///FIXME: read the list from configuration so this can be controlled at runtime.
+  lowQualityHitPatterns = {
+      //                                                                                        987654321098765432109876543210
+      //                                                                                               432143R2R143211B4B3B2B1
+      std::pair<int, boost::dynamic_bitset<> >(4,  boost::dynamic_bitset<>(config->nLayers(), 0b000000000000000010000000000001) ), //MB1, RB1in
+      std::pair<int, boost::dynamic_bitset<> >(4,  boost::dynamic_bitset<>(config->nLayers(), 0b000000000000000100000000000001) ), //MB1, RB1out
+      std::pair<int, boost::dynamic_bitset<> >(4,  boost::dynamic_bitset<>(config->nLayers(), 0b000000000010000000001000000000) ), //ME1/2  or ME1/3, RE1
+
+
+      std::pair<int, boost::dynamic_bitset<> >(4,  boost::dynamic_bitset<>(config->nLayers(), 0b000000000000101010000000111111) ), //remowe!!!!!!!!
+
+     // std::pair<int, boost::dynamic_bitset<> >(4,  boost::dynamic_bitset<>(config->nLayers(), 0b000000010000000001000000000000) )
+  };
+
 }
 
 MuCorrelatorProcessor::~MuCorrelatorProcessor() {
@@ -47,6 +62,8 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const MuonStubsInput& muonStubs
   }
 
   auto ghostBustedTTmuons = ghostBust(algoTTMuons);
+
+  assignQuality(ghostBustedTTmuons);
 
   //only debug
   for(auto& ghostBustedTTmuon : ghostBustedTTmuons) {
@@ -267,13 +284,10 @@ std::vector<l1t::RegionalMuonCand> MuCorrelatorProcessor::getFinalCandidates(uns
     candidate.setHwEta(algoTTMuon->getTTTrack()->getEtaHw());
     candidate.setHwPhi(config->phiToGlobalHwPhi(algoTTMuon->getTTTrack()->getPhi())); //TODO use hw phi
 
+    candidate.setHwQual(algoTTMuon->getQuality());
 
     candidate.setHwSign(algoTTMuon->getTTTrack()->getCharge() < 0 ? 1 : 0  );
     candidate.setHwSignValid(1);
-
-    unsigned int quality = checkHitPatternValidity(algoTTMuon->getFiredLayerBits() );                      //=4
-
-    candidate.setHwQual (quality);
 
     std::map<int, int> trackAddr;
     trackAddr[0] = algoTTMuon->getFiredLayerBits().to_ulong();
@@ -283,7 +297,7 @@ std::vector<l1t::RegionalMuonCand> MuCorrelatorProcessor::getFinalCandidates(uns
     candidate.setTrackAddress(trackAddr);
     candidate.setTFIdentifiers(iProcessor,mtfType);
 
-    if (candidate.hwPt() > 0 && quality > 0)  //rejecting here the candidates with eta 121, i.e. > 1.31
+    if (candidate.hwPt() > 0)
       candidates.push_back(candidate);
   }
   return candidates;
@@ -294,14 +308,16 @@ std::vector<l1t::RegionalMuonCand> MuCorrelatorProcessor::getFinalCandidates(uns
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
 
-bool MuCorrelatorProcessor::checkHitPatternValidity(const boost::dynamic_bitset<>& firedLayerBits) {
-  ///FIXME: read the list from configuration so this can be controlled at runtime.
-  std::vector<boost::dynamic_bitset<> > badPatterns = { //move to the class definition
-      //TODO add something if needed
-  };
-
-  for(auto badPattern : badPatterns){
-    if(firedLayerBits == badPattern) return false;
+bool MuCorrelatorProcessor::assignQuality(AlgoTTMuons& algoTTMuons) {
+  for(auto& algoTTMuon : algoTTMuons) {
+    for(auto& firedLayers : lowQualityHitPatterns) {
+      algoTTMuon->setQuality(12); //Default quality
+      if(firedLayers.second == algoTTMuon->getFiredLayerBits()) {
+        algoTTMuon->setQuality(firedLayers.first);
+        //LogTrace("omtfEventPrintout")<<"demoting quality for "<<*algoTTMuon<<endl;
+        break;
+      }
+    }
   }
 
   return true;

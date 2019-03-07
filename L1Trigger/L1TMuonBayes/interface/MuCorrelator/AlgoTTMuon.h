@@ -80,12 +80,22 @@ public:
     return firedLayerBits;
   }
 
+  int getQuality() const {
+    return quality;
+  }
+
+  void setQuality(int quality = 0) {
+    this->quality = quality;
+  }
+
 private:
   bool valid = false;
 
   double pdfSum = 0;
 
   bool killed = false;
+
+  int quality = 0;
 
   ///Number of fired layers - excluding bending layers
   //unsigned int firedLayerCnt = 0;

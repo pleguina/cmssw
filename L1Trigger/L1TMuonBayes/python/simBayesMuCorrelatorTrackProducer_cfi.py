@@ -37,6 +37,6 @@ simBayesMuCorrelatorTrackProducer = cms.EDProducer("L1TMuonBayesMuCorrelatorTrac
 
   #bxRangeMin = cms.int32(-10),
   #bxRangeMax = cms.int32(10),
-  #useStubsFromAdditionalBxs = cms.int32(1), #default is 0, if 1 it allows trigger on HSPCs
+  useStubsFromAdditionalBxs = cms.int32(0), #default is 0, if 1 it allows trigger on HSPCs
 )
 
