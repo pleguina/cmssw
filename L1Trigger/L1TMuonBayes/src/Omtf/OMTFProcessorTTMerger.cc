@@ -88,7 +88,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessorTTMerger<GoldenPatternType>::get
 
     unsigned int quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3) //=12
                                                                      : 0 | (1 << 2);                      //=4
-    if (    abs(myCand->getEta()) == 115
+    if (    abs(myCand->getEtaHw()) == 115
         && (    static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001110000000").to_ulong()
              || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000001110000000").to_ulong()
              || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000110000000").to_ulong()
@@ -124,7 +124,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessorTTMerger<GoldenPatternType>::get
          ) quality = 1;
     }
 //  if (abs(myCand->getEta()) == 121) quality = 4;
-    if (abs(myCand->getEta()) == 121) quality = 0; // changed on request from HI
+    if (abs(myCand->getEtaHw()) == 121) quality = 0; // changed on request from HI
 
     candidate.setHwQual (quality);
 
@@ -186,12 +186,14 @@ void OMTFProcessorTTMerger<GoldenPatternType>::laodTTTracks(const edm::Event &ev
     edm::Handle<edm::SimTrackContainer> simTks;
     event.getByLabel(edmCfg.getParameter<edm::InputTag>("g4SimTrackSrc"), simTks);
 
+    unsigned int index = 0;
     for (std::vector<SimTrack>::const_iterator it=simTks->begin(); it< simTks->end(); it++) {
       const SimTrack& simMuon = *it;
+      index++;
       if ( !(simMuon.type() == 13 || simMuon.type() == -13) )
         continue;
 
-      ttTracks.emplace_back(simMuon);
+      ttTracks.emplace_back(simMuon, index-1);
     }
   }
   else if(ttTracksSource == L1_TRACKER) {

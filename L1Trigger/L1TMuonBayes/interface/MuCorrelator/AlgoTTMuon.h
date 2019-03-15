@@ -31,6 +31,8 @@ public:
 
   virtual void addStubResult(float pdfVal, bool valid, int pdfBin, int layer, MuonStubPtr stub);
 
+  int getEtaHw() const override { return ttTrack->getEtaHw(); }
+
   bool isValid() const override {
     //TODO where and when it should be set?
     return valid;
@@ -86,6 +88,14 @@ public:
 
   void setQuality(int quality = 0) {
     this->quality = quality;
+  }
+
+  unsigned int getTrackIndex() const override {
+    return ttTrack->getIndex();
+  }
+
+  double getSimBeta() const {
+    return ttTrack->getSimBeta();
   }
 
 private:

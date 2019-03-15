@@ -19,7 +19,7 @@ if verbose:
                                                #'cerr',
                                                'omtfEventDump'
                     ),
-       categories        = cms.untracked.vstring('omtfEventPrintout'),
+       categories        = cms.untracked.vstring('MuTimingModule', 'omtfEventPrintout'), #, 
        omtfEventDump = cms.untracked.PSet(    
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
@@ -71,29 +71,36 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
-if GEOMETRY == "D17":
-    Source_Files = cms.untracked.vstring(
-#        "/store/relval/CMSSW_10_0_0_pre1/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/94X_upgrade2023_realistic_v2_2023D17noPU-v2/10000/06C888F3-CFCE-E711-8928-0CC47A4D764C.root"
-         #"/store/relval/CMSSW_9_3_2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v2_2023D17noPU-v1/10000/0681719F-AFA6-E711-87C9-0CC47A4C8E14.root"
-         #"file:///eos/user/k/kbunkow/cms_data/0681719F-AFA6-E711-87C9-0CC47A4C8E14.root"
-         'file:///afs/cern.ch/work/k/kbunkow/public/CMSSW/cmssw_10_x_x_l1tOfflinePhase2/CMSSW_10_1_7/src/L1Trigger/L1TMuonBayes/test/SingleMuNPU_F4EEAE55-C937-E811-8C29-48FD8EE739D1_dump1000Events.root'
-         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_FlatPt-2to100_L1TnoPU_F4EEAE55-C937-E811-8C29-48FD8EE739D1_dump1000Events.root'
-         #"file:///eos/cms/store/group/upgrade/sandhya/SMP-PhaseIIFall17D-00001.root"
-         #'file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_15_p_1_1_qtl.root' 
-         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/HSCPppstau_M_871_noPU_18156A80-66EC-E811-AE02-0CC47AFCC62A_dump2000Events.root'
-         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/HSCPppstau_M_200_noPU_FE3D8AD6-B6D0-E811-8FBD-141877412793_dump2000Events.root'
-         #"/store/mc/PhaseIIFall17D/SingleMu_FlatPt-2to100/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/00000/00B70D7F-333F-E811-9095-0CC47A4D9A10.root",
-         #'/store/mc/PhaseIIFall17D/SingleNeutrino/GEN-SIM-DIGI-RAW/L1TPU300_93X_upgrade2023_realistic_v5-v1/110000/FEFE2FE6-32E8-E811-9995-0242AC130002.root'
-         #'/store/mc/PhaseIIFall17D/SingleNeutrino/GEN-SIM-DIGI-RAW/L1TPU200_93X_upgrade2023_realistic_v5-v1/80000/FEAC79F7-5B5C-E811-B830-0025905C2D9A.root'
-         #'file:///eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/SingleMu_26_m_1.root'
-         #'/eos/user/a/akalinow/Data/9_3_14_HSCP_v5/HSCPppstau_M_494_TuneZ2star_13TeV_pythia6_cff_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT_1.root'
-)
-elif GEOMETRY == "TkOnly":
-    Source_Files = cms.untracked.vstring(
-    "file:MuMinus_1to10_TkOnly.root"
-)
-else: 
-    print "not a valid geometry!"
+fileNames = []
+filesCnt = 1
+path = 'file:///eos/user/a/akalinow/Data/9_3_14_HSCP_v5/'
+for i in range(1, filesCnt+1, 1):
+    fileNames.append(path + 'HSCPppstau_M_494_TuneZ2star_13TeV_pythia6_cff_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT_' + str(i) + '.root')
+ 
+path = 'file:///eos/user/a/akalinow/Data/9_3_14_HSCP_v7/'
+for i in range(1, filesCnt+1, 1):
+    fileNames.append(path + 'HSCPppstau_M_1599_TuneZ2star_13TeV_pythia6_cff_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT_' + str(i) + '.root')
+
+path = 'file:///eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/'
+for i in range(1, filesCnt+1, 1):
+    if i != 44: #missing file
+        fileNames.append(path + 'SingleMu_20_m_' + str(i) + '.root')
+for i in range(1, filesCnt+1, 1):
+    fileNames.append(path + 'SingleMu_20_p_' + str(i) + '.root')
+    
+# Source_Files = cms.untracked.vstring(
+#          'file:///eos/user/a/akalinow/Data/9_3_14_HSCP_v5/HSCPppstau_M_494_TuneZ2star_13TeV_pythia6_cff_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT_1.root',
+#          'file:///eos/user/a/akalinow/Data/9_3_14_HSCP_v5/HSCPppstau_M_494_TuneZ2star_13TeV_pythia6_cff_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT_2.root',
+#          'file:///eos/user/a/akalinow/Data/9_3_14_HSCP_v5/HSCPppstau_M_494_TuneZ2star_13TeV_pythia6_cff_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT_3.root',
+#          
+#          
+#          'file:///eos/user/a/akalinow/Data/9_3_14_HSCP_v7/HSCPppstau_M_1599_TuneZ2star_13TeV_pythia6_cff_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT_1.root',
+#          'file:///eos/user/a/akalinow/Data/9_3_14_HSCP_v7/HSCPppstau_M_1599_TuneZ2star_13TeV_pythia6_cff_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT_2.root',
+#          'file:///eos/user/a/akalinow/Data/9_3_14_HSCP_v7/HSCPppstau_M_1599_TuneZ2star_13TeV_pythia6_cff_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT_3.root',     
+# )
+
+Source_Files = cms.untracked.vstring(fileNames)
+
 
 process.source = cms.Source("PoolSource", fileNames = Source_Files,
         inputCommands=cms.untracked.vstring(
@@ -169,12 +176,16 @@ process.load('L1Trigger.L1TMuonBayes.simBayesMuCorrelatorTrackProducer_cfi')
 
 #process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorHists.root'), closeFileFast = cms.untracked.bool(True))
 
-process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("L1_TRACKER")
-#process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("SIM_TRACKS") #TODO !!!!!!!
+#process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("L1_TRACKER")
+process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("SIM_TRACKS") #TODO !!!!!!!
 process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
 #process.simBayesMuCorrelatorTrackProducer.pdfModuleFileName = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModule.xml") #TODO!!!!!!!!!!!!!!!!!!!!!!!!!!11
-process.simBayesMuCorrelatorTrackProducer.pdfModuleFileName = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/pdfModuleSimTracks100FilesSigma1p3.xml")
-#process.simBayesMuCorrelatorTrackProducer.useStubsFromAdditionalBxs = cms.int32(3)
+#process.simBayesMuCorrelatorTrackProducer.pdfModuleFileName = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/pdfModule.xml")
+process.simBayesMuCorrelatorTrackProducer.useStubsFromAdditionalBxs = cms.int32(3)
+
+process.simBayesMuCorrelatorTrackProducer.generateTiming = cms.bool(False)
+#process.simBayesMuCorrelatorTrackProducer.outputTimingFile = cms.string("muTimingModule.xml")
+process.simBayesMuCorrelatorTrackProducer.timingModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/muTimingModule.xml")
 
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
@@ -197,7 +208,7 @@ process.L1TMuonPath = cms.Path(process.L1TMuonSeq)
 process.omtfTTAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer", 
                                  outRootFile = cms.string("muCorrelatorTTAnalysis1.root"),
                                  etaCutFrom = cms.double(0.), #OMTF eta range
-                                 etaCutTo = cms.double(2.4),
+                                 etaCutTo = cms.double(2.35),
                                           
                                        MyProcess = cms.int32(1),
                                        DebugMode = cms.bool(verbose),      # printout lots of debug statements
@@ -233,7 +244,7 @@ process.omtfTTAnalyzerPath = cms.Path(process.omtfTTAnalyzer)
 
 # use this if cluster/stub associators not available
 # process.TTClusterStub, process.TTTracks, 
-process.schedule = cms.Schedule(process.TTTracksWithTruth, process.L1TMuonPath, process.omtfTTAnalyzerPath) #
+process.schedule = cms.Schedule(process.TTTracksWithTruth, process.L1TMuonPath) # , process.omtfTTAnalyzerPath
 
 # use this to only run tracking + track associator
 #process.schedule = cms.Schedule(process.TTTracksWithTruth,process.ana)

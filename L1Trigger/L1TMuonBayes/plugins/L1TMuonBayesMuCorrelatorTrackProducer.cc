@@ -1,5 +1,5 @@
 
-#include <L1Trigger/L1TMuonBayes/plugins/L1TMuonBayesMuCorrelatorTrackProducer.h>
+#include "L1Trigger/L1TMuonBayes/plugins/L1TMuonBayesMuCorrelatorTrackProducer.h"
 
 #include <iostream>
 #include <strstream>
@@ -24,6 +24,7 @@
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 
 #include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/PdfModuleWithStats.h"
+#include "L1Trigger/L1TMuonBayes/interface/MuTimingModuleWithStat.h"
 
 
 L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(const edm::ParameterSet& cfg)
@@ -94,6 +95,19 @@ void L1TMuonBayesMuCorrelatorTrackProducer::endJob(){
       writePdfs(pdfModule, pdfModuleFileName);
     }
   }
+
+
+  MuTimingModuleWithStat* muTimingModule = dynamic_cast<MuTimingModuleWithStat*>(muCorrelatorProcessor->getMuTimingModule() );
+  if(muTimingModule) {
+    if(edmParameterSet.exists("generateTiming") && edmParameterSet.getParameter<bool>("generateTiming")) {
+      string muTimingModuleFileName = "muTimingModule.xml";
+      if(edmParameterSet.exists("outputTimingFile") ) {//if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
+        muTimingModuleFileName = edmParameterSet.getParameter<std::string>("outputTimingFile");
+      }
+      muTimingModule->generateCoefficients();
+      writeTimingModule(muTimingModule, muTimingModuleFileName);
+    }
+  }
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -127,7 +141,7 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
 
 
     if(edmParameterSet.exists("generatePdfs") && edmParameterSet.getParameter<bool>("generatePdfs")) {
-      //dont read the pdf is their are going to be generated
+      //dont read the pdf if they are going to be generated
     }
     else if(edmParameterSet.exists("pdfModuleFileName") ) {//if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
       pdfModuleFileName = edmParameterSet.getParameter<edm::FileInPath>("pdfModuleFileName").fullPath();
@@ -138,6 +152,21 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
     std::unique_ptr<PdfModule> pdfModuleUniqPtr(pdfModule);
 
     muCorrelatorProcessor = std::make_unique<MuCorrelatorProcessor>(muCorrelatorConfig, std::move(pdfModuleUniqPtr));
+
+
+    if(edmParameterSet.exists("generateTiming") && edmParameterSet.getParameter<bool>("generateTiming")) {
+      std::unique_ptr<MuTimingModule> muTimingModuleUniqPtr = std::make_unique<MuTimingModuleWithStat>(muCorrelatorConfig.get());
+      muCorrelatorProcessor->setMuTimingModule(muTimingModuleUniqPtr);
+    }
+    else if(edmParameterSet.exists("timingModuleFile") ) {
+      string timingModuleFile = edmParameterSet.getParameter<edm::FileInPath>("timingModuleFile").fullPath();
+      edm::LogImportant("L1TMuonBayesMuCorrelatorTrackProducer")<<" reading the MuTimingModule from file "<<timingModuleFile<<std::endl;
+
+      std::unique_ptr<MuTimingModule> muTimingModuleUniqPtr = std::make_unique<MuTimingModule>(muCorrelatorConfig.get());
+      readTimingModule(muTimingModuleUniqPtr.get(), timingModuleFile);
+      muCorrelatorProcessor->setMuTimingModule(muTimingModuleUniqPtr);
+    }
+
     edm::LogImportant("L1TMuonBayesMuCorrelatorTrackProducer")<<" muCorrelatorProcessor constructed"<<std::endl;
 
   }
@@ -190,16 +219,15 @@ void L1TMuonBayesMuCorrelatorTrackProducer::readPdfs(IPdfModule* pdfModule, std:
   boost::archive::xml_iarchive ia(ifs);
 
   // write class instance to archive
-
-
   PdfModule* pdfModuleImpl = dynamic_cast<PdfModule*>(pdfModule);
   // write class instance to archive
   if(pdfModuleImpl) {
     PdfModule& pdfModuleRef = *pdfModuleImpl;
     ia >> BOOST_SERIALIZATION_NVP(pdfModuleRef);
 
-    cout<<__FUNCTION__<<": "<<__LINE__<<" pdfModule->getCoefficients().size() "<<pdfModuleRef.getCoefficients().size()<<endl;
+    LogTrace("omtfEventPrintout")<<__FUNCTION__<<": "<<__LINE__<<" pdfModule->getCoefficients().size() "<<pdfModuleRef.getCoefficients().size()<<endl;
   }
+  //else TODO
 }
 
 void L1TMuonBayesMuCorrelatorTrackProducer::writePdfs(const IPdfModule* pdfModule, std::string fileName) {
@@ -219,6 +247,41 @@ void L1TMuonBayesMuCorrelatorTrackProducer::writePdfs(const IPdfModule* pdfModul
   // archive and stream closed when destructors are called
 }
 
+
+void L1TMuonBayesMuCorrelatorTrackProducer::readTimingModule(MuTimingModule* muTimingModule, std::string fileName) {
+  // open the archive
+  std::ifstream ifs(fileName);
+  assert(ifs.good());
+  boost::archive::xml_iarchive ia(ifs);
+
+  // write class instance to archive
+  //PdfModule* pdfModuleImpl = dynamic_cast<PdfModule*>(pdfModule);
+  // write class instance to archive
+  if(muTimingModule) {
+    MuTimingModule& muTimingModuleRef = *muTimingModule;
+    ia >> BOOST_SERIALIZATION_NVP(muTimingModuleRef);
+
+    LogTrace("omtfEventPrintout")<<__FUNCTION__<<": "<<__LINE__<<" readTimingModule from file "<<fileName<<endl;
+  }
+  //else TODO
+}
+
+void L1TMuonBayesMuCorrelatorTrackProducer::writeTimingModule(const MuTimingModule* muTimingModule, std::string fileName) {
+  std::ofstream ofs(fileName);
+
+  boost::archive::xml_oarchive xmlOutArch(ofs);
+  //boost::archive::text_oarchive txtOutArch(ofs);
+
+  //const PdfModule* pdfModuleImpl = dynamic_cast<const PdfModule*>(pdfModule);
+  // write class instance to archive
+  if(muTimingModule) {
+    cout<<__FUNCTION__<<": "<<__LINE__<<" writing MuTimingModule to file "<<fileName<<endl;
+    const MuTimingModule& muTimingModuleRef = *muTimingModule;
+    xmlOutArch << BOOST_SERIALIZATION_NVP(muTimingModuleRef);
+    //txtOutArch << (*pdfModuleImpl);
+  }
+  // archive and stream closed when destructors are called
+}
 
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(L1TMuonBayesMuCorrelatorTrackProducer);

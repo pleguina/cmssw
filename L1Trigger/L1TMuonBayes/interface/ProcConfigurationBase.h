@@ -40,6 +40,8 @@ public:
   }
 
   virtual int foldPhi(int phi) const;
+
+  virtual unsigned int nLayers() const = 0;
 };
 
 #endif /* INTERFACE_PROCCONFIGURATIONBASE_H_ */

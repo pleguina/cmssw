@@ -15,10 +15,10 @@ config.Data.inputDataset = '/SingleMu_FlatPt-2to100/PhaseIIFall17D-L1TPU200_93X_
 
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 20
+config.Data.unitsPerJob = 10
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
 config.Data.outputDatasetTag = 'CRAB3_muCorr_MC_analysis_SingleMu_PU200'
-config.Data.totalUnits = 200 #75
+config.Data.totalUnits = 250 #75
 
 config.Site.storageSite = 'T2_PL_Swierk'

@@ -27,6 +27,10 @@ PdfModuleWithStats::PdfModuleWithStats(MuCorrelatorConfigPtr& config): PdfModule
 
     //[layer][etaBin][refLayer](ptBin, pdfBin)
   }
+
+  sigmaFactor = 1.3;
+  edm::LogImportant("omtfEventPrintout")<<__FUNCTION__<<":"<<__LINE__<<" PdfModuleWithStats: sigmaFactor: " <<sigmaFactor<<std::endl;
+
 }
 
 PdfModuleWithStats::~PdfModuleWithStats() {
@@ -106,6 +110,14 @@ void PdfModuleWithStats::generateCoefficients() {
           double mean = pdfHistInPtBin->GetMean();
           double sigma = pdfHistInPtBin->GetStdDev();
 
+          if(ptBin <= 19) { //<16GeV
+            sigmaFactor =  1.4;
+          }
+          else
+            sigmaFactor =  1.3;
+
+          sigma *= sigmaFactor; //artificial changing of the pdf width<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
           //just to ahve the drown histogram, it not needed for the actual coefficients calcucation
           for(int iBinPdf = 0; iBinPdf < pdfHistInPtBin->GetXaxis()->GetNbins(); iBinPdf++) {
             double pdfVal = pdfHistInPtBin->GetBinContent(iBinPdf);
@@ -138,7 +150,7 @@ void PdfModuleWithStats::generateCoefficients() {
             double c = pdfMaxLogVal - log(1./(sigma * sqrt(2*M_PI)) ) * pdfMaxLogVal / minPlog;
 
             std::cout<<__FUNCTION__<<": "<<__LINE__<<" iLayer "<<iLayer<<" iEtaBin "<<iEtaBin<<" iRefLayer "<<iRefLayer<<" ptBin "<<ptBin
-                <<" sigma "<<std::setw(10)<<sigma<<" a "<<std::setw(10)<<a<<" b "<<std::setw(10)<<b<<" c "<<std::setw(10)<<c<<std::endl;
+                <<" sigma "<<std::setw(10)<<sigma<<" a "<<std::setw(10)<<a<<" b "<<std::setw(10)<<b<<" c "<<std::setw(10)<<c<<" sigmaFactor "<<sigmaFactor<<std::endl;
 
 
             a = round(-a * (1 <<bitShift) );

@@ -16,6 +16,8 @@ public:
   AlgoMuonBase();
   virtual ~AlgoMuonBase();
 
+  virtual int getEtaHw() const = 0;
+
   virtual bool isValid() const = 0;
 
   //virtual void setValid(bool valid) = 0;
@@ -36,6 +38,24 @@ public:
 
   //virtual const boost::dynamic_bitset<>& getFiredLayerBits() const  = 0;
 
+
+  virtual void setBeta(float beta) {
+    this->beta = beta;
+  }
+
+  virtual float getBeta() const {
+    return beta;
+  }
+
+  //index in the tTTrackHandle or in the SimTrackHanlde, needed for generation of patterns etc. not for firmware
+  virtual unsigned int getTrackIndex() const = 0;
+
+  virtual double getSimBeta() const {
+    return 0;
+  }
+
+private:
+  float beta = 0; //zero means it is not measured
 };
 
 #endif /* INTERFACE_ALGOMUONBASE_H_ */

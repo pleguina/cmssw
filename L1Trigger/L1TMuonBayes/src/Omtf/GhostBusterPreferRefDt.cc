@@ -9,7 +9,7 @@ namespace {
   int phiGMT(int phiAlgo) { return phiAlgo*437/pow(2,12); }
 
   struct AlgoMuonEtaFix : public AlgoMuon {
-    AlgoMuonEtaFix(const AlgoMuon & mu) : AlgoMuon(mu), fixedEta(mu.getEta()) {}
+    AlgoMuonEtaFix(const AlgoMuon & mu) : AlgoMuon(mu), fixedEta(mu.getEtaHw()) {}
     unsigned int fixedEta;
   };
 
@@ -51,8 +51,8 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
         if (it2->isValid() && std::abs( phiGMT(it1->getPhi()) - phiGMT(it2->getPhi()) ) < 8 ) {
           killIt = it2;
           if (    (omtfConfig->fwVersion() >= 6)
-               && ((abs(it1->getEta())==75 || abs(it1->getEta())==79 || abs(it1->getEta())==92))
-               && ((abs(it2->getEta())!=75 && abs(it2->getEta())!=79 && abs(it2->getEta())!=92)) ) it1->fixedEta=it2->getEta();
+               && ((abs(it1->getEtaHw())==75 || abs(it1->getEtaHw())==79 || abs(it1->getEtaHw())==92))
+               && ((abs(it2->getEtaHw())!=75 && abs(it2->getEtaHw())!=79 && abs(it2->getEtaHw())!=92)) ) it1->fixedEta=it2->getEtaHw();
         }
       }
     } 

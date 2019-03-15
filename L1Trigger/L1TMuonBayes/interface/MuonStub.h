@@ -68,6 +68,8 @@ public:
 
   //int station = -1;
 
+  int roll = 0;
+
   int detId = 0;
 
   //float phi = 0; //radians

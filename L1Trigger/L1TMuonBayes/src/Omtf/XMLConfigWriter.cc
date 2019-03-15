@@ -223,7 +223,7 @@ void  XMLConfigWriter::writeAlgoMuon(xercesc::DOMElement *aTopElement, const Alg
   stringStr<<aCand.getPhi();
   aResult->setAttribute(_toDOMS("phiCode"),_toDOMS(stringStr.str()));
   stringStr.str("");
-  stringStr<<eta2Bits(abs(aCand.getEta()));
+  stringStr<<eta2Bits(abs(aCand.getEtaHw()));
   aResult->setAttribute(_toDOMS("etaCode"),_toDOMS(stringStr.str()));
   stringStr.str("");
   stringStr<<aCand.getCharge();

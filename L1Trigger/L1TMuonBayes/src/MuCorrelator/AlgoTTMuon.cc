@@ -24,11 +24,11 @@ void AlgoTTMuon::addStubResult(float pdfVal, bool valid, int pdfBin, int layer, 
 std::ostream & operator << (std::ostream &out, const AlgoTTMuon& algoTTMuon) {
   out <<"algoTTMuon: "<<std::endl;
   out<<(*algoTTMuon.ttTrack)<<std::endl;
-  out <<"firedLayerBits: "<<algoTTMuon.firedLayerBits<<" pdfSum "<<algoTTMuon.pdfSum<<std::endl;
+  out <<"firedLayerBits: "<<algoTTMuon.firedLayerBits<<" pdfSum "<<algoTTMuon.pdfSum<<" quality "<<algoTTMuon.quality<<std::endl;
   out <<"stubResults: "<<std::endl;
   for(auto& stubResult : algoTTMuon.stubResults) {
     if(stubResult.getMuonStub() ) {
-      out <<"layer "<<std::setw(2)<<stubResult.getLayer()<<" valid "<<stubResult.getValid()<<" pdfBin "<<std::setw(4)<<stubResult.getPdfBin()
+      out <<"layer "<<std::setw(2)<<stubResult.getLayer()<<" valid "<<stubResult.getValid()<<" pdfBin "<<std::setw(5)<<stubResult.getPdfBin()
         <<" pdfVal "<<std::setw(8)<<stubResult.getPdfVal()<<" "<<(*stubResult.getMuonStub())<<std::endl;
     }
   }

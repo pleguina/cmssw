@@ -28,7 +28,7 @@ class AlgoMuon: public AlgoMuonBase {
 
   PdfValueType getDisc() const { return gpResult.getPdfSum(); }
   int getPhi()  const { return gpResult.getPhi(); }
-  int getEta()  const { return gpResult.getEta(); }
+  int getEtaHw() const override { return gpResult.getEta(); }
   int getRefLayer() const { return gpResult.getRefLayer(); }
   int getFiredLayerBits() const { return gpResult.getFiredLayerBits(); }
   int getQ()  const { return m_q; }
@@ -94,6 +94,14 @@ class AlgoMuon: public AlgoMuonBase {
     return killed;
   }
 
+  unsigned int getTrackIndex() const override {
+    return index;
+  }
+
+  void setTrackIndex(unsigned int index) {
+    this->index = index;
+  }
+
   void kill() {
     killed = true;
     //FIXME maybe also valid = false???
@@ -129,6 +137,8 @@ class AlgoMuon: public AlgoMuonBase {
   unsigned int m_rhitNumb = 0;
 
   bool killed = false;
+
+  unsigned int index = 0;
 };
 
 typedef std::vector<std::shared_ptr<AlgoMuon> > AlgoMuons;

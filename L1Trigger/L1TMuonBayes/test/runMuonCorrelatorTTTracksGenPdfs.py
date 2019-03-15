@@ -16,6 +16,11 @@ process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
 #######################################TTTracks################################################
 GEOMETRY = "D17"
 
+process.load('Configuration.StandardSequences.Services_cff')
+process.load('FWCore.MessageService.MessageLogger_cfi')
+process.load('Configuration.EventContent.EventContent_cff')
+process.load('Configuration.StandardSequences.MagneticField_cff')
+
 if GEOMETRY == "D17":
     print "using geometry " + GEOMETRY + " (tilted)"
     process.load('Configuration.Geometry.GeometryExtended2023D17Reco_cff')
@@ -58,7 +63,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 #path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/'
 #path = '/afs/cern.ch/work/a/akalinow/public/MuCorrelator/Data/SingleMu/9_3_14_FullEta_v1/'
 #path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v1/'
-path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/'
+path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/' #!!!!!!!!!!!!! something does not work with this sample, ttTracks has wrong pt!!!!!!!!!!!!!!!!
 #path = '/afs/cern.ch/work/k/kbunkow/public/data/SingleMuFullEta/721_FullEta_v4/'
 
 onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
@@ -77,7 +82,7 @@ chosenFiles = []
 filesPerPtBin = 100
 
 if filesNameLike == 'allPt' :
-    for ptCode in range(20, 10, -1) :
+    for ptCode in range(31, 3, -1) :
         for sign in ['_m', '_p'] : #, m
             selFilesPerPtBin = 0
             for i in range(1, 101, 1): #TODO
@@ -158,13 +163,40 @@ skipEvents =  cms.untracked.uint32(0),
         'drop l1tEMTFTrack2016s_simEmtfDigis__HLT')
 )
 
-# PostLS1 geometry used TODO is this correct geometry for the phase 2?
-#process.load('Configuration.Geometry.GeometryExtended2015Reco_cff')
-#process.load('Configuration.Geometry.GeometryExtended2015_cff')
-############################
-#process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
-#from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
-#process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
+
+############################################################
+# remake L1 stubs and/or cluster/stub truth ??
+############################################################
+
+process.load('L1Trigger.TrackTrigger.TrackTrigger_cff')
+from L1Trigger.TrackTrigger.TTStubAlgorithmRegister_cfi import *
+process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
+
+#if GEOMETRY == "D10": 
+#    TTStubAlgorithm_official_Phase2TrackerDigi_.zMatchingPS = cms.bool(False)
+
+if GEOMETRY != "TkOnly": 
+    from SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff import *
+    TTClusterAssociatorFromPixelDigis.digiSimLinks = cms.InputTag("simSiPixelDigis","Tracker")
+
+process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
+process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
+
+
+############################################################
+# L1 tracking
+############################################################
+
+#from L1Trigger.TrackFindingTracklet.Tracklet_cfi import *
+#if GEOMETRY == "D10": 
+#    TTTracksFromTracklet.trackerGeometry = cms.untracked.string("flat")
+#TTTracksFromTracklet.asciiFileName = cms.untracked.string("evlist.txt")
+
+process.load("L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff")
+process.TTTracks = cms.Path(process.L1TrackletTracks)
+process.TTTracksWithTruth = cms.Path(process.L1TrackletTracksWithAssociators)
+
+
 
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonBayes.simBayesMuCorrelatorTrackProducer_cfi')
@@ -172,12 +204,12 @@ process.load('L1Trigger.L1TMuonBayes.simBayesMuCorrelatorTrackProducer_cfi')
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('pdfModuleSimTracksTestNoDtQCut.root'), closeFileFast = cms.untracked.bool(True))
-
+process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorHistsTTTrack.root'), closeFileFast = cms.untracked.bool(True))
+process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("L1_TRACKER")
 process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
-process.simBayesMuCorrelatorTrackProducer.minDtPhQuality = cms.int32(2);
+process.simBayesMuCorrelatorTrackProducer.minDtPhQuality = cms.int32(4);
 process.simBayesMuCorrelatorTrackProducer.generatePdfs = cms.bool(True);
-process.simBayesMuCorrelatorTrackProducer.pdfModuleFileName = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModuleSimTracksTestNoDtQCut.xml")
+process.simBayesMuCorrelatorTrackProducer.pdfModuleFileName = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModuleTTTracks.xml")
 
 process.L1TMuonSeq = cms.Sequence( #process.esProd +         
                                    process.simBayesMuCorrelatorTrackProducer 
@@ -198,8 +230,8 @@ process.L1TMuonPath = cms.Path(process.L1TMuonSeq)
 # use this if you want to re-run the stub making
 #process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksWithTruth,process.ana)
 
-# use this if cluster/stub associators not available 
-process.schedule = cms.Schedule(process.L1TMuonPath)
+# use this if cluster/stub associators not available process.TTClusterStub,
+process.schedule = cms.Schedule( process.TTTracks, process.L1TMuonPath)
 
 # use this to only run tracking + track associator
 #process.schedule = cms.Schedule(process.TTTracksWithTruth,process.ana)

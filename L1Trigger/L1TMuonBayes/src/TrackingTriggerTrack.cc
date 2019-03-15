@@ -7,11 +7,18 @@
 
 #include "L1Trigger/L1TMuonBayes/interface/TrackingTriggerTrack.h"
 
-TrackingTriggerTrack::TrackingTriggerTrack(const SimTrack& simMuon) {
+TrackingTriggerTrack::TrackingTriggerTrack(const SimTrack& simMuon, unsigned int index): index(index) {
   eta = simMuon.momentum().eta();
   phi = simMuon.momentum().phi();
   pt = simMuon.momentum().pt();
   charge = simMuon.type()/-13;
+  if(simMuon.type() == 13) //muon
+    charge = -1;
+  else if(simMuon.type() == -13) //muon
+        charge = 1;
+  else {
+    charge = (simMuon.type() < 0 ? 1 : -1); //not necessary correct
+  }
 }
 
 TrackingTriggerTrack::TrackingTriggerTrack(const TTTrack< Ref_Phase2TrackerDigi_>& ttTRack, unsigned int index, int l1Tk_nPar) :

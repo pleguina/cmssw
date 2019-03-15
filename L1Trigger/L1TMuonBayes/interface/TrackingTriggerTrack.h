@@ -22,7 +22,7 @@ public:
     //todo convert to physics scale
   };*/
 
-  TrackingTriggerTrack(const SimTrack& simMuon);
+  TrackingTriggerTrack(const SimTrack& simMuon, unsigned int index);
 
   TrackingTriggerTrack(const TTTrack< Ref_Phase2TrackerDigi_>& ttTRack, unsigned int index, int l1Tk_nPar);
 
@@ -66,7 +66,7 @@ public:
     this->ptHw = ptHw;
   }
 
-  //index in the tTTrackHandle
+  //index in the tTTrackHandle or in the SimTrackHanlde
   unsigned int getIndex() const {
     return index;
   }
@@ -88,13 +88,23 @@ public:
   }
 
 
+  double getSimBeta() const {
+    return simBeta;
+  }
+
+  void setSimBeta(double simBeta = 0) {
+    this->simBeta = simBeta;
+  }
+
   friend std::ostream & operator << (std::ostream &out, const TrackingTriggerTrack& ttTrack);
+
 private:
   double phi = 0;
   double eta = 0;
   double pt = 0;
   int charge = 0;
 
+  double simBeta = 0;
 
   ///in integer hardware scales
   int phiHw = 0;

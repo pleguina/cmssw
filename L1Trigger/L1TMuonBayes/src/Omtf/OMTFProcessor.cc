@@ -98,7 +98,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
   for(auto& myCand: algoCands) {
     l1t::RegionalMuonCand candidate;
     candidate.setHwPt(myCand->getPt());
-    candidate.setHwEta(myCand->getEta());
+    candidate.setHwEta(myCand->getEtaHw());
 
     int phiValue = myCand->getPhi();
     if(phiValue>= int(this->myOmtfConfig->nPhiBins()) )
@@ -112,7 +112,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
 
     unsigned int quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3)
                                                                      : 0 | (1 << 2);
-    if (    abs(myCand->getEta()) == 115
+    if (    abs(myCand->getEtaHw()) == 115
         && (    static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001110000000").to_ulong()
              || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000001110000000").to_ulong()
              || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000110000000").to_ulong()
@@ -148,7 +148,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
          ) quality = 1;
     }
 //  if (abs(myCand->getEta()) == 121) quality = 4;
-    if (abs(myCand->getEta()) == 121) quality = 0; // changed on request from HI
+    if (abs(myCand->getEtaHw()) == 121) quality = 0; // changed on request from HI
 
     candidate.setHwQual (quality);
 

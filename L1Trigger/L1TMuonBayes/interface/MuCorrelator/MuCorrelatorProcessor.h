@@ -17,6 +17,7 @@
 #include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/MuCorrelatorConfig.h"
 #include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/AlgoTTMuon.h"
 #include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/PdfModule.h"
+#include "L1Trigger/L1TMuonBayes/interface/MuTimingModule.h"
 
 #include "boost/multi_array.hpp"
 
@@ -87,6 +88,16 @@ public:
   virtual std::vector<l1t::RegionalMuonCand> getFinalCandidates(unsigned int iProcessor, l1t::tftype mtfType, AlgoTTMuons& algoTTMuons);
 
   virtual bool assignQuality(AlgoTTMuons& algoTTMuons);
+
+  //takes the ownership
+  void setMuTimingModule(unique_ptr<MuTimingModule>& muTimingModule) {
+    this->muTimingModule = std::move(muTimingModule);
+  }
+
+  MuTimingModule* getMuTimingModule() {
+    return muTimingModule.get();
+  }
+
 private:
   MuCorrelatorConfigPtr config;
 
@@ -98,6 +109,7 @@ private:
   std::function<int (AlgoTTMuonPtr first, AlgoTTMuonPtr second)> ghostBustFunc;
 
   unique_ptr<IPdfModule> pdfModule;
+  unique_ptr<MuTimingModule> muTimingModule;
 
   std::vector< std::pair<int, boost::dynamic_bitset<> > > lowQualityHitPatterns;
 };

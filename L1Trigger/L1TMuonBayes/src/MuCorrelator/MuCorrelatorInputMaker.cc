@@ -210,6 +210,21 @@ void MuCorrelatorInputMaker::addRPCstub(MuonStubPtrs2D& muonStubsInLayers, const
   stub.timing = cluster.timing;
 
   stub.logicLayer = iLayer;
+
+  if(roll.region() == 0) {//barel
+    stub.roll = abs(roll.ring()) * 3 + roll.roll()-1;
+    if(roll.ring() == 0 && roll.sector() %2) {//in wheel zero in the odd sectors the chambers are placed from the other side than in even, thus the rolls have to be swapped
+      //not so easy - the strips are also readout from the other side. separate rolls are needed
+      if(stub.roll == 0)
+        stub.roll = 2;
+      else if(stub.roll == 1)
+        stub.roll = 0;
+    }
+  }
+  else {
+    stub.roll = (roll.ring() -1) * 3 + roll.roll()-1;
+  }
+
   stub.detId = rawid;
 
   addStub(muonStubsInLayers, iLayer, stub);

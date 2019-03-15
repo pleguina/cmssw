@@ -34,6 +34,8 @@ private:
   std::vector<std::vector<std::vector<TH2I* > > > pdfHists;
 
   edm::Service<TFileService> fs;
+
+  double sigmaFactor = 1.;
 };
 
 #endif /* INTERFACE_MUCORRELATOR_PDFMODULEWITHSTATS_H_ */

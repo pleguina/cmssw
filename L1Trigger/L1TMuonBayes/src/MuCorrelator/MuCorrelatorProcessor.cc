@@ -63,6 +63,12 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const MuonStubsInput& muonStubs
 
   auto ghostBustedTTmuons = ghostBust(algoTTMuons);
 
+  if(muTimingModule) {
+    for(auto& ghostBustedTTmuon : ghostBustedTTmuons) {
+      muTimingModule->process(ghostBustedTTmuon.get() );
+    }
+  }
+
   assignQuality(ghostBustedTTmuons);
 
   //only debug

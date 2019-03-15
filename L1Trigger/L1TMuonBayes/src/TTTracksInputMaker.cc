@@ -39,17 +39,21 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event &event, 
     edm::Handle<edm::SimTrackContainer> simTks;
     event.getByLabel(edmCfg.getParameter<edm::InputTag>("g4SimTrackSrc"), simTks);
     //std::cout<<__FUNCTION__<<":"<<__LINE__<<" simTks.size() "<<simTks->size()<<std::endl;
-
-    for (std::vector<SimTrack>::const_iterator it=simTks->begin(); it< simTks->end(); it++) {
+    unsigned int index = 0;
+    for (auto it=simTks->begin(); it< simTks->end(); it++) {
       const SimTrack& simMuon = *it;
-      if ( !(simMuon.type() == 13 || simMuon.type() == -13) )
-        continue;
+      if ( (abs(simMuon.type()) == 13  ||  abs(simMuon.type()) == 1000015) && simMuon.momentum().pt() > 2.5) { //TODO 1000015 is stau
+        auto ttTrack = std::make_shared<TrackingTriggerTrack>(simMuon, index);
+        ttTrack->setSimBeta(simMuon.momentum().Beta());
 
-      auto ttTrack = std::make_shared<TrackingTriggerTrack>(simMuon);
+        addTTTrack(ttTracks, ttTrack, procConf);
+        //if(ttTrack->getPt() > 20)
 
-      addTTTrack(ttTracks, ttTrack, procConf);
-      //if(ttTrack->getPt() > 20)
-        //LogTrace("omtfEventPrintout")<<__FUNCTION__<<":"<<__LINE__<<" sim.type() "<<simMuon.type()<<" genpartIndex "<<simMuon.genpartIndex()<<" added track "<<*ttTrack<<std::endl;
+        LogTrace("omtfEventPrintout")<<__FUNCTION__<<":"<<__LINE__<<" sim.type() "<<simMuon.type()<<" genpartIndex "<<simMuon.genpartIndex()
+            <<" Beta() "<<simMuon.momentum().Beta()<<" added track "<<*ttTrack<<std::endl;
+
+        index++;
+      }
     }
   }
   else if(ttTracksSource == L1_TRACKER) {

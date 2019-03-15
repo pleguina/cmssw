@@ -43,6 +43,8 @@ class L1TMuonBayesMuCorrelatorTrackProducer : public edm::EDProducer {
   void readPdfs(IPdfModule* pdfModule, std::string fileName);
   void writePdfs(const IPdfModule* pdfModule, std::string fileName);
 
+  void readTimingModule(MuTimingModule* muTimingModule, std::string fileName);
+  void writeTimingModule(const MuTimingModule* muTimingModule, std::string fileName);
 
   edm::ParameterSet edmParameterSet;
   
