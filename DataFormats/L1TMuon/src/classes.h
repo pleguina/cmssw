@@ -17,6 +17,8 @@
 #include "DataFormats/L1TMuon/interface/L1MuKBMTCombinedStub.h"
 #include "DataFormats/L1TMuon/interface/L1MuKBMTrack.h"
 
+#include "DataFormats/L1TMuon/interface/BayesMuCorrelatorTrack.h"
+
 #include <vector>
 
 namespace DataFormats_L1TMuon {
@@ -50,6 +52,11 @@ namespace DataFormats_L1TMuon {
     std::vector<l1t::RegionalMuonCandRefPair> v_rmcrp;
     l1t::RegionalMuonCandRefPairBxCollection rmcrpc;
     edm::Wrapper<l1t::RegionalMuonCandRefPairBxCollection> w_rmcrpc;
+
+    l1t::BayesMuCorrTrackCollection bayesMuCorrTracks;
+    edm::Wrapper<l1t::BayesMuCorrTrackCollection> bayesMuCorrTracksWrap;
+    l1t::BayesMuCorrTrackBxCollection bayesMuCorrTrackBxColl;
+    edm::Wrapper<l1t::BayesMuCorrTrackBxCollection> bayesMuCorrTrackBxCollWrap;
   };
 }
 
