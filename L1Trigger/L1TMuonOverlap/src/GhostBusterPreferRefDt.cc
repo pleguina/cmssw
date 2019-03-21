@@ -20,6 +20,14 @@ std::vector<AlgoMuon> GhostBusterPreferRefDt::select(std::vector<AlgoMuon> muons
 
   // sorting within GB.
   auto customLess = [&](const AlgoMuon& a, const AlgoMuon& b)->bool {
+    // protect against access violation
+    if(a.getRefLayer() == -1) {
+      return true;
+    }
+    if(b.getRefLayer() == -1) {
+      return false;
+    }
+
     int aRefLayerLogicNum = omtfConfig->getRefToLogicNumber()[a.getRefLayer()];
     int bRefLayerLogicNum = omtfConfig->getRefToLogicNumber()[b.getRefLayer()];
     if(a.getQ() > b.getQ())
@@ -38,7 +46,6 @@ std::vector<AlgoMuon> GhostBusterPreferRefDt::select(std::vector<AlgoMuon> muons
   };
 
   std::sort( muonsIN.rbegin(), muonsIN.rend(), customLess);
-
   // actual GhostBusting. Overwrite eta in case of no DT info.
   std::vector<AlgoMuonEtaFix> refHitCleanCandsFixedEta;
   for (const auto & muIN : muonsIN) {
