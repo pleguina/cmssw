@@ -209,7 +209,7 @@ process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("SIM_TRACK
 process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
 process.simBayesMuCorrelatorTrackProducer.minDtPhQuality = cms.int32(4);
 process.simBayesMuCorrelatorTrackProducer.generatePdfs = cms.bool(True);
-process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModuleSimTracks100FilesWithiRPC.xml") #TODO
+process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/muCorrelator/pdfModuleSimTracks100FilesWithiRPC.xml") #TODO
 process.simBayesMuCorrelatorTrackProducer.generateTiming = cms.bool(False)
 
 process.L1TMuonSeq = cms.Sequence( #process.esProd +         
