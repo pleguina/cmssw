@@ -60,7 +60,7 @@ void MuonStubMakerBase::loadAndFilterDigis(const edm::Event& event) {
 const void MuonStubMakerBase::buildInputForProcessor(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor,
     l1t::tftype type,
     int bxFrom, int bxTo) {
-  LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
+  //LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
   processDT( muonStubsInLayers, dtPhDigis.product(), dtThDigis.product(), iProcessor, type, false, bxFrom, bxTo);
   processCSC(muonStubsInLayers, cscDigis.product(), iProcessor, type, bxFrom, bxTo);
   processRPC(muonStubsInLayers, rpcDigis.product(), iProcessor, type, bxFrom, bxTo);
