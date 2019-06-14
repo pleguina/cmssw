@@ -51,6 +51,8 @@ public:
 
   virtual void endJob();
 
+  void fillEmptyCells(unsigned int iOut, unsigned int iOutLike);
+
   void calcualteLogLikelihoods(unsigned int iOut);
 
 private:

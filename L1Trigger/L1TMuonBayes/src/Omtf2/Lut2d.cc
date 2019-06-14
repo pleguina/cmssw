@@ -73,7 +73,7 @@ std::vector<float> Lut2dInter::getValues(unsigned int addr1, unsigned int rest1,
 
   LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" | addr1 "<<addr1<<" | rest1 "<<rest1<<" || addr2 "<<addr2<<" | rest2 "<<rest2<<" | "<<std::endl;
 
-  for(unsigned int iOut = 0; iOut < lutValues.size() -1; iOut++) {
+  for(unsigned int iOut = 0; iOut < lutValues.size(); iOut++) {
     if(addr1 >= lutValues[iOut].size() -1)
       return outVals;
 
@@ -98,7 +98,7 @@ std::vector<float> Lut2dInter::getValues(unsigned int addr1, unsigned int rest1,
     else {
       int half1 = (rest1 >> (lc.addr1.restBits-1) ); //increasing addr by 1 if rest1 is greater then half
       int half2 = (rest2 >> (lc.addr2.restBits-1) );
-      val = lutValues[iOut][addr1 + half1][addr2 + half2];
+      val = lutValues.at(iOut)[addr1 + half1][addr2 + half2];
     }
     outVals[iOut] = val;
   }

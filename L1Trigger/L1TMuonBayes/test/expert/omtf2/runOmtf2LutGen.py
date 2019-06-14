@@ -54,7 +54,9 @@ path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/'
 filesNameLike = sys.argv[2]
 
 sampleType = "muons" #"muons" displacedMuons
-genMode = "calcualteMeans" #calcualteStdDevs calcualteMeans
+genMode = "calcualteStdDevs" #calcualteStdDevs calcualteMeans
+
+print("sampleType " + sampleType + ", genMode " + genMode) 
 
 chosenFiles = []
 
@@ -176,8 +178,8 @@ process.simOmt2fDigis.ptModuleType = cms.string("PtModuleLut2DGen")
 if (genMode == "calcualteStdDevs"):
     process.simOmt2fDigis.ptModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/omtf2/ptModuleLut2D_GenMean_" + sampleType +  ".xml")
 
-process.simOmt2fDigis.genMode =  cms.string(genMode) #calcualteStdDevs
-process.simOmt2fDigis.sampleType =  cms.string(sampleType) #calcualteStdDevs
+process.simOmt2fDigis.genMode = cms.string(genMode)
+process.simOmt2fDigis.sampleType = cms.string(sampleType)
 
 process.simOmt2fDigis.etaCutFrom = cms.double(0.8)
 process.simOmt2fDigis.etaCutTo = cms.double(1.24)

@@ -48,8 +48,10 @@ process.source = cms.Source('PoolSource',
  #fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/g/gflouris/public/SingleMuPt6180_noanti_10k_eta1.root')
 #fileNames = cms.untracked.vstring('file:///eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/SingleMu_10_m_1.root'),      
 #fileNames = cms.untracked.vstring('file:///eos/user/a/akalinow/Data/9_3_14_Displaced_v3/SingleMuFlatPt_50GeVto100GeV_cfi_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT_500.root'),                    
-fileNames = cms.untracked.vstring('file://' + path + 'SingleMu_18_p_1.root', 
-                                  'file://' + path + 'SingleMu_10_p_1.root'),                           
+fileNames = cms.untracked.vstring(#'file://' + path + 'SingleMu_18_p_1.root', 
+                                  'file://' + path + 'SingleMu_10_p_1.root',
+                                  #'file://' + '/eos/user/k/kbunkow/cms_data/RelValDisplacedMuonGun/' + 'DisplacedMuonGun_Pt30To100_Dxy_0_1000_C2D5C228-7F62-E911-AAA6-0CC47A78A42C_dumpAllEv.root'
+                                  ),                           
 
 
 skipEvents =  cms.untracked.uint32(0),
@@ -104,6 +106,7 @@ process.simOmt2fDigis.dumpResultToXML = cms.bool(True)
 
 process.simOmt2fDigis.ptModuleType = cms.string("PtModuleLut2D")
 process.simOmt2fDigis.ptModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/omtf2/ptModuleLut2D_GenStdDevs_muons.xml")
+#process.simOmt2fDigis.ptModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/omtf2/ptModuleLut2D_GenStdDevs_displacedMuons.xml")
 
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")

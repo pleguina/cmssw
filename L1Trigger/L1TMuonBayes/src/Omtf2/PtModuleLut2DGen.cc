@@ -21,6 +21,8 @@ void PtModuleLut2DGen::prepare(Mode mode, SampleType sampleType) {
   this->mode =  mode;
   this->sampleType = sampleType;
 
+  edm::LogVerbatim("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" mode "<<this->mode<<" sampleType "<<this->sampleType<<std::endl;
+
   for(auto& lut : lut2ds) {
     if(lut->getLutValues().size() < 5) {
       for(auto& lut : lut2ds) {
@@ -89,10 +91,9 @@ AlgoMuon2Ptr PtModuleLut2DGen::processStubs(const MuonStubsInput& muonStubs) {
 
       muDxy = round(muDxy); //TDOO remove
       lut->updateValue(muonStubs, 2, muDxy * eventWeigt);
-/*
-      LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" "<<(*lut)<<" === result: pt "<<std::setw(10)<<outVals.at(0)<<" pt weight "<<std::setw(10)<<outVals.at(1)
-                                                              <<" || displacement "<<std::setw(10)<<outVals.at(2)<<" displWeight "<<std::setw(10)<<outVals.at(3)<<std::endl;
-*/
+
+      LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" "<<(*lut)<<" muPt "<<std::setw(10)<<muPt<<" || muDxy "<<std::setw(10)<<muDxy<<std::endl;
+
     }
     else if(mode == Mode::calcualteStdDevs) {
       std::vector<float> outVals = lut->getValues(muonStubs);
@@ -128,7 +129,7 @@ AlgoMuon2Ptr PtModuleLut2DGen::processStubs(const MuonStubsInput& muonStubs) {
 void PtModuleLut2DGen::endJob() {
   edm::LogVerbatim("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<std::endl;
 
-  int minEventCnt = 1; // will set values to 0 when calculating logLikelihood
+  int minEventCnt = 2; // will set values to 0 when calculating logLikelihood
 
   for(auto& lut : lut2ds) {
     for(unsigned int iOut = 0; iOut < lut->getLutValues().size() -1; iOut++) {
@@ -144,6 +145,8 @@ void PtModuleLut2DGen::endJob() {
       for(unsigned int addr1 = 0; addr1 < lut->getLutValues()[iOut].size(); addr1++) {
         for(unsigned int addr2 = 0; addr2 < lut->getLutValues()[iOut][addr1].size(); addr2++) {
           double eventCnt = lut->getLutValues().at(4)[addr1][addr2];
+          if(sampleType == SampleType::displacedMuons)
+            eventCnt = lut->getLutValues().at(5)[addr1][addr2];
 
           if(iOut == 0 || iOut == 2) {//mean pt or disp
             double val = lut->getLutValues()[iOut][addr1][addr2];
@@ -155,9 +158,9 @@ void PtModuleLut2DGen::endJob() {
             }
 
             edm::LogVerbatim("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" calcualteMeans "<<(*lut)
-                          <<" iOut "<<" addr1 "<<addr1<<" addr2 "<<addr2<<" val "<<val<<" eventCnt "<<eventCnt<<" lutVal "<<lut->getLutValues()[iOut][addr1][addr2]<<std::endl;
+                          <<" iOut "<<iOut<<" addr1 "<<addr1<<" addr2 "<<addr2<<" val "<<val<<" eventCnt "<<eventCnt<<" lutVal "<<lut->getLutValues()[iOut][addr1][addr2]<<std::endl;
           }
-          else if(iOut == 1 || iOut == 3) {//weights i.e. 1/stdDev
+          else if(iOut == 1 || iOut == 3) {//weights i.e. 1/variance
             double val = lut->getLutValues()[iOut][addr1][addr2];
             if(eventCnt < minEventCnt) {
               lut->getLutValues()[iOut][addr1][addr2] = 0;
@@ -166,11 +169,14 @@ void PtModuleLut2DGen::endJob() {
               lut->getLutValues()[iOut][addr1][addr2] = 10000;//0xffff; //TODO put some reasonable value
             }
             else {
-              lut->getLutValues()[iOut][addr1][addr2] = eventCnt / val;
+              lut->getLutValues()[iOut][addr1][addr2] = (eventCnt-1) / val; //-1 to have unbias estimator of variance
+
+              if(iOut == 1 && lut->getLutValues()[iOut][addr1][addr2] > 100000)
+                lut->getLutValues()[iOut][addr1][addr2] = 100000; //TODO artificially limiting the weight
             }
 
             edm::LogVerbatim("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" calcualteStdDevs"<<(*lut)
-                                      <<" iOut "<<" addr1 "<<addr1<<" addr2 "<<addr2<<" val "<<val<<" eventCnt "<<eventCnt<<" lutVal "<<lut->getLutValues()[iOut][addr1][addr2]<<std::endl;
+                                      <<" iOut "<<iOut<<" addr1 "<<addr1<<" addr2 "<<addr2<<" val "<<val<<" eventCnt "<<eventCnt<<" lutVal "<<lut->getLutValues()[iOut][addr1][addr2]<<std::endl;
 
           }
         }
@@ -179,16 +185,63 @@ void PtModuleLut2DGen::endJob() {
 
   }
 
+  int likeIndx = 0;
+  if(sampleType == SampleType::muons) {
+    likeIndx = 4;
+  }
+  else if(sampleType == SampleType::displacedMuons) {
+    likeIndx = 5;
+  }
+
+  if(mode == Mode::calcualteMeans) {
+    calcualteLogLikelihoods(likeIndx);
+
+    fillEmptyCells(0, likeIndx);
+    //fillEmptyCells(1, likeIndx);
+    fillEmptyCells(2, likeIndx);
+    //fillEmptyCells(3, likeIndx);
+  }
+
   if(mode == Mode::calcualteStdDevs) {
-    if(sampleType == SampleType::muons) {
-      calcualteLogLikelihoods(4);
-    }
-    else if(sampleType == SampleType::displacedMuons) {
-      calcualteLogLikelihoods(5);
-    }
+    calcualteLogLikelihoods(likeIndx);
+
+    fillEmptyCells(0, likeIndx);
+    fillEmptyCells(1, likeIndx);
+    fillEmptyCells(2, likeIndx);
+    fillEmptyCells(3, likeIndx);
   }
 }
 
+//the empty cell on the edge of the distribution deteriorate the interpolation, so i fill them with an average of the neighboring cells values
+void PtModuleLut2DGen::fillEmptyCells(unsigned int iOut, unsigned int iOutLike) {
+  for(auto& lut : lut2ds) {
+    auto bufLut = lut->getLutValues().at(iOut);
+    for(unsigned int addr1 = 0; addr1 < lut->getLutValues().at(iOut).size(); addr1++) {
+      for(unsigned int addr2 = 0; addr2 < lut->getLutValues().at(iOut)[addr1].size(); addr2++) {
+        if(lut->getLutValues().at(iOutLike)[addr1][addr2] == 0) {
+          double sum = 0;
+          int cnt = 0;
+          for(int d1 = -1; d1 <= 1; d1++) {
+            for(int d2 = -1; d2 <= 1; d2++) {
+              if( (addr1 + d1) > 0 && (addr1 + d1) < lut->getLutValues().at(iOutLike).size() &&
+                  (addr2 + d2) > 0 && (addr2 + d2) < lut->getLutValues().at(iOutLike)[addr1].size())
+              {
+                if(lut->getLutValues().at(iOutLike)[addr1 + d1][addr2 + d2] != 0) {
+                  sum += lut->getLutValues().at(iOut)[addr1 + d1][addr2 + d2];
+                  cnt++;
+                }
+              }
+            }
+          }
+
+          if(cnt != 0)
+            bufLut[addr1][addr2] = sum/cnt;
+        }
+      }
+    }
+    lut->getLutValues().at(iOut) = bufLut;
+  }
+}
 
 void PtModuleLut2DGen::calcualteLogLikelihoods(unsigned int iOut) {
   unsigned int  pdfMaxLogVal = 511; //TODO optimize
@@ -210,23 +263,23 @@ void PtModuleLut2DGen::calcualteLogLikelihoods(unsigned int iOut) {
           //const double pdfMaxLogVal = config->pdfMaxLogValue();
 
           double logPdf = 0;
-          if(pdfVal >= minPdfVal)  //for removing points with small statistics - TODO tune
+          if(pdfVal >= minPdfVal && eventCnt >= 3)  //for removing points with small statistics - TODO tune
             //if(pdfVal > 0)
           {
             logPdf = pdfMaxLogVal - log(pdfVal) / minPlog * pdfMaxLogVal;
 
             lut->getLutValues().at(iOut)[addr1][addr2] = round(logPdf); //round(100. * lut->getLutValues().at(iOut)[addr1][addr2] / norm); //TODO change to log likelihood
 
-            edm::LogVerbatim("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iOut "<<iOut <<(*lut)
-                                                 <<" iOut "<<" addr1 "<<addr1<<" addr2 "<<addr2<<" eventCnt "<<eventCnt<<" logPdf "<<logPdf<<" lutValue "<<lut->getLutValues()[iOut][addr1][addr2]<<std::endl;
+            edm::LogVerbatim("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__ <<(*lut)<<" iOut "<<iOut
+                                                 <<" addr1 "<<addr1<<" addr2 "<<addr2<<" eventCnt "<<eventCnt<<" logPdf "<<logPdf<<" lutValue "<<lut->getLutValues()[iOut][addr1][addr2]<<std::endl;
           }
           else {
             for(unsigned int iOut1 = 0; iOut1 < lut->getLutValues().size(); iOut1++) {
               lut->getLutValues().at(iOut1)[addr1][addr2] = 0;
             }
 
-            edm::LogVerbatim("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iOut "<<iOut <<(*lut)
-                                                             <<" iOut "<<" addr1 "<<addr1<<" addr2 "<<addr2<<" eventCnt "<<eventCnt<<" logPdf "<<logPdf<<" lutValue "<<lut->getLutValues().at(iOut)[addr1][addr2]<<std::endl;
+            edm::LogVerbatim("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__ <<(*lut)<<" iOut "<<iOut
+                                                             <<" addr1 "<<addr1<<" addr2 "<<addr2<<" eventCnt "<<eventCnt<<" logPdf "<<logPdf<<" lutValue "<<lut->getLutValues().at(iOut)[addr1][addr2]<<std::endl;
           }
         }
       }

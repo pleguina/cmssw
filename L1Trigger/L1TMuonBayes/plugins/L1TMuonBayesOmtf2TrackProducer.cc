@@ -73,7 +73,7 @@ void L1TMuonBayesOmtf2TrackProducer::endJob(){
 
   std::string sampleTypeStr = "muons";
   if(sampleType == PtModuleLut2DGen::SampleType::displacedMuons)
-    sampleTypeStr = "displacedMuon";
+    sampleTypeStr = "displacedMuons";
 
   std::string modeStr = "GenMean";
   if(mode == PtModuleLut2DGen::Mode::calcualteStdDevs)
@@ -140,6 +140,8 @@ void L1TMuonBayesOmtf2TrackProducer::beginRun(edm::Run const& run, edm::EventSet
     std::string genModeStr = edmParameterSet.getParameter<std::string>("genMode");
     std::string sampleTypeStr = edmParameterSet.getParameter<std::string>("sampleType");
 
+    edm::LogImportant("l1tMuBayesEventPrint")<<" genModeStr "<<genModeStr<<" sampleTypeStr "<<sampleTypeStr<<std::endl;
+
     if(genModeStr == "calcualteMeans")
       mode = PtModuleLut2DGen::Mode::calcualteMeans;
     else if(genModeStr == "calcualteStdDevs")
@@ -147,7 +149,7 @@ void L1TMuonBayesOmtf2TrackProducer::beginRun(edm::Run const& run, edm::EventSet
 
     if(sampleTypeStr == "muons")
       sampleType = PtModuleLut2DGen::SampleType::muons;
-    else if(sampleTypeStr == "displacedMuon")
+    else if(sampleTypeStr == "displacedMuons")
       sampleType = PtModuleLut2DGen::SampleType::displacedMuons;
 
     ptModuleLut2DGen->prepare(mode, sampleType);
@@ -243,7 +245,7 @@ void L1TMuonBayesOmtf2TrackProducer::readPtModule(PtModuleLut2D* ptModule, std::
   }
 
   LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" ptModule red successfully, ptModule->getLut2ds().size() "<<ptModule->getLut2ds().size()<<endl;
-  boost::dynamic_bitset<> interpolate(ptModule->getLut2ds().at(0)->getLutConfig().outValCnt, 0xffffff); //TODO change if needed
+  boost::dynamic_bitset<> interpolate(ptModule->getLut2ds().at(0)->getLutConfig().outValCnt, 0xf); //TODO change if needed
   LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<": "<<__LINE__<<std::endl;
   ptModule->setInterpolate(interpolate);
   LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<": "<<__LINE__<<std::endl;
