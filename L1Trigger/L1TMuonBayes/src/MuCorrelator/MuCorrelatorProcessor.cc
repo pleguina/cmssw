@@ -213,7 +213,7 @@ int MuCorrelatorProcessor::ghostBust3(std::shared_ptr<AlgoTTMuon> first, std::sh
     }
   }
 
-  if(commonHits >= 1) { //probably to sharp...
+  if(commonHits >= 2) { //1 is probably to sharp...
     if(      first->getPdfSum() > second->getPdfSum() ) {
       return 0;
     }
