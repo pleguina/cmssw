@@ -127,9 +127,12 @@ void PdfModule::processStubs(const MuonStubsInput& muonStubs, unsigned int layer
     //assuming that the corresponding bandig layer is just layer + 1, TODO maybe add function getBandingLayer(layer)
     int extrapolation = getExtrapolation(layer + 1, etaBin, refLayerNum, ptBin);
     int pdfBin = charge * selectedStub->phiBHw - extrapolation;
-    pdfVal = getPdfVal(layer +1, etaBin, refLayerNum, ptBin, pdfBin);
+    if(phiHitValid) //it is done like that only to avoid filling histogram in PdfModuleWithStats::getPdfVal when the phi hit is not valid
+      pdfVal = getPdfVal(layer +1, etaBin, refLayerNum, ptBin, pdfBin);
+    else
+      pdfVal = 0;
 
-    algoTTMuon->addStubResult(pdfVal, phiHitValid & (pdfVal > 0), pdfBin, layer + 1, selectedStub );
+    algoTTMuon->addStubResult(pdfVal, phiHitValid && (pdfVal > 0), pdfBin, layer + 1, selectedStub );
   }
 
   return;

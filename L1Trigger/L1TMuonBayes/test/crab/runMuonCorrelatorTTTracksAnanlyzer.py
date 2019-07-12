@@ -157,7 +157,8 @@ process.TTTracksWithTruth = cms.Path(process.L1TrackletTracksWithAssociators)
 process.load('L1Trigger.L1TMuonBayes.simBayesMuCorrelatorTrackProducer_cfi')
 
 #process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("L1_TRACKER")
-process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("TRACKING_PARTICLES") #TODO!!!!!!!!!!!!!!!!!!
+process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("TRACKING_PARTICLES")
+process.simBayesMuCorrelatorTrackProducer.TrackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth")
 process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
 #process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModule.xml") #TODO!!!!!!!!!!!!!!!!!!!!!!!!!!11      
   
