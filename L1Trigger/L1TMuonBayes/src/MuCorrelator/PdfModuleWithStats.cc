@@ -20,8 +20,13 @@ PdfModuleWithStats::PdfModuleWithStats(MuCorrelatorConfigPtr& config): PdfModule
       for(unsigned int iRefLayer = 0; iRefLayer < coefficients[iLayer][iEtaBin].size(); ++iRefLayer) {
         std::ostringstream name;
                 name<<"pdfHist_layer_"<<iLayer<<"_eta_"<<iEtaBin<<"_refLayer_"<<iRefLayer;
-        pdfHists[iLayer][iEtaBin].emplace_back(subDir.make<TH2I>(name.str(). c_str(), name.str(). c_str(),
+
+        if(0) //when the pdfs are generated
+          pdfHists[iLayer][iEtaBin].emplace_back(subDir.make<TH2I>(name.str(). c_str(), name.str(). c_str(),
                                                            config->nPtBins(), 0, config->nPtBins(), 1300, -100 -0.5, 1200 -0.5));
+        else //to check the distribution with pdfs ready
+          pdfHists[iLayer][iEtaBin].emplace_back(subDir.make<TH2I>(name.str(). c_str(), name.str(). c_str(),
+                                                                     config->nPtBins(), 0, config->nPtBins(), 1000, -500 -0.5, 500 -0.5));
       }
     }
 
