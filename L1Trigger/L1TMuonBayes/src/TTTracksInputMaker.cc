@@ -66,7 +66,7 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event &event, 
       edm::Ptr< TrackingParticle > trackingParticlePtr(trackingParticlesHandle, iTP);
 
       if(trackingParticlePtr->eventId().bunchCrossing() == bx) {//to emulate the trigger rules we should process every track not only the muons!!!!
-        if ( (abs(trackingParticlePtr->pdgId()) == 211)  ||  (abs(trackingParticlePtr->pdgId()) == 321) ) //TODO 1000015 is stau abs(trackingParticlePtr->pdgId()) == 1000015)
+        if ( (abs(trackingParticlePtr->pdgId()) != 13) && (abs(trackingParticlePtr->pdgId()) != 211)  &&  (abs(trackingParticlePtr->pdgId()) != 321) ) //TODO 1000015 is stau abs(trackingParticlePtr->pdgId()) == 1000015)
           if(trackingParticlePtr->pt() > 2.5 && abs(trackingParticlePtr->eta() ) < 2.4) //todo move values to config
           {
             auto ttTrack = std::make_shared<TrackingTriggerTrack>(trackingParticlePtr);
