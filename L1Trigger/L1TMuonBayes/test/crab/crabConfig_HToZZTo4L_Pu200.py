@@ -1,13 +1,15 @@
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'omtf_MC_analysis_HToZZTo4L'
+config.General.requestName = 'muCorr_MC_analysis_HToZZTo4L'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
 
 config.JobType.pluginName = 'Analysis'
-config.JobType.psetName = 'runMuonOverlapTTMergerAnalyzerCrab.py'
+#config.JobType.psetName = 'runMuonOverlapTTMergerAnalyzerCrab.py'
+config.JobType.psetName = 'runMuonCorrelatorTTTracksAnanlyzer.py'
+config.JobType.pyCfgParams = ['efficiency']
 
 config.Data.inputDataset = '/VBF_HToZZTo4L_M125_14TeV_powheg2_JHUgenV702_pythia8/PhaseIIFall17D-L1TPU200_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
 #'/SingleNeutrino/PhaseIIFall17D-L1TPU200_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
@@ -20,7 +22,7 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 10
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'CRAB3_omtf_MC_analysis'
+config.Data.outputDatasetTag = 'CRAB3_muCorr_MC_analysis_HToZZTo4L_PU200'
 config.Data.totalUnits = 100
 
 config.Site.storageSite = 'T2_PL_Swierk'
