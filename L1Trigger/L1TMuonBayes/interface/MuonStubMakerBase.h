@@ -22,6 +22,8 @@
 #include "L1Trigger/L1TMuonBayes/interface/MuonStubsInput.h"
 #include "L1Trigger/L1TMuonBayes/interface/RpcClusterization.h"
 
+#include "TH2I.h"
+
 namespace edm {
   class EventSetup;
 }
@@ -46,7 +48,7 @@ class MuonStubMakerBase {
   void loadAndFilterDigis(const edm::Event& event);
 
   ///Method translating trigger digis into input matrix with global phi coordinates, fills the muonStubsInLayers
-  const void buildInputForProcessor(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor,
+  void buildInputForProcessor(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor,
            l1t::tftype procTyp, int bxFrom = 0, int bxTo = 0);
 
   ///Method translating trigger digis into input matrix with global phi coordinates
@@ -139,6 +141,8 @@ protected:
   bool dropCSCPrimitives = false;
 
   int minDtPhQuality = 2;
+
+  TH2I* stubsCntInLayersHist = nullptr;
 };
 
 #endif

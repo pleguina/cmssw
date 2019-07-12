@@ -35,10 +35,15 @@ public:
 
 class RpcClusterization {
 public:
-  RpcClusterization(int maxClusterSize, int maxClusterCnt):
-    maxClusterSize(maxClusterSize), maxClusterCnt(maxClusterCnt) {};
+  RpcClusterization() {};
 
   virtual ~RpcClusterization();
+
+  void configure(int maxClusterSize, int maxClusterCnt, bool dropAllClustersIfMoreThanMax) {
+    this->maxClusterSize = maxClusterSize;
+    this->maxClusterCnt = maxClusterCnt;
+    this->dropAllClustersIfMoreThanMax = dropAllClustersIfMoreThanMax;
+  }
 
   ///N.B. digis are sorted inside the function
   virtual std::vector<RpcCluster> getClusters(const RPCDetId& roll, std::vector<RPCDigi>& digis);
@@ -46,8 +51,10 @@ public:
   //converts float timing to the int timing in the scale common for the muon detectors
   virtual int convertTiming(double timing) const;
 private:
-  unsigned int maxClusterSize = 3;
+  unsigned int maxClusterSize = 4;
   unsigned int maxClusterCnt = 2;
+
+  bool dropAllClustersIfMoreThanMax = true; // if true no  cluster is return if there is more clusters then maxClusterCnt (counted regardless of the size)
 };
 
 #endif /* INTERFACE_RPCCLUSTERIZATION_H_ */

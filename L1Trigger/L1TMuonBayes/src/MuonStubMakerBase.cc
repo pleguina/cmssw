@@ -18,9 +18,12 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+
 ///////////////////////////////////////
 ///////////////////////////////////////
-MuonStubMakerBase::MuonStubMakerBase(): rpcClusterization(3, 2) {
+MuonStubMakerBase::MuonStubMakerBase(): rpcClusterization() {
 
 }
 
@@ -29,6 +32,7 @@ MuonStubMakerBase::MuonStubMakerBase(): rpcClusterization(3, 2) {
 void MuonStubMakerBase::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es, const ProcConfigurationBase* procConf, MuStubsInputTokens& muStubsInputTokens) {
   config = procConf;
 
+  rpcClusterization.configure(config->getRpcMaxClusterSize(), config->getRpcMaxClusterCnt(), config->getRpcDropAllClustersIfMoreThanMax());
   this->muStubsInputTokens = muStubsInputTokens;
 
   dropDTPrimitives = edmCfg.getParameter<bool>("dropDTPrimitives");
@@ -39,6 +43,9 @@ void MuonStubMakerBase::initialize(const edm::ParameterSet& edmCfg, const edm::E
     minDtPhQuality = edmCfg.getParameter<int>("minDtPhQuality");
   }
 
+/*  edm::Service<TFileService> fs;
+  stubsCntInLayersHist = fs->make<TH2I>("stubsCntInLayersHist", "stubsCntInLayersHist",
+		  50, -0.5, 50 -0.5, config->nLayers(), -0.5, config->nLayers() -0.5);*/
 }
 ///////////////////////////////////////
 ///////////////////////////////////////
@@ -57,7 +64,7 @@ void MuonStubMakerBase::loadAndFilterDigis(const edm::Event& event) {
 }
 
 
-const void MuonStubMakerBase::buildInputForProcessor(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor,
+void MuonStubMakerBase::buildInputForProcessor(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor,
     l1t::tftype type,
     int bxFrom, int bxTo) {
   LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
@@ -65,6 +72,10 @@ const void MuonStubMakerBase::buildInputForProcessor(MuonStubPtrs2D& muonStubsIn
   processCSC(muonStubsInLayers, cscDigis.product(), iProcessor, type, bxFrom, bxTo);
   processRPC(muonStubsInLayers, rpcDigis.product(), iProcessor, type, bxFrom, bxTo);
   //cout<<result<<endl;
+
+/*  for(unsigned int iLayer = 0; iLayer < muonStubsInLayers.size(); iLayer++) {
+	  stubsCntInLayersHist->Fill(muonStubsInLayers[iLayer].size(), iLayer);
+  }*/
 }
 
 
