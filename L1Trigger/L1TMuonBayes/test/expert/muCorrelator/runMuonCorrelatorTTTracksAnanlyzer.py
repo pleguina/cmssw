@@ -7,7 +7,7 @@ import commands
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
-verbose = True
+verbose = False
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -48,8 +48,8 @@ process.load('Configuration.StandardSequences.Services_cff')
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
-process.load('Configuration.Geometry.GeometryExtended2023D17Reco_cff')
-process.load('Configuration.Geometry.GeometryExtended2023D17_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D41Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D41_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
@@ -82,8 +82,9 @@ Source_Files = cms.untracked.vstring(
          #'file:///eos/user/a/akalinow/Data/9_3_14_HSCP_v5/HSCPppstau_M_494_TuneZ2star_13TeV_pythia6_cff_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT_1.root'
          #'file:///afs/cern.ch/work/k/kbunkow/public/CMSSW/cmssw_10_x_x_l1tOfflinePhase2/CMSSW_10_5_0_pre1/src/L1Trigger/L1TMuonBayes/test/SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root'
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root'
-         'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/ZMM_EE29AF8E-51AF-E811-A2BD-484D7E8DF0D3_dump1000Events.root'
+         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/ZMM_EE29AF8E-51AF-E811-A2BD-484D7E8DF0D3_dump1000Events.root'
          #'file:///eos/user/a/akalinow/Data/SingleMu/SingleMuFlatPt_50GeVto10GeV_cfi_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT.root'
+         'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/GluGluHToZZTo4L_NoPU_FB98030B-16C5-9842-9698-8371EB8D8B01_dump1000Ev.root'
 )
 
 
@@ -97,7 +98,7 @@ process.source = cms.Source("PoolSource", fileNames = Source_Files,
         'drop l1tEMTFTrack2016s_simEmtfDigis__HLT')
 )
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_GluGluHToZZTo4L_NoPU.root'), closeFileFast = cms.untracked.bool(True))
 
 
 ############################################################

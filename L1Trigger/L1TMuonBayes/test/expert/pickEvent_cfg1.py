@@ -35,8 +35,9 @@ Source_Files = cms.untracked.vstring(
         #'/store/relval/CMSSW_9_3_7/RelValDisplacedMuonGun_Pt30To100_Dxy_0_1000/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v5_2023D17noPULxyMx1k-v1/10000/E68C6334-7F62-E911-8AA5-0025905B8610.root'
          #'/store/relval/CMSSW_9_3_7/RelValDisplacedMuonGun_Pt30To100_Dxy_0_1000/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v5_2023D17noPULxyMx1k-v1/10000/C2D5C228-7F62-E911-AAA6-0CC47A78A42C.root'
          #'/store/relval/CMSSW_9_3_7/RelValDisplacedMuonGun_Pt30To100_Dxy_0_1000/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v5_2023D17noPULxyMx1k-v1/10000/A2885F26-7F62-E911-84CF-0CC47A4D7666.root'
-         '/store/relval/CMSSW_9_3_7/RelValDisplacedMuonGun_Pt30To100_Dxy_0_1000/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v5_2023D17noPULxyMx1k-v1/10000/3C065D44-7E62-E911-9F3F-0CC47A4C8F12.root'
+         #'/store/relval/CMSSW_9_3_7/RelValDisplacedMuonGun_Pt30To100_Dxy_0_1000/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v5_2023D17noPULxyMx1k-v1/10000/3C065D44-7E62-E911-9F3F-0CC47A4C8F12.root'
          #'/store/relval/CMSSW_9_3_7/RelValDisplacedMuonGun_Pt30To100_Dxy_0_1000/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v5_2023D17noPULxyMx1k-v1/10000/34016F34-7F62-E911-AAB8-0025905AA9CC.root'
+         '/store/mc/PhaseIITDRSpring19DR/GluGluHToZZTo4L_M125_14TeV_powheg2_JHUgenV724_pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v2/260000/FB98030B-16C5-9842-9698-8371EB8D8B01.root'
 )
 
 process = cms.Process("PickEvent")
@@ -77,7 +78,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 #outputFileNme = '/eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_FlatPt-2to100/GEN-SIM-DIGI-RAW/L1TnoPU_93X_upgrade2023_realistic_v5-v1/00000/F4EEAE55-C937-E811-8C29-48FD8EE739D1_dump1000Events.root'
 #outputFileNme = 'HSCPppstau_M-651_TuneZ2star_13TeV_0E0D542C-A9C8-E611-981C-A0000420FE80_dump100Events.root'
 #outputFileNme = 'SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root'
-outputFileNme = 'DisplacedMuonGun_Pt30To100_Dxy_0_1000_3C065D44-7E62-E911-9F3F-0CC47A4C8F12_dumpAllEv_3Files.root'
+outputFileNme = 'GluGluHToZZTo4L_NoPU_FB98030B-16C5-9842-9698-8371EB8D8B01_dump1000Ev.root'
 
 process.Out = cms.OutputModule("PoolOutputModule",
         fileName = cms.untracked.string (outputFileNme)

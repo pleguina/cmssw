@@ -48,8 +48,8 @@ process.load('Configuration.StandardSequences.Services_cff')
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
-process.load('Configuration.Geometry.GeometryExtended2023D17Reco_cff')
-process.load('Configuration.Geometry.GeometryExtended2023D17_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D41Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D41_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
@@ -60,14 +60,17 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 #process.GlobalTag = GlobalTag(process.GlobalTag, '100X_upgrade2023_realistic_v1', '') # this one os for 10_1_7 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 process.GlobalTag = GlobalTag(process.GlobalTag, '103X_upgrade2023_realistic_v2', '') # <<<<<!!!!!!!!!!!! this one is for 10_5_x
 
+#process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
+#process.load('CalibCalorimetry.CaloTPG.CaloTPGTranscoder_cfi')
+
+
 ############################################################
 # input and output
 ############################################################
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
-if GEOMETRY == "D17":
-    Source_Files = cms.untracked.vstring(
+Source_Files = cms.untracked.vstring(
  #       "/store/relval/CMSSW_10_0_0_pre1/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/94X_upgrade2023_realistic_v2_2023D17noPU-v2/10000/06C888F3-CFCE-E711-8928-0CC47A4D764C.root"
          #"/store/relval/CMSSW_9_3_2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/93X_upgrade2023_realistic_v2_2023D17noPU-v1/10000/0681719F-AFA6-E711-87C9-0CC47A4C8E14.root"
          #"file:///eos/user/k/kbunkow/cms_data/0681719F-AFA6-E711-87C9-0CC47A4C8E14.root"
@@ -77,12 +80,7 @@ if GEOMETRY == "D17":
          #"file:///eos/cms/store/group/upgrade/sandhya/SMP-PhaseIIFall17D-00001.root"
          #'file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_15_p_1_1_qtl.root' 
 )
-elif GEOMETRY == "TkOnly":
-    Source_Files = cms.untracked.vstring(
-    "file:MuMinus_1to10_TkOnly.root"
-)
-else: 
-    print "not a valid geometry!"
+
 
 process.source = cms.Source("PoolSource", fileNames = Source_Files,
         inputCommands=cms.untracked.vstring(
@@ -156,9 +154,9 @@ process.TTTracksWithTruth = cms.Path(process.L1TrackletTracksWithAssociators)
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonBayes.simBayesMuCorrelatorTrackProducer_cfi')
 
-#process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("L1_TRACKER")
-process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("TRACKING_PARTICLES")
-process.simBayesMuCorrelatorTrackProducer.TrackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth")
+process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("L1_TRACKER")
+#process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("TRACKING_PARTICLES")
+#process.simBayesMuCorrelatorTrackProducer.TrackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth")
 process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
 #process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModule.xml") #TODO!!!!!!!!!!!!!!!!!!!!!!!!!!11      
   
