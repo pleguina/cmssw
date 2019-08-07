@@ -113,9 +113,6 @@ void MuonStubMakerBase::processCSC(MuonStubPtrs2D& muonStubsInLayers, const CSCC
     unsigned int iProcessor,
     l1t::tftype procTyp, int bxFrom, int bxTo) {
 
-  int lctCentralBx = CSCConstants::LCT_CENTRAL_BX;
-  lctCentralBx = 6; //TODO this was changed in CMSSW 10(?) to 8 if the data were generated with the previous CMSSW then you have to use 6
-
   if(!cscDigis)
     return;
 
@@ -131,7 +128,7 @@ void MuonStubMakerBase::processCSC(MuonStubPtrs2D& muonStubsInLayers, const CSCC
     auto dend = (*chamber).second.second;
     for( ; digi != dend; ++digi ) {
       ///Check if LCT trigger primitive has the right BX.
-      int digiBx = digi->getBX()- lctCentralBx;
+      int digiBx = digi->getBX() - config->cscLctCentralBx();
 
       if (digiBx >= bxFrom && digiBx <= bxTo )
         addCSCstubs(muonStubsInLayers, rawid, *digi, iProcessor, procTyp);

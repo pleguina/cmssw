@@ -6,8 +6,9 @@
  */
 
 #include "L1Trigger/L1TMuonBayes/interface/ProcConfigurationBase.h"
+#include "L1Trigger/CSCCommonTrigger/interface/CSCConstants.h"
 
-ProcConfigurationBase::ProcConfigurationBase() {
+ProcConfigurationBase::ProcConfigurationBase(): cscLctCentralBx_(CSCConstants::LCT_CENTRAL_BX) {
 
 }
 

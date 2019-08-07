@@ -48,6 +48,17 @@ public:
   virtual unsigned int getBxToProcess() const {
     return 1;
   }
+
+  virtual int cscLctCentralBx() const {
+    return cscLctCentralBx_;
+  }
+
+  void setCscLctCentralBx(int lctCentralBx) {
+    this->cscLctCentralBx_ = lctCentralBx;
+  }
+
+private:
+  int cscLctCentralBx_ = 8; //CSCConstants::LCT_CENTRAL_BX;
 };
 
 #endif /* INTERFACE_PROCCONFIGURATIONBASE_H_ */

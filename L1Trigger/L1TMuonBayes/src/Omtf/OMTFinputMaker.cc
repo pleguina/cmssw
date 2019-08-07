@@ -306,7 +306,7 @@ void OMTFinputMaker::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int
   stub.phiBHw = digi.getPattern(); //TODO change to phiB when implemented
   stub.qualityHw = digi.getQuality();
 
-  stub.bx = digi.getBX(); //TODO sholdn't  it be getBX0()?
+  stub.bx = digi.getBX() - config->cscLctCentralBx(); //TODO sholdn't  it be getBX0()?
   //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
 
   //stub.etaType = ?? TODO
