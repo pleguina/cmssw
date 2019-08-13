@@ -95,7 +95,18 @@ int AngleConverterBase::getProcessorPhi(int phiZero, l1t::tftype part, const CSC
   // get offset for each chamber.
   // FIXME: These parameters depends on processor and chamber only so may be precomputed and put in map
   //
+
+  int halfStrip = digi.getStrip(); // returns halfStrip 0..159
+
   const CSCChamber* chamber = _geocsc->chamber(csc);
+
+  //in the PhaseIITDRSpring19DR dataset (generated with CMSSW_10_6_1_patch2?), in case of the ME1/1 ring 4 (higher eta) the detId in the CSCCorrelatedLCTDigiCollection is ME1/1 ring 1 (instead ME1/1/4 as it was before),
+  //and the digi.getStrip() is increased by 2*64 (i.e. number of half strips in the chamber roll)
+  if(csc.station() == 1 && csc.ring() == 1 && halfStrip > 128) {
+    CSCDetId cscME11 =  CSCDetId(csc.endcap(), csc.station(), 4, csc.chamber()); //changing ring  to 4
+    chamber = _geocsc->chamber(cscME11);
+  }
+
   const CSCChamberSpecs* cspec = chamber->specs();
   const CSCLayer* layer = chamber->layer(3);
   int order = ( layer->centerOfStrip(2).phi() - layer->centerOfStrip(1).phi()> 0) ? 1 : -1;
@@ -110,7 +121,11 @@ int AngleConverterBase::getProcessorPhi(int phiZero, l1t::tftype part, const CSC
   int offsetLoc = lround( (phiHalfStrip0)/hsPhiPitch - phiZero);
   offsetLoc = config->foldPhi(offsetLoc);
 
-  int halfStrip = digi.getStrip(); // returns halfStrip 0..159
+  if(csc.station() == 1 && csc.ring() == 1 && halfStrip > 128) { //ME1/1/
+    if(cspec->nStrips() != 64)
+      edm::LogImportant("l1tMuBayesEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" cspec->nStrips() != 64 in case of the ME1/1, phi of the muon stub will be not correct "<<std::endl;
+    halfStrip -= 128;
+  }
 
   //FIXME: to be checked (only important for ME1/3) keep more bits for offset, truncate at the end
 
@@ -121,9 +136,19 @@ int AngleConverterBase::getProcessorPhi(int phiZero, l1t::tftype part, const CSC
   int fixOff = offsetLoc;
 
   int phi = fixOff + order*scale*halfStrip;
+  //the phi conversion is done like above - and not simply converting the layer->centerOfStrip(halfStrip/2 +1).phi() - to mimic this what is done by the firmware,
+  //where phi of the stub is calculated with use of the offset and scale provided by an register
 
-//  std::cout <<" phiZero "<<phiZero<<" hs: "<< halfStrip <<" phiHalfStrip0 "<<phiHalfStrip0<<" offset: " << offsetLoc <<" oder*scale: "<< order*scale
-//            <<" phi: " <<phi<<" foldPhi(phi) "<<config->foldPhi(phi)<<" ("<<offsetLoc + order*scale*halfStrip<<")"<< std::endl;
+/*//debug
+  auto radToDeg = [](double rad) { return (180. / M_PI * rad); };
+  LogTrace("l1tMuBayesEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" "<<std::setw(16)<<csc<<" phiZero "<<phiZero<<" hs: "<<std::setw(3)<< halfStrip <<" phiHalfStrip0 "<<std::setw(10)<<radToDeg(phiHalfStrip0)<<" offset: " << offsetLoc
+      <<" oder*scale: "<<std::setw(10)<< order*scale
+       <<" phi: " <<phi<<" foldPhi(phi) "<<config->foldPhi(phi)<<" ("<<offsetLoc + order*scale*halfStrip<<")"<<" centerOfStrip "<<std::setw(10)<< radToDeg( layer->centerOfStrip(halfStrip/2 +1).phi() )
+       <<" centerOfStrip/hsPhiPitch "<< ( (layer->centerOfStrip(halfStrip/2 + 1).phi() )/hsPhiPitch)<<"  hsPhiPitch "<<hsPhiPitch
+       //<<" phiSpan.f "<<layer->geometry()->phiSpan().first<<" phiSpan.s "<<layer->geometry()->phiSpan().second
+       <<" nStrips "<<cspec->nStrips()
+       //<<" strip 1 "<<radToDeg( layer->centerOfStrip(1).phi() )<<" strip last "<<radToDeg( layer->centerOfStrip(cspec->nStrips()).phi() )
+       << std::endl;*/
 
   return config->foldPhi(phi);
 }

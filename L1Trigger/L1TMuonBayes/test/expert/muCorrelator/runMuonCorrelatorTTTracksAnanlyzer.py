@@ -100,6 +100,10 @@ process.source = cms.Source("PoolSource", fileNames = Source_Files,
 
 process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_GluGluHToZZTo4L_NoPU.root'), closeFileFast = cms.untracked.bool(True))
 
+#from L1Trigger.Configuration.customiseUtils import L1TrackTriggerTracklet, L1TTurnOffHGCalTPs_v9, configureCSCLCTAsRun2
+#process = L1TrackTriggerTracklet(process)
+#process = L1TTurnOffHGCalTPs_v9(process)
+#process = configureCSCLCTAsRun2(process) #has no efect when csc digis alreaady taken form the data file
 
 ############################################################
 # remake L1 stubs and/or cluster/stub truth ??
