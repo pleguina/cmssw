@@ -17,10 +17,10 @@ config.Data.inputDataset = '/Mu_FlatPt2to100-pythia8-gun/PhaseIITDRSpring19DR-PU
 
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 10
+config.Data.unitsPerJob = 15
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
 config.Data.outputDatasetTag = 'CRAB3_muCorr_MC_analysis_MuFlatPt_PU200_v1_t3'
-config.Data.totalUnits = 100 #321
+config.Data.totalUnits = 321 #321
 
 config.Site.storageSite = 'T2_PL_Swierk'

@@ -1,7 +1,7 @@
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'muCorr_MC_analysis_SingleNeutrino_PU200_v1_t3'
+config.General.requestName = 'muCorr_MC_analysis_SingleNeutrino_PU200_v1_t5'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
@@ -19,15 +19,15 @@ config.Data.inputDataset = '/Nu_E10-pythia8-gun/PhaseIITDRSpring19DR-PU200_106X_
 
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 10
+config.Data.unitsPerJob = 30
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'CRAB3_muCorr_MC_analysis_SingleNeutrino_PU200_v1_t3'
-config.Data.totalUnits = 100 #75 600
-#config.Data.ignoreLocality = False
+config.Data.outputDatasetTag = 'CRAB3_muCorr_MC_analysis_SingleNeutrino_PU200_v1_t5'
+config.Data.totalUnits = 1667 #75 600 total number is 1667
+config.Data.ignoreLocality = False
 
-#config.section_("Debug")
-#config.Debug.extraJDL = ['+CMS_ALLOW_OVERFLOW=False']
+config.section_("Debug")
+config.Debug.extraJDL = ['+CMS_ALLOW_OVERFLOW=False']
 
 config.Site.storageSite = 'T2_PL_Swierk'
 #config.Site.whitelist = ['T2_US_Caltech', 'T3_US_Colorado']
