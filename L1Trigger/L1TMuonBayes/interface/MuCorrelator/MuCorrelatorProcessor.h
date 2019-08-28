@@ -72,7 +72,8 @@ public:
 
   virtual AlgoTTMuons ghostBust(AlgoTTMuons& algoTTMuons);
 
-  static int ghostBust3(std::shared_ptr<AlgoTTMuon> first, std::shared_ptr<AlgoTTMuon> second);
+  int ghostBust3(std::shared_ptr<AlgoTTMuon> first, std::shared_ptr<AlgoTTMuon> second);
+  int ghostBust4(std::shared_ptr<AlgoTTMuon> first, std::shared_ptr<AlgoTTMuon> second);
 
   virtual AlgoTTMuons processTracks(const StandaloneCandWithStubsVec& candsWithStubs, const TrackingTriggerTracks& ttTracks);
 

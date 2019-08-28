@@ -33,6 +33,10 @@ public:
     return valid;
   }
 
+  void setValid(bool valid) {
+    this->valid =  valid;
+  }
+
   int getLayer() const {
     return layer;
   }

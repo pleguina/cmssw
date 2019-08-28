@@ -122,8 +122,10 @@ int AngleConverterBase::getProcessorPhi(int phiZero, l1t::tftype part, const CSC
   offsetLoc = config->foldPhi(offsetLoc);
 
   if(csc.station() == 1 && csc.ring() == 1 && halfStrip > 128) { //ME1/1/
-    if(cspec->nStrips() != 64)
-      edm::LogImportant("l1tMuBayesEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" cspec->nStrips() != 64 in case of the ME1/1, phi of the muon stub will be not correct "<<std::endl;
+/*    if(cspec->nStrips() != 64)
+      edm::LogImportant("l1tMuBayesEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" cspec->nStrips() != 64 in case of the ME1/1, phi of the muon stub will be not correct. chamber "
+      <<csc<<" cspec->nStrips() "<<cspec->nStrips()<<std::endl;
+      this checks has no sense - the ME1/1/ ring 4 has cspec->nStrips() = 48. but the offset of 128 half strips in the digi.getStrip() looks to be good*/
     halfStrip -= 128;
   }
 

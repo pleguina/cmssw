@@ -21,11 +21,23 @@ void AlgoTTMuon::addStubResult(float pdfVal, bool valid, int pdfBin, int layer, 
   //stub result is added even thought it is not valid since this might be needed for debugging or optimization
 }
 
+void AlgoTTMuon::invalidateStubResult(int layer) {
+  auto& stubResult = stubResults[layer];
+  if(stubResult.getValid()) {
+    pdfSum -= stubResult.getPdfVal();
+    firedLayerBitsInBx.at(stubResult.getMuonStub()->bx).reset(layer);
+    stubResult.setValid(false);
+  }
+
+  //stub result is added even thought it is not valid since this might be needed for debugging or optimization
+}
+
 std::ostream & operator << (std::ostream &out, const AlgoTTMuon& algoTTMuon) {
   out <<"algoTTMuon: "<<std::endl;
   out<<(*algoTTMuon.ttTrack)<<std::endl;
   out <<"firedLayerBits: "<<algoTTMuon.getFiredLayerBits()<<" pdfSum "<<algoTTMuon.pdfSum<<" quality "<<algoTTMuon.quality<<std::endl;
   out <<"beta "<<algoTTMuon.getBeta()<<" betaLikelihood "<<algoTTMuon.getBetaLikelihood()<<std::endl;
+  if(algoTTMuon.isKilled() ) out <<"KILLED !!!!!!!!!!!!!!!!!!! "<<std::endl;
   out <<"stubResults: "<<std::endl;
   for(auto& stubResult : algoTTMuon.stubResults) {
     if(stubResult.getMuonStub() ) {

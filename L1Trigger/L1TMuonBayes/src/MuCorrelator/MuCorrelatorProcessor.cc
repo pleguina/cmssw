@@ -8,17 +8,22 @@
 #include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/MuCorrelatorProcessor.h"
 #include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/PdfModuleWithStats.h"
 
-MuCorrelatorProcessor::MuCorrelatorProcessor(MuCorrelatorConfigPtr& config, std::string pdfModuleType): config(config) {
+#include <functional>
+
+MuCorrelatorProcessor::MuCorrelatorProcessor(MuCorrelatorConfigPtr& config, std::string pdfModuleType): config(config)
+{
   if(pdfModuleType== "PdfModuleWithStats")
     pdfModule = std::make_unique<PdfModuleWithStats>(config);
   else
     pdfModule = std::make_unique<PdfModule>(config);
 
-  ghostBustFunc = ghostBust3;
+  ghostBustFunc = std::bind(&MuCorrelatorProcessor::ghostBust4, this, std::placeholders::_1, std::placeholders::_2);
+  //ghostBustFunc = std::bind(&MuCorrelatorProcessor::ghostBust3, this);
 }
 
 MuCorrelatorProcessor::MuCorrelatorProcessor(MuCorrelatorConfigPtr& config, unique_ptr<IPdfModule> pdfModule): config(config), pdfModule(std::move(pdfModule) ) {
-  ghostBustFunc = ghostBust3;
+  ghostBustFunc = std::bind(&MuCorrelatorProcessor::ghostBust4, this, std::placeholders::_1, std::placeholders::_2);
+  //ghostBustFunc = &MuCorrelatorProcessor::ghostBust3;
 
   ///FIXME: read the list from configuration so this can be controlled at runtime.
   lowQualityHitPatterns = {
@@ -55,14 +60,16 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const MuonStubsInput& muonStubs
       algoTTMuon->setValid(true);
       algoTTMuons.emplace_back(algoTTMuon);
 
-      LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
+/*      LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
           //<<" ttTrack Pt "<<ttTrack->getPt()<<" charge "<<ttTrack->getCharge()
           //<<" eta "<<ttTrack->getEta()<<" phi "<<ttTrack->getPhi()<<" index  "<<ttTrack->getIndex()<<"\n"
-          <<*algoTTMuon<<endl;
+          <<*algoTTMuon<<endl;*/
     }
   }
 
   auto ghostBustedTTmuons = ghostBust(algoTTMuons);
+
+
 
   if(muTimingModule) {
     for(auto& ghostBustedTTmuon : ghostBustedTTmuons) {
@@ -73,9 +80,18 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const MuonStubsInput& muonStubs
   assignQuality(ghostBustedTTmuons);
 
   //only debug
-  for(auto& ghostBustedTTmuon : ghostBustedTTmuons) {
+/*  for(auto& ghostBustedTTmuon : ghostBustedTTmuons) {
     LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> ghostBustedTTmuon: \n "
         <<*ghostBustedTTmuon<<endl;
+  }*/
+
+  //only debug
+  for(auto& algoTTMuon : algoTTMuons) {
+    auto& ttTrack = algoTTMuon->getTTTrack();
+    LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
+        <<" ttTrack Pt "<<ttTrack->getPt()<<" charge "<<ttTrack->getCharge()
+        <<" eta "<<ttTrack->getEta()<<" phi "<<ttTrack->getPhi()<<" index  "<<ttTrack->getIndex()
+        <<*algoTTMuon<<endl;
   }
 
   return ghostBustedTTmuons;
@@ -170,14 +186,11 @@ AlgoTTMuons MuCorrelatorProcessor::ghostBust(AlgoTTMuons& algoTTMuons) {
   for(auto& ttMuon : algoTTMuons) {
     for(auto& selected : selectedTTMuons) {
       int ghostBustResult = ghostBustFunc(selected, ttMuon);
-      if(ghostBustResult == 0) { //selected kills ttMuon
+      if(ghostBustResult & 2) { //selected kills ttMuon
         ttMuon->kill();
       }
-      else if(ghostBustResult == 1) {//ttMuon kills selected
+      if(ghostBustResult & 1) {//ttMuon kills selected
         selected->kill();
-      }
-      else {
-        //ttMuon neither kills nor is killed
       }
     }
 
@@ -194,9 +207,10 @@ AlgoTTMuons MuCorrelatorProcessor::ghostBust(AlgoTTMuons& algoTTMuons) {
 
 
 /**should return:
- * 0 if first kills second
- * 1 if second kills first
- * 2 otherwise (none is killed)
+ * 0 none is killed
+ * 1 first is killed
+ * 2 second is killed
+ * 3 both are killed
  */
 int MuCorrelatorProcessor::ghostBust3(std::shared_ptr<AlgoTTMuon> first, std::shared_ptr<AlgoTTMuon> second) {
   //cout<<__FUNCTION__<<":"<<__LINE__<<endl;
@@ -215,21 +229,59 @@ int MuCorrelatorProcessor::ghostBust3(std::shared_ptr<AlgoTTMuon> first, std::sh
 
   if(commonHits >= 1) { //probably to sharp...
     if(      first->getPdfSum() > second->getPdfSum() ) {
-      return 0;
+      return 2;
     }
     else if( first->getPdfSum() < second->getPdfSum() ) {
       return 1;
     }
     else {// first->getGpResult().getPdfSum()== second->getGpResult().getPdfSum()
       if( first->getTTTrack()->getPtHw() > second->getTTTrack()->getPtHw() )
-        return 0;
+        return 2;
       else
         return 1;
     }
   }
-  return 2;
+  return 0;
 }
 
+/**should return:
+ * 0 none is killed
+ * 1 first is killed
+ * 2 second is killed
+ * 3 both are killed
+ */
+int MuCorrelatorProcessor::ghostBust4(std::shared_ptr<AlgoTTMuon> first, std::shared_ptr<AlgoTTMuon> second) {
+  //cout<<__FUNCTION__<<":"<<__LINE__<<endl;
+  //good ghost bust function looks on the hits indexes in each candidate and check how many hits are common, kill one of them if more then e.g. 1
+  int commonHits = 0;
+  for(unsigned int iLayer=0; iLayer < first->getStubResults().size(); ++iLayer) {
+    if(
+        first->getStubResult(iLayer).getValid() &&
+       second->getStubResult(iLayer).getValid() &&
+       first->getStubResult(iLayer).getMuonStub() == second->getStubResult(iLayer).getMuonStub() )
+    { //TODO comparing here just the pointer to the muon stub, in hardware probably it should be an index of the stub
+
+      if(first->getStubResult(iLayer).getPdfVal() > second->getStubResult(iLayer).getPdfVal()) {
+        second->invalidateStubResult(iLayer);
+      }
+      else {
+        first->invalidateStubResult(iLayer);
+      }
+      commonHits++;
+    }
+  }
+
+  int result = 0;
+  if(commonHits >= 1) { //only then any can be killed
+    if(first->getFiredLayerCnt() < config->nMinFiredLayers()) {
+      result +=1;
+    }
+    if(second->getFiredLayerCnt() < config->nMinFiredLayers()) {
+      result +=2;
+    }
+  }
+  return result;
+}
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -243,20 +295,28 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const StandaloneCandWithStubsVe
     if(algoTTMuon->getFiredLayerCnt() >= config->nMinFiredLayers()) {
       algoTTMuons.emplace_back(algoTTMuon);
 
-      LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
+/*      LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
           <<" ttTrack Pt "<<ttTrack->getPt()<<" charge "<<ttTrack->getCharge()
           <<" eta "<<ttTrack->getEta()<<" phi "<<ttTrack->getPhi()<<" index  "<<ttTrack->getIndex()
-          <<*algoTTMuon<<endl;
+          <<*algoTTMuon<<endl;*/
     }
   }
 
   auto ghostBustedTTmuons = ghostBust(algoTTMuons);
 
+  for(auto& algoTTMuon : algoTTMuons) {
+    auto& ttTrack = algoTTMuon->getTTTrack();
+    LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
+        <<" ttTrack Pt "<<ttTrack->getPt()<<" charge "<<ttTrack->getCharge()
+        <<" eta "<<ttTrack->getEta()<<" phi "<<ttTrack->getPhi()<<" index  "<<ttTrack->getIndex()
+        <<*algoTTMuon<<endl;
+  }
+
   //only debug
-  for(auto& ghostBustedTTmuon : ghostBustedTTmuons) {
+/*  for(auto& ghostBustedTTmuon : ghostBustedTTmuons) {
     LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> ghostBustedTTmuon: \n "
         <<*ghostBustedTTmuon<<endl;
-  }
+  }*/
 
   return ghostBustedTTmuons;
 }

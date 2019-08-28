@@ -85,6 +85,8 @@ Source_Files = cms.untracked.vstring(
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/ZMM_EE29AF8E-51AF-E811-A2BD-484D7E8DF0D3_dump1000Events.root'
          #'file:///eos/user/a/akalinow/Data/SingleMu/SingleMuFlatPt_50GeVto10GeV_cfi_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT.root'
          'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/GluGluHToZZTo4L_NoPU_FB98030B-16C5-9842-9698-8371EB8D8B01_dump1000Ev.root'
+         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/HSCPppstau_M_200_NoPU_F9EFA962-CDD8-C643-8F62-8F75384875F0_dump4000Ev.root'
+         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/JPsiToMuMu_Pt0to100_NoPU_FDA71CB6-4C3B-4540-99EB-803077C6EC2D_dump4000Ev.root'
 )
 
 
@@ -98,7 +100,9 @@ process.source = cms.Source("PoolSource", fileNames = Source_Files,
         'drop l1tEMTFTrack2016s_simEmtfDigis__HLT')
 )
 
+#process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_JPsiToMuMu_Pt0to100_NoPU.root'), closeFileFast = cms.untracked.bool(True))
 process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_GluGluHToZZTo4L_NoPU.root'), closeFileFast = cms.untracked.bool(True))
+#process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_HSCPppstau_M_200_NoPU.root'), closeFileFast = cms.untracked.bool(True))
 
 #from L1Trigger.Configuration.customiseUtils import L1TrackTriggerTracklet, L1TTurnOffHGCalTPs_v9, configureCSCLCTAsRun2
 #process = L1TrackTriggerTracklet(process)

@@ -31,6 +31,8 @@ public:
 
   virtual void addStubResult(float pdfVal, bool valid, int pdfBin, int layer, MuonStubPtr stub);
 
+  virtual void invalidateStubResult(int layer);
+
   int getEtaHw() const override { return ttTrack->getEtaHw(); }
 
   bool isValid() const override {
