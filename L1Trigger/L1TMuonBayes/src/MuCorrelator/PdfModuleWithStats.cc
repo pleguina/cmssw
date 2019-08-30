@@ -21,7 +21,7 @@ PdfModuleWithStats::PdfModuleWithStats(MuCorrelatorConfigPtr& config): PdfModule
         std::ostringstream name;
                 name<<"pdfHist_layer_"<<iLayer<<"_eta_"<<iEtaBin<<"_refLayer_"<<iRefLayer;
 
-        if(0) //when the pdfs are generated
+        if(1) //when the pdfs are generated
           pdfHists[iLayer][iEtaBin].emplace_back(subDir.make<TH2I>(name.str(). c_str(), name.str(). c_str(),
                                                            config->nPtBins(), 0, config->nPtBins(), 1300, -100 -0.5, 1200 -0.5));
         else //to check the distribution with pdfs ready
@@ -115,11 +115,14 @@ void PdfModuleWithStats::generateCoefficients() {
           double mean = pdfHistInPtBin->GetMean();
           double sigma = pdfHistInPtBin->GetStdDev();
 
-          if(ptBin <= 19) { //<16GeV
-            sigmaFactor =  1.4;
+          if(ptBin <= 18) { //<16GeV
+            sigmaFactor =  1.4 ;
+          }
+          else if(ptBin <= 21) { //<18GeV
+            sigmaFactor =  1.2 ;
           }
           else
-            sigmaFactor =  1.3;
+            sigmaFactor =  1;
 
           sigma *= sigmaFactor; //artificial changing of the pdf width<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 

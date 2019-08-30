@@ -103,7 +103,7 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
-filesPerPtBin = 1
+filesPerPtBin = 100
 
 if filesNameLike == 'allPt' :
     for ptCode in range(31, 3, -1) :
@@ -201,14 +201,18 @@ process.load('L1Trigger.L1TMuonBayes.simBayesMuCorrelatorTrackProducer_cfi')
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorHistsSimTracks100FilesWithiRPC.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorHistsSimTracks100Files_t9.root'), closeFileFast = cms.untracked.bool(True))
 
+process.simBayesMuCorrelatorTrackProducer.g4SimTrackSrc = cms.InputTag('g4SimHits')
 process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("SIM_TRACKS")
 process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
 process.simBayesMuCorrelatorTrackProducer.minDtPhQuality = cms.int32(4);
 process.simBayesMuCorrelatorTrackProducer.generatePdfs = cms.bool(True);
-process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/muCorrelator/pdfModuleSimTracks100FilesSigma1p3.xml") #TODO
+process.simBayesMuCorrelatorTrackProducer.outPdfModuleFile = cms.string("pdfModuleSimTracks100FilesSigma1p3_t9.xml") #TODO
 process.simBayesMuCorrelatorTrackProducer.generateTiming = cms.bool(False)
+
+process.simBayesMuCorrelatorTrackProducer.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+
 
 process.L1TMuonSeq = cms.Sequence( #process.esProd +         
                                    process.simBayesMuCorrelatorTrackProducer 

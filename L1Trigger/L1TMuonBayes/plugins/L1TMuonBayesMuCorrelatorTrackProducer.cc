@@ -100,8 +100,8 @@ void L1TMuonBayesMuCorrelatorTrackProducer::endJob(){
     //pdfModuleWithStats->write();*/
 
     if(edmParameterSet.exists("generatePdfs") && edmParameterSet.getParameter<bool>("generatePdfs")) {
-      if(edmParameterSet.exists("pdfModuleFile") ) {//if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
-        pdfModuleFile = edmParameterSet.getParameter<edm::FileInPath>("pdfModuleFile").fullPath();
+      if(edmParameterSet.exists("outPdfModuleFile") ) {
+        pdfModuleFile = edmParameterSet.getParameter<std::string>("outPdfModuleFile");
       }
       pdfModuleWithStats->generateCoefficients();
       writePdfs(pdfModule, pdfModuleFile);
@@ -180,6 +180,11 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
     }
 
     edm::LogImportant("l1tMuBayesEventPrint")<<" muCorrelatorProcessor constructed"<<std::endl;
+
+    if(edmParameterSet.exists("lctCentralBx")) {
+      int lctCentralBx  = edmParameterSet.getParameter<int>("lctCentralBx");
+      muCorrelatorConfig->setCscLctCentralBx(lctCentralBx);
+    }
 
   }
 }

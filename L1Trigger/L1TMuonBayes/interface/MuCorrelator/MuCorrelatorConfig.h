@@ -171,7 +171,7 @@ private:
   void buildPtHwBins();
 };
 
-typedef std::shared_ptr<const MuCorrelatorConfig> MuCorrelatorConfigPtr;
+typedef std::shared_ptr<MuCorrelatorConfig> MuCorrelatorConfigPtr;
 
 #endif /* MUCORRELATOR_MUCORRELATORCONFIG_H_ */
 
