@@ -21,7 +21,7 @@ PdfModuleWithStats::PdfModuleWithStats(MuCorrelatorConfigPtr& config): PdfModule
         std::ostringstream name;
                 name<<"pdfHist_layer_"<<iLayer<<"_eta_"<<iEtaBin<<"_refLayer_"<<iRefLayer;
 
-        if(1) //when the pdfs are generated
+        if(0) //when the pdfs are generated
           pdfHists[iLayer][iEtaBin].emplace_back(subDir.make<TH2I>(name.str(). c_str(), name.str(). c_str(),
                                                            config->nPtBins(), 0, config->nPtBins(), 1300, -100 -0.5, 1200 -0.5));
         else //to check the distribution with pdfs ready
@@ -92,7 +92,7 @@ void PdfModuleWithStats::generateCoefficients() {
           const double minPlog =  log(config->minPdfVal());
           const double pdfMaxLogVal = config->pdfMaxLogValue(); //the maximum value tha the logPdf can have (n.b. logPdf = pdfMaxLogVal - log(pdfVal) * pdfMaxLogVal / minPlog)
 
-          //removing points with small statiscticas before calculating mean and sigma
+          //removing points with small statiscticas before calculating mean aJPsiToMuMu_Pt0to100_NoPU gb3nd sigma
           int notEmtyBins = 0;
           for(int iBinPdf = 0; iBinPdf < pdfHistInPtBin->GetXaxis()->GetNbins(); iBinPdf++) {
             double pdfVal = pdfHistInPtBin->GetBinContent(iBinPdf);
