@@ -52,7 +52,10 @@ process.load('L1Trigger.L1TMuonBayes.simOmtfDigis_cfi')
 process.simOmtfDigis.dumpResultToXML = cms.bool(True)
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(4)
 process.simOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
-process.simOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(False)
+process.simOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
+
+process.simOmtfDigis.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+
 
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
