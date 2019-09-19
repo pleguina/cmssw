@@ -18,7 +18,7 @@
 
 ///////////////////////////////////////
 ///////////////////////////////////////
-OMTFinputMaker::OMTFinputMaker(): rpcClusterization(3, 2) {
+OMTFinputMaker::OMTFinputMaker(): rpcClusterization() {
 
 }
 

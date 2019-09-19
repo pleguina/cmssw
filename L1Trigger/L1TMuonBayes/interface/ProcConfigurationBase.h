@@ -57,8 +57,40 @@ public:
     this->cscLctCentralBx_ = lctCentralBx;
   }
 
+  bool getRpcDropAllClustersIfMoreThanMax() const {
+    return rpcDropAllClustersIfMoreThanMax;
+  }
+
+  void setRpcDropAllClustersIfMoreThanMax(bool rpcDropAllClustersIfMoreThanMax =
+      true) {
+    this->rpcDropAllClustersIfMoreThanMax = rpcDropAllClustersIfMoreThanMax;
+  }
+
+  unsigned int getRpcMaxClusterCnt() const {
+    return rpcMaxClusterCnt;
+  }
+
+  void setRpcMaxClusterCnt(unsigned int rpcMaxClusterCnt = 2) {
+    this->rpcMaxClusterCnt = rpcMaxClusterCnt;
+  }
+
+  unsigned int getRpcMaxClusterSize() const {
+    return rpcMaxClusterSize;
+  }
+
+  void setRpcMaxClusterSize(unsigned int rpcMaxClusterSize = 4) {
+    this->rpcMaxClusterSize = rpcMaxClusterSize;
+  }
+  
 private:
   int cscLctCentralBx_ = 8; //CSCConstants::LCT_CENTRAL_BX;
+  
+    //parameters of the RpcClusterization
+  unsigned int rpcMaxClusterSize = 3;
+  unsigned int rpcMaxClusterCnt = 2;
+
+  bool rpcDropAllClustersIfMoreThanMax = false; // if true no  cluster is return if there is more clusters then maxClusterCnt (counted regardless of the size)
+  
 };
 
 #endif /* INTERFACE_PROCCONFIGURATIONBASE_H_ */

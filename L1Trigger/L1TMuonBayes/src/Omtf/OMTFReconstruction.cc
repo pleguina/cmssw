@@ -83,6 +83,22 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
       edm::LogError("OMTFReconstruction") << "Could not retrieve parameters from Event Setup" << std::endl;
     }
     m_OMTFConfig->configure(omtfParams);
+
+
+    if(m_Config.exists("rpcMaxClusterSize") )
+      m_OMTFConfig->setRpcMaxClusterSize(m_Config.getParameter<int>("rpcMaxClusterSize"));
+
+    if(m_Config.exists("rpcMaxClusterCnt") )
+      m_OMTFConfig->setRpcMaxClusterCnt(m_Config.getParameter<int>("rpcMaxClusterCnt"));
+
+    if(m_Config.exists("rpcDropAllClustersIfMoreThanMax") )
+      m_OMTFConfig->setRpcDropAllClustersIfMoreThanMax(m_Config.getParameter<bool>("rpcDropAllClustersIfMoreThanMax"));
+
+    if(m_Config.exists("lctCentralBx")) {
+      int lctCentralBx  = m_Config.getParameter<int>("lctCentralBx");
+      m_OMTFConfig->setCscLctCentralBx(lctCentralBx);
+    }
+
     //patterns from the L1TMuonBayesOmtfParamsESProducer, are reloaded every run begin
     if(m_OMTF == 0 && m_Config.exists("patternsXMLFile") == false) {
       edm::LogImportant("OMTFReconstruction") << "getting patterns from L1TMuonBayesOmtfParamsESProducer" << std::endl;

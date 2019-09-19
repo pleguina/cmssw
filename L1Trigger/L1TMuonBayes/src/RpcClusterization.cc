@@ -42,6 +42,10 @@ std::vector<RpcCluster> RpcClusterization::getClusters(const RPCDetId& roll, std
 
   std::vector<RpcCluster> filteredClusters;
 
+  if(dropAllClustersIfMoreThanMax)
+    if(allClusters.size() > maxClusterCnt)
+      return filteredClusters;
+
   //TODO this is very simple filtering of the cluster,
   //unfortunately the in firmware it is more complicated and cannot be easily emulated from digi
   //(in principle would required raws, because in the firmware the clusterizaton is based on the 8-bit strip partitions

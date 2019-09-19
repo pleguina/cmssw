@@ -92,7 +92,7 @@ void PdfModuleWithStats::generateCoefficients() {
           const double minPlog =  log(config->minPdfVal());
           const double pdfMaxLogVal = config->pdfMaxLogValue(); //the maximum value tha the logPdf can have (n.b. logPdf = pdfMaxLogVal - log(pdfVal) * pdfMaxLogVal / minPlog)
 
-          //removing points with small statiscticas before calculating mean aJPsiToMuMu_Pt0to100_NoPU gb3nd sigma
+          //removing points with small statiscticas before calculating mean and sigma
           int notEmtyBins = 0;
           for(int iBinPdf = 0; iBinPdf < pdfHistInPtBin->GetXaxis()->GetNbins(); iBinPdf++) {
             double pdfVal = pdfHistInPtBin->GetBinContent(iBinPdf);

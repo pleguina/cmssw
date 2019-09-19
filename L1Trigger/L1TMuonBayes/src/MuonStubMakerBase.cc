@@ -20,7 +20,7 @@
 
 ///////////////////////////////////////
 ///////////////////////////////////////
-MuonStubMakerBase::MuonStubMakerBase(): rpcClusterization(3, 2) {
+MuonStubMakerBase::MuonStubMakerBase(): rpcClusterization() {
 
 }
 
@@ -29,6 +29,7 @@ MuonStubMakerBase::MuonStubMakerBase(): rpcClusterization(3, 2) {
 void MuonStubMakerBase::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es, const ProcConfigurationBase* procConf, MuStubsInputTokens& muStubsInputTokens) {
   config = procConf;
 
+  rpcClusterization.configure(config->getRpcMaxClusterSize(), config->getRpcMaxClusterCnt(), config->getRpcDropAllClustersIfMoreThanMax());
   this->muStubsInputTokens = muStubsInputTokens;
 
   dropDTPrimitives = edmCfg.getParameter<bool>("dropDTPrimitives");
@@ -57,9 +58,8 @@ void MuonStubMakerBase::loadAndFilterDigis(const edm::Event& event) {
 }
 
 
-const void MuonStubMakerBase::buildInputForProcessor(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor,
-    l1t::tftype type,
-    int bxFrom, int bxTo) {
+void MuonStubMakerBase::buildInputForProcessor(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor,
+    l1t::tftype type, int bxFrom, int bxTo) {
   LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
   processDT( muonStubsInLayers, dtPhDigis.product(), dtThDigis.product(), iProcessor, type, false, bxFrom, bxTo);
   processCSC(muonStubsInLayers, cscDigis.product(), iProcessor, type, bxFrom, bxTo);

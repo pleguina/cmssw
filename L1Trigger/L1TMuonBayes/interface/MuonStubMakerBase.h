@@ -46,7 +46,7 @@ class MuonStubMakerBase {
   void loadAndFilterDigis(const edm::Event& event);
 
   ///Method translating trigger digis into input matrix with global phi coordinates, fills the muonStubsInLayers
-  const void buildInputForProcessor(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor,
+  void buildInputForProcessor(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor,
            l1t::tftype procTyp, int bxFrom = 0, int bxTo = 0);
 
   ///Method translating trigger digis into input matrix with global phi coordinates
