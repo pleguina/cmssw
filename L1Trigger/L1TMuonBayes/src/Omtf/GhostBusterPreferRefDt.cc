@@ -18,7 +18,7 @@ namespace {
 AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
 
   // sorting within GB.
-/*  auto customLess = [&](const AlgoMuons::value_type& a, const AlgoMuons::value_type& b)->bool {
+  auto customLess = [&](const AlgoMuons::value_type& a, const AlgoMuons::value_type& b)->bool {
     if(!a->isValid()) {
       return true;
     }
@@ -41,9 +41,9 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
       return false;
     else
       return true;
-  };*/
+  };
 
-
+/*
   auto customLess = [&](const AlgoMuons::value_type& a, const AlgoMuons::value_type& b)->bool {
     if(!a->isValid()) {
       return true;
@@ -67,7 +67,7 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
       return false;
     else
       return true;
-  };
+  };*/
 
   std::sort( muonsIN.rbegin(), muonsIN.rend(), customLess);
 
