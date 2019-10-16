@@ -17,10 +17,10 @@ if verbose:
                                                #'critical',
                                                #'cout',
                                                #'cerr',
-                                               'muCorrelatorEventPrint'
+                                               'muCorrelatorEventPrint_oldGeom'
                     ),
        categories        = cms.untracked.vstring('l1tMuBayesEventPrint'),
-       muCorrelatorEventPrint = cms.untracked.PSet(    
+       muCorrelatorEventPrint_oldGeom = cms.untracked.PSet(    
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -48,8 +48,8 @@ process.load('Configuration.StandardSequences.Services_cff')
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
-process.load('Configuration.Geometry.GeometryExtended2023D41Reco_cff')
-process.load('Configuration.Geometry.GeometryExtended2023D41_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D17Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D17_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
@@ -63,7 +63,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '103X_upgrade2023_realistic_v2'
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1000))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 Source_Files = cms.untracked.vstring(
 #        "/store/relval/CMSSW_10_0_0_pre1/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/94X_upgrade2023_realistic_v2_2023D17noPU-v2/10000/06C888F3-CFCE-E711-8928-0CC47A4D764C.root"
@@ -81,14 +81,10 @@ Source_Files = cms.untracked.vstring(
          #'file:///eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/SingleMu_26_m_1.root'
          #'file:///eos/user/a/akalinow/Data/9_3_14_HSCP_v5/HSCPppstau_M_494_TuneZ2star_13TeV_pythia6_cff_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT_1.root'
          #'file:///afs/cern.ch/work/k/kbunkow/public/CMSSW/cmssw_10_x_x_l1tOfflinePhase2/CMSSW_10_5_0_pre1/src/L1Trigger/L1TMuonBayes/test/SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root'
-         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root'
+         'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root'
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/ZMM_EE29AF8E-51AF-E811-A2BD-484D7E8DF0D3_dump1000Events.root'
          #'file:///eos/user/a/akalinow/Data/SingleMu/SingleMuFlatPt_50GeVto10GeV_cfi_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT.root'
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/GluGluHToZZTo4L_NoPU_FB98030B-16C5-9842-9698-8371EB8D8B01_dump1000Ev.root'
-         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/HSCPppstau_M_200_NoPU_F9EFA962-CDD8-C643-8F62-8F75384875F0_dump4000Ev.root'
-         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/JPsiToMuMu_Pt0to100_NoPU_FDA71CB6-4C3B-4540-99EB-803077C6EC2D_dump4000Ev.root'
-        #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_HSCPppstau_M_871__noPU_v32_F9357CE3-E1BD-C64C-8F43-895CFA3A0AFC_dump1000Ev.root'
-        'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_HSCPppstau_M_200__noPU_v32_A91AA4D8-5187-5544-8304-365404899406_dump1000Ev.root'
 )
 
 
@@ -102,14 +98,8 @@ process.source = cms.Source("PoolSource", fileNames = Source_Files,
         'drop l1tEMTFTrack2016s_simEmtfDigis__HLT')
 )
 
-#process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_JPsiToMuMu_Pt0to100_NoPU.root'), closeFileFast = cms.untracked.bool(True))
-process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_HSCPppstau_M_200_NoPU.root'), closeFileFast = cms.untracked.bool(True))
-#process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_HSCPppstau_M_200_NoPU.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_singleMu.root'), closeFileFast = cms.untracked.bool(True))
 
-#from L1Trigger.Configuration.customiseUtils import L1TrackTriggerTracklet, L1TTurnOffHGCalTPs_v9, configureCSCLCTAsRun2
-#process = L1TrackTriggerTracklet(process)
-#process = L1TTurnOffHGCalTPs_v9(process)
-#process = configureCSCLCTAsRun2(process) #has no efect when csc digis alreaady taken form the data file
 
 ############################################################
 # remake L1 stubs and/or cluster/stub truth ??
@@ -175,7 +165,7 @@ process.load('L1Trigger.L1TMuonBayes.simBayesMuCorrelatorTrackProducer_cfi')
 process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("L1_TRACKER")
 #process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("SIM_TRACKS") #TODO !!!!!!!
 process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
-#process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModule.xml") #TODO!!!!!!!!!!!!!!!!!!!!!!!!!!11
+#process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/muCorrelator/pdfModuleSimTracks100FilesSigma1p3_2p8_t8.xml") #TODO!!!!!!!!!!!!!!!!!!!!!!!!!!11
 #process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModuleSimTracks100FilesWithiRPC.xml")
 #process.simBayesMuCorrelatorTrackProducer.timingModuleFile  = cms.FileInPath("L1Trigger/L1TMuonBayes/test/muTimingModule100FilesWithiRPC.xml")
 #process.simBayesMuCorrelatorTrackProducer.timingModuleFile  = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muTimingModuleTest.xml")
@@ -185,6 +175,9 @@ process.simBayesMuCorrelatorTrackProducer.generateTiming = cms.bool(False)
 process.simBayesMuCorrelatorTrackProducer.useStubsFromAdditionalBxs = cms.int32(3)
 #process.simBayesMuCorrelatorTrackProducer.bxRangeMin = cms.int32(-3)
 #process.simBayesMuCorrelatorTrackProducer.bxRangeMax = cms.int32(3)
+
+process.simBayesMuCorrelatorTrackProducer.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+
 
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
@@ -204,7 +197,9 @@ process.L1TMuonPath = cms.Path(process.L1TMuonSeq)
 
 ############################################################
 
-analysisType = "efficiency" # or rate
+#analysisType = "efficiency" # or rate
+analysisType = "rate" # or rate
+ 
   
 for a in sys.argv :
     if a == "efficiency" or a ==  "rate" or a == "withTrackPart" :

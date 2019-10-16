@@ -77,7 +77,7 @@ class OMTFinput: public MuonStubsInput {
   ///RefHitsEta
   //mutable vector1D refHitsEta;
 
-  const OMTFConfiguration* myOmtfConfig = nullptr;;
+  const OMTFConfiguration* myOmtfConfig = nullptr;
 };
 
 

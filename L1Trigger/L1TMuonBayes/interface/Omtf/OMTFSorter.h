@@ -7,7 +7,10 @@
 template <class GoldenPatternType>
 class OMTFSorter: public SorterBase<GoldenPatternType> {
 public:
-  virtual ~OMTFSorter() {}
+
+  OMTFSorter(int sorterTypeFlag): myType(sorterTypeFlag) {}
+
+  virtual ~OMTFSorter(){}
 
   ///Sort results from a single reference hit.
   ///Select candidate with highest number of hit layers
@@ -15,6 +18,10 @@ public:
   ///as we allow two candidates with opposite charge from single 10deg region
   virtual AlgoMuons::value_type sortRefHitResults(unsigned int procIndx, unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPatternType> >& gPatterns,
 				int charge=0);
+
+private:
+  
+  int myType;
 };
 
 #endif

@@ -35,12 +35,12 @@ class XMLConfigReader{
 
   void setConfigFile(const std::string & fName) {configFile = fName;}
 
-  void setPatternsFile(const std::string & fName) {patternsFile = fName;}
+  void setPatternsFiles(std::vector<std::string> & fNames) {patternsFiles = fNames;}
 
   void setEventsFile(const std::string & fName) {eventsFile = fName;}
 
   template <class GoldenPatternType>
-  std::vector<std::shared_ptr<GoldenPatternType> > readPatterns(const L1TMuonOverlapParams& aConfig);
+  std::vector<std::shared_ptr<GoldenPatternType> > readPatterns(const L1TMuonOverlapParams& aConfig, const std::string & patternsFile);
 
   void readLUTs(std::vector<l1t::LUT *> luts, const L1TMuonOverlapParams& aConfig, const std::vector<std::string> & types);
 
@@ -55,7 +55,7 @@ class XMLConfigReader{
  private:
 
   std::string configFile; //XML file with general configuration
-  std::string patternsFile; //XML file with GoldenPatterns
+  std::vector<std::string> patternsFiles; //XML files with GoldenPatterns
   std::string eventsFile;   //XML file with events
 
   template <class GoldenPatternType>

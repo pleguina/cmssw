@@ -64,6 +64,9 @@ void PatternOptimizerBase::observeProcesorEmulation(unsigned int iProcessor, l1t
 */
 
   //bool found = false;
+  
+  omtfCand.reset(new AlgoMuon() );
+  candProcIndx = 0xffff;
   unsigned int i = 0;
   for(auto& gbCandidate : gbCandidates) {
     //int iRefHit = gbCandidate.getRefHitNumber();

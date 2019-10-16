@@ -62,8 +62,15 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
     }
   }
   else*/
-    setSorter(new OMTFSorter<GoldenPatternType>()); //initialize with the default sorter
 
+  int sorterTypeFlag = 0;
+  if(edmCfg.exists("sorterType")){
+    string sorterType = edmCfg.getParameter<std::string>("sorterType");
+    if(sorterType == "byNhitsByLLH") sorterTypeFlag = 0;
+    if(sorterType == "byLLH") sorterTypeFlag = 1;
+  }  
+  setSorter(new OMTFSorter<GoldenPatternType>(sorterTypeFlag)); //initialize with the default sorter
+  
   if(edmCfg.exists("ghostBusterType") ) {
     if(edmCfg.getParameter<std::string>("ghostBusterType") == "GhostBusterPreferRefDt")
       setGhostBuster(new GhostBusterPreferRefDt(this->myOmtfConfig));

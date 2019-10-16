@@ -60,8 +60,12 @@ XMLConfigReader::~XMLConfigReader()
 //////////////////////////////////////////////////
 void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapParams& aConfig, const std::vector<std::string> & types){
 
-  ///Fill payload string  
-  auto const & aGPs = readPatterns<GoldenPattern>(aConfig);
+  ///Fill payload string
+  std::vector<std::shared_ptr<GoldenPattern> > aGPs;
+  for(auto aPatternsFile: patternsFiles){
+    auto tmpGPs = readPatterns<GoldenPattern>(aConfig, aPatternsFile);
+    aGPs.insert(aGPs.begin(), tmpGPs.begin(), tmpGPs.end());
+  }
 
   for ( unsigned int i=0; i< luts.size(); i++ ) {
     l1t::LUT* lut=luts[i];
@@ -75,12 +79,13 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapP
     if(type=="iEta") outWidth = 2;
     if(type=="iPt") outWidth = 9;
     if(type=="meanDistPhi") {
-      outWidth = 11;
-      totalInWidth = 15; //in the  old version the number of minsDistPhi values aConfig.nGoldenPatterns()*aConfig.nLayers()*aConfig.nRefLayers()=11520, so 14 bits are needed
+      outWidth = aConfig.nPhiBits();
+      totalInWidth = 14;
+      //totalInWidth = 15; //in the  old version the number of minsDistPhi values aConfig.nGoldenPatterns()*aConfig.nLayers()*aConfig.nRefLayers()=11520, so 14 bits are needed
                          //in the new version we have two meanDistPhi values for each gp,iLayer,iRefLayer, so we need one bit of the address more
     }
     if(type=="pdf"){
-      outWidth = 6;
+      outWidth = aConfig.nPdfValBits();
       totalInWidth = 21;
     }
     if(type=="selDistPhiShift"){
@@ -141,6 +146,7 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapP
     
     ///Read the data into LUT
     int result = lut->read(strStream);
+
     if(result != l1t::LUT::SUCCESS) {
       throw cms::Exception("OMTF::XMLConfigReader::readLUTs: lut->read(strStream) did not returned l1t::LUT::SUCCESS but " + std::to_string(result));
     }
@@ -150,8 +156,10 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapP
 //////////////////////////////////////////////////
 unsigned int XMLConfigReader::getPatternsVersion() const{
 
+  if(!patternsFiles.size()) return 0;
+  std::string patternsFile = patternsFiles[0];
   if(patternsFile.empty()) return 0;
-
+  
   unsigned int version=0;
   XMLPlatformUtils::Initialize();
   {
@@ -180,7 +188,7 @@ unsigned int XMLConfigReader::getPatternsVersion() const{
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 template <class GoldenPatternType>
-std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(const L1TMuonOverlapParams& aConfig) {
+std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(const L1TMuonOverlapParams& aConfig, const std::string & patternsFile) {
   std::vector<std::shared_ptr<GoldenPatternType> > aGPs;
   aGPs.clear();
 
@@ -214,18 +222,18 @@ std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(c
       aGPElement = static_cast<DOMElement *>(aNode);
 
       std::unique_ptr<GoldenPatternType> aGP;
-      for(unsigned int index = 1;index<5;++index){
+      for(unsigned int index = 1;index<5;++index){	
         ///Patterns XML format backward compatibility. Can use both packed by 4, or by 1 XML files.
         if(aGPElement->getAttributeNode(xmliPt[index-1])) {
           aGP = buildGP<GoldenPatternType>(aGPElement, aConfig, index, iGPNumber);
-          if(aGP){
+          if(aGP && aGP->key().thePt){
             aGPs.emplace_back(std::move(aGP));
             iGPNumber++;
           }
         }
         else{
           aGP = buildGP<GoldenPatternType>(aGPElement, aConfig);
-          if(aGP){
+          if(aGP && aGP->key().thePt){
             aGPs.emplace_back(std::move(aGP));
             iGPNumber++;
           }
@@ -287,7 +295,6 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
   unsigned int iPt = std::atoi(_toString(aGPElement->getAttribute(xmliPt)).c_str());  
   int iEta = std::atoi(_toString(aGPElement->getAttribute(xmliEta)).c_str());
   int iCharge = std::atoi(_toString(aGPElement->getAttribute(xmliCharge)).c_str());
-  int val = 0;
   unsigned int nLayers = aGPElement->getElementsByTagName(xmlLayer)->getLength();
   assert(nLayers==(unsigned) aConfig.nLayers());
 
@@ -704,7 +711,7 @@ void XMLConfigReader::readConfig(L1TMuonOverlapParams *aConfig) const{
 
 
 template
-std::vector<std::shared_ptr<GoldenPatternWithStat> > XMLConfigReader::readPatterns<GoldenPatternWithStat>(const L1TMuonOverlapParams& aConfig);
+std::vector<std::shared_ptr<GoldenPatternWithStat> > XMLConfigReader::readPatterns<GoldenPatternWithStat>(const L1TMuonOverlapParams& aConfig, const std::string & patternsFile);
 
 template
-std::vector<std::shared_ptr<GoldenPatternWithThresh> > XMLConfigReader::readPatterns<GoldenPatternWithThresh>(const L1TMuonOverlapParams& aConfig);
+std::vector<std::shared_ptr<GoldenPatternWithThresh> > XMLConfigReader::readPatterns<GoldenPatternWithThresh>(const L1TMuonOverlapParams& aConfig, const std::string & patternsFile);

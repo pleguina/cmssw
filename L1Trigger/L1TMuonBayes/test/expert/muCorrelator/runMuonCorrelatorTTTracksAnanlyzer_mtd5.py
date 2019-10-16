@@ -48,8 +48,8 @@ process.load('Configuration.StandardSequences.Services_cff')
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
-process.load('Configuration.Geometry.GeometryExtended2023D41Reco_cff')
-process.load('Configuration.Geometry.GeometryExtended2023D41_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D35Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2023D35_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
@@ -63,7 +63,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '103X_upgrade2023_realistic_v2'
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1000))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 Source_Files = cms.untracked.vstring(
 #        "/store/relval/CMSSW_10_0_0_pre1/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/94X_upgrade2023_realistic_v2_2023D17noPU-v2/10000/06C888F3-CFCE-E711-8928-0CC47A4D764C.root"
@@ -87,8 +87,7 @@ Source_Files = cms.untracked.vstring(
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/GluGluHToZZTo4L_NoPU_FB98030B-16C5-9842-9698-8371EB8D8B01_dump1000Ev.root'
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/HSCPppstau_M_200_NoPU_F9EFA962-CDD8-C643-8F62-8F75384875F0_dump4000Ev.root'
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/JPsiToMuMu_Pt0to100_NoPU_FDA71CB6-4C3B-4540-99EB-803077C6EC2D_dump4000Ev.root'
-        #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_HSCPppstau_M_871__noPU_v32_F9357CE3-E1BD-C64C-8F43-895CFA3A0AFC_dump1000Ev.root'
-        'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_HSCPppstau_M_200__noPU_v32_A91AA4D8-5187-5544-8304-365404899406_dump1000Ev.root'
+        'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIMTDTDRAutumn18DR/PhaseIIMTDTDRAutumn18DR_BsToMuMu_SoftQCDnonD_NoPU_F8FB78DD-B8E0-834B-9C0B-853BB0B9C13B_dump4000Ev.root'
 )
 
 
@@ -102,8 +101,8 @@ process.source = cms.Source("PoolSource", fileNames = Source_Files,
         'drop l1tEMTFTrack2016s_simEmtfDigis__HLT')
 )
 
-#process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_JPsiToMuMu_Pt0to100_NoPU.root'), closeFileFast = cms.untracked.bool(True))
-process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_HSCPppstau_M_200_NoPU.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_mtd5_BsToMuMu_SoftQCDnonD_NoPU.root'), closeFileFast = cms.untracked.bool(True))
+#process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_GluGluHToZZTo4L_NoPU.root'), closeFileFast = cms.untracked.bool(True))
 #process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_HSCPppstau_M_200_NoPU.root'), closeFileFast = cms.untracked.bool(True))
 
 #from L1Trigger.Configuration.customiseUtils import L1TrackTriggerTracklet, L1TTurnOffHGCalTPs_v9, configureCSCLCTAsRun2
