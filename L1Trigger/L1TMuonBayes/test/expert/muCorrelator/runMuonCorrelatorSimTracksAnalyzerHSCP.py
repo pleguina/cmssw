@@ -190,6 +190,8 @@ process.simBayesMuCorrelatorTrackProducer.generateTiming = cms.bool(False)
 #process.simBayesMuCorrelatorTrackProducer.outputTimingFile = cms.string("muTimingModule.xml")
 #process.simBayesMuCorrelatorTrackProducer.timingModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/muTimingModuleTest.xml")#
 
+process.simBayesMuCorrelatorTrackProducer.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
@@ -225,6 +227,7 @@ process.omtfTTAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer",
                                        TP_minPt = cms.double(2.0),       # only save TPs with pt > X GeV
                                        TP_maxEta = cms.double(2.4),      # only save TPs with |eta| < X
                                        TP_maxZ0 = cms.double(30.0),      # only save TPs with |z0| < X cm
+                                       TP_maxRho = cms.double(30.0),     # for efficiency analysis, to not inlude the muons from the far decays 
                                        L1TrackInputTag = cms.InputTag("TTTracksFromTracklet", "Level1TTTracks"),               ## TTTrack input
                                        MCTruthTrackInputTag = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks"), ## MCTruth input 
                                        # other input collections

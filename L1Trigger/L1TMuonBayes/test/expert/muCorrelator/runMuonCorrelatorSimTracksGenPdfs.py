@@ -201,14 +201,14 @@ process.load('L1Trigger.L1TMuonBayes.simBayesMuCorrelatorTrackProducer_cfi')
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorHistsSimTracks100Files_t9.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorHistsSimTracks100Files_t8.root'), closeFileFast = cms.untracked.bool(True))
 
 process.simBayesMuCorrelatorTrackProducer.g4SimTrackSrc = cms.InputTag('g4SimHits')
 process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("SIM_TRACKS")
 process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
 process.simBayesMuCorrelatorTrackProducer.minDtPhQuality = cms.int32(4);
 process.simBayesMuCorrelatorTrackProducer.generatePdfs = cms.bool(True);
-process.simBayesMuCorrelatorTrackProducer.outPdfModuleFile = cms.string("pdfModuleSimTracks100FilesSigma1p3_t9.xml") #TODO
+process.simBayesMuCorrelatorTrackProducer.outPdfModuleFile = cms.string("pdfModuleSimTracks100FilesSigma1p3_t8.xml") #TODO
 process.simBayesMuCorrelatorTrackProducer.generateTiming = cms.bool(False)
 
 process.simBayesMuCorrelatorTrackProducer.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6

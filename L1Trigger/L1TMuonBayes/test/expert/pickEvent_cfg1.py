@@ -41,7 +41,10 @@ Source_Files = cms.untracked.vstring(
          #'/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_871_TuneCUETP8M1_14TeV_pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/40000/F7B16025-96C6-7F49-97CD-E2650DDA67C1.root'
          #'/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_200_TuneCUETP8M1_14TeV_pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v2/50000/F9EFA962-CDD8-C643-8F62-8F75384875F0.root'
          #'/store/mc/PhaseIITDRSpring19DR/JPsiToMuMu_Pt0to100-pythia8-gun/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/40000/FDA71CB6-4C3B-4540-99EB-803077C6EC2D.root'
-         '/store/mc/PhaseIIMTDTDRAutumn18DR/BsToMuMu_SoftQCDnonD_TuneCP5_14TeV-pythia8-evtgen/FEVT/NoPU_103X_upgrade2023_realistic_v2-v1/40000/F8FB78DD-B8E0-834B-9C0B-853BB0B9C13B.root'
+         #'/store/mc/PhaseIIMTDTDRAutumn18DR/BsToMuMu_SoftQCDnonD_TuneCP5_14TeV-pythia8-evtgen/FEVT/NoPU_103X_upgrade2023_realistic_v2-v1/40000/F8FB78DD-B8E0-834B-9C0B-853BB0B9C13B.root'
+         #"/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_871_TuneCP5_14TeV_pythia8/GEN-SIM-DIGI-RAW/PU200_106X_upgrade2023_realistic_v3-v2/60000/FFCC029A-296A-3547-BFF3-23D06CAC0E78.root"
+         #"/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_871_TuneCP5_14TeV_pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v2/60000/F9357CE3-E1BD-C64C-8F43-895CFA3A0AFC.root"
+         "/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_200_TuneCP5_14TeV_pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v2/60000/A91AA4D8-5187-5544-8304-365404899406.root"
 )
 
 process = cms.Process("PickEvent")
@@ -77,12 +80,12 @@ process.source = cms.Source ("PoolSource",
           )                               
 )
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(4000))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1000))
 
 #outputFileNme = '/eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_FlatPt-2to100/GEN-SIM-DIGI-RAW/L1TnoPU_93X_upgrade2023_realistic_v5-v1/00000/F4EEAE55-C937-E811-8C29-48FD8EE739D1_dump1000Events.root'
 #outputFileNme = 'HSCPppstau_M-651_TuneZ2star_13TeV_0E0D542C-A9C8-E611-981C-A0000420FE80_dump100Events.root'
 #outputFileNme = 'SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root'
-outputFileNme = 'PhaseIIMTDTDRAutumn18DR_BsToMuMu_SoftQCDnonD_F8FB78DD-B8E0-834B-9C0B-853BB0B9C13B_dump4000Ev.root'
+outputFileNme = 'PhaseIITDRSpring19DR_HSCPppstau_M_200__noPU_v32_A91AA4D8-5187-5544-8304-365404899406_dump1000Ev.root'
 
 process.Out = cms.OutputModule("PoolOutputModule",
         fileName = cms.untracked.string (outputFileNme)
