@@ -47,21 +47,23 @@ process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
 process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis1.root'), closeFileFast = cms.untracked.bool(True) )
                                    
 ####OMTF Emulator
-process.load('L1Trigger.L1TMuonBayes.simOmtfDigis_cfi')
+process.load('L1Trigger.L1TMuonBayes.simBayesOmtfDigis_cfi')
 
-process.simOmtfDigis.dumpResultToXML = cms.bool(True)
-process.simOmtfDigis.rpcMaxClusterSize = cms.int32(4)
-process.simOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
-process.simOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
+process.simBayesOmtfDigis.dumpResultToXML = cms.bool(True)
+process.simBayesOmtfDigis.dumpResultToROOT = cms.bool(False)
 
-process.simOmtfDigis.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
+process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
+process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(False)
+
+process.simBayesOmtfDigis.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
 
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
 process.L1TMuonSeq = cms.Sequence( process.esProd          
-                                   + process.simOmtfDigis 
+                                   + process.simBayesOmtfDigis 
                                    #+ process.dumpED
                                    #+ process.dumpES
 )

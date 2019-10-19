@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 ###OMTF emulator configuration
-simOmtfDigis = cms.EDProducer("L1TMuonBayesOmtfTrackProducer",
+simBayesOmtfDigis = cms.EDProducer("L1TMuonBayesOmtfTrackProducer",
                               
   srcDTPh = cms.InputTag('simDtTriggerPrimitiveDigis'),
   srcDTTh = cms.InputTag('simDtTriggerPrimitiveDigis'),
