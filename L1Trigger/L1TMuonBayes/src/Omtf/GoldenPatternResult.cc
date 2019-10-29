@@ -47,7 +47,7 @@ void GoldenPatternResult::set(int refLayer_, int phi, int eta, int refHitPhi) {
   hitPdfBins[iLayer] = layerResult.pdfBin;
   hits[iLayer] = layerResult.hit;
   if(layerResult.valid || layerResult.pdfVal)
-    std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" refLayer "<<refLayer<<" pdfBin "<<layerResult.pdfBin<<" val "<<layerResult.pdfVal<<" valid "<<layerResult.valid<<std::endl;
+    " iLayer "<<iLayer<<" refLayer "<<refLayer<<" pdfBin "<<layerResult.pdfBin<<" val "<<layerResult.pdfVal<<" valid "<<layerResult.valid<<std::endl;
   //pdfSum += pdfVal; - this cannot be done here, because the pdfVal for the banding layer must be added only
   //if hit in the corresponding phi layer was accpeted (i.e. its pdfVal > 0. therefore it is done in finalise()
 }*/
@@ -206,6 +206,29 @@ void GoldenPatternResult::finalise3() {
   //by default result becomes valid here, but can be overwritten later
 }
 
+void GoldenPatternResult::finalise5() {
+  for(unsigned int iLogicLayer=0; iLogicLayer < stubResults.size(); ++iLogicLayer) {
+    unsigned int connectedLayer = omtfConfig->getLogicToLogic().at(iLogicLayer);
+
+    if(omtfConfig->isBendingLayer(iLogicLayer)) { //the DT phiB layer is counted only when the phi layer is fired
+      if( (firedLayerBits & (1<<iLogicLayer) ) && (firedLayerBits & (1<<connectedLayer) ) ) {
+        pdfSum += stubResults[iLogicLayer].getPdfVal();
+        firedLayerCnt++;
+      }
+      else {
+        firedLayerBits &= ~(1<<iLogicLayer);
+      }
+    }
+    else if( firedLayerBits & (1<<iLogicLayer) ) {
+      pdfSum += stubResults[iLogicLayer].getPdfVal();
+      firedLayerCnt++;
+    }
+  }
+
+  valid = true;
+  //by default result becomes valid here, but can be overwritten later
+}
+
 /*void GoldenPatternResult::finalise2() {
   pdfSum = 1.;
   for(unsigned int iLogicLayer=0; iLogicLayer < pdfValues.size(); ++iLogicLayer) {
@@ -239,12 +262,16 @@ std::ostream & operator << (std::ostream &out, const GoldenPatternResult & gpRes
   unsigned int refLayerLogicNum = gpResult.omtfConfig->getRefToLogicNumber()[gpResult.getRefLayer()];
 
   for(unsigned int iLogicLayer=0; iLogicLayer < gpResult.stubResults.size(); ++iLogicLayer) {
-    out<<" layer: "<<std::setw(2)<<iLogicLayer<<" hit: "
-        <<std::setw(4)<<(gpResult.omtfConfig->isBendingLayer(iLogicLayer) ? gpResult.stubResults[iLogicLayer].getMuonStub()->phiBHw : gpResult.stubResults[iLogicLayer].getMuonStub()->phiHw )
-        <<" pdfBin: "<<std::setw(4)<<gpResult.stubResults[iLogicLayer].getPdfBin()
+    out<<" layer: "<<std::setw(2)<<iLogicLayer<<" hit: ";
+    if(gpResult.stubResults[iLogicLayer].getMuonStub()) {
+      out<<std::setw(4)<<(gpResult.omtfConfig->isBendingLayer(iLogicLayer) ? gpResult.stubResults[iLogicLayer].getMuonStub()->phiBHw : gpResult.stubResults[iLogicLayer].getMuonStub()->phiHw );
+
+      out<<" pdfBin: "<<std::setw(4)<<gpResult.stubResults[iLogicLayer].getPdfBin()
         <<" pdfVal: "<<std::setw(3)<<gpResult.stubResults[iLogicLayer].getPdfVal()
-       <<" fired "<<gpResult.isLayerFired(iLogicLayer)
-       <<(iLogicLayer == refLayerLogicNum ? " <<< refLayer" : "")<<std::endl;
+        <<" fired "<<gpResult.isLayerFired(iLogicLayer)
+        <<(iLogicLayer == refLayerLogicNum ? " <<< refLayer" : "");
+    }
+    out<<std::endl;
   }
 
   out<<"  refLayer: ";

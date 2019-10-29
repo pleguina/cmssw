@@ -170,6 +170,8 @@ public:
       finalise2();
     else if(finalizeFunction == 3)
       finalise3();
+    else if(finalizeFunction == 5)
+      finalise5();
     else
       finalise0();
   }
@@ -186,6 +188,7 @@ public:
   //for patterns generation
   void finalise3();
 
+  void finalise5();
   //bool empty() const;
 
   friend std::ostream & operator << (std::ostream &out, const GoldenPatternResult & aResult);
