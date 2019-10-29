@@ -7,7 +7,7 @@ import commands
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
-verbose = False
+verbose = True
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -15,18 +15,19 @@ if verbose:
        destinations   = cms.untracked.vstring(
                                                #'detailedInfo',
                                                #'critical',
-                                               'cout',
+                                               #'cout',
                                                #'cerr',
                                                'muCorrelatorEventPrint'
                     ),
-       categories        = cms.untracked.vstring('l1tMuBayesEventPrint'),
+       categories        = cms.untracked.vstring('l1tMuBayesEventPrint', 'OMTFReconstruction'),
        muCorrelatorEventPrint = cms.untracked.PSet(    
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
                          #INFO   =  cms.untracked.int32(0),
                          #DEBUG   = cms.untracked.int32(0),
-                         l1tMuBayesEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(100000000) )
+                         l1tMuBayesEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) ),
+                         OMTFReconstruction = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) )
                        ),
        debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'OmtfTTAnalyzer', 'simBayesOmtfDigis', 'omtfTTAnalyzer', 'simBayesMuCorrelatorTrackProducer') 
        #debugModules = cms.untracked.vstring('*')
@@ -84,11 +85,12 @@ Source_Files = cms.untracked.vstring(
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root'
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/ZMM_EE29AF8E-51AF-E811-A2BD-484D7E8DF0D3_dump1000Events.root'
          #'file:///eos/user/a/akalinow/Data/SingleMu/SingleMuFlatPt_50GeVto10GeV_cfi_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT.root'
-         'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/GluGluHToZZTo4L_NoPU_FB98030B-16C5-9842-9698-8371EB8D8B01_dump1000Ev.root'
+         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/GluGluHToZZTo4L_NoPU_FB98030B-16C5-9842-9698-8371EB8D8B01_dump1000Ev.root'
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/HSCPppstau_M_200_NoPU_F9EFA962-CDD8-C643-8F62-8F75384875F0_dump4000Ev.root'
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/JPsiToMuMu_Pt0to100_NoPU_FDA71CB6-4C3B-4540-99EB-803077C6EC2D_dump4000Ev.root'
         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_HSCPppstau_M_871__noPU_v32_F9357CE3-E1BD-C64C-8F43-895CFA3A0AFC_dump1000Ev.root'
         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_HSCPppstau_M_200__noPU_v32_A91AA4D8-5187-5544-8304-365404899406_dump1000Ev.root'
+        "file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root"
 )
 
 
@@ -102,7 +104,9 @@ process.source = cms.Source("PoolSource", fileNames = Source_Files,
         'drop l1tEMTFTrack2016s_simEmtfDigis__HLT')
 )
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1.root'), closeFileFast = cms.untracked.bool(True))
+#process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_JPsiToMuMu_Pt0to100_NoPU.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_Mu_FlatPt2to100_NoPU_L1TkMuons.root'), closeFileFast = cms.untracked.bool(True))
+#process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1_HSCPppstau_M_200_NoPU.root'), closeFileFast = cms.untracked.bool(True))
 
 #from L1Trigger.Configuration.customiseUtils import L1TrackTriggerTracklet, L1TTurnOffHGCalTPs_v9, configureCSCLCTAsRun2
 #process = L1TrackTriggerTracklet(process)
@@ -172,7 +176,7 @@ process.load('L1Trigger.L1TMuonBayes.simBayesMuCorrelatorTrackProducer_cfi')
 
 process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("L1_TRACKER")
 #process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("SIM_TRACKS") #TODO !!!!!!!
-#process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
+process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
 #process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModule.xml") #TODO!!!!!!!!!!!!!!!!!!!!!!!!!!11
 #process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModuleSimTracks100FilesWithiRPC.xml")
 #process.simBayesMuCorrelatorTrackProducer.timingModuleFile  = cms.FileInPath("L1Trigger/L1TMuonBayes/test/muTimingModule100FilesWithiRPC.xml")
@@ -187,7 +191,7 @@ process.simBayesMuCorrelatorTrackProducer.useStubsFromAdditionalBxs = cms.int32(
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonBayes.simBayesOmtfDigis_cfi')
 
-process.simBayesOmtfDigis.dumpResultToXML = cms.bool(False)
+process.simBayesOmtfDigis.dumpResultToXML = cms.bool(True)
 process.simBayesOmtfDigis.dumpResultToROOT = cms.bool(False)
 
 process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
@@ -227,9 +231,9 @@ for a in sys.argv :
 print "analysisType=" + analysisType
 
 process.omtfTTAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer", 
-                                 outRootFile = cms.string("muCorrelatorTTAnalysis1.root"),
-                                 etaCutFrom = cms.double(0.), #OMTF eta range
-                                 etaCutTo = cms.double(2.4),
+                                 outRootFile = cms.string("l1TkMuonsTP_analysis1.root"),
+                                 etaCutFrom = cms.double(0.8), #OMTF eta range
+                                 etaCutTo = cms.double(1.2), #2.4
                                           
                                        MyProcess = cms.int32(1),
                                        DebugMode = cms.bool(verbose),      # printout lots of debug statements
