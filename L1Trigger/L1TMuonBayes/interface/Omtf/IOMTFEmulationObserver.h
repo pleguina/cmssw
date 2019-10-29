@@ -17,14 +17,14 @@ public:
   IOMTFEmulationObserver();
   virtual ~IOMTFEmulationObserver();
 
-  virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
+  virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,
       const AlgoMuons& algoCandidates,
       const AlgoMuons& gbCandidates,
       const std::vector<l1t::RegionalMuonCand> & candMuons ) = 0;
 
   virtual void observeEventBegin(const edm::Event& iEvent) {};
 
-  virtual void observeEventEnd(const edm::Event& iEvent) {};
+  virtual void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {};
 
   virtual void endJob() = 0;
 };

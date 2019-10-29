@@ -65,7 +65,7 @@ DataROOTDumper::~DataROOTDumper() {
 }
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
-void DataROOTDumper::observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
+void DataROOTDumper::observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,
 					      const AlgoMuons& algoCandidates,
 					      const AlgoMuons& gbCandidates,
 					      const std::vector<l1t::RegionalMuonCand> & candMuons) {
@@ -94,10 +94,10 @@ void DataROOTDumper::observeProcesorEmulation(unsigned int iProcessor, l1t::tfty
     int phi, hwQuality, tmp, sign;
     for(unsigned int iLogicLayer=0;iLogicLayer<omtfConfig->nLayers();++iLogicLayer){
       for(unsigned int iHit=0;iHit<omtfConfig->nInputs();++iHit){
-	phi = input.getPhiHw(iLogicLayer, iHit);	
+	phi = input->getPhiHw(iLogicLayer, iHit);
 	if(phi!=5400){
-	  if(!input.getMuonStub(iLogicLayer, iHit)) hwQuality = input.getMuonStub(iLogicLayer-1, iHit)->qualityHw;
-	  else hwQuality = input.getMuonStub(iLogicLayer, iHit)->qualityHw;
+	  if(!input->getMuonStub(iLogicLayer, iHit)) hwQuality = input->getMuonStub(iLogicLayer-1, iHit)->qualityHw;
+	  else hwQuality = input->getMuonStub(iLogicLayer, iHit)->qualityHw;
 	  if(phi<0) {
 	    sign = 1;
 	    phi = std::abs(phi);
@@ -114,7 +114,7 @@ void DataROOTDumper::observeProcesorEmulation(unsigned int iProcessor, l1t::tfty
 }
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
-void DataROOTDumper::observeEventEnd(const edm::Event& iEvent) {
+void DataROOTDumper::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
 
   //no sim muon or empty candidate
   if(simMuon == 0){

@@ -19,6 +19,16 @@ OmtfName::OmtfName(unsigned int iProcesor, l1t::tftype endcap)
   theBoard = static_cast<Board>( sgn(position)*(iproc+1) );
 }
 
+OmtfName::OmtfName(unsigned int iProcesor)
+{
+  int board = 0;
+  if(iProcesor <=5) //OMTFn
+    board = -iProcesor -1;
+  else //OMTFp
+    board = iProcesor -5;
+  theBoard = static_cast<Board>( board);
+}
+
 OmtfName::OmtfName(const std::string & board) 
 {
   if (board=="OMTFn1") theBoard =  OMTFn1;

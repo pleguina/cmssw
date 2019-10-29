@@ -19,7 +19,7 @@ XMLEventWriter::~XMLEventWriter() {
   // TODO Auto-generated destructor stub
 }
 
-void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
+void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,
     const AlgoMuons& algoCandidates,
     const AlgoMuons& gbCandidates,
     const std::vector<l1t::RegionalMuonCand> & candMuons)
@@ -36,7 +36,7 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor, l1t::tfty
   //if(currentElement == nullptr)
   //  currentElement = xmlWriter.writeEventHeader(eventId);
 
-  xercesc::DOMElement * aProcElement = xmlWriter.writeEventData(currentElement, board, input);
+  xercesc::DOMElement * aProcElement = xmlWriter.writeEventData(currentElement, board, *(input.get()));
 
   for(auto& algoCand : algoCandidates) {
     ///Dump only regions, where a candidate was found
@@ -63,7 +63,7 @@ void XMLEventWriter::observeEventBegin(const edm::Event& iEvent) {
   currentElement = xmlWriter.writeEventHeader(eventId);
 }
 
-void XMLEventWriter::observeEventEnd(const edm::Event& iEvent) {
+void XMLEventWriter::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
   currentElement = nullptr;
 }
 

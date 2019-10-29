@@ -64,7 +64,7 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
   else*/
 
   int sorterTypeFlag = 0;
-  if(edmCfg.exists("sorterType")){
+  if(edmCfg.exists("sorterType")) {
     string sorterType = edmCfg.getParameter<std::string>("sorterType");
     if(sorterType == "byNhitsByLLH") sorterTypeFlag = 0;
     if(sorterType == "byLLH") sorterTypeFlag = 1;
@@ -80,6 +80,12 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
   }
   else {
     setGhostBuster(new GhostBuster()); //initialize with the default sorter
+  }
+
+  if(edmCfg.exists("goldenPatternResultFinalizeFunction")) {
+    int finalizeFunction = edmCfg.getParameter<int>("goldenPatternResultFinalizeFunction");
+    GoldenPatternResult::setFinalizeFunction(finalizeFunction);
+    edm::LogImportant("OMTFReconstruction") << "GoldenPatternResult::setFinalizeFunction: "<<finalizeFunction << std::endl;
   }
 
   inputMaker.initialize(edmCfg, evSetup, this->myOmtfConfig, muStubsInputTokens);
@@ -251,7 +257,7 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
       //std::cout<<"iLayer "<<iLayer<<" refHitNum "<<myOmtfConfig->nTestRefHits()-nTestedRefHits-1<<" iRefHit "<<iRefHit;
       //std::cout<<" nTestedRefHits "<<nTestedRefHits<<" aRefHitDef "<<aRefHitDef<<std::endl;
 
-      int refLayerLogicNumber = this->myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer];
+      //int refLayerLogicNumber = this->myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer];
 
       unsigned int refHitNumber = this->myOmtfConfig->nTestRefHits()-nTestedRefHits-1;
       for(auto& itGP: this->theGPs) {
@@ -301,13 +307,13 @@ run(unsigned int iProcessor, l1t::tftype mtfType, int bx, std::vector<std::uniqu
   //boost::timer::auto_cpu_timer t("%ws wall, %us user in getProcessorCandidates\n");
   inputMaker.setFlag(0);
 
-  OMTFinput input(this->myOmtfConfig);
-  inputMaker.buildInputForProcessor(input.getMuonStubs(),
+  std::shared_ptr<OMTFinput> input = std::make_shared<OMTFinput>(this->myOmtfConfig);
+  inputMaker.buildInputForProcessor(input->getMuonStubs(),
                 iProcessor, mtfType, bx, bx);
   int flag = inputMaker.getFlag();
 
   //cout<<"buildInputForProce "; t.report();
-  processInput(iProcessor, mtfType, input);
+  processInput(iProcessor, mtfType, *(input.get()));
 
   //cout<<"processInput       "; t.report();
   AlgoMuons algoCandidates =  sortResults(iProcessor, mtfType);

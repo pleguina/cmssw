@@ -25,7 +25,9 @@ public:
 
   //by giving procesor id [0,5] and endcap position as l1t::tftype of omtf_pos or omtf_neg.
   explicit OmtfName(unsigned int iProcesor, l1t::tftype endcap);
-  
+
+  //by giving procesor continous index [0,11].
+  explicit OmtfName(unsigned int iProcesor);
 
   operator int () const { return theBoard; } 
   bool operator==(const OmtfName& o) const { return theBoard == o.theBoard; } 

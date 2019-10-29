@@ -49,7 +49,7 @@ void PatternOptimizerBase::printPatterns() {
   }
 }
 
-void PatternOptimizerBase::observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
+void PatternOptimizerBase::observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,
     const AlgoMuons& algoCandidates,
     const AlgoMuons& gbCandidates,
     const std::vector<l1t::RegionalMuonCand> & candMuons) {
@@ -114,7 +114,7 @@ void PatternOptimizerBase::observeEventBegin(const edm::Event& iEvent) {
   //cout<<__FUNCTION__<<":"<<__LINE__<<" evevt "<<iEvent.id().event()<<" simMuon pt "<<simMuon->momentum().pt()<<" GeV "<<std::endl;
 }
 
-void PatternOptimizerBase::observeEventEnd(const edm::Event& iEvent) {
+void PatternOptimizerBase::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
   if(simMuon == 0 || omtfCand->getGoldenPatern() == 0)//no sim muon or empty candidate
     return;
 

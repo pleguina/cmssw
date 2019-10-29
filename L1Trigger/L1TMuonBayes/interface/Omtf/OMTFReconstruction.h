@@ -63,7 +63,10 @@ class OMTFReconstruction {
             l1t::RegionalMuonCandBxCollection & myCandidates);*/
   
 
-    bool dumpResultToXML, dumpDetailedResultToXML, dumpResultToROOT;
+    bool dumpResultToXML = false;
+    bool dumpDetailedResultToXML = false;
+    bool dumpResultToROOT = false;
+    bool eventCaptureDebug = false;
     int bxMin, bxMax;
 
   ///OMTF objects

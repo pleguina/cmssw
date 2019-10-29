@@ -17,14 +17,14 @@ public:
 
   virtual ~XMLEventWriter();
 
-  void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
+  void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,
       const AlgoMuons& algoCandidates,
       const AlgoMuons& gbCandidates,
       const std::vector<l1t::RegionalMuonCand> & candMuons) override;
 
   void observeEventBegin(const edm::Event& iEvent) override;
 
-  void observeEventEnd(const edm::Event& iEvent) override;
+  void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
   void endJob() override;
 private:

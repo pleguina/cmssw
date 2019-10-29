@@ -136,14 +136,14 @@ void PatternOptimizer::modifyPatterns() {
 PatternOptimizer::~PatternOptimizer() {
 }
 
-void PatternOptimizer::observeEventEnd(const edm::Event& iEvent) {
+void PatternOptimizer::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
   if(simMuon == 0 || omtfCand->getGoldenPatern() == 0)//no sim muon or empty candidate
     return;
 
   //cout<<__FUNCTION__<<":"<<__LINE__<<" event "<<iEvent.id().event()<<endl;
   //cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCand "<<omtfCand<<std::endl;
   //cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCand->getGpResult() "<<std::endl<<omtfCand->getGpResult()<<std::endl;
-  PatternOptimizerBase::observeEventEnd(iEvent);
+  PatternOptimizerBase::observeEventEnd(iEvent, finalCandidates);
 
   GoldenPatternWithStat* omtfCandGp = static_cast<GoldenPatternWithStat*>(omtfCand->getGoldenPatern());
 

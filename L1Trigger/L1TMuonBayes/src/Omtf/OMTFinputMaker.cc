@@ -5,6 +5,7 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include <iomanip>
 #include <algorithm>
 
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
@@ -373,13 +374,13 @@ void OMTFinputMaker::addRPCstub(MuonStubPtrs2D& muonStubsInLayers, const RPCDetI
       //<<" out: " << outres
       <<std::endl;
 
-  edm::LogInfo("MuonStubMaker")<<str.str();
+  LogTrace("l1tMuBayesEventPrint")<<str.str();
 }
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 void OMTFinputMaker::addStub(MuonStubPtrs2D& muonStubsInLayers, unsigned int iLayer, unsigned int iInput, MuonStub& stub) {
-  LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" OMTFinputMaker adding stub to layer to iLayer"<<" iLayer "<<stub<<endl;
+  LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iInput "<<iInput<<" "<<stub<<endl;
   //in principle it is possible that in the DAQ data the digis are duplicated,
   //since the same link is connected to two OMTF boards
   //in principle this dupliactes should be already reoomved in the OMTF uncpacer, but just in case...
