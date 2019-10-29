@@ -34,7 +34,7 @@ if verbose:
 
     #process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
 if not verbose:
-    process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
+    process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1000)
     process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False), 
                                          #SkipEvent = cms.untracked.vstring('ProductNotFound') 
                                      )
@@ -84,11 +84,13 @@ Source_Files = cms.untracked.vstring(
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root'
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/ZMM_EE29AF8E-51AF-E811-A2BD-484D7E8DF0D3_dump1000Events.root'
          #'file:///eos/user/a/akalinow/Data/SingleMu/SingleMuFlatPt_50GeVto10GeV_cfi_py_GEN_SIM_DIGI_L1_L1TrackTrigger_DIGI2RAW_HLT.root'
-         'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/GluGluHToZZTo4L_NoPU_FB98030B-16C5-9842-9698-8371EB8D8B01_dump1000Ev.root'
+         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/GluGluHToZZTo4L_NoPU_FB98030B-16C5-9842-9698-8371EB8D8B01_dump1000Ev.root'
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/HSCPppstau_M_200_NoPU_F9EFA962-CDD8-C643-8F62-8F75384875F0_dump4000Ev.root'
          #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/JPsiToMuMu_Pt0to100_NoPU_FDA71CB6-4C3B-4540-99EB-803077C6EC2D_dump4000Ev.root'
         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_HSCPppstau_M_871__noPU_v32_F9357CE3-E1BD-C64C-8F43-895CFA3A0AFC_dump1000Ev.root'
         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_HSCPppstau_M_200__noPU_v32_A91AA4D8-5187-5544-8304-365404899406_dump1000Ev.root'
+        "file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root"
+
 )
 
 
