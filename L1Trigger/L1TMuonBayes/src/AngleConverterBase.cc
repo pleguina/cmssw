@@ -168,12 +168,19 @@ int AngleConverterBase::getProcessorPhi(int phiZero, l1t::tftype part, const RPC
   double stripPhi2 = (roll->toGlobal(roll->centreOfStrip((int)digi2))).phi(); // note [-pi,pi]
   // stripPhi from geometry is given in [-pi,pi] range.  
 
-  // local angle in CSC halfStrip usnits
+  // the case when the two strips are on different sides of phi = pi
+  if(std::signbit(stripPhi1) != std::signbit(stripPhi2) && abs(stripPhi1) > M_PI/2.) {
+    if(std::signbit(stripPhi1) ) {//stripPhi1 is negative
+      stripPhi1 += 2*M_PI;
+    }
+    else                          //stripPhi2 is negative
+      stripPhi2 += 2*M_PI;
+  }
   int halfStrip = lround ( ( (stripPhi1+stripPhi2)/2.)/hsPhiPitch);
   halfStrip = config->foldPhi(halfStrip); //only for the case when the two strips are on different sides of phi = pi
 
-//  LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" roll "<<rollId<<" cluster: firstStrip "<<digi1<<" stripPhi1 "<<stripPhi1
-//      <<" lastStrip "<<digi2<<" stripPhi2 "<<stripPhi2<<" halfStrip "<<halfStrip<<std::endl;
+  LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<175<<" roll "<<rollId<<" cluster: firstStrip "<<digi1<<" stripPhi1 "<<stripPhi1
+      <<" lastStrip "<<digi2<<" stripPhi2 "<<stripPhi2<<" halfStrip "<<halfStrip<<std::endl;
 
   return config->foldPhi(halfStrip - phiZero);
 }
