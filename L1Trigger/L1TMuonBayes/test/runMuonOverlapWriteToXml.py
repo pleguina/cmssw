@@ -105,7 +105,7 @@ process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(True)
 
 process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
-process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(False)
+process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
 process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(5) #valid values are 0, 1, 2, 3, 5
 

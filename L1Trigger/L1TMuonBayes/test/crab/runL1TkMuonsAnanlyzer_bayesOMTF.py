@@ -204,8 +204,8 @@ process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
 process.L1TMuonSeq = cms.Sequence( #process.esProd +         
                                    #process.simBayesMuCorrelatorTrackProducer + 
-                                   process.simBayesOmtfDigis +
-                                   process.L1TkMuonsTP
+                                   process.simBayesOmtfDigis
+                                   + process.L1TkMuonsTP
                                    #+ process.dumpED
                                    #+ process.dumpES
 )
