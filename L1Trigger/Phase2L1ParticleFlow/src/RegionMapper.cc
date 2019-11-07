@@ -89,6 +89,21 @@ void RegionMapper::addMuon( const l1t::Muon &mu ) {
         }
     } 
 }
+
+
+void RegionMapper::addMuon( const l1t::L1TkMuonParticle &mu) {
+    // now let's be optimistic and make things very simple
+    // we don't propagate anything
+    for (Region &r : regions_) {
+        if (r.contains(mu.eta(), mu.phi())) {
+            Muon prop;
+            prop.fill(mu.pt(), r.localEta(mu.eta()), r.localPhi(mu.phi()), mu.charge(), mu.hwQual());
+            r.muon.push_back(prop);
+        }
+    } 
+}
+
+
 void RegionMapper::addMuon( const l1t::Muon &mu, l1t::PFCandidate::MuonRef ref ) {
     addMuon(mu);
     muonRefMap_[&mu] = ref;
@@ -228,6 +243,16 @@ std::pair<unsigned,unsigned> RegionMapper::totAndMaxInput(int type) const {
     }
     return std::make_pair(ntot,nmax);
 }
+
+std::unique_ptr<std::vector<unsigned>> RegionMapper::vecInput(int type) const {
+  std::auto_ptr<std::vector<unsigned>> v(new std::vector<unsigned>);
+    for (const auto & r : regions_) {
+        unsigned ni = r.nInput(Region::InputType(type));
+	v->push_back(ni);
+    }
+    return v;
+}
+
 std::pair<unsigned,unsigned> RegionMapper::totAndMaxOutput(int type, bool puppi) const {
     unsigned ntot = 0, nmax = 0;
     for (const auto & r : regions_) {
@@ -237,5 +262,15 @@ std::pair<unsigned,unsigned> RegionMapper::totAndMaxOutput(int type, bool puppi)
     }
     return std::make_pair(ntot,nmax);
 }
+
+std::unique_ptr<std::vector<unsigned>> RegionMapper::vecOutput(int type, bool puppi) const {
+  std::auto_ptr<std::vector<unsigned>> v(new std::vector<unsigned>);
+    for (const auto & r : regions_) {
+        unsigned ni = r.nOutput(Region::OutputType(type),puppi);
+        v->push_back(ni);
+    }
+    return v;
+}
+
 
 

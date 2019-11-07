@@ -29,6 +29,7 @@ class L1TkMuCorrDynamicWindows{
         typedef std::vector< L1TTTrackType >       L1TTTrackCollectionType;
 
         L1TkMuCorrDynamicWindows(std::vector<double>& bounds, TFile* fIn_theta, TFile* fIn_phi);
+        L1TkMuCorrDynamicWindows(std::vector<double>& bounds, TFile* fIn_theta, TFile* fIn_phi, TFile* fIn_theta_S1, TFile* fIn_phi_S1);
         ~L1TkMuCorrDynamicWindows(){};
         // void test(double eta, double pt);
         // std::vector<int> find_match(const EMTFTrackCollection& l1mus, const L1TTTrackCollectionType& l1tks l1trks, std::vector<int>* narbitrated = nullptr); // gives a vector with the idxs of muons for each L1TTT
@@ -128,6 +129,8 @@ class L1TkMuCorrDynamicWindows{
         std::vector<double> bounds_; // counts the boundaries of the MatchWindow (in eta/theta)
         std::vector<MuMatchWindow> wdws_theta_;
         std::vector<MuMatchWindow> wdws_phi_;
+        std::vector<MuMatchWindow> wdws_theta_S1_;
+        std::vector<MuMatchWindow> wdws_phi_S1_;
         float safety_factor_l_; // increase the lower theta/phi threshold by this fractions
         float safety_factor_h_; // increase the upper theta/phi threshold by this fractions
         float initial_sf_l_; // the start of the relaxation

@@ -15,6 +15,9 @@ pL1TkPhotons = cms.Path( L1TkPhotons )
 from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkElectronsCrystal
 pL1TkElectronsCrystal = cms.Path( L1TkElectronsCrystal )
 
+from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkElectronsEllipticMatchCrystal
+pL1TkElectronsEllipticMatchCrystal = cms.Path( L1TkElectronsEllipticMatchCrystal )
+
 from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkElectronsLooseCrystal
 pL1TkElectronsLooseCrystal = cms.Path( L1TkElectronsLooseCrystal )
 
@@ -24,11 +27,17 @@ pL1TkIsoElectronsCrystal = cms.Path( L1TkIsoElectronsCrystal )
 from L1Trigger.L1TTrackMatch.L1TkEmParticleProducer_cfi import L1TkPhotonsCrystal
 pL1TkPhotonsCrystal = cms.Path( L1TkPhotonsCrystal )
 
+from L1Trigger.L1TTrackMatch.L1WP2ElectronProducer_cfi import L1WP2Electrons
+pL1WP2Electrons = cms.Path( L1WP2Electrons)
+
 # Phase II EG seeds, Endcap (HGC):
 # Two objects for now to follow 2017 discussions, merging collections would be nice...
 
 from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkElectronsHGC
 pL1TkElectronsHGC = cms.Path( L1TkElectronsHGC )
+
+from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkElectronsEllipticMatchHGC
+pL1TkElectronsEllipticMatchHGC = cms.Path( L1TkElectronsEllipticMatchHGC )
 
 from L1Trigger.L1TTrackMatch.L1TkElectronTrackProducer_cfi import L1TkIsoElectronsHGC
 pL1TkIsoElectronsHGC = cms.Path( L1TkIsoElectronsHGC )
@@ -73,7 +82,7 @@ pL1TkTauFromCalo = cms.Path( L1TkTauFromCalo )
 from L1Trigger.Phase2L1Taus.L1TrkTauParticleProducer_cfi import L1TrkTaus
 L1TrackerTaus = L1TrkTaus.clone()
 
-from L1Trigger.Phase2L1Taus.L1TkEGTauParticleProducer_cfi import L1TkEGTaus 
+from L1Trigger.Phase2L1Taus.L1TkEGTauParticleProducer_cfi import L1TkEGTaus
 
-from L1Trigger.Phase2L1Taus.L1CaloTkTauParticleProducer_cfi import L1CaloTkTaus 
+from L1Trigger.Phase2L1Taus.L1CaloTkTauParticleProducer_cfi import L1CaloTkTaus
 L1TkCaloTaus = L1CaloTkTaus.clone()

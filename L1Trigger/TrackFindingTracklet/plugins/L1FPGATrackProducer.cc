@@ -34,10 +34,10 @@
 #include "DataFormats/SiPixelDetId/interface/PXFDetId.h"
 #include "DataFormats/Common/interface/DetSetVector.h"
 //
-#include "L1Trigger/TrackFindingTracklet/interface/slhcevent.hh"
-#include "L1Trigger/TrackFindingTracklet/interface/L1TBarrel.hh"
-#include "L1Trigger/TrackFindingTracklet/interface/L1TDisk.hh"
-#include "L1Trigger/TrackFindingTracklet/interface/L1TStub.hh"
+#include "L1Trigger/TrackFindingTracklet/interface/slhcevent.h"
+#include "L1Trigger/TrackFindingTracklet/interface/L1TBarrel.h"
+#include "L1Trigger/TrackFindingTracklet/interface/L1TDisk.h"
+#include "L1Trigger/TrackFindingTracklet/interface/L1TStub.h"
 
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHit.h"
@@ -65,10 +65,6 @@
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/SiPixelDetId/interface/PixelChannelIdentifier.h"
 #include "TrackingTools/GeomPropagators/interface/HelixArbitraryPlaneCrossing.h"
-////////////////////////
-// FAST SIMULATION STUFF
-//#include "FastSimulation/Particle/interface/RawParticle.h"
-//#include "FastSimulation/BaseParticlePropagator/interface/BaseParticlePropagator.h"
 
 ////////////////////////////
 // DETECTOR GEOMETRY HEADERS
@@ -87,17 +83,17 @@
 
 ///////////////
 // FPGA emulation
-#include "L1Trigger/TrackFindingTracklet/interface/FPGAConstants.hh"
-#include "L1Trigger/TrackFindingTracklet/interface/FPGASector.hh"
-#include "L1Trigger/TrackFindingTracklet/interface/FPGAWord.hh"
-#include "L1Trigger/TrackFindingTracklet/interface/FPGATimer.hh"
-#include "L1Trigger/TrackFindingTracklet/interface/FPGAVariance.hh"
-#include "L1Trigger/TrackFindingTracklet/interface/FPGATrackletCalculator.hh"
-#include "L1Trigger/TrackFindingTracklet/interface/IMATH_TrackletCalculator.hh"
-#include "L1Trigger/TrackFindingTracklet/interface/FPGACabling.hh"
+#include "L1Trigger/TrackFindingTracklet/interface/Constants.h"
+#include "L1Trigger/TrackFindingTracklet/interface/Sector.h"
+#include "L1Trigger/TrackFindingTracklet/interface/FPGAWord.h"
+#include "L1Trigger/TrackFindingTracklet/interface/CPUTimer.h"
+#include "L1Trigger/TrackFindingTracklet/interface/StubVariance.h"
+#include "L1Trigger/TrackFindingTracklet/interface/TrackletCalculator.h"
+#include "L1Trigger/TrackFindingTracklet/interface/IMATH_TrackletCalculator.h"
+#include "L1Trigger/TrackFindingTracklet/interface/Cabling.h"
 
-#include "L1Trigger/TrackFindingTracklet/interface/FPGAGlobal.hh"
-#include "L1Trigger/TrackFindingTracklet/interface/FPGAHistImp.hh"
+#include "L1Trigger/TrackFindingTracklet/interface/GlobalHistTruth.h"
+#include "L1Trigger/TrackFindingTracklet/interface/HistImp.h"
 
 ////////////////
 // PHYSICS TOOLS
@@ -191,12 +187,12 @@ private:
   string asciiEventOutName_;
   std::ofstream asciiEventOut_;
 
-  FPGAHistImp* histimp;
+  HistImp* histimp;
 
   string geometryType_;
 
-  FPGASector** sectors;
-  FPGACabling cabling;
+  Sector** sectors;
+  Cabling cabling;
 
   edm::ESHandle<TrackerTopology> tTopoHandle;
   edm::ESHandle<TrackerGeometry> tGeomHandle;
@@ -276,24 +272,17 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig) :
 
 
   hourglassExtended=iConfig.getUntrackedParameter<bool>("Extended",false);
-  //updating the values for hourglass Extended configuration
-  nbitszprojL456=hourglassExtended?12:8;
-  nbitsphiprojderL123=hourglassExtended?16:8+2;
-  nbitsphiprojderL456=hourglassExtended?16:8+2;
-  phiresidbits=hourglassExtended?16:12;
-  zresidbits=hourglassExtended?16:9;
-  rresidbits=hourglassExtended?16:7;
   nHelixPar=iConfig.getUntrackedParameter<int>("Hnpar",4);
 
-  krinvpars = FPGATrackletCalculator::ITC_L1L2.rinv_final.get_K();
-  kphi0pars = FPGATrackletCalculator::ITC_L1L2.phi0_final.get_K();
-  ktpars    = FPGATrackletCalculator::ITC_L1L2.t_final.get_K();
-  kz0pars   = FPGATrackletCalculator::ITC_L1L2.z0_final.get_K();
+  krinvpars = TrackletCalculator::ITC_L1L2.rinv_final.get_K();
+  kphi0pars = TrackletCalculator::ITC_L1L2.phi0_final.get_K();
+  ktpars    = TrackletCalculator::ITC_L1L2.t_final.get_K();
+  kz0pars   = TrackletCalculator::ITC_L1L2.z0_final.get_K();
   kd0pars   = kd0;
 
   krdisk = kr;
   kzpars = kz;
-  krprojshiftdisk = FPGATrackletCalculator::ITC_L1L2.rD_0_final.get_K();
+  krprojshiftdisk = TrackletCalculator::ITC_L1L2.rD_0_final.get_K();
 
   //those can be made more transparent...
   kphiproj123=kphi0pars*4;
@@ -313,17 +302,19 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig) :
 
   // adding capability of booking histograms internal to tracklet steps
   if (bookHistos) {
-    histimp=new FPGAHistImp;
+    histimp=new HistImp;
+    TH1::AddDirectory(kTRUE); 
     histimp->init();
     histimp->bookLayerResidual();
     histimp->bookDiskResidual();
     histimp->bookTrackletParams();
     histimp->bookSeedEff();
 
-  FPGAGlobal::histograms()=histimp;
+    GlobalHistTruth::histograms()=histimp;
   }
 
-  sectors=new FPGASector*[NSector];
+
+  sectors=new Sector*[NSector];
 
   if (debug1) {
     cout << "cabling DTC links :     "<<DTCLinkFile.fullPath()<<endl;
@@ -333,7 +324,7 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig) :
   cabling.init(DTCLinkFile.fullPath().c_str(),moduleCablingFile.fullPath().c_str());
 
   for (unsigned int i=0;i<NSector;i++) {
-    sectors[i]=new FPGASector(i);
+    sectors[i]=new Sector(i);
   }
 
   if (debug1) {
@@ -345,8 +336,9 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig) :
 
   fitpatternfile=fitPatternFile.fullPath();
 
-  if (debug1) cout << "Will read memory modules file"<<endl;
 
+  if (debug1) cout << "Will read memory modules file"<<endl;
+  
   ifstream inmem(memoryModulesFile.fullPath().c_str());
   assert(inmem.good());
 
@@ -365,6 +357,7 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig) :
 
 
   if (debug1) cout << "Will read processing modules file"<<endl;
+  
 
   ifstream inproc(processingModulesFile.fullPath().c_str());
   assert(inproc.good());
@@ -384,6 +377,7 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig) :
 
 
   if (debug1) cout << "Will read wiring information"<<endl;
+  
 
   ifstream inwire(wiresFile.fullPath().c_str());
   assert(inwire.good());
@@ -522,7 +516,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   ev.setIPx(bsPosition.x());
   ev.setIPy(bsPosition.y());
 
-  FPGAGlobal::event()=&ev;
+  GlobalHistTruth::event()=&ev;
 
   ///////////////////
   // GET SIMTRACKS //
@@ -863,23 +857,23 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     ev.write(asciiEventOut_);
   }
 
-  FPGATimer readTimer;
-  FPGATimer cleanTimer;
-  FPGATimer addStubTimer;
-  FPGATimer VMRouterTimer;
-  FPGATimer TETimer;
-  FPGATimer TEDTimer;
-  FPGATimer TRETimer;
-  FPGATimer TCTimer;
-  FPGATimer TCDTimer;
-  FPGATimer PTTimer;
-  FPGATimer PRTimer;
-  FPGATimer METimer;
-  FPGATimer MCTimer;
-  FPGATimer MPTimer;
-  FPGATimer MTTimer;
-  FPGATimer FTTimer;
-  FPGATimer PDTimer;
+  CPUTimer readTimer;
+  CPUTimer cleanTimer;
+  CPUTimer addStubTimer;
+  CPUTimer VMRouterTimer;
+  CPUTimer TETimer;
+  CPUTimer TEDTimer;
+  CPUTimer TRETimer;
+  CPUTimer TCTimer;
+  CPUTimer TCDTimer;
+  CPUTimer PTTimer;
+  CPUTimer PRTimer;
+  CPUTimer METimer;
+  CPUTimer MCTimer;
+  CPUTimer MPTimer;
+  CPUTimer MTTimer;
+  CPUTimer FTTimer;
+  CPUTimer PDTimer;
 
   if (writeSeeds) {
     ofstream fout("seeds.txt", ofstream::out);
@@ -888,7 +882,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   bool first=true;
 
-  std::vector<FPGATrack*> tracks;
+  std::vector<Track*> tracks;
 
   int selectmu=0;
   L1SimTrack simtrk(0,0,0,0.0,0.0,0.0,0.0,0.0,0.0);
@@ -908,7 +902,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
 
   for (unsigned itrack=0; itrack<tracks.size(); itrack++) {
-    FPGATrack* track=tracks[itrack];
+    Track* track=tracks[itrack];
 
     if (track->duplicate()) continue;
 
@@ -934,8 +928,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
     aTrack.setMomentum(p34par,4);
     aTrack.setRInv(track->rinv(),4);
-    // for emulation, the chisq() function returns the chi2/dof. change for consistency (can always calculated the chi2/dof later).
-    double tmpchi2 = track->chisq()*(2*track->stubs().size()-4);
+    double tmpchi2 = track->chisq();
     aTrack.setChi2(tmpchi2,4);
 
 
@@ -951,7 +944,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
     aTrack.setMomentum(p35par,5);
     aTrack.setRInv(track->rinv(),5);
-    double tmpchi25 = track->chisq()*(2*track->stubs().size()-5);
+    double tmpchi25 = track->chisq();
     aTrack.setChi2(tmpchi25,5);
 
 
@@ -999,10 +992,8 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     // pt consistency
     float consistency4par = StubPtConsistency::getConsistency(aTrack, theTrackerGeom, tTopo,  mMagneticFieldStrength, 4);
     aTrack.setStubPtConsistency(consistency4par, 4);
-    //aTrack.setStubPtConsistency(-1.0, 4);
     float consistency5par = StubPtConsistency::getConsistency(aTrack, theTrackerGeom, tTopo, mMagneticFieldStrength, 5);
     aTrack.setStubPtConsistency(consistency5par,5);
-    //aTrack.setStubPtConsistency(-1.0,5);
 
     L1TkTracksForOutput->push_back(aTrack);
 

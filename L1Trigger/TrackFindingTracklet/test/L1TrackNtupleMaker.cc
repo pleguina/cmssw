@@ -149,6 +149,8 @@ private:
   //-----------------------------------------------------------------------------------------------
   // tree & branches for mini-ntuple
 
+  bool available_; // ROOT file for histograms is open.
+
   TTree* eventTree;
 
   // all L1 tracks
@@ -320,7 +322,6 @@ void L1TrackNtupleMaker::endJob()
 {
   // things to be done at the exit of the event Loop
   cerr << "L1TrackNtupleMaker::endJob" << endl;
-
 }
 
 ////////////
@@ -334,6 +335,8 @@ void L1TrackNtupleMaker::beginJob()
   //-----------------------------------------------------------------------------------------------
   // book histograms / make ntuple
   edm::Service<TFileService> fs;
+  available_ = fs.isAvailable();
+  if (not available_) return; // No ROOT file open.
 
   SaveTracklet = true;
 
@@ -563,6 +566,7 @@ void L1TrackNtupleMaker::beginJob()
 // ANALYZE
 void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+  if (not available_) return; // No ROOT file open.
 
   if (!(MyProcess==13 || MyProcess==11 || MyProcess==211 || MyProcess==6 || MyProcess==15 || MyProcess==1)) {
     cout << "The specified MyProcess is invalid! Exiting..." << endl;
@@ -1145,7 +1149,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     float tmp_tp_vy  = iterTP->vy();
     int tmp_tp_pdgid = iterTP->pdgId();
     float tmp_tp_z0_prod = tmp_tp_vz;
-    float tmp_tp_d0_prod = -tmp_tp_vx*sin(tmp_tp_phi) + tmp_tp_vy*cos(tmp_tp_phi);
+    float tmp_tp_d0_prod = tmp_tp_vx*sin(tmp_tp_phi) - tmp_tp_vy*cos(tmp_tp_phi);
 
     if (MyProcess==13 && abs(tmp_tp_pdgid) != 13) continue;
     if (MyProcess==11 && abs(tmp_tp_pdgid) != 11) continue;

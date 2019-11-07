@@ -6,7 +6,9 @@
 
 L1TkMuCorrDynamicWindows::L1TkMuCorrDynamicWindows(std::vector<double>& bounds, TFile* fIn_theta, TFile* fIn_phi) :
     wdws_theta_(bounds.size()-1, MuMatchWindow()),
-    wdws_phi_(bounds.size()-1, MuMatchWindow())
+    wdws_phi_(bounds.size()-1, MuMatchWindow()),
+    wdws_theta_S1_(bounds.size()-1, MuMatchWindow()),
+    wdws_phi_S1_(bounds.size()-1, MuMatchWindow())
 {
     set_safety_factor(0.5);
     set_sf_initialrelax(0.0);
@@ -29,6 +31,7 @@ L1TkMuCorrDynamicWindows::L1TkMuCorrDynamicWindows(std::vector<double>& bounds, 
         TF1* fl;
         TF1* fh;
 
+        // Station 2
         wdn = std::string("wdw_theta_") + std::to_string(ib+1);
         nml = std::string("fit_low_")   + std::to_string(ib+1);
         nmh = std::string("fit_high_")  + std::to_string(ib+1);
@@ -40,6 +43,66 @@ L1TkMuCorrDynamicWindows::L1TkMuCorrDynamicWindows(std::vector<double>& bounds, 
         wdws_theta_.at(ib).SetLower(fl);
         wdws_theta_.at(ib).SetUpper(fh);
 
+        wdn = std::string("wdw_phi_") + std::to_string(ib+1);
+        nml = std::string("fit_low_")   + std::to_string(ib+1);
+        nmh = std::string("fit_high_")  + std::to_string(ib+1);
+        fl = (TF1*) fIn_phi->Get(nml.c_str());
+        fh = (TF1*) fIn_phi->Get(nmh.c_str());
+        if (fl == nullptr || fh == nullptr)
+            throw std::runtime_error("Could not init phi");        
+        wdws_phi_.at(ib).SetName(wdn);
+        wdws_phi_.at(ib).SetLower(fl);
+        wdws_phi_.at(ib).SetUpper(fh);
+
+        // Station 1 - MW's don't have to exist for TkMuon correlator
+        // It is only needed for TkMuStub
+        //wdws_theta_S1_.at(ib).SetName(wdn);
+        //wdws_theta_S1_.at(ib).SetLower(0);
+        //wdws_theta_S1_.at(ib).SetUpper(0);
+        //wdws_phi_S1_.at(ib).SetName(wdn);
+        //wdws_phi_S1_.at(ib).SetLower(0);
+        //wdws_phi_S1_.at(ib).SetUpper(0);
+    }
+}
+
+L1TkMuCorrDynamicWindows::L1TkMuCorrDynamicWindows(std::vector<double>& bounds, TFile* fIn_theta, TFile* fIn_phi, TFile* fIn_theta_S1, TFile* fIn_phi_S1) :
+    wdws_theta_(bounds.size()-1, MuMatchWindow()),
+    wdws_phi_(bounds.size()-1, MuMatchWindow()),
+    wdws_theta_S1_(bounds.size()-1, MuMatchWindow()),
+    wdws_phi_S1_(bounds.size()-1, MuMatchWindow())
+{
+    set_safety_factor(0.0);
+    set_sf_initialrelax(0.0);
+    set_relaxation_pattern(2.0, 6.0);
+    set_do_relax_factor(true);
+
+    track_qual_presel_ = true;
+
+    nbins_ = bounds.size()-1;
+    for (double b : bounds)
+        bounds_.push_back(b);
+
+    // now load in memory the TF1 fits
+
+    for (int ib = 0; ib < nbins_; ++ib)
+    {
+        std::string wdn;
+        std::string nml;
+        std::string nmh;
+        TF1* fl;
+        TF1* fh;
+
+        // Station 2
+        wdn = std::string("wdw_theta_") + std::to_string(ib+1);
+        nml = std::string("fit_low_")   + std::to_string(ib+1);
+        nmh = std::string("fit_high_")  + std::to_string(ib+1);
+        fl = (TF1*) fIn_theta->Get(nml.c_str());
+        fh = (TF1*) fIn_theta->Get(nmh.c_str());
+        if (fl == nullptr || fh == nullptr)
+            throw std::runtime_error("Could not init theta");        
+        wdws_theta_.at(ib).SetName(wdn);
+        wdws_theta_.at(ib).SetLower(fl);
+        wdws_theta_.at(ib).SetUpper(fh);
 
         wdn = std::string("wdw_phi_") + std::to_string(ib+1);
         nml = std::string("fit_low_")   + std::to_string(ib+1);
@@ -51,6 +114,30 @@ L1TkMuCorrDynamicWindows::L1TkMuCorrDynamicWindows(std::vector<double>& bounds, 
         wdws_phi_.at(ib).SetName(wdn);
         wdws_phi_.at(ib).SetLower(fl);
         wdws_phi_.at(ib).SetUpper(fh);
+
+        // Station 1 - MW's don't have to exist for TkMuon correlator
+        // It is only needed for TkMuStub
+        wdn = std::string("wdw_theta_") + std::to_string(ib+1);
+        nml = std::string("fit_low_")   + std::to_string(ib+1);
+        nmh = std::string("fit_high_")  + std::to_string(ib+1);
+        fl = (TF1*) fIn_theta_S1->Get(nml.c_str());
+        fh = (TF1*) fIn_theta_S1->Get(nmh.c_str());
+        if (fl == nullptr || fh == nullptr) 
+            throw std::runtime_error("Could not init theta");        
+        wdws_theta_S1_.at(ib).SetName(wdn);
+        wdws_theta_S1_.at(ib).SetLower(fl);
+        wdws_theta_S1_.at(ib).SetUpper(fh);
+
+        wdn = std::string("wdw_phi_") + std::to_string(ib+1);
+        nml = std::string("fit_low_")   + std::to_string(ib+1);
+        nmh = std::string("fit_high_")  + std::to_string(ib+1);
+        fl = (TF1*) fIn_phi_S1->Get(nml.c_str());
+        fh = (TF1*) fIn_phi_S1->Get(nmh.c_str());
+        if (fl == nullptr || fh == nullptr) 
+          throw std::runtime_error("Could not init phi");        
+        wdws_phi_S1_.at(ib).SetName(wdn);
+        wdws_phi_S1_.at(ib).SetLower(fl);
+        wdws_phi_S1_.at(ib).SetUpper(fh);
     }
 }
 
@@ -148,7 +235,6 @@ std::vector<int> L1TkMuCorrDynamicWindows::find_match(const EMTFTrackCollection&
             // double sf_l = sf_progressive(trk_pt, pt_start_, pt_end_, 0.0, safety_factor_l_);
             // double sf_h = sf_progressive(trk_pt, pt_start_, pt_end_, 0.0, safety_factor_h_);
 
-
             if (
                 // emtf_theta * trk_theta > 0 &&
                 dtheta >  (1 - sf_l) * wdws_theta_.at(ibin).bound_low(trk_pt)  &&
@@ -228,21 +314,28 @@ std::vector<int> L1TkMuCorrDynamicWindows::find_match_stub(const EMTFHitCollecti
         // loop on stubs to see which match
         for (auto l1muit = l1mus.begin(); l1muit != l1mus.end(); ++l1muit)
         {
+
+            int hit_type = l1muit->Subsystem();
+            // match to stubs in CSC & RPC 
+            if ( hit_type != EMTFHit::kCSC && hit_type != EMTFHit::kRPC)
+              continue;
+            
+            int hit_station = l1muit->Station();
             // match only stubs in the central bx - as the track collection refers anyway to bx 0 only
             if (requireBX0 && l1muit->BX() != 0)
                 continue;
 
             // allow only track matching to stubs from the given station, station= 1,2,3,4
-            if ( station < 5 && l1muit->Station() != station) 
+            if ( station < 5 && hit_station != station) 
               continue;
             // in case of station=12 allow track matching to stubs from either station 1 or 2.
-            else if(station == 12 && l1muit->Station() > 2)  // good for tkMuStub12
+            else if(station == 12 && hit_station > 2)  // good for tkMuStub12
               continue;
             // in case of station=123 allow track matching to stubs from either station 1, 2, or 3.
-            else if(station == 123 && l1muit->Station() > 3)  // good for tkMuStub123
+            else if(station == 123 && hit_station > 3)  // good for tkMuStub123
               continue;
             // in case of station=1234 allow track matching to stubs from either station 1, 2, 3, or 4.
-            else if(station == 1234 && l1muit->Station() > 4)  // good for tkMuStub1234
+            else if(station == 1234 && hit_station > 4)  // good for tkMuStub1234
               continue;
 
             float emtf_theta = to_mpio2_pio2(eta_to_theta(l1muit->Eta_sim())) ;
@@ -269,8 +362,21 @@ std::vector<int> L1TkMuCorrDynamicWindows::find_match_stub(const EMTFHitCollecti
             // double sf_l = sf_progressive(trk_pt, pt_start_, pt_end_, 0.0, safety_factor_l_);
             // double sf_h = sf_progressive(trk_pt, pt_start_, pt_end_, 0.0, safety_factor_h_);
 
+            if ( hit_station == 1 &&
+                //if hit in station 1 use these  matching windows for checking
+            
+                // emtf_theta * trk_theta > 0 &&
+                dtheta >  (1 - sf_l) * wdws_theta_S1_.at(ibin).bound_low(trk_pt)  &&
+                dtheta <= (1 + sf_h) * wdws_theta_S1_.at(ibin).bound_high(trk_pt) &&
+                adphi  >  (1 - sf_l) * wdws_phi_S1_.at(ibin).bound_low(trk_pt)    &&
+                adphi  <= (1 + sf_h) * wdws_phi_S1_.at(ibin).bound_high(trk_pt)   &&
+                dphi*trk_charge < 0                                            && // sign requirement
+                // rndm > 0.5
+                true
+            )
+                matched.push_back(std::make_tuple(dtheta, adphi, std::distance(l1mus.begin(), l1muit)));
 
-            if (
+            if ( hit_station == 2 &&
                 // emtf_theta * trk_theta > 0 &&
                 dtheta >  (1 - sf_l) * wdws_theta_.at(ibin).bound_low(trk_pt)  &&
                 dtheta <= (1 + sf_h) * wdws_theta_.at(ibin).bound_high(trk_pt) &&
@@ -281,6 +387,7 @@ std::vector<int> L1TkMuCorrDynamicWindows::find_match_stub(const EMTFHitCollecti
                 true
             )
                 matched.push_back(std::make_tuple(dtheta, adphi, std::distance(l1mus.begin(), l1muit)));
+
             // else if (emtf_theta * trk_theta > 0)
             // {
             //     std::cout << "=== DEBUG ===" << std::endl;

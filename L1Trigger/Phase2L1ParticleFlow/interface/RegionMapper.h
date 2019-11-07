@@ -6,6 +6,10 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+
+#include "DataFormats/L1TrackTrigger/interface/L1TkMuonParticle.h"    
+#include "DataFormats/L1TrackTrigger/interface/L1TkMuonParticleFwd.h" 
+
 #include <unordered_map>
 
 namespace l1tpf_impl { 
@@ -17,6 +21,7 @@ namespace l1tpf_impl {
         // add object, without tracking references
         void addTrack( const l1t::PFTrack & t ) ;
         void addMuon( const l1t::Muon & t );
+        void addMuon( const l1t::L1TkMuonParticle & t );
         void addCalo( const l1t::PFCluster & t ); 
         void addEmCalo( const l1t::PFCluster & t ); 
 
@@ -35,6 +40,8 @@ namespace l1tpf_impl {
 
         std::pair<unsigned,unsigned> totAndMaxInput(/*Region::InputType*/int type) const ;
         std::pair<unsigned,unsigned> totAndMaxOutput(/*Region::OutputType*/int type, bool puppi) const ;
+	std::unique_ptr<std::vector<unsigned>> vecInput(int type) const ;
+	std::unique_ptr<std::vector<unsigned>> vecOutput(int type, bool puppi) const ;
 
     protected:
         std::vector<Region> regions_;

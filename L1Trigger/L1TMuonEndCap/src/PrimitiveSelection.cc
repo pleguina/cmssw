@@ -17,7 +17,7 @@
 
 void PrimitiveSelection::configure(
       int verbose, int endcap, int sector, int bx,
-      int bxShiftCSC, int bxShiftRPC, int bxShiftGEM,
+      int bxShiftCSC, int bxShiftRPC, int bxShiftGEM, int bxShiftME0,
       bool includeNeighbor, bool duplicateTheta,
       bool bugME11Dupes
 ) {
@@ -29,6 +29,7 @@ void PrimitiveSelection::configure(
   bxShiftCSC_      = bxShiftCSC;
   bxShiftRPC_      = bxShiftRPC;
   bxShiftGEM_      = bxShiftGEM;
+  bxShiftME0_      = bxShiftME0;
 
   includeNeighbor_ = includeNeighbor;
   duplicateTheta_  = duplicateTheta;
@@ -912,8 +913,8 @@ int PrimitiveSelection::select_gem(const TriggerPrimitive& muon_primitive) const
       assert_no_abort(1 <= tp_roll && tp_roll <= 8);
       assert_no_abort(1 <= tp_layer && tp_layer <= 2);
       assert_no_abort(1 <= tp_csc_ID && tp_csc_ID <= 3);
-      assert_no_abort((tp_station == 1 && 1 <= tp_pad && tp_pad <= 192) || (tp_station != 1));
-      assert_no_abort((tp_station == 2 && 1 <= tp_pad && tp_pad <= 384) || (tp_station != 2));
+      assert_no_abort((tp_station == 1 && 0 <= tp_pad && tp_pad <= 191) || (tp_station != 1));
+      assert_no_abort((tp_station == 2 && 0 <= tp_pad && tp_pad <= 383) || (tp_station != 2));
     }
 
     // Check if the chamber belongs to this sector processor at this BX.
@@ -987,12 +988,13 @@ int PrimitiveSelection::select_me0(const TriggerPrimitive& muon_primitive) const
     int tp_endcap    = (tp_region == -1) ? 2 : tp_region;
     int tp_station   = tp_detId.station();
     int tp_ring      = 1;  // tp_detId.ring() does not exist
-    int tp_roll      = tp_detId.roll();
+    //int tp_roll      = tp_detId.roll();
     //int tp_layer     = tp_detId.layer();
     int tp_chamber   = tp_detId.chamber();
 
     int tp_bx        = tp_data.bx;
-    int tp_pad       = tp_data.pad;
+    int tp_pad       = tp_data.phiposition;
+    int tp_partition = tp_data.partition;
 
     // The ME0 geometry is similar to ME2/1, so I use tp_station = 2, tp_ring = 1
     // when calling get_trigger_sector() and get_trigger_csc_ID()
@@ -1006,43 +1008,81 @@ int PrimitiveSelection::select_me0(const TriggerPrimitive& muon_primitive) const
       assert_no_abort(emtf::MIN_TRIGSECTOR <= tp_sector && tp_sector <= emtf::MAX_TRIGSECTOR);
       assert_no_abort(tp_station == 1);
       assert_no_abort(tp_ring == 1);
-      assert_no_abort(1 <= tp_roll && tp_roll <= 8);
-      //assert_no_abort(1 <= tp_layer && tp_layer <= 6);  // it is currently not set
+      //assert_no_abort(1 <= tp_roll && tp_roll <= 8);    // not set
+      //assert_no_abort(1 <= tp_layer && tp_layer <= 6);  // not set
       assert_no_abort(1 <= tp_csc_ID && tp_csc_ID <= 3);
-      assert_no_abort(1 <= tp_pad && tp_pad <= 192);
+      assert_no_abort(0 <= tp_pad && tp_pad <= 767);
+      assert_no_abort(0 <= tp_partition && tp_partition <= 15);
     }
 
     // Check if the chamber belongs to this sector processor at this BX.
-    selected = get_index_me0(tp_endcap, tp_sector, tp_subsector, tp_station, tp_csc_ID, tp_bx);
+    selected = get_index_me0(tp_endcap, tp_sector, tp_subsector, tp_station, tp_csc_ID, tp_pad, tp_bx);
   }
   return selected;
 }
 
-bool PrimitiveSelection::is_in_sector_me0(int tp_endcap, int tp_sector) const {
-  // Identical to the corresponding CSC function
-  return is_in_sector_csc(tp_endcap, tp_sector);
+bool PrimitiveSelection::is_in_sector_me0(int tp_endcap, int tp_sector, int tp_csc_ID, int tp_pad) const {
+  // Similar to the corresponding CSC function + 5 deg because the ME0
+  // chamber 1 starts at -10 deg. The CSC chamber 1 starts at -5 deg.
+  // This means that in sector 1, CSC chambers cover 15 to 75 deg, but ME0
+  // chambers cover 10 to 70 deg. 5 deg (1/4 of chamber) needs to be added
+  // to cover 70 to 75 deg.
+  auto get_other_neighbor = [](int sector) {
+    return (sector == 6) ? 1 : sector + 1;
+  };
+
+  bool add5deg = false;
+  if (includeNeighbor_) {
+    if ((endcap_ == tp_endcap) && (get_other_neighbor(sector_) == tp_sector)) {
+      if (tp_csc_ID == 1 && tp_endcap == 1 && tp_pad >= (767-192)) {  // higher 1/4 of chamber
+        add5deg = true;
+      } else if (tp_csc_ID == 1 && tp_endcap == 2 && tp_pad <= 191) { // lower 1/4 of chamber
+        add5deg = true;
+      }
+    }
+  }
+  return is_in_sector_csc(tp_endcap, tp_sector) || add5deg;
 }
 
-bool PrimitiveSelection::is_in_neighbor_sector_me0(int tp_endcap, int tp_sector, int tp_csc_ID) const {
-  // Identical to the corresponding CSC function
+bool PrimitiveSelection::is_in_neighbor_sector_me0(int tp_endcap, int tp_sector, int tp_csc_ID, int tp_pad) const {
+  // Similar to the corresponding CSC function - 5 deg because the ME0
+  // chamber 1 starts at -10 deg. The CSC chamber 1 starts at -5 deg.
+  // This means that in sector 1, CSC chamber from the neighbor sector
+  // covers -5 to 15 deg, but ME0 chamber from the neighbor sector covers
+  // -10 to 10 deg. 5 deg (1/4 of chamber) needs to be subtracted from
+  // -10 to -5 deg.
+  auto get_neighbor = [](int sector) {
+    return (sector == 1) ? 6 : sector - 1;
+  };
+
+  bool sub5deg = false;
+  if (includeNeighbor_) {
+    if ((endcap_ == tp_endcap) && (get_neighbor(sector_) == tp_sector)) {
+      if (tp_csc_ID == 3 && tp_endcap == 1 && tp_pad >= (767-192)) {  // higher 1/4 of chamber
+        sub5deg = true;
+      } else if (tp_csc_ID == 3 && tp_endcap == 2 && tp_pad <= 191) { // lower 1/4 of chamber
+        sub5deg = true;
+      }
+    }
+  }
   // (Note: use tp_subsector = 0, tp_station = 2)
-  return is_in_neighbor_sector_csc(tp_endcap, tp_sector, 0, 2, tp_csc_ID);
+  return is_in_neighbor_sector_csc(tp_endcap, tp_sector, 0, 2, tp_csc_ID) && !sub5deg;
 }
 
 bool PrimitiveSelection::is_in_bx_me0(int tp_bx) const {
-  tp_bx += bxShiftGEM_;
+  tp_bx += bxShiftME0_;
   return (bx_ == tp_bx);
 }
 
-int PrimitiveSelection::get_index_me0(int tp_endcap, int tp_sector, int tp_subsector, int tp_station, int tp_csc_ID, int tp_bx) const {
+int PrimitiveSelection::get_index_me0(int tp_endcap, int tp_sector, int tp_subsector, int tp_station, int tp_csc_ID, int tp_pad, int tp_bx) const {
   int selected = -1;
 
   bool is_native   = false;
   bool is_neighbor = false;
   if (is_in_bx_me0(tp_bx)) {
-    if (is_in_sector_me0(tp_endcap, tp_sector)) {
+    if (is_in_sector_me0(tp_endcap, tp_sector, tp_csc_ID, tp_pad)) {
       is_native = true;
-    } else if (is_in_neighbor_sector_me0(tp_endcap, tp_sector, tp_csc_ID)) {
+    } else if (is_in_neighbor_sector_me0(tp_endcap, tp_sector, tp_csc_ID, tp_pad)) {
       is_neighbor = true;
     }
   }
@@ -1084,7 +1124,7 @@ int PrimitiveSelection::select_dt(const TriggerPrimitive& muon_primitive) const 
 
     int tp_bx        = tp_data.bx;
     int tp_phi       = tp_data.radialAngle;
-    int tp_phiB      = tp_data.bendingAngle;
+    //int tp_phiB      = tp_data.bendingAngle;
 
     // Mimic 10 deg CSC chamber. I use tp_station = 2, tp_ring = 2
     // when calling get_trigger_sector() and get_trigger_csc_ID()
@@ -1105,7 +1145,7 @@ int PrimitiveSelection::select_dt(const TriggerPrimitive& muon_primitive) const 
       //assert_no_abort(4 <= tp_csc_ID && tp_csc_ID <= 9);
       assert_no_abort(tp_csc_ID == 6 || tp_csc_ID == 9);
       assert_no_abort(-2048 <= tp_phi && tp_phi <= 2047);  // 12-bit
-      assert_no_abort(-512 <= tp_phiB && tp_phiB <= 511);  // 10-bit
+      //assert_no_abort(-512 <= tp_phiB && tp_phiB <= 511);  // 10-bit
     }
 
     // Check if the chamber belongs to this sector processor at this BX.
