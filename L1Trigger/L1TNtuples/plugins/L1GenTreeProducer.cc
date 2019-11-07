@@ -249,7 +249,9 @@ L1GenTreeProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
         l1GenData_->partP.push_back(p.p());
         l1GenData_->partDxy.push_back(DXY);
         l1GenData_->partLxy.push_back(LXY);
-
+        l1GenData_->partVx.push_back(p.vertex().x());
+        l1GenData_->partVy.push_back(p.vertex().y());
+        l1GenData_->partVz.push_back(p.vertex().z());
 
           ++nPart;
 	}

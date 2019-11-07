@@ -21,6 +21,7 @@
 #include "DataFormats/L1TrackTrigger/interface/L1TkMuonParticleFwd.h"
 #include "L1Trigger/L1TMuon/interface/MicroGMTConfiguration.h"
 #include "L1Trigger/L1TTrackMatch/interface/L1TkMuCorrDynamicWindows.h"
+#include "L1Trigger/L1TTrackMatch/interface/L1TkMuMantra.h"
 #include "L1Trigger/L1TMuonEndCap/interface/Common.h"
 
 // system include files
@@ -52,7 +53,8 @@ public:
 
   enum AlgoType {
     kTP = 1,
-    kDynamicWindows = 2
+    kDynamicWindows = 2,
+    kMantra = 3
   };
 
   explicit L1TkMuonProducer(const edm::ParameterSet&);
@@ -76,6 +78,24 @@ private:
                           const edm::Handle<L1TTTrackCollectionType>&,
                           L1TkMuonParticleCollection& tkMuons) const;
 
+  // given the matching indexes, build the output collection of track muons
+  void build_tkMuons_from_idxs (L1TkMuonParticleCollection& tkMuons,
+                                const std::vector<int>& matches,
+                                const edm::Handle<L1TTTrackCollectionType>& l1tksH,
+                                const edm::Handle<RegionalMuonCandBxCollection>& muonH,
+                                int detector) const;
+  
+  // as above, but for the TkMu that were built from a EMTFCollection - do not produce a valid muon ref
+  void build_tkMuons_from_idxs (L1TkMuonParticleCollection& tkMuons,
+                                const std::vector<int>& matches,
+                                const edm::Handle<L1TTTrackCollectionType>& l1tksH,
+                                int detector) const;
+
+  // dump and convert tracks to the format needed for the MAnTra correlator
+  std::vector<L1TkMuMantraDF::track_df> product_to_trkvec(const L1TTTrackCollectionType& l1tks); // tracks
+  std::vector<L1TkMuMantraDF::muon_df>  product_to_muvec (const RegionalMuonCandBxCollection& l1mtfs); // regional muon finder
+  std::vector<L1TkMuMantraDF::muon_df>  product_to_muvec (const EMTFTrackCollection& l1mus); // endcap muon finder - eventually to be moved to regional candidate
+
   float ETAMIN_;
   float ETAMAX_;
   float ZMAX_;             // |z_track| < ZMAX in cm
@@ -89,9 +109,16 @@ private:
   bool useTPMatchWindows_;
 
   // int emtfMatchAlgoVersion_ ;
+  AlgoType bmtfMatchAlgoVersion_ ;
+  AlgoType omtfMatchAlgoVersion_ ;
   AlgoType emtfMatchAlgoVersion_ ;
 
   std::unique_ptr<L1TkMuCorrDynamicWindows> dwcorr_;
+
+  std::unique_ptr<L1TkMuMantra> mantracorr_barr_;
+  std::unique_ptr<L1TkMuMantra> mantracorr_ovrl_;
+  std::unique_ptr<L1TkMuMantra> mantracorr_endc_;
+  int mantra_n_trk_par_;
 
   const edm::EDGetTokenT< RegionalMuonCandBxCollection > bmtfToken;
   const edm::EDGetTokenT< RegionalMuonCandBxCollection > omtfToken;
@@ -118,13 +145,45 @@ L1TkMuonProducer::L1TkMuonProducer(const edm::ParameterSet& iConfig) :
    //   closest_ = iConfig.getParameter<bool>("closest");
    // emtfMatchAlgoVersion_ = iConfig.getParameter<int>("emtfMatchAlgoVersion");
 
-   // configuration of the EMTF algorithm type
+   // --- mantra corr params
+
+   mantra_n_trk_par_ = iConfig.getParameter<int>("mantra_n_trk_par");
+
+   // --------------------- configuration of the muon algorithm type
+
+   std::string bmtfMatchAlgoVersionString = iConfig.getParameter<std::string>("bmtfMatchAlgoVersion");
+   std::transform(bmtfMatchAlgoVersionString.begin(), bmtfMatchAlgoVersionString.end(), bmtfMatchAlgoVersionString.begin(), ::tolower); // make lowercase
+
+   std::string omtfMatchAlgoVersionString = iConfig.getParameter<std::string>("omtfMatchAlgoVersion");
+   std::transform(omtfMatchAlgoVersionString.begin(), omtfMatchAlgoVersionString.end(), omtfMatchAlgoVersionString.begin(), ::tolower); // make lowercase
+
    std::string emtfMatchAlgoVersionString = iConfig.getParameter<std::string>("emtfMatchAlgoVersion");
    std::transform(emtfMatchAlgoVersionString.begin(), emtfMatchAlgoVersionString.end(), emtfMatchAlgoVersionString.begin(), ::tolower); // make lowercase
+
+   if (bmtfMatchAlgoVersionString == "tp")
+      bmtfMatchAlgoVersion_ = kTP;
+   else if (bmtfMatchAlgoVersionString == "mantra")
+      bmtfMatchAlgoVersion_ = kMantra;
+   else
+    throw cms::Exception("TkMuAlgoConfig") << "the ID of the BMTF algo matcher passed is invalid\n";
+
+   //
+
+   if (omtfMatchAlgoVersionString == "tp")
+      omtfMatchAlgoVersion_ = kTP;
+   else if (omtfMatchAlgoVersionString == "mantra")
+      omtfMatchAlgoVersion_ = kMantra;
+   else
+    throw cms::Exception("TkMuAlgoConfig") << "the ID of the OMTF algo matcher passed is invalid\n";
+
+   //
+
    if (emtfMatchAlgoVersionString == "tp")
       emtfMatchAlgoVersion_ = kTP;
    else if (emtfMatchAlgoVersionString == "dynamicwindows")
       emtfMatchAlgoVersion_ = kDynamicWindows;
+   else if (emtfMatchAlgoVersionString == "mantra")
+      emtfMatchAlgoVersion_ = kMantra;
    else
     throw cms::Exception("TkMuAlgoConfig") << "the ID of the EMTF algo matcher passed is invalid\n";
 
@@ -169,6 +228,71 @@ L1TkMuonProducer::L1TkMuonProducer(const edm::ParameterSet& iConfig) :
       dwcorr_ -> set_min_trk_nstubs  (iConfig.getParameter<int>("min_trk_nstubs"));
       dwcorr_ -> set_do_trk_qual_presel(true);
    }
+
+   if (bmtfMatchAlgoVersion_ == kMantra)
+   {
+      std::string fIn_bounds_name = iConfig.getParameter<edm::FileInPath>("mantra_bmtfcorr_boundaries")    .fullPath();
+      std::string fIn_theta_name  = iConfig.getParameter<edm::FileInPath>("mantra_bmtfcorr_theta_windows") .fullPath();
+      std::string fIn_phi_name    = iConfig.getParameter<edm::FileInPath>("mantra_bmtfcorr_phi_windows")   .fullPath();
+
+      auto bounds = L1TkMuMantra::prepare_corr_bounds(fIn_bounds_name.c_str(), "h_dphi_l");
+
+      TFile* fIn_theta = TFile::Open (fIn_theta_name.c_str());
+      TFile* fIn_phi   = TFile::Open (fIn_phi_name.c_str());
+
+      mantracorr_barr_ = std::unique_ptr<L1TkMuMantra> (new L1TkMuMantra(bounds, fIn_theta, fIn_phi, "mantra_barrel"));
+      
+      fIn_theta->Close();
+      fIn_phi->Close();
+
+      // settings : NB : now hardcoded, could be read from cfg
+      mantracorr_barr_->set_safety_factor(0.5, 0.5);
+      mantracorr_barr_->setArbitrationType("MaxPt");
+   }
+
+   if (omtfMatchAlgoVersion_ == kMantra)
+   {
+      std::string fIn_bounds_name = iConfig.getParameter<edm::FileInPath>("mantra_omtfcorr_boundaries")    .fullPath();
+      std::string fIn_theta_name  = iConfig.getParameter<edm::FileInPath>("mantra_omtfcorr_theta_windows") .fullPath();
+      std::string fIn_phi_name    = iConfig.getParameter<edm::FileInPath>("mantra_omtfcorr_phi_windows")   .fullPath();
+
+      auto bounds = L1TkMuMantra::prepare_corr_bounds(fIn_bounds_name.c_str(), "h_dphi_l");
+
+      TFile* fIn_theta = TFile::Open (fIn_theta_name.c_str());
+      TFile* fIn_phi   = TFile::Open (fIn_phi_name.c_str());
+
+      mantracorr_ovrl_ = std::unique_ptr<L1TkMuMantra> (new L1TkMuMantra(bounds, fIn_theta, fIn_phi, "mantra_overlap"));
+      
+      fIn_theta->Close();
+      fIn_phi->Close();
+
+      // settings : NB : now hardcoded, could be read from cfg
+      mantracorr_ovrl_->set_safety_factor(0.5, 0.5);
+      mantracorr_ovrl_->setArbitrationType("MaxPt");
+
+   }
+
+   if (emtfMatchAlgoVersion_ == kMantra)
+   {
+      std::string fIn_bounds_name = iConfig.getParameter<edm::FileInPath>("mantra_emtfcorr_boundaries")    .fullPath();
+      std::string fIn_theta_name  = iConfig.getParameter<edm::FileInPath>("mantra_emtfcorr_theta_windows") .fullPath();
+      std::string fIn_phi_name    = iConfig.getParameter<edm::FileInPath>("mantra_emtfcorr_phi_windows")   .fullPath();
+
+      auto bounds = L1TkMuMantra::prepare_corr_bounds(fIn_bounds_name.c_str(), "h_dphi_l");
+
+      TFile* fIn_theta = TFile::Open (fIn_theta_name.c_str());
+      TFile* fIn_phi   = TFile::Open (fIn_phi_name.c_str());
+
+      mantracorr_endc_ = std::unique_ptr<L1TkMuMantra> (new L1TkMuMantra(bounds, fIn_theta, fIn_phi, "mantra_endcap"));
+      
+      fIn_theta->Close();
+      fIn_phi->Close();
+
+      // settings : NB : now hardcoded, could be read from cfg
+      mantracorr_endc_->set_safety_factor(0.5, 0.5);
+      mantracorr_endc_->setArbitrationType("MaxPt");
+   }
+
 }
 
 L1TkMuonProducer::~L1TkMuonProducer() {
@@ -197,15 +321,47 @@ L1TkMuonProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   L1TkMuonParticleCollection oc_omtf_tkmuon;
   L1TkMuonParticleCollection oc_emtf_tkmuon;
 
+  std::vector<L1TkMuMantraDF::track_df> mantradf_tracks; // if needed, just encode once for all trk finders
+  if (bmtfMatchAlgoVersion_ == kMantra || omtfMatchAlgoVersion_ == kMantra || emtfMatchAlgoVersion_ == kMantra){
+      mantradf_tracks = product_to_trkvec(*l1tksH.product());
+  }
+    
   // process each of the MTF collections separately! -- we don't want to filter the muons
-  runOnMTFCollection_v1(l1bmtfH, l1tksH, oc_bmtf_tkmuon,1);
-  runOnMTFCollection_v1(l1omtfH, l1tksH, oc_omtf_tkmuon,2);
+
+  // ----------------------------------------------------- barrel
+  if (bmtfMatchAlgoVersion_ == kTP)
+    runOnMTFCollection_v1(l1bmtfH, l1tksH, oc_bmtf_tkmuon,1);
+  else if (bmtfMatchAlgoVersion_ == kMantra){
+    auto muons     = product_to_muvec (*l1bmtfH.product());
+    auto match_idx = mantracorr_barr_->find_match(mantradf_tracks, muons);
+    build_tkMuons_from_idxs(oc_bmtf_tkmuon, match_idx, l1tksH, l1bmtfH, 1);
+  }
+  else
+    throw cms::Exception("TkMuAlgoConfig") << " barrel : trying to run an invalid algorithm (this should never happen)\n";
+  
+  // ----------------------------------------------------- overlap
+  if (omtfMatchAlgoVersion_ == kTP)
+    runOnMTFCollection_v1(l1omtfH, l1tksH, oc_omtf_tkmuon,2);
+  else if (omtfMatchAlgoVersion_ == kMantra){
+    auto muons     = product_to_muvec (*l1omtfH.product());
+    auto match_idx = mantracorr_ovrl_->find_match(mantradf_tracks, muons);
+    build_tkMuons_from_idxs(oc_omtf_tkmuon, match_idx, l1tksH, l1omtfH, 2);
+  }
+  else
+    throw cms::Exception("TkMuAlgoConfig") << " overlap : trying to run an invalid algorithm (this should never happen)\n";
+  
+  // ----------------------------------------------------- endcap
   if(emtfMatchAlgoVersion_ == kTP)
     runOnMTFCollection_v1(l1emtfH, l1tksH, oc_emtf_tkmuon,3);
   else if (emtfMatchAlgoVersion_ == kDynamicWindows)
     runOnMTFCollection_v2(l1emtfTCH, l1tksH, oc_emtf_tkmuon);
+  else if (emtfMatchAlgoVersion_ == kMantra){
+    auto muons     = product_to_muvec (*l1emtfTCH.product());
+    auto match_idx = mantracorr_endc_->find_match(mantradf_tracks, muons);
+    build_tkMuons_from_idxs(oc_emtf_tkmuon, match_idx, l1tksH, 3);
+  }
   else
-    throw cms::Exception("TkMuAlgoConfig") << "trying to run an invalid algorithm (this should never happen)\n";
+    throw cms::Exception("TkMuAlgoConfig") << "endcap : trying to run an invalid algorithm (this should never happen)\n";
 
   // now combine all trk muons into a single output collection!
   std::unique_ptr<L1TkMuonParticleCollection> oc_tkmuon(new L1TkMuonParticleCollection());
@@ -452,6 +608,122 @@ double L1TkMuonProducer::sigmaEtaTP(const RegionalMuonCand& l1mu) const
 double L1TkMuonProducer::sigmaPhiTP(const RegionalMuonCand& mu) const
 {
   return 0.0126;
+}
+
+// ------------------------------------------------------------------------------------------------------------
+
+std::vector<L1TkMuMantraDF::track_df> L1TkMuonProducer::product_to_trkvec(const L1TTTrackCollectionType& l1tks)
+{
+  std::vector<L1TkMuMantraDF::track_df> result (l1tks.size());
+  for (uint itrk = 0; itrk < l1tks.size(); ++itrk)
+  {
+    auto& trk = l1tks.at(itrk);
+
+    result.at(itrk).pt      =  trk.getMomentum(mantra_n_trk_par_).perp();
+    result.at(itrk).eta     =  trk.getMomentum(mantra_n_trk_par_).eta();
+    result.at(itrk).theta   =  L1TkMuMantra::to_mpio2_pio2(L1TkMuMantra::eta_to_theta(trk.getMomentum(mantra_n_trk_par_).eta()));
+    result.at(itrk).phi     =  trk.getMomentum(mantra_n_trk_par_).phi();
+    result.at(itrk).nstubs  =  trk.getStubRefs().size();
+    result.at(itrk).chi2    =  trk.getChi2(mantra_n_trk_par_);
+    result.at(itrk).charge  =  (trk.getRInv(mantra_n_trk_par_) > 0 ? 1 : -1);
+  }
+
+  return result;
+}
+
+std::vector<L1TkMuMantraDF::muon_df>  L1TkMuonProducer::product_to_muvec (const RegionalMuonCandBxCollection& l1mtfs)
+{
+  std::vector<L1TkMuMantraDF::muon_df> result;
+  for (auto l1mu = l1mtfs.begin(0); l1mu != l1mtfs.end(0);  ++l1mu) // considering BX = 0 only
+  {
+    L1TkMuMantraDF::muon_df this_mu;
+    this_mu.pt     = l1mu->hwPt() * 0.5;
+    this_mu.eta    = l1mu->hwEta()*0.010875;
+    this_mu.theta  = L1TkMuMantra::to_mpio2_pio2(L1TkMuMantra::eta_to_theta(l1mu->hwEta()*0.010875));
+    this_mu.phi    = MicroGMTConfiguration::calcGlobalPhi( l1mu->hwPhi(), l1mu->trackFinderType(), l1mu->processor() )*2*M_PI/576.;
+    this_mu.charge = (l1mu->hwSign() == 0 ? 1 : -1); // charge sign bit (charge = (-1)^(sign))
+    result.push_back(this_mu);
+  }
+  return result;
+}
+
+std::vector<L1TkMuMantraDF::muon_df>  L1TkMuonProducer::product_to_muvec (const EMTFTrackCollection& l1mus)
+{
+  std::vector<L1TkMuMantraDF::muon_df> result (l1mus.size());
+  for (uint imu = 0; imu < l1mus.size(); ++imu)
+  {
+    auto& mu = l1mus.at(imu);
+    result.at(imu).pt     = mu.Pt();
+    result.at(imu).eta    = mu.Eta();
+    result.at(imu).theta  = L1TkMuMantra::to_mpio2_pio2(L1TkMuMantra::eta_to_theta(mu.Eta()));
+    result.at(imu).phi    = L1TkMuMantra::deg_to_rad(mu.Phi_glob());
+    result.at(imu).charge = mu.Charge();
+  }
+  return result;
+}
+
+void L1TkMuonProducer::build_tkMuons_from_idxs (L1TkMuonParticleCollection& tkMuons,
+                                const std::vector<int>& matches,
+                                const edm::Handle<L1TTTrackCollectionType>& l1tksH,
+                                const edm::Handle<RegionalMuonCandBxCollection>& muonH,
+                                int detector) const
+{
+
+  for (uint imatch = 0; imatch < matches.size(); ++imatch)
+  {
+    int match_trk_idx = matches.at(imatch);
+    if (match_trk_idx < 0) continue; // this muon was not matched to any candidate
+
+    // take properties of the track
+    const L1TTTrackType& matchTk = (*l1tksH.product())[match_trk_idx];
+    const auto& p3 = matchTk.getMomentum(mantra_n_trk_par_);
+    const auto& tkv3 = matchTk.getPOCA(mantra_n_trk_par_);
+    float p4e = sqrt(0.105658369*0.105658369 + p3.mag2() );
+    math::XYZTLorentzVector l1tkp4(p3.x(), p3.y(), p3.z(), p4e);
+
+
+    edm::Ptr< L1TTTrackType > l1tkPtr(l1tksH, match_trk_idx);
+    edm::Ref< RegionalMuonCandBxCollection > l1muRef(muonH, imatch);
+
+    float trkisol = -999; // FIXME
+    L1TkMuonParticle l1tkmu(l1tkp4, l1muRef, l1tkPtr, trkisol);
+    l1tkmu.setTrackCurvature(matchTk.getRInv( mantra_n_trk_par_ ));
+    l1tkmu.setTrkzVtx( (float)tkv3.z() );
+    l1tkmu.setMuonDetector(detector);
+    tkMuons.push_back(l1tkmu);
+  }
+  return;
+}
+
+
+void L1TkMuonProducer::build_tkMuons_from_idxs (L1TkMuonParticleCollection& tkMuons,
+                                const std::vector<int>& matches,
+                                const edm::Handle<L1TTTrackCollectionType>& l1tksH,
+                                int detector) const
+{
+  for (uint imatch = 0; imatch < matches.size(); ++imatch)
+  {
+    int match_trk_idx = matches.at(imatch);
+    if (match_trk_idx < 0) continue; // this muon was not matched to any candidate
+
+    // take properties of the track
+    const L1TTTrackType& matchTk = (*l1tksH.product())[match_trk_idx];
+    const auto& p3 = matchTk.getMomentum(mantra_n_trk_par_);
+    const auto& tkv3 = matchTk.getPOCA(mantra_n_trk_par_);
+    float p4e = sqrt(0.105658369*0.105658369 + p3.mag2() );
+    math::XYZTLorentzVector l1tkp4(p3.x(), p3.y(), p3.z(), p4e);
+
+    edm::Ptr< L1TTTrackType > l1tkPtr(l1tksH, match_trk_idx);
+    edm::Ref< RegionalMuonCandBxCollection > l1muRef; // NOTE: this is the only difference from the function above, but could not find a way to make a conditional constructor
+
+    float trkisol = -999; // FIXME
+    L1TkMuonParticle l1tkmu(l1tkp4, l1muRef, l1tkPtr, trkisol);
+    l1tkmu.setTrackCurvature(matchTk.getRInv( mantra_n_trk_par_ ));
+    l1tkmu.setTrkzVtx( (float)tkv3.z() );
+    l1tkmu.setMuonDetector(detector);
+    tkMuons.push_back(l1tkmu);
+  }
+  return;
 }
 
 //define this as a plug-in

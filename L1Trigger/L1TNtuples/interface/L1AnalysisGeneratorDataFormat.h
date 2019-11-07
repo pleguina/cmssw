@@ -39,6 +39,9 @@ namespace L1Analysis
      partP.resize(0);
      partDxy.resize(0);
      partLxy.resize(0);
+     partVx.resize(0);
+     partVy.resize(0);
+     partVz.resize(0);
 
      nJet = 0;     
      jetPt.resize(0);
@@ -71,7 +74,10 @@ namespace L1Analysis
     std::vector<float> partP;
     std::vector<float> partDxy;
     std::vector<float> partLxy;
-   
+    std::vector<float> partVx;
+    std::vector<float> partVy;
+    std::vector<float> partVz;
+ 
  
     int nJet;
     std::vector<float> jetPt;

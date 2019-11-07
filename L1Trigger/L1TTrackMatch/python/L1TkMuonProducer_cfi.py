@@ -2,6 +2,10 @@ import FWCore.ParameterSet.Config as cms
 
 L1TkMuons = cms.EDProducer("L1TkMuonProducer",
     ###############################################
+    ## switches that control the algos for the regions
+    bmtfMatchAlgoVersion = cms.string( 'TP' ),
+    omtfMatchAlgoVersion = cms.string( 'MAnTra' ),
+    emtfMatchAlgoVersion = cms.string( 'MAnTra' ),
     ############################################### common stuff
     L1BMTFInputTag  = cms.InputTag("simKBmtfDigis","BMTF"),
     L1OMTFInputTag  = cms.InputTag("simOmtfDigis","OMTF"),
@@ -22,7 +26,6 @@ L1TkMuons = cms.EDProducer("L1TkMuonProducer",
     use5ParameterFit = cms.bool(False), #use 4-pars by defaults
     useTPMatchWindows = cms.bool(True),
     # emtfMatchAlgoVersion = cms.int32( 1 ),        # version of matching EMTF with Trackes (1 or 2)
-    emtfMatchAlgoVersion = cms.string( 'DynamicWindows' ), # version of matching EMTF with Trackes (string ID) : TP, DynamicWindows
     ###############################################
     ############################################### DynamicWindows algo
     ##### parameters for the DynamicWindows algo - eventually to put in a separate file, that will override some dummy defaults
@@ -47,8 +50,23 @@ L1TkMuons = cms.EDProducer("L1TkMuonProducer",
     max_trk_aeta   = cms.double(2.5),
     max_trk_chi2   = cms.double(100.0),
     min_trk_nstubs = cms.int32(4),
-
-
+    ###############################################
+    ############################################### Mantra algo
+    ## please NOTE that as of 6/11/2019, only these parameters are effectively used for the MAnTra correlator
+    #
+    mantra_n_trk_par               = cms.int32(4), # 4 or 5
+    #
+    mantra_bmtfcorr_boundaries     = cms.FileInPath('L1Trigger/L1TMuon/data/MAnTra_data/matching_windows_barrel/matching_windows_boundaries.root'),
+    mantra_bmtfcorr_theta_windows  = cms.FileInPath('L1Trigger/L1TMuon/data/MAnTra_data/matching_windows_barrel/matching_windows_theta_q99.root'),
+    mantra_bmtfcorr_phi_windows    = cms.FileInPath('L1Trigger/L1TMuon/data/MAnTra_data/matching_windows_barrel/matching_windows_phi_q99.root'),
+    #
+    mantra_omtfcorr_boundaries     = cms.FileInPath('L1Trigger/L1TMuon/data/MAnTra_data/matching_windows_overlap/matching_windows_boundaries.root'),
+    mantra_omtfcorr_theta_windows  = cms.FileInPath('L1Trigger/L1TMuon/data/MAnTra_data/matching_windows_overlap/matching_windows_theta_q99.root'),
+    mantra_omtfcorr_phi_windows    = cms.FileInPath('L1Trigger/L1TMuon/data/MAnTra_data/matching_windows_overlap/matching_windows_phi_q99.root'),
+    #
+    mantra_emtfcorr_boundaries     = cms.FileInPath('L1Trigger/L1TMuon/data/MAnTra_data/matching_windows_endcap/matching_windows_boundaries.root'),
+    mantra_emtfcorr_theta_windows  = cms.FileInPath('L1Trigger/L1TMuon/data/MAnTra_data/matching_windows_endcap/matching_windows_theta_q99.root'),
+    mantra_emtfcorr_phi_windows    = cms.FileInPath('L1Trigger/L1TMuon/data/MAnTra_data/matching_windows_endcap/matching_windows_phi_q99.root'),
 )
 
 L1TkMuonsTP = L1TkMuons.clone(
