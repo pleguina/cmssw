@@ -198,9 +198,9 @@ process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
 process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-from L1Trigger.L1TTrackMatch.L1TkMuonProducer_cfi import L1TkMuonsTP
-process.L1TkMuonsTP.L1OMTFInputTag  = cms.InputTag("simBayesOmtfDigis","OMTF")
-process.L1TkMuonsTP.L1BMTFInputTag  = cms.InputTag("simBmtfDigis","BMTF")
+from L1Trigger.L1TTrackMatch.L1TkMuonProducer_cfi import L1TkMuons
+process.L1TkMuons.L1OMTFInputTag  = cms.InputTag("simBayesOmtfDigis","OMTF")
+process.L1TkMuons.L1BMTFInputTag  = cms.InputTag("simBmtfDigis","BMTF")
 
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
@@ -208,7 +208,7 @@ process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 process.L1TMuonSeq = cms.Sequence( #process.esProd +         
                                    #process.simBayesMuCorrelatorTrackProducer + 
                                    process.simBayesOmtfDigis
-                                   + process.L1TkMuonsTP
+                                   + process.L1TkMuons
                                    #+ process.dumpED
                                    #+ process.dumpES
 )
