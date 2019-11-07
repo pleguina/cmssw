@@ -200,6 +200,7 @@ process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
 from L1Trigger.L1TTrackMatch.L1TkMuonProducer_cfi import L1TkMuonsTP
 process.L1TkMuonsTP.L1OMTFInputTag  = cms.InputTag("simBayesOmtfDigis","OMTF")
+process.L1TkMuonsTP.L1BMTFInputTag  = cms.InputTag("simBmtfDigis","BMTF")
 
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
