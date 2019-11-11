@@ -35,7 +35,7 @@ public:
 
   friend class PatternOptimizerBase;
   friend class PatternOptimizer;
-  friend class PatternGeneratorTT;
+  friend class PatternGenerator;
 
   void initGpProbabilityStat();
 

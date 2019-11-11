@@ -221,18 +221,17 @@ std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(c
       aNode = doc->getElementsByTagName(xmlGP)->item(iItem);
       aGPElement = static_cast<DOMElement *>(aNode);
 
-      std::unique_ptr<GoldenPatternType> aGP;
       for(unsigned int index = 1;index<5;++index){	
         ///Patterns XML format backward compatibility. Can use both packed by 4, or by 1 XML files.
         if(aGPElement->getAttributeNode(xmliPt[index-1])) {
-          aGP = buildGP<GoldenPatternType>(aGPElement, aConfig, index, iGPNumber);
-          if(aGP && aGP->key().thePt){
+          std::unique_ptr<GoldenPatternType> aGP = buildGP<GoldenPatternType>(aGPElement, aConfig, iItem, index, iGPNumber);
+          if(aGP && aGP->key().thePt) {
             aGPs.emplace_back(std::move(aGP));
             iGPNumber++;
           }
         }
         else{
-          aGP = buildGP<GoldenPatternType>(aGPElement, aConfig);
+          std::unique_ptr<GoldenPatternType> aGP = buildGP<GoldenPatternType>(aGPElement, aConfig, iItem);
           if(aGP && aGP->key().thePt){
             aGPs.emplace_back(std::move(aGP));
             iGPNumber++;
@@ -262,6 +261,7 @@ std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(c
 template <class GoldenPatternType>
 std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPElement,
     const L1TMuonOverlapParams& aConfig,
+    unsigned int patternGroup,
     unsigned int index,
     unsigned int aGPNumber){
 
@@ -335,6 +335,8 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
 
   ///Loop over layers
   Key aKey(iEta,iPt,iCharge, aGPNumber);
+  aKey.theGroup = patternGroup;
+  aKey.theIndexInGroup =  index;
   auto aGP = std::make_unique<GoldenPatternType>(aKey, aConfig.nLayers(), aConfig.nRefLayers(), aConfig.nPdfAddrBits());
   if(dynamic_cast<GoldenPatternWithThresh*>(aGP.get()) ) {
     dynamic_cast<GoldenPatternWithThresh*>(aGP.get())->setThresholds(thresholds);

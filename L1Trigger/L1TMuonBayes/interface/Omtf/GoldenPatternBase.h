@@ -14,21 +14,20 @@ class OMTFConfiguration;
 // Key
 //////////////////////////////////
 struct Key {
+  Key(int iEta=99, unsigned int iPt=0, int iCharge= 0, unsigned int iNumber=999):
+    theEtaCode(iEta), thePt(iPt), theCharge(iCharge), theNumber(iNumber) {}
 
-Key(int iEta=99, unsigned int iPt=0, int iCharge= 0, unsigned int iNumber=999): 
-  theEtaCode(iEta), thePt(iPt), theCharge(iCharge), theNumber(iNumber) {}
-    
+  Key(int iEta, unsigned int iPt, int iCharge, unsigned int iNumber, unsigned int group, unsigned int indexInGroup):
+    theEtaCode(iEta), thePt(iPt), theCharge(iCharge), theNumber(iNumber), theGroup(group), theIndexInGroup(indexInGroup) {}
+
   inline bool operator< (const Key & o) const {return (theNumber < o.theNumber);}
-   
+
   bool operator==(const Key& o) const {
     //return theNumber==o.theNumber;
     return theEtaCode==o.theEtaCode && thePt==o.thePt && theCharge==o.theCharge && theNumber==o.theNumber;
   }
-  
-  friend std::ostream & operator << (std::ostream &out, const Key & o) {
-    out << "Key_"<<o.theNumber<<": (eta="<<o.theEtaCode<<", pt="<<o.thePt<<", charge="<<o.theCharge<<")";
-    return out;
-  }
+
+  friend std::ostream & operator << (std::ostream &out, const Key & o);
 
   unsigned int number() const {return theNumber;}
 
@@ -37,11 +36,14 @@ Key(int iEta=99, unsigned int iPt=0, int iCharge= 0, unsigned int iNumber=999):
   int          theCharge;
   unsigned int theNumber;
 
+  unsigned int theGroup = 0; //the index of the patterns group, up to 4 patterns can be grouped together, they have then the same MeanDistPhi and DistPhiBitShift
+  unsigned int theIndexInGroup = 0; //starts from 1, as in xml
+
   ///in GeV
   double ptRangeFrom() const;
   ///in GeV
   double ptRangeTo() const;
- };
+};
 //////////////////////////////////
 // Golden Pattern
 //////////////////////////////////

@@ -21,6 +21,7 @@
 #include <L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/PatternOptimizer.h>
 #include <L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/DataROOTDumper.h>
 #include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/EventCapture.h"
+#include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/PatternGenerator.h"
 
 /*OMTFReconstruction::OMTFReconstruction() :
   m_OMTFConfig(nullptr), m_OMTF(nullptr), aTopElement(nullptr), m_OMTFConfigMaker(nullptr), m_Writer(nullptr){}*/
@@ -147,9 +148,18 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
       auto gps = xmlReader.readPatterns<GoldenPatternWithStat>(*omtfParams, patternsXMLFile);
 
       if(processorType == "OMTFProcessor") {
-        std::unique_ptr<IOMTFEmulationObserver> obs(new PatternOptimizer(m_Config, m_OMTFConfig, gps));
+        if(m_Config.exists("optimizePatterns") && m_Config.getParameter<bool>("optimizePatterns") ) {
+          std::unique_ptr<IOMTFEmulationObserver> obs(new PatternOptimizer(m_Config, m_OMTFConfig, gps));
+          observers.emplace_back(std::move(obs));
+        }
+       
+        if(m_Config.exists("generatePatterns") && m_Config.getParameter<bool>("generatePatterns") ) {
+          std::unique_ptr<IOMTFEmulationObserver> obs(new PatternGenerator(m_Config, m_OMTFConfig, gps));
+          observers.emplace_back(std::move(obs));
+          edm::LogImportant("OMTFReconstruction") << "generatePatterns: true " << std::endl;
+        }
+        
         m_OMTF.reset(new OMTFProcessor<GoldenPatternWithStat>(m_OMTFConfig, m_Config, iSetup, gps, muStubsInputTokens) );
-        observers.emplace_back(std::move(obs));
       }
 
       edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. GoldenPattern type: "<<patternType<<" size: "<<gps.size() << std::endl;

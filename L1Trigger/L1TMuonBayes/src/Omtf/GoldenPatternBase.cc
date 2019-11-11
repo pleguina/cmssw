@@ -6,7 +6,14 @@
  */
 
 
-#include <L1Trigger/L1TMuonBayes/interface/Omtf/GoldenPatternBase.h>
+#include "L1Trigger/L1TMuonBayes/interface/Omtf/GoldenPatternBase.h"
+
+#include <iomanip>
+
+std::ostream & operator << (std::ostream &out, const Key & o) {
+  out << "Key_"<<std::setw(2)<<o.theNumber<<" group "<<std::setw(2)<<o.theGroup<<":"<<o.theIndexInGroup<<" : (eta="<<o.theEtaCode<<", pt="<<std::setw(3)<<o.thePt<<", charge="<<setw(2)<<o.theCharge<<")";
+  return out;
+}
 
 GoldenPatternBase::GoldenPatternBase(const Key & aKey) : theKey(aKey), myOmtfConfig(0) {
   //std::cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;

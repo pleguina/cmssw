@@ -61,6 +61,7 @@ class XMLConfigReader{
   template <class GoldenPatternType>
   std::unique_ptr<GoldenPatternType> buildGP(xercesc::DOMElement* aGPElement,
 			  const L1TMuonOverlapParams& aConfig,
+			  unsigned int patternGroup,
 			  unsigned int index=0,
 			  unsigned int aGPNumber=999);
   

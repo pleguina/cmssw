@@ -228,17 +228,30 @@ class OMTFConfiguration: public ProcConfigurationBase {
   ///(i.e. are in the same BRAM and have common meanDistPhi)
   ///in some cases only 2 patterns are merged, then the getMergedPartters()[index1] has only 2 entries
   ///this version gives the groups based on the LUT data
-  vector2D getMergedPatterns() const;
+  vector2D getPatternGroups() const;
 
   ///and this based on the actual goldenPats
+  //takes the groups from the kye, it should be set during xml reading, or creating the goldenPats
   template <class GoldenPatternType>
-  vector2D getMergedPatterns(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats) const {
-    unsigned int mergedCnt = 4;
-    vector2D mergedPatterns(goldenPats.size()/mergedCnt, vector1D());
+  vector2D getPatternGroups(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats) const {
+    //unsigned int mergedCnt = 4;
+    vector2D mergedPatterns;
     for(unsigned int iPat = 0; iPat < goldenPats.size(); iPat++) {
-      if(goldenPats[iPat]->key().thePt != 0) {
-        mergedPatterns[iPat/mergedCnt].push_back(iPat);
+      unsigned int group = goldenPats.at(iPat)->key().theGroup;
+
+      if(mergedPatterns.size() == group) {
+        mergedPatterns.push_back(vector1D());
       }
+
+      if(group < mergedPatterns.size()) {
+        if(mergedPatterns[group].size() == (goldenPats.at(iPat)->key().theIndexInGroup -1) ) //theIndexInGroup starts from 1, as in xml
+          mergedPatterns[group].push_back(iPat);
+        else
+          return mergedPatterns; //TODO should throw error
+      }
+      else
+        return mergedPatterns; //TODO should throw error
+
     }
     return mergedPatterns;
   }

@@ -21,7 +21,7 @@
 
 GoldenPatternWithStat::GoldenPatternWithStat(const Key & aKey, unsigned int nLayers, unsigned int nRefLayers, unsigned int nPdfAddrBits):
 GoldenPatternWithThresh(aKey, nLayers, nRefLayers, nPdfAddrBits),
-statistics(boost::extents[nLayers][nRefLayers][ (1<<nPdfAddrBits)][STAT_BINS] ) //TODO remove *4!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+statistics(boost::extents[nLayers][nRefLayers][ (1<<nPdfAddrBits) * 8][STAT_BINS]) //TODO remove *8!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 //gpProbabilityStat( ("gpProbabilityStat_GP_" + to_string(key().theNumber)).c_str(), ("gpProbabilityStat_GP_" + to_string(key().theNumber)).c_str(), 1000, 0., 1.) //TODO find proper range
 {
 

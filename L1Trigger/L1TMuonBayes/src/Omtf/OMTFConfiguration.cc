@@ -364,7 +364,7 @@ unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
 }
 
 //FIXME does not work if patterns not loaded from LUTs, but only directly from file
-OMTFConfiguration::vector2D OMTFConfiguration::getMergedPatterns() const {
+OMTFConfiguration::vector2D OMTFConfiguration::getPatternGroups() const {
   unsigned int mergedCnt = 4;
   vector2D mergedPatterns(nGoldenPatterns()/mergedCnt, vector1D());
   for(unsigned int iPat = 0; iPat < nGoldenPatterns(); iPat++) {
