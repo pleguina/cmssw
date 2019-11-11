@@ -5,7 +5,7 @@
  *      Author: kbunkow
  */
 
-#include <L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/PatternGenerator.h>
+#include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/PatternGenerator.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -105,7 +105,7 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg, const OMTFCo
 }
 
 PatternGenerator::~PatternGenerator() {
-  // TODO Auto-generated destructor stub
+
 }
 
 void PatternGenerator::updateStat() {
@@ -115,9 +115,6 @@ void PatternGenerator::updateStat() {
     edm::LogImportant("l1tMuBayesEventPrint")<<":"<<__LINE__<<" ttAlgoMuon is null"<<std::endl;
     throw runtime_error("ttAlgoMuon is null");
   }
-  //TODO go through all refLayers in the omtfCandGp
-
-  //oldenPatternWithStat* omtfCandGp = static_cast<GoldenPatternWithStat*>(omtfCand->getGoldenPatern());
 
   double ptSim = simMuon->momentum().pt();
   int chargeSim = (abs(simMuon->type()) == 13) ? simMuon->type()/-13 : 0;
@@ -201,11 +198,7 @@ void PatternGenerator::upadatePdfs() {
         }
 
         //watch out: the shift in a given layer must be the same for patterns in one group
-        //todo  make the setting og shift on the group base
-        /*if( ( (gp->key().thePt <= 8) && (iLayer == 1 || iLayer == 3 || (iLayer == 5) ) ) ) {
-          gp->setDistPhiBitShift(2, iLayer, iRefLayer);
-        }
-        else */
+        //todo  make the setting on shift on the group base
         if( ( (gp->key().thePt <= 10) && (                        (iLayer == 5) ) ) ) {
           gp->setDistPhiBitShift(2, iLayer, iRefLayer);
         }
