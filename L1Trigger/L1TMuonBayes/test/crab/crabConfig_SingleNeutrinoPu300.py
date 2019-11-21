@@ -1,7 +1,7 @@
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'muCorr_MC_analysis_SingleNeutrino_PU300_v1_t17'
+config.General.requestName = 'muCorr_MC_analysis_SingleNeutrino_PU300_v1_t19'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
@@ -23,7 +23,7 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 40
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'CRAB3_muCorr_MC_analysis_SingleNeutrino_PU300_v1_t17'
+config.Data.outputDatasetTag = 'CRAB3_muCorr_MC_analysis_SingleNeutrino_PU300_v1_t19'
 config.Data.totalUnits = 2201 #1667 #75 600 total number is 1667
 config.Data.ignoreLocality = False
 
