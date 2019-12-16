@@ -390,9 +390,9 @@ l1t::BayesMuCorrTrackCollection MuCorrelatorProcessor::getMuCorrTrackCollection(
       candidates.emplace_back(algoTTMuon->getTTTrack()->getTrackingParticlePtr()->p4() );
       candidates.back().setTrackPartPtr(algoTTMuon->getTTTrack()->getTrackingParticlePtr());
     }
-    else if (algoTTMuon->getTTTrack()->getSimTrackPtr().isNonnull() ) {
-      candidates.emplace_back(algoTTMuon->getTTTrack()->getSimTrackPtr()->momentum() );
-      candidates.back().setSimTrackPtr(algoTTMuon->getTTTrack()->getSimTrackPtr());
+    else if (algoTTMuon->getTTTrack()->getSimTrackRef().isNonnull() ) {
+      candidates.emplace_back(algoTTMuon->getTTTrack()->getSimTrackRef()->momentum() );
+      candidates.back().setSimTrackPtr(algoTTMuon->getTTTrack()->getSimTrackRef());
     }
     else {
       throw cms::Exception("MuCorrelatorProcessor::getMuCorrTrackCollection(): no pointer to construct l1t::BayesMuCorrelatorTrack");

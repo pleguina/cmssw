@@ -216,9 +216,12 @@ process.L1TMuonSeq = cms.Sequence( #process.esProd +
 process.L1TMuonPath = cms.Path(process.L1TMuonSeq)
 
 # process.out = cms.OutputModule("PoolOutputModule", 
-#    fileName = cms.untracked.string("l1tomtf_superprimitives1.root")
+#     fileName = cms.untracked.string("outCollections.root"),
+#     outputCommands=cms.untracked.vstring(
+#         'drop *',
+#         'keep l1tRegionalMuonCandBXVector_simOmtfDigis_OMTF_HLT')
 # )
-#process.output_step = cms.EndPath(process.out)
+# process.output_step = cms.EndPath(process.out)
 
 ############################################################
 

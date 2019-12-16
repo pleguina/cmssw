@@ -68,9 +68,16 @@ public:
 
   void setHwBeta(int hwBeta = 0) { this->hwBeta_ = hwBeta; }
 
-  const boost::dynamic_bitset<>& getFiredLayerBits() const { return firedLayerBits; }
+  const boost::dynamic_bitset<> getFiredLayerBits(unsigned int layerCnt) const { return boost::dynamic_bitset<>(layerCnt, firedLayerBits); }
 
-  void setFiredLayerBits(const boost::dynamic_bitset<>& firedLayerBits) { this->firedLayerBits = firedLayerBits; }
+  void setFiredLayerBits(const boost::dynamic_bitset<>& firedLayerBits) {
+    this->firedLayerBits = firedLayerBits.to_ulong();
+    this->firedLayerCnt = firedLayerBits.count();
+  }
+
+  const unsigned int getFiredLayerCnt() const {
+    return this->firedLayerCnt;
+  }
 
   int pdfSum() const { return pdfSum_; }
 
@@ -81,12 +88,12 @@ public:
     return ttTrackPtr;
   }
 
-  const edm::Ptr<SimTrack>& getSimTrackPtr() const {
-    return simTrackPtr;
+  const SimTrackRef& getSimTrackPtr() const {
+    return simTrackRef;
   }
 
-  void setSimTrackPtr(const edm::Ptr<SimTrack>& simTrackPtr) {
-    this->simTrackPtr = simTrackPtr;
+  void setSimTrackPtr(const SimTrackRef& simTrackRef) {
+    this->simTrackRef = simTrackRef;
   }
 
   const edm::Ptr<TrackingParticle>& getTrackPartPtr() const {
@@ -138,13 +145,16 @@ private:
   float beta = 0;
   float betaLikelihood = 0;
 
-  boost::dynamic_bitset<> firedLayerBits;
+  //boost::dynamic_bitset<> firedLayerBits;
+  unsigned int firedLayerBits = 0;
+  unsigned int firedLayerCnt = 0;
+
   int pdfSum_ = 0;
 
   CandidateType candidateType = fastTrack;
 
   //the "pointers" to either simTrack or ttTrack or trackingParticl that was use to create this TrackingTriggerTrack, needed only for analysis
-  edm::Ptr< SimTrack > simTrackPtr;
+  SimTrackRef simTrackRef;
   edm::Ptr< L1TTTrackType > ttTrackPtr;
   edm::Ptr< TrackingParticle > trackPartPtr;
 

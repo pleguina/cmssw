@@ -25,7 +25,7 @@ public:
   };*/
 
 
-  TrackingTriggerTrack(const edm::Ptr< SimTrack >& simTrackPtr);
+  TrackingTriggerTrack(const SimTrackRef& simTrackPtr);
 
   TrackingTriggerTrack(const edm::Ptr< TrackingParticle >& trackingParticlePtr);
 
@@ -107,8 +107,8 @@ public:
     return ttTrackPtr;
   }
 
-  const edm::Ptr<SimTrack>& getSimTrackPtr() const {
-    return simTrackPtr;
+  const SimTrackRef& getSimTrackRef() const {
+    return simTrackRef;
   }
 
   const edm::Ptr<TrackingParticle>& getTrackingParticlePtr() const {
@@ -137,7 +137,7 @@ private:
 
 
   //the "pointers" the either simTrack or trackingParticlePtr or ttTrack that was use to create this TrackingTriggerTrack, needed only for analysis
-  edm::Ptr< SimTrack > simTrackPtr;
+  SimTrackRef simTrackRef;
   edm::Ptr< TrackingParticle > trackingParticlePtr;
   edm::Ptr< TTTrack< Ref_Phase2TrackerDigi_ > > ttTrackPtr;
 };

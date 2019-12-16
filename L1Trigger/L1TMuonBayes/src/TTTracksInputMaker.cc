@@ -42,18 +42,18 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event &event, 
     event.getByLabel(edmCfg.getParameter<edm::InputTag>("g4SimTrackSrc"), simTracksHandle);
     //std::cout<<__FUNCTION__<<":"<<__LINE__<<" simTks.size() "<<simTks->size()<<std::endl;
     for (unsigned int iSimTrack = 0; iSimTrack != simTracksHandle->size(); iSimTrack++ ) {
-      edm::Ptr< SimTrack > simTrackPtr(simTracksHandle, iSimTrack);
+      SimTrackRef simTrackRef(simTracksHandle, iSimTrack);
 
-      if(simTrackPtr->eventId().bunchCrossing() == bx) {
-        if ( (abs(simTrackPtr->type()) == 13  ||  abs(simTrackPtr->type()) == 1000015) && simTrackPtr->momentum().pt() > 2.5) { //TODO 1000015 is stau
-          auto ttTrack = std::make_shared<TrackingTriggerTrack>(simTrackPtr);
-          ttTrack->setSimBeta(simTrackPtr->momentum().Beta());
+      if(simTrackRef->eventId().bunchCrossing() == bx) {
+        if ( (abs(simTrackRef->type()) == 13  ||  abs(simTrackRef->type()) == 1000015) && simTrackRef->momentum().pt() > 2.5) { //TODO 1000015 is stau
+          auto ttTrack = std::make_shared<TrackingTriggerTrack>(simTrackRef);
+          ttTrack->setSimBeta(simTrackRef->momentum().Beta());
 
           addTTTrack(ttTracks, ttTrack, procConf);
           //if(ttTrack->getPt() > 20)
 
-          LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" bx "<<bx<<" adding ttTrack from simTrack: sim.type() "<<simTrackPtr->type()<<" genpartIndex "<<simTrackPtr->genpartIndex()
-                    <<" Beta() "<<simTrackPtr->momentum().Beta()<<" added track "<<*ttTrack<<std::endl;
+          LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" bx "<<bx<<" adding ttTrack from simTrack: sim.type() "<<simTrackRef->type()<<" genpartIndex "<<simTrackRef->genpartIndex()
+                    <<" Beta() "<<simTrackRef->momentum().Beta()<<" added track "<<*ttTrack<<std::endl;
         }
       }
     }

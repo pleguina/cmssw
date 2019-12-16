@@ -7,17 +7,17 @@
 
 #include "L1Trigger/L1TMuonBayes/interface/TrackingTriggerTrack.h"
 
-TrackingTriggerTrack::TrackingTriggerTrack(const edm::Ptr< SimTrack >& simTrackPtr): simTrackPtr(simTrackPtr) {
-  eta = simTrackPtr->momentum().eta();
-  phi = simTrackPtr->momentum().phi();
-  pt = simTrackPtr->momentum().pt();
-  charge = simTrackPtr->type()/-13;
-  if(simTrackPtr->type() == 13) //muon
+TrackingTriggerTrack::TrackingTriggerTrack(const SimTrackRef& simTrackRef): simTrackRef(simTrackRef) {
+  eta = simTrackRef->momentum().eta();
+  phi = simTrackRef->momentum().phi();
+  pt = simTrackRef->momentum().pt();
+  charge = simTrackRef->type()/-13;
+  if(simTrackRef->type() == 13) //muon
     charge = -1;
-  else if(simTrackPtr->type() == -13) //muon
+  else if(simTrackRef->type() == -13) //muon
         charge = 1;
   else {
-    charge = (simTrackPtr->type() < 0 ? 1 : -1); //not necessary correct
+    charge = (simTrackRef->type() < 0 ? 1 : -1); //not necessary correct
   }
 }
 

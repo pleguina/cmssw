@@ -227,11 +227,12 @@ void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const ed
 
         int L1Tk_nPar = 4;
 
+        auto firedLayerBits = muTrack.getFiredLayerBits(muCorrelatorConfig->nLayers());
         if( muTrack.hwQual() >= 12 &&
             muTrack.getCandidateType() == l1t::BayesMuCorrelatorTrack::fastTrack &&
-            ( (muTrack.getFiredLayerBits().count() == 2 && muTrack.pdfSum() > 1100) ||
-              (muTrack.getFiredLayerBits().count() == 3 && muTrack.pdfSum() > 1400) ||
-               muTrack.getFiredLayerBits().count() >= 4) &&
+            ( (firedLayerBits.count() == 2 && muTrack.pdfSum() > 1100) ||
+              (firedLayerBits.count() == 3 && muTrack.pdfSum() > 1400) ||
+               firedLayerBits.count() >= 4) &&
             ( (muTrack.getTtTrackPtr().isNonnull() && muTrack.getTtTrackPtr()->getChi2Red(L1Tk_nPar) < 200 ) || muTrack.getTtTrackPtr().isNull() )
         )
         {
@@ -240,10 +241,10 @@ void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const ed
 
         if( muTrack.getCandidateType() == l1t::BayesMuCorrelatorTrack::slowTrack &&
             muTrack.hwQual() >= 13 &&
-            ( (muTrack.getFiredLayerBits().count() == 2 && muTrack.pdfSum() > 1300 && muTrack.getBetaLikelihood() >= 6) ||
-              (muTrack.getFiredLayerBits().count() == 3 && muTrack.pdfSum() > 1700 && muTrack.getBetaLikelihood() >= 7) ||
-              (muTrack.getFiredLayerBits().count() == 4 && muTrack.pdfSum() > 2200 && muTrack.getBetaLikelihood() >= 9) ||
-              muTrack.getFiredLayerBits().count() >= 5) &&
+            ( (firedLayerBits.count() == 2 && muTrack.pdfSum() > 1300 && muTrack.getBetaLikelihood() >= 6) ||
+              (firedLayerBits.count() == 3 && muTrack.pdfSum() > 1700 && muTrack.getBetaLikelihood() >= 7) ||
+              (firedLayerBits.count() == 4 && muTrack.pdfSum() > 2200 && muTrack.getBetaLikelihood() >= 9) ||
+              firedLayerBits.count() >= 5) &&
             ( (muTrack.getTtTrackPtr().isNonnull() && muTrack.getTtTrackPtr()->getChi2Red(L1Tk_nPar) < 200  ) || muTrack.getTtTrackPtr().isNull() ) //todo probably in firmware exactly like that will be not possible, rather cut of chi2 depending on the nStubs
           )
         {
