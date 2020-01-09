@@ -44,7 +44,9 @@ Source_Files = cms.untracked.vstring(
          #"/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_871_TuneCP5_14TeV_pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v2/60000/F9357CE3-E1BD-C64C-8F43-895CFA3A0AFC.root"
          #"/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_200_TuneCP5_14TeV_pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v2/60000/A91AA4D8-5187-5544-8304-365404899406.root"
          #"/store/mc/PhaseIITDRSpring19DR/Mu_FlatPt2to100-pythia8-gun/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/60000/E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA.root"
-         "/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_200_TuneCP5_14TeV_pythia8/GEN-SIM-DIGI-RAW/PU200_HSCP_106X_upgrade2023_realistic_v3-v1/40000/ACF9C8E2-0570-6A4A-983A-E2B230F6FCAA.root"
+         #"/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_200_TuneCP5_14TeV_pythia8/GEN-SIM-DIGI-RAW/PU200_HSCP_106X_upgrade2023_realistic_v3-v1/40000/ACF9C8E2-0570-6A4A-983A-E2B230F6FCAA.root"
+         "/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_871_TuneCP5_14TeV_pythia8/GEN-SIM-DIGI-RAW/PU200_HSCP_106X_upgrade2023_realistic_v3-v2/260000/1ADE9D9E-8C0C-1948-A405-5DFDA1AF5172.root"
+
 )
 
 process = cms.Process("PickEvent")
@@ -83,12 +85,12 @@ process.source = cms.Source ("PoolSource",
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1)
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(300))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 
 #outputFileNme = '/eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_FlatPt-2to100/GEN-SIM-DIGI-RAW/L1TnoPU_93X_upgrade2023_realistic_v5-v1/00000/F4EEAE55-C937-E811-8C29-48FD8EE739D1_dump1000Events.root'
 #outputFileNme = 'HSCPppstau_M-651_TuneZ2star_13TeV_0E0D542C-A9C8-E611-981C-A0000420FE80_dump100Events.root'
 #outputFileNme = 'SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root'
-outputFileNme = 'HSCPppstau_M_200_PU200_v3-v1_ACF9C8E2-0570-6A4A-983A-E2B230F6FCAA_dump300Ev.root'
+outputFileNme = 'HSCPppstau_M_871_PU200_v3-v2_1ADE9D9E-8C0C-1948-A405-5DFDA1AF5172_dump100Ev.root'
 
 process.Out = cms.OutputModule("PoolOutputModule",
         fileName = cms.untracked.string (outputFileNme)

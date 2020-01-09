@@ -6,7 +6,7 @@ import os
 import sys
 import commands
 
-makeTTracks = False 
+makeTTracks = True 
 
 processName = "L1TMuonEmulation"
 if makeTTracks :
@@ -104,7 +104,8 @@ Source_Files = cms.untracked.vstring(
         #'file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_HSCPppstau_M_200__noPU_v32_A91AA4D8-5187-5544-8304-365404899406_dump1000Ev.root'
         #"file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root"
         #"file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/HSCPppstau_M_200_PU200_v3-v1_ACF9C8E2-0570-6A4A-983A-E2B230F6FCAA_dump300Ev.root"
-        "file:///afs/cern.ch/work/k/kbunkow/public/CMSSW/cmssw_10_x_x_l1tOfflinePhase2/CMSSW_10_6_1_patch2/src/L1Trigger/L1TMuonBayes/test/expert/muCorrelator/outCollections_HSCPppstau_M_200_PU200_v2.root"
+         "file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/HSCPppstau_M_871_PU200_v3-v2_1ADE9D9E-8C0C-1948-A405-5DFDA1AF5172_dump100Ev.root"
+        #"file:///afs/cern.ch/work/k/kbunkow/public/CMSSW/cmssw_10_x_x_l1tOfflinePhase2/CMSSW_10_6_1_patch2/src/L1Trigger/L1TMuonBayes/test/expert/muCorrelator/outCollections_HSCPppstau_M_200_PU200_v2.root"
 )
 
 
@@ -311,5 +312,5 @@ else :
 # use this to only run tracking + track associator
 #process.schedule = cms.Schedule(process.TTTracksWithTruth,process.ana)
 
-if makeTTracks:
-    process.schedule.extend([process.output_step])
+#if makeTTracks: TODO
+#    process.schedule.extend([process.output_step])

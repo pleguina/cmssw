@@ -20,6 +20,7 @@
 #include <L1Trigger/L1TMuonBayes/interface/Omtf/XMLEventWriter.h>
 #include <L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/PatternOptimizer.h>
 #include <L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/DataROOTDumper.h>
+#include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/DataROOTDumper2.h"
 #include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/EventCapture.h"
 #include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/PatternGenerator.h"
 
@@ -79,6 +80,8 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
   if(m_Config.exists("processorType") ){
     processorType = m_Config.getParameter<std::string>("processorType");
   }
+
+  bool firstRun = (m_OMTF == 0);
 
   if(m_OMTF == 0 || m_Config.exists("patternsXMLFile") == false) {
     edm::LogImportant("OMTFReconstruction") << "retrieving parameters from Event Setup" << std::endl;
@@ -209,18 +212,26 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
 
   }
 
-  if(dumpResultToXML){
-    std::unique_ptr<IOMTFEmulationObserver> obs(new XMLEventWriter(m_OMTFConfig, m_Config.getParameter<std::string>("XMLDumpFileName")));
-    observers.emplace_back(std::move(obs));
-  }
-  if(eventCaptureDebug){
-    std::unique_ptr<IOMTFEmulationObserver> obs1(new EventCapture(m_Config, m_OMTFConfig));
-    observers.emplace_back(std::move(obs1));
-  }
-  if(dumpResultToROOT){
-    std::vector<std::shared_ptr<GoldenPatternWithStat> > dummyGPs;
-    std::unique_ptr<IOMTFEmulationObserver> obs = std::make_unique<DataROOTDumper>(m_Config, m_OMTFConfig, dummyGPs);
-    observers.emplace_back(std::move(obs));
+  if(firstRun) { //TODO check if this is correct,
+    if(dumpResultToXML){
+      std::unique_ptr<IOMTFEmulationObserver> obs(new XMLEventWriter(m_OMTFConfig, m_Config.getParameter<std::string>("XMLDumpFileName")));
+      observers.emplace_back(std::move(obs));
+    }
+    if(eventCaptureDebug){
+      std::unique_ptr<IOMTFEmulationObserver> obs1(new EventCapture(m_Config, m_OMTFConfig));
+      observers.emplace_back(std::move(obs1));
+    }
+    if(dumpResultToROOT){
+      std::vector<std::shared_ptr<GoldenPatternWithStat> > dummyGPs;
+      std::unique_ptr<IOMTFEmulationObserver> obs = std::make_unique<DataROOTDumper>(m_Config, m_OMTFConfig, dummyGPs);
+      observers.emplace_back(std::move(obs));
+    }
+
+    if(m_Config.exists("dumpResultToROOT2") && m_Config.getParameter<bool>("dumpResultToROOT2")){
+      std::vector<std::shared_ptr<GoldenPatternWithStat> > dummyGPs;
+      std::unique_ptr<IOMTFEmulationObserver> obs = std::make_unique<DataROOTDumper2>(m_Config, m_OMTFConfig, dummyGPs);
+      observers.emplace_back(std::move(obs));
+    }
   }
 }
 /////////////////////////////////////////////////////
