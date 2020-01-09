@@ -17,8 +17,8 @@ MuCorrelatorProcessor::MuCorrelatorProcessor(MuCorrelatorConfigPtr& config, std:
   else
     pdfModule = std::make_unique<PdfModule>(config);
 
-  //ghostBustFunc = std::bind(&MuCorrelatorProcessor::ghostBust4, this, std::placeholders::_1, std::placeholders::_2);
-  ghostBustFunc = std::bind(&MuCorrelatorProcessor::ghostBust3, this, std::placeholders::_1, std::placeholders::_2);
+  ghostBustFunc = std::bind(&MuCorrelatorProcessor::ghostBust4, this, std::placeholders::_1, std::placeholders::_2);
+  //ghostBustFunc = std::bind(&MuCorrelatorProcessor::ghostBust3, this, std::placeholders::_1, std::placeholders::_2);
 }
 
 MuCorrelatorProcessor::MuCorrelatorProcessor(MuCorrelatorConfigPtr& config, unique_ptr<IPdfModule> pdfModule): config(config), pdfModule(std::move(pdfModule) ) {
