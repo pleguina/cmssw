@@ -227,9 +227,10 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
       observers.emplace_back(std::move(obs));
     }
 
-    if(m_Config.exists("dumpResultToROOT2") && m_Config.getParameter<bool>("dumpResultToROOT2")){
+    if(m_Config.exists("dumpHitsToROOT") && m_Config.getParameter<bool>("dumpHitsToROOT")) {
+      std::string rootFileName = m_Config.getParameter<std::string>("dumpHitsFileName");
       std::vector<std::shared_ptr<GoldenPatternWithStat> > dummyGPs;
-      std::unique_ptr<IOMTFEmulationObserver> obs = std::make_unique<DataROOTDumper2>(m_Config, m_OMTFConfig, dummyGPs);
+      std::unique_ptr<IOMTFEmulationObserver> obs = std::make_unique<DataROOTDumper2>(m_Config, m_OMTFConfig, dummyGPs, rootFileName);
       observers.emplace_back(std::move(obs));
     }
   }

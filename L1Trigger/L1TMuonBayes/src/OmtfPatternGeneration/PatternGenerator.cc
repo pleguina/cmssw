@@ -199,10 +199,13 @@ void PatternGenerator::upadatePdfs() {
 
         //watch out: the shift in a given layer must be the same for patterns in one group
         //todo  make the setting on shift on the group base
-        if( ( (gp->key().thePt <= 10) && (                        (iLayer == 5) ) ) ) {
+        if( ( (gp->key().thePt <= 10) && (    (iLayer == 5) ) ) ) {
           gp->setDistPhiBitShift(2, iLayer, iRefLayer);
         }
-        else if( ( (gp->key().thePt <= 10) && (iLayer == 1 || iLayer == 3            ) ) ) {
+        else if( ( (gp->key().thePt <= 10) && (iLayer == 1 ) ) ) {
+          gp->setDistPhiBitShift(2, iLayer, iRefLayer);
+        }
+        else if( ( (gp->key().thePt <= 10) && (iLayer == 3 || iLayer == 8 || iLayer == 17 ) ) ) {
           gp->setDistPhiBitShift(1, iLayer, iRefLayer);
         }
       }

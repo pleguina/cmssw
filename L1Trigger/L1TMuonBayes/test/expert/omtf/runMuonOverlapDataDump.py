@@ -78,13 +78,13 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
-filesPerPtBin = 7 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
+filesPerPtBin = 1 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
 
 if filesNameLike == 'allPt' :
-    for ptCode in range(14, 3, -1) :
+    for ptCode in range(31, 3, -1) :
         for sign in ['_m', '_p'] : #, m
             selFilesPerPtBin = 0
-            for i in range(3, 10, 1): #TODO 201
+            for i in range(15, 201, 1): #TODO
                 for f in onlyfiles:
                    if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): #TODO for 721_FullEta_v4/
                    #if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f):  #TODO for 9_3_14_FullEta_v2
@@ -183,10 +183,13 @@ process.load('L1Trigger.L1TMuonBayes.simBayesOmtfDigis_cfi')
 
 process.simBayesOmtfDigis.dumpResultToXML = cms.bool(False)
 process.simBayesOmtfDigis.dumpResultToROOT = cms.bool(False)
-process.simBayesOmtfDigis.dumpResultToROOT2 = cms.bool(True)
+process.simBayesOmtfDigis.dumpHitsToROOT = cms.bool(True)
+process.simBayesOmtfDigis.dumpHitsFileName = cms.string('OMTFHits_oldSample_files1.root')
 process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(False)
 
-process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
+#process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
+process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0005_1_oldSample_10Files.xml") #TODO!!!!!!!!!!!!
+
 #process.simBayesOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simBayesOmtfDigis.generatePatterns = cms.bool(False)
 #process.simBayesOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x0005_1.xml")

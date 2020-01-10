@@ -58,7 +58,7 @@ public:
 class DataROOTDumper2: public PatternOptimizerBase {
 public:
   DataROOTDumper2(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
-         std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
+         std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps, std::string rootFileName);
 
   virtual ~DataROOTDumper2();
 
@@ -68,15 +68,18 @@ public:
 
 private:
 
-  void initializeTTree();
+  void initializeTTree(std::string rootFileName);
   void saveTTree();
 
-  TFile* rootFile;
-  TTree* rootTree;
+  TFile* rootFile = nullptr;
+  TTree* rootTree = nullptr;
 
   OmtfEvent event;
 
   unsigned int evntCnt = 0;
+
+  TH1I* ptGenPos = nullptr;
+  TH1I* ptGenNeg = nullptr;
 };
 
 #endif /* INTERFACE_OMTFPATTERNGENERATION_DATAROOTDUMPER2_H_ */
