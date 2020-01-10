@@ -21,8 +21,8 @@ namespace l1t {
 	_hit.set_sync_err   ( _ME.SE() );
 	_hit.set_bx         ( _ME.TBIN() - 3 );
 	_hit.set_bc0        ( _ME.BC0() ); 
-	_hit.set_is_CSC     ( true  );
-	_hit.set_is_RPC     ( false );
+	//	_hit.set_is_CSC     ( true  );
+	//	_hit.set_is_RPC     ( false );
 	_hit.set_subsystem  ( 1 );
 	// _hit.set_layer();
 
@@ -51,8 +51,8 @@ namespace l1t {
 	_hit.set_bx        ( _RPC.TBIN() - 3 );
 	_hit.set_valid     ( _RPC.VP() );
 	_hit.set_bc0       ( _RPC.BC0() ); 
-	_hit.set_is_CSC    ( false );
-	_hit.set_is_RPC    ( true  );
+	//	_hit.set_is_CSC    ( false );
+	//	_hit.set_is_RPC    ( true  );
 	_hit.set_subsystem ( 2 );
 	
         _hit.SetRPCDetId ( _hit.CreateRPCDetId() );

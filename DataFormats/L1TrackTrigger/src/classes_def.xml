@@ -120,7 +120,8 @@
   <class name="edm::Wrapper<std::vector<l1t::L1TkHTMissParticle> >"/>
 
 
-  <class name="l1t::L1TkMuonParticle" ClassVersion="19">
+  <class name="l1t::L1TkMuonParticle" ClassVersion="20">
+   <version ClassVersion="20" checksum="2252639058"/>
    <version ClassVersion="19" checksum="1627050265"/>
    <version ClassVersion="16" checksum="496411268"/>
    <version ClassVersion="15" checksum="2096101246"/>
