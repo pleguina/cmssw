@@ -71,6 +71,9 @@ void DataROOTDumper2::saveTTree() {
 void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
   int muonCharge = 0;
   if(simMuon) {
+    if(abs(simMuon->momentum().eta()) < 0.8 || abs(simMuon->momentum().eta()) > 1.24)
+      return;
+
     muonCharge = (abs(simMuon->type()) == 13) ? simMuon->type()/-13 : 0;
     if(muonCharge > 0)
       ptGenPos->Fill(simMuon->momentum().pt());
@@ -86,8 +89,8 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<
   event.muonPt = simMuon->momentum().pt();
   event.muonEta = simMuon->momentum().eta();
 
-  if(abs(event.muonEta) < 0.8 || abs(event.muonEta) > 1.24)
-    return;
+/*  if(abs(event.muonEta) < 0.8 || abs(event.muonEta) > 1.24)
+    return;*/
 
   event.muonPhi = simMuon->momentum().phi();
   event.muonCharge = muonCharge;  //TODO

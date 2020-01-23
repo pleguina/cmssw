@@ -11,7 +11,7 @@ config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'runMuonCorrelatorTTTracksAnanlyzer.py'
 config.JobType.pyCfgParams = ['efficiency']
 
-config.Data.inputDataset = '/HSCPppstau_M_871_TuneCP5_14TeV_pythia8/PhaseIITDRSpring19DR-PU200_HSCP_106X_upgrade2023_realistic_v3-v2/GEN-SIM-DIGI-RAW' 
+config.Data.inputDataset = '/HSCPppstau_M_871_TuneCP5_14TeV_pythia8/PhaseIITDRSpring19DR-PU200_HSCP_106X_upgrade2023_realistic_v3_ext1-v1/GEN-SIM-DIGI-RAW'
 #'/SingleMu_FlatPt-2to100/PhaseIIFall17D-L1TPU200_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
 #config.Data.inputDataset = '/SingleMu_FlatPt-2to100/PhaseIIFall17D-L1TnoPU_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
 
