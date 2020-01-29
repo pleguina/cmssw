@@ -75,7 +75,7 @@ void PatternOptimizerBase::observeProcesorEmulation(unsigned int iProcessor, l1t
       //exptResult = exptCandGp->getResults()[procIndx][iRefHit];
       candProcIndx = procIndx;
 
-      regionalMuonCand = candMuons[i]; //not necessary good, but needed only for debug printout
+      regionalMuonCand = candMuons.at(i); //should be good, as the regionalMuonCand is created for every  gbCandidate in OMTFProcessor<GoldenPatternType>::getFinalcandidates
       //found = true;
     }
     i++;

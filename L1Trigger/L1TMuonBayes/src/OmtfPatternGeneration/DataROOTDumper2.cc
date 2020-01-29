@@ -102,7 +102,8 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<
     event.omtfPhi = omtfCand->getPhi();
     event.omtfCharge = std::pow(-1, regionalMuonCand.hwSign());
     event.omtfScore = omtfCand->getPdfSum();
-    event.omtfQuality = omtfCand->getQ();
+    event.omtfQuality = regionalMuonCand.hwQual(); //omtfCand->getQ();
+    event.omtfFiredLayers = omtfCand-> getFiredLayerBits();
     event.omtfRefLayer  = omtfCand->getRefLayer();
     event.omtfHitsWord = omtfCand->getFiredLayerBits();
     event.omtfProcessor = candProcIndx;
@@ -112,15 +113,18 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<
     //unsigned int iRefHit = omtfCand->getRefHitNumber();
 
     auto& gpResult = omtfCand->getGpResult();
-    int pdfMiddle = 1<<(omtfConfig->nPdfAddrBits()-1);
+    //int pdfMiddle = 1<<(omtfConfig->nPdfAddrBits()-1);
+
+    //edm::LogVerbatim("l1tMuBayesEventPrint")<<"DataROOTDumper2:;observeEventEnd muonPt "<<event.muonPt<<" muonCharge "<<event.muonCharge<<std::endl;
 
     for(unsigned int iLogicLayer = 0; iLogicLayer < gpResult.getStubResults().size(); ++iLogicLayer) {
       auto& stubResult = gpResult.getStubResults()[iLogicLayer];
-      if(stubResult.getMuonStub() && stubResult.getValid()) {
+      if(stubResult.getMuonStub() ) {//&& stubResult.getValid() //TODO!!!!!!!!!!!!!!!!1
         OmtfEvent::Hit hit;
         hit.layer = iLogicLayer;
         hit.quality = stubResult.getMuonStub()->qualityHw;
         hit.eta = stubResult.getMuonStub()->etaHw; //in which scale?
+        hit.valid = stubResult.getValid();
 
         /*int phiDist = stubResult.getPdfBin() - pdfMiddle;
 
@@ -164,6 +168,12 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<
         event.hits.push_back(hit.rawData);
       }
     }
+
+    /*if( (int)event.hits.size() != omtfCand->getQ()) {
+      edm::LogVerbatim("l1tMuBayesEventPrint")<<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
+                    <<" hits.size "<<event.hits.size()<<" omtfCand->getQ "<<omtfCand->getQ()<<" !!!!!!!!!!!!!!!!!!aaa!!!!!!"<<endl;
+    }*/
+
     rootTree->Fill();
     evntCnt++;
   }

@@ -1,7 +1,7 @@
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'muCorr_MC_analysis_HSCPppstau_M_871_PU200_v1_t22'
+config.General.requestName = 'muCorr_MC_analysis_HSCPppstau_M_871_PU200_v1_t25'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
@@ -17,10 +17,11 @@ config.Data.inputDataset = '/HSCPppstau_M_871_TuneCP5_14TeV_pythia8/PhaseIITDRSp
 
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 15
+config.Data.unitsPerJob = 5
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'CRAB3_muCorr_MC_analysis_HSCPppstau_M_871_PU200_v1_t22'
-config.Data.totalUnits = 344 #344
+config.Data.outputDatasetTag = 'CRAB3_muCorr_MC_analysis_HSCPppstau_M_871_PU200_v1_t25'
+config.Data.totalUnits = 154 #344
+config.Data.allowNonValidInputDataset = True
 
 config.Site.storageSite = 'T2_PL_Swierk'

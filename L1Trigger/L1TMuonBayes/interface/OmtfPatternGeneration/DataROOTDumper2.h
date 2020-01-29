@@ -34,7 +34,7 @@ public:
   int omtfCharge, omtfProcessor, omtfScore;
   double omtfPt, omtfEta, omtfPhi;
   unsigned int omtfQuality, omtfRefLayer, omtfHitsWord;
-
+  unsigned int omtfFiredLayers = 0;
 
   struct Hit {
     union {
@@ -44,6 +44,7 @@ public:
         char layer = 0;
         char quality = 0;
         char z = 0;
+        char valid = 0;
         short eta = 0;
         short phiDist = 0;
       };

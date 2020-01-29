@@ -199,13 +199,16 @@ void PatternGenerator::upadatePdfs() {
 
         //watch out: the shift in a given layer must be the same for patterns in one group
         //todo  make the setting on shift on the group base
-        if( ( (gp->key().thePt <= 10) && (    (iLayer == 5) ) ) ) {
+        if( (gp->key().thePt <= 10) && (iLayer == 3 || iLayer == 5 ) && (iRefLayer == 0 || iRefLayer == 2 || iRefLayer == 6 || iRefLayer == 7)) {
+          gp->setDistPhiBitShift(3, iLayer, iRefLayer);
+        }
+        else if( (gp->key().thePt <= 10) && ( iLayer == 1 || iLayer == 3 || iLayer == 5 ) ) {
           gp->setDistPhiBitShift(2, iLayer, iRefLayer);
         }
-        else if( ( (gp->key().thePt <= 10) && (iLayer == 1 ) ) ) {
-          gp->setDistPhiBitShift(2, iLayer, iRefLayer);
+        else if( ( (gp->key().thePt <= 10) && (iLayer == 7 ||iLayer == 8 || iLayer == 17 ) ) ) {
+          gp->setDistPhiBitShift(1, iLayer, iRefLayer);
         }
-        else if( ( (gp->key().thePt <= 10) && (iLayer == 3 || iLayer == 8 || iLayer == 17 ) ) ) {
+        else if( (gp->key().thePt <= 10) && (iLayer == 10 || iLayer == 11 || iLayer == 12 || iLayer == 13) && (iRefLayer == 1)) {
           gp->setDistPhiBitShift(1, iLayer, iRefLayer);
         }
       }
@@ -327,11 +330,12 @@ void PatternGenerator::upadatePdfs() {
             else
               pdfVal = 0;
 
-            const double minPlog =  log(omtfConfig->minPdfVal());
+            double minPdfValFactor = 0.5;
+            const double minPlog =  log(omtfConfig->minPdfVal() * minPdfValFactor);
             const double pdfMaxVal = omtfConfig->pdfMaxValue();
 
             int digitisedVal = 0;
-            if(pdfVal >= omtfConfig->minPdfVal()) {
+            if(pdfVal >= omtfConfig->minPdfVal() * minPdfValFactor) {
               digitisedVal = rint(pdfMaxVal - log(pdfVal) / minPlog * pdfMaxVal);
             }
 

@@ -188,7 +188,7 @@ process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(False)
 process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
 process.simBayesOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simBayesOmtfDigis.generatePatterns = cms.bool(True)
-process.simBayesOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x0005_1_oldSample_10Files.xml")
+process.simBayesOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x0006_2_oldSample_10Files.xml")
 
 process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)

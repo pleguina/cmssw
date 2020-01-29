@@ -30,7 +30,7 @@ class AlgoMuon: public AlgoMuonBase {
   int getPhi()  const { return gpResult.getPhi(); }
   int getEtaHw() const override { return gpResult.getEta(); }
   int getRefLayer() const { return gpResult.getRefLayer(); }
-  int getFiredLayerBits() const { return gpResult.getFiredLayerBits(); }
+  unsigned int getFiredLayerBits() const { return gpResult.getFiredLayerBits(); }
   int getQ()  const { return m_q; }
   int getBx() const { return m_bx; }
 
