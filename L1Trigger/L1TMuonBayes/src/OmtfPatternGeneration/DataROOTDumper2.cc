@@ -52,6 +52,8 @@ void DataROOTDumper2::initializeTTree(std::string rootFileName) {
   rootTree->Branch("omtfRefLayer", &event.omtfRefLayer);
   rootTree->Branch("omtfProcessor", &event.omtfProcessor);
 
+  rootTree->Branch("omtfFiredLayers", &event.omtfFiredLayers); //<<<<<<<<<<<<<<<<<<<<<<!!!!TODOO
+
   rootTree->Branch("hits", &event.hits);
 
   ptGenPos = new TH1I("ptGenPos", "ptGenPos", 400, 0, 200);

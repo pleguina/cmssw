@@ -218,7 +218,7 @@ void GoldenPatternResult::finalise5() {
       else {
         firedLayerBits &= ~(1<<iLogicLayer);
         stubResults[iLogicLayer].setValid(false);
-        //in principle the stub should be also removed from the stubResults[iLogicLayer], on the other hand ini this way can be used e.g. for debug
+        //in principle the stun should be also removed from the stubResults[iLogicLayer], on the other hand ini this way can be used e.g. for debug
       }
     }
     else if( firedLayerBits & (1<<iLogicLayer) ) {

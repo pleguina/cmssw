@@ -24,6 +24,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tMuBayesEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
+                         filename  = cms.untracked.string('log_OMTFHits_pats0x0003_oldSample_files_50_60'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -78,13 +79,13 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
-filesPerPtBin = 5 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
+filesPerPtBin = 10 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
 
 if filesNameLike == 'allPt' :
     for ptCode in range(31, 3, -1) :
         for sign in ['_m', '_p'] : #, m
             selFilesPerPtBin = 0
-            for i in range(40, 201, 1): #TODO
+            for i in range(50, 201, 1): #TODO
                 for f in onlyfiles:
                    if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): #TODO for 721_FullEta_v4/
                    #if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f):  #TODO for 9_3_14_FullEta_v2
@@ -184,11 +185,11 @@ process.load('L1Trigger.L1TMuonBayes.simBayesOmtfDigis_cfi')
 process.simBayesOmtfDigis.dumpResultToXML = cms.bool(False)
 process.simBayesOmtfDigis.dumpResultToROOT = cms.bool(False)
 process.simBayesOmtfDigis.dumpHitsToROOT = cms.bool(True)
-process.simBayesOmtfDigis.dumpHitsFileName = cms.string('OMTFHits_pats0x0006_2_oldSample_files_40_45.root')
+process.simBayesOmtfDigis.dumpHitsFileName = cms.string('OMTFHits_pats0x0003_oldSample_files_50_60.root')
 process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(False)
 
-#process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
-process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0006_2_oldSample_10Files.xml") #TODO!!!!!!!!!!!!
+process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
+#process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0006_2_oldSample_10Files.xml") #TODO!!!!!!!!!!!!
 
 #process.simBayesOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simBayesOmtfDigis.generatePatterns = cms.bool(False)
