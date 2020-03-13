@@ -22,6 +22,8 @@
 
 class PatternOptimizerBase: public IOMTFEmulationObserver {
 public:
+  PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig);
+
   PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
 
   virtual ~PatternOptimizerBase();
@@ -60,6 +62,8 @@ protected:
   //candidate found by omtf in a given event
   AlgoMuons::value_type omtfCand;
   l1t::RegionalMuonCand regionalMuonCand;
+
+  AlgoMuons algoCandidates;
 
   unsigned int candProcIndx = 0;
 

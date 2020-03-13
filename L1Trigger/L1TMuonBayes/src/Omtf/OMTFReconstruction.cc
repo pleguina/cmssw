@@ -23,6 +23,7 @@
 #include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/DataROOTDumper2.h"
 #include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/EventCapture.h"
 #include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/PatternGenerator.h"
+#include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/PatternsPtAssignment.h"
 
 /*OMTFReconstruction::OMTFReconstruction() :
   m_OMTFConfig(nullptr), m_OMTF(nullptr), aTopElement(nullptr), m_OMTFConfigMaker(nullptr), m_Writer(nullptr){}*/
@@ -137,6 +138,19 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
         m_OMTF.reset(new OMTFProcessor<GoldenPattern>(m_OMTFConfig, m_Config, iSetup, gps, muStubsInputTokens) );
       }
 
+      if(m_Config.exists("dumpHitsToROOT") && m_Config.getParameter<bool>("dumpHitsToROOT")) {
+        std::string rootFileName = m_Config.getParameter<std::string>("dumpHitsFileName");
+        std::unique_ptr<IOMTFEmulationObserver> obs = std::make_unique<DataROOTDumper2>(m_Config, m_OMTFConfig, gps, rootFileName);
+        observers.emplace_back(std::move(obs));
+      }
+
+      if(m_Config.exists("patternsPtAssignment") && m_Config.getParameter<bool>("patternsPtAssignment")) {
+        //std::string rootFileName = m_Config.getParameter<std::string>("dumpHitsFileName");
+        std::unique_ptr<IOMTFEmulationObserver> obs = std::make_unique<PatternsPtAssignment>(m_Config, m_OMTFConfig, gps, "");
+        observers.emplace_back(std::move(obs));
+      }
+
+
       edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. processorType "<<processorType<<". GoldenPattern type: "<<patternType<<" size: "<<gps.size() << std::endl;
 
       for(auto& gp : gps) {
@@ -227,12 +241,6 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
       observers.emplace_back(std::move(obs));
     }
 
-    if(m_Config.exists("dumpHitsToROOT") && m_Config.getParameter<bool>("dumpHitsToROOT")) {
-      std::string rootFileName = m_Config.getParameter<std::string>("dumpHitsFileName");
-      std::vector<std::shared_ptr<GoldenPatternWithStat> > dummyGPs;
-      std::unique_ptr<IOMTFEmulationObserver> obs = std::make_unique<DataROOTDumper2>(m_Config, m_OMTFConfig, dummyGPs, rootFileName);
-      observers.emplace_back(std::move(obs));
-    }
   }
 }
 /////////////////////////////////////////////////////
