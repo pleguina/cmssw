@@ -19,6 +19,16 @@
 #include <fstream>
 #include "TTree.h"
 
+PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig):
+  edmCfg(edmCfg), omtfConfig(omtfConfig), simMuon(0) {
+  // TODO Auto-generated constructor stub
+
+  simMuPt =  new TH1I("simMuPt", "simMuPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
+  simMuFoundByOmtfPt =  new TH1I("simMuFoundByOmtfPt", "simMuFoundByOmtfPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
+
+  simMuPtSpectrum = new TH1F("simMuPtSpectrum", "simMuPtSpectrum", 400, 0, 400);
+}
+
 PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps):
   edmCfg(edmCfg), omtfConfig(omtfConfig), goldenPatterns(gps), simMuon(0) {
   // TODO Auto-generated constructor stub
@@ -77,6 +87,8 @@ void PatternOptimizerBase::observeProcesorEmulation(unsigned int iProcessor, l1t
 
       regionalMuonCand = candMuons.at(i); //should be good, as the regionalMuonCand is created for every  gbCandidate in OMTFProcessor<GoldenPatternType>::getFinalcandidates
       //found = true;
+
+      this->algoCandidates = algoCandidates;
     }
     i++;
   }

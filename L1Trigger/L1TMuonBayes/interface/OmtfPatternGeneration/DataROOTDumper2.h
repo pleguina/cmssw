@@ -12,6 +12,7 @@
 
 #include "L1Trigger/L1TMuonBayes/interface/Omtf/IOMTFEmulationObserver.h"
 #include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/PatternOptimizerBase.h"
+#include "L1Trigger/L1TMuonBayes/interface/Omtf/GpResultsToPt.h"
 #include <functional>
 
 #include "FWCore/Framework/interface/Event.h"
@@ -28,13 +29,15 @@ struct OmtfEvent {
 
 public:
 
-  double muonPt, muonEta, muonPhi;
-  int muonCharge;
+  double muonPt = 0, muonEta = 0, muonPhi = 0;
+  int muonCharge = 0;
 
-  int omtfCharge, omtfProcessor, omtfScore;
-  double omtfPt, omtfEta, omtfPhi;
-  unsigned int omtfQuality, omtfRefLayer, omtfHitsWord;
+  int omtfCharge = 0, omtfProcessor = 0, omtfScore = 0;
+  double omtfPt = 0, omtfEta = 0, omtfPhi = 0;
+  unsigned int omtfQuality = 0, omtfRefLayer = 0;
   unsigned int omtfFiredLayers = 0;
+
+  float omtfPtCont = 0;
 
   struct Hit {
     union {
@@ -54,12 +57,18 @@ public:
 
   std::vector<unsigned long> hits;
 
+  boost::multi_array<float, 2> omtfGpResultsPdfSum; //[iREfHit][iGp]
+  boost::multi_array<unsigned int, 2> omtfGpResultsFiredLayers; //[iREfHit][iGp]
+
+  OmtfEvent(unsigned int nRefHits, unsigned int nGoldenPatterns):
+    omtfGpResultsPdfSum(boost::extents[nRefHits][nGoldenPatterns]),
+    omtfGpResultsFiredLayers(boost::extents[nRefHits][nGoldenPatterns]) {}
 };
 
 class DataROOTDumper2: public PatternOptimizerBase {
 public:
   DataROOTDumper2(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
-         std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps, std::string rootFileName);
+         std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName);
 
   virtual ~DataROOTDumper2();
 
@@ -68,6 +77,7 @@ public:
   virtual void endJob();
 
 private:
+  std::vector<std::shared_ptr<GoldenPattern> > gps;
 
   void initializeTTree(std::string rootFileName);
   void saveTTree();
@@ -81,6 +91,10 @@ private:
 
   TH1I* ptGenPos = nullptr;
   TH1I* ptGenNeg = nullptr;
+
+  bool dumpGpResults = false;
+
+  GpResultsToPt* gpResultsToPt = nullptr; //TODO move to OmtfProcessor
 };
 
 #endif /* INTERFACE_OMTFPATTERNGENERATION_DATAROOTDUMPER2_H_ */

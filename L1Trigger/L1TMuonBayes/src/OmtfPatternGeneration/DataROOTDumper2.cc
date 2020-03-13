@@ -19,13 +19,35 @@
 
 #include "TFile.h"
 #include "TTree.h"
+#include "TParameter.h"
+
+
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 DataROOTDumper2::DataROOTDumper2(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
-    std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps, std::string rootFileName):
-PatternOptimizerBase(edmCfg, omtfConfig, gps){
+    std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName):
+PatternOptimizerBase(edmCfg, omtfConfig), gps(gps), event(omtfConfig->nTestRefHits(), gps.size())
+{
+  edm::LogVerbatim("l1tMuBayesEventPrint")<<" gps.size() "<<gps.size()<<" omtfConfig->nTestRefHits() "<<omtfConfig->nTestRefHits()<<" event.omtfGpResultsPdfSum.num_elements() "<<event.omtfGpResultsPdfSum.num_elements()<<endl;
+  initializeTTree(rootFileName);
 
-initializeTTree(rootFileName);
+  if(false) {//TODO!!!!!!!!!!!!
+    gpResultsToPt = new GpResultsToPt(gps, omtfConfig); //TODO move to processor
 
+    std::string fileName = edmCfg.getParameter<std::string>("gpResultsToPtFile");
+    std::ifstream ifs(fileName);
+
+    boost::archive::text_iarchive inArch(ifs);
+    //boost::archive::text_oarchive txtOutArch(ofs);
+
+    //const PdfModule* pdfModuleImpl = dynamic_cast<const PdfModule*>(pdfModule);
+    // write class instance to archive
+    edm::LogImportant("l1tMuBayesEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" writing gpResultsToPt to file "<<fileName<<std::endl;
+    inArch >> *gpResultsToPt;
+  }
 }
 
 DataROOTDumper2::~DataROOTDumper2() {
@@ -54,7 +76,25 @@ void DataROOTDumper2::initializeTTree(std::string rootFileName) {
 
   rootTree->Branch("omtfFiredLayers", &event.omtfFiredLayers); //<<<<<<<<<<<<<<<<<<<<<<!!!!TODOO
 
+  if(gpResultsToPt)
+    rootTree->Branch("omtfPtCont", &event.omtfPtCont);
+
   rootTree->Branch("hits", &event.hits);
+
+  if(dumpGpResults) {//TODO not finished, probably has no sense
+
+    unsigned int elementCnt = event.omtfGpResultsPdfSum.num_elements();
+    rootTree->Branch("omtfGpResultsPdfSum", event.omtfGpResultsPdfSum.data(), ("omtfGpResultsPdfSum[" + to_string(elementCnt) + "]/F").c_str());
+
+    elementCnt = event.omtfGpResultsPdfSum.num_elements();
+    rootTree->Branch("omtfGpResultsFiredLayers", event.omtfGpResultsFiredLayers.data(), ("omtfGpResultsFiredLayers[" + to_string(elementCnt) + "]/F").c_str());
+
+    edm::LogVerbatim("l1tMuBayesEventPrint")<<" dumpGpResults "<<" omtfGpResultsFiredLayers elementCnt "<<elementCnt<<std::endl;
+
+    //rootTree->GetUserInfo()->Add(new TParameter<unsigned int>("elementCnt", elementCnt));
+    rootTree->GetUserInfo()->Add(new TObjString( ("elementCnt:" + to_string(elementCnt)).c_str()));
+  }
+
 
   ptGenPos = new TH1I("ptGenPos", "ptGenPos", 400, 0, 200);
   ptGenNeg = new TH1I("ptGenNeg", "ptGenNeg", 400, 0, 200);
@@ -107,8 +147,10 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<
     event.omtfQuality = regionalMuonCand.hwQual(); //omtfCand->getQ();
     event.omtfFiredLayers = omtfCand-> getFiredLayerBits();
     event.omtfRefLayer  = omtfCand->getRefLayer();
-    event.omtfHitsWord = omtfCand->getFiredLayerBits();
     event.omtfProcessor = candProcIndx;
+
+    if(gpResultsToPt)
+      event.omtfPtCont = omtfConfig->hwPtToGev(gpResultsToPt->getValue(omtfCand, candProcIndx) );
 
     event.hits.clear();
 
@@ -117,7 +159,11 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<
     auto& gpResult = omtfCand->getGpResult();
     //int pdfMiddle = 1<<(omtfConfig->nPdfAddrBits()-1);
 
-    //edm::LogVerbatim("l1tMuBayesEventPrint")<<"DataROOTDumper2:;observeEventEnd muonPt "<<event.muonPt<<" muonCharge "<<event.muonCharge<<std::endl;
+/*
+    edm::LogVerbatim("l1tMuBayesEventPrint")<<"DataROOTDumper2:;observeEventEnd muonPt "<<event.muonPt<<" muonCharge "<<event.muonCharge
+        <<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer<<" omtfPtCont "<<event.omtfPtCont
+        <<std::endl;
+*/
 
     for(unsigned int iLogicLayer = 0; iLogicLayer < gpResult.getStubResults().size(); ++iLogicLayer) {
       auto& stubResult = gpResult.getStubResults()[iLogicLayer];
@@ -175,6 +221,26 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<
       edm::LogVerbatim("l1tMuBayesEventPrint")<<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
                     <<" hits.size "<<event.hits.size()<<" omtfCand->getQ "<<omtfCand->getQ()<<" !!!!!!!!!!!!!!!!!!aaa!!!!!!"<<endl;
     }*/
+
+
+
+    if(dumpGpResults) {//TODO not finished, probably has no sense
+      for(unsigned int iRefHit = 0; iRefHit < omtfConfig->nTestRefHits(); iRefHit++) {
+        unsigned int iGP = 0;
+        for(auto& itGP: gps) {
+          if(itGP->key().thePt == 0 )
+            continue;
+
+          auto& result = itGP->getResults()[candProcIndx][iRefHit];
+
+          event.omtfGpResultsPdfSum[iRefHit][iGP] = result.getPdfSum();
+          //result.getRefLayer();
+          event.omtfGpResultsFiredLayers[iRefHit][iGP] = result.getFiredLayerBits();
+
+          iGP++;
+        }
+      }
+    }
 
     rootTree->Fill();
     evntCnt++;
