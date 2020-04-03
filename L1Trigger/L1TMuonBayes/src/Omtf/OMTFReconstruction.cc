@@ -150,6 +150,11 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& iS
         observers.emplace_back(std::move(obs));
       }
 
+      if(m_Config.exists("neuralNetworkFile") ) {
+        edm::LogImportant("OMTFReconstruction") << "constructing PtAssignmentNN"<<std::endl;
+        std::string neuralNetworkFile = m_Config.getParameter<edm::FileInPath>("neuralNetworkFile").fullPath();
+        (static_cast<OMTFProcessor<GoldenPattern>* >(m_OMTF.get()))->setPtAssignment(new PtAssignmentNN(m_Config, m_OMTFConfig, neuralNetworkFile) );
+      }
 
       edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. processorType "<<processorType<<". GoldenPattern type: "<<patternType<<" size: "<<gps.size() << std::endl;
 

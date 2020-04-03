@@ -78,7 +78,7 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t
   bool wasSimMuInOmtfPos = false;
   bool wasSimMuInOmtfNeg = false;
   for(auto& simMuon : simMuons) {
-    if( simMuon->eventId().event() == 0 && abs(simMuon->momentum().eta() ) > 0.82 && abs(simMuon->momentum().eta() ) < 1.24 && simMuon->momentum().pt() > 15) {
+    if( simMuon->eventId().event() == 0 && abs(simMuon->momentum().eta() ) > 0.82 && abs(simMuon->momentum().eta() ) < 1.24 && simMuon->momentum().pt() > 2.5) {
       ostr<<"SimMuon: eventId "<<simMuon->eventId().event()<<" pdgId "<<std::setw(3)<<simMuon->type()
                   <<" pt "<<std::setw(9)<<simMuon->momentum().pt() //<<" Beta "<<simMuon->momentum().Beta()
                   <<" eta "<<std::setw(9)<<simMuon->momentum().eta()<<" phi "<<std::setw(9)<<simMuon->momentum().phi()
@@ -135,10 +135,15 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t
     std::bitset<18> layerHitBits(layerHits);
 
     edm::LogVerbatim("l1tMuBayesEventPrint")
-    <<" hwPt "<<finalCandidate.hwPt()<<" hwQual "<<finalCandidate.hwQual()<<" hwEta "<<std::setw(4)<<finalCandidate.hwEta()<<std::setw(4)<<" hwPhi "<<finalCandidate.hwPhi()
+    <<" hwPt "<<finalCandidate.hwPt()<<" hwSign "<<finalCandidate.hwSign()<<" hwQual "<<finalCandidate.hwQual()<<" hwEta "<<std::setw(4)<<finalCandidate.hwEta()<<std::setw(4)<<" hwPhi "<<finalCandidate.hwPhi()
     <<"    eta "<<std::setw(9)<< (finalCandidate.hwEta()*0.010875)
     <<" phi "<<std::setw(9)<<globalPhi
     <<" "<<layerHitBits<<" processor "<<OmtfName(finalCandidate.processor(), finalCandidate.trackFinderType())<<std::endl;
+
+    for(auto& trackAddr : finalCandidate.trackAddress()) {
+      if(trackAddr.first >= 10)
+        edm::LogVerbatim("l1tMuBayesEventPrint")<<"trackAddr first "<<trackAddr.first<<" second "<<trackAddr.second<<" ptGeV "<<omtfConfig->hwPtToGev(trackAddr.second);
+    }
   }
   edm::LogVerbatim("l1tMuBayesEventPrint")<<std::endl;
 

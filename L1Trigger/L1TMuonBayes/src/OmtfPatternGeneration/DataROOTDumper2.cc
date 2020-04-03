@@ -5,7 +5,7 @@
  *      Author: kbunkow
  */
 
-#include <L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/DataROOTDumper2.h>
+#include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/DataROOTDumper2.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include <boost/range/adaptor/reversed.hpp>
