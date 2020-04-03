@@ -15,7 +15,7 @@ public:
 
   virtual unsigned int nPhiBins() const = 0;
 
-  virtual double hwPtToGev(unsigned int hwPt) const = 0;
+  virtual double hwPtToGev(int hwPt) const = 0;
 
   ///uGMT pt scale conversion: [0GeV, 0.5GeV) = 1 [0.5GeV, 1 Gev) = 2
   virtual int ptGevToHw(double ptGev) const = 0;

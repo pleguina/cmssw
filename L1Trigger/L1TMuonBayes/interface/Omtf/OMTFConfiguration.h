@@ -150,7 +150,7 @@ class OMTFConfiguration: public ProcConfigurationBase {
 
   double ptUnit = 0.5; // GeV/unit
   ///uGMT pt scale conversion
-  virtual double hwPtToGev(unsigned int hwPt) const {
+  virtual double hwPtToGev(int hwPt) const {
     return (hwPt - 1.) * ptUnit;
   }
 

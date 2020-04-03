@@ -11,6 +11,9 @@
 #include <L1Trigger/L1TMuonBayes/interface/Omtf/ProcessorBase.h>
 #include <L1Trigger/L1TMuonBayes/interface/Omtf/SorterBase.h>
 #include <L1Trigger/L1TMuonBayes/interface/Omtf/SorterBase.h>
+
+#include "L1Trigger/L1TMuonBayes/interface/Omtf/PtAssignmentBase.h"
+
 #include <memory>
 
 #include "FWCore/Framework/interface/Event.h"
@@ -77,6 +80,10 @@ class OMTFProcessor: public ProcessorBase<GoldenPatternType>, public IProcessorE
     this->ghostBuster.reset(ghostBuster);
   }
 
+  virtual void setPtAssignment(PtAssignmentBase* ptAssignment) {
+    this->ptAssignment.reset(ptAssignment);
+  }
+
   virtual void loadAndFilterDigis(const edm::Event& iEvent, const edm::ParameterSet& edmCfg);
 
   virtual std::vector<l1t::RegionalMuonCand> run(unsigned int iProcessor, l1t::tftype mtfType, int bx, std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers);
@@ -98,6 +105,9 @@ protected:
   std::unique_ptr<SorterBase<GoldenPatternType> > sorter;
 
   std::unique_ptr<IGhostBuster> ghostBuster;
+
+  std::unique_ptr<PtAssignmentBase> ptAssignment;
+
 
 };
 

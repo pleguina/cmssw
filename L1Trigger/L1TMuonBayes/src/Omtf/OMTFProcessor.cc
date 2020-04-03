@@ -162,9 +162,18 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     trackAddr[0] = myCand->getFiredLayerBits();
     trackAddr[1] = myCand->getRefLayer();
     trackAddr[2] = myCand->getDisc();
-    candidate.setTrackAddress(trackAddr);
-    candidate.setTFIdentifiers(iProcessor,mtfType);
-    if (candidate.hwPt() > 0)  result.push_back(candidate);
+    if (candidate.hwPt() > 0)  {
+      if(ptAssignment) {
+        auto pts = ptAssignment->getPts(myCand);
+        for(unsigned int i = 0; i < pts.size(); i++) {
+          trackAddr[10 + i] = this->myOmtfConfig->ptGevToHw(pts[i]);//std::copysign(this->myOmtfConfig->ptGevToHw( abs(pts[i]) ) , pts[i]) ;
+        }
+      }
+
+      candidate.setTrackAddress(trackAddr);
+      candidate.setTFIdentifiers(iProcessor,mtfType);
+      result.push_back(candidate);
+    }
   }
   return result;
 }
