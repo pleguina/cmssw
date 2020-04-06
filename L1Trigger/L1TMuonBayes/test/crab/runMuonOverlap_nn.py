@@ -130,13 +130,21 @@ process.simBayesOmtfDigis.nn_pThresholds = cms.vdouble(nn_pThresholds)
 #process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 #process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
-
+analysisType = "efficiency" # or rate
+  
+for a in sys.argv :
+    if a == "efficiency" or a ==  "rate" or a == "withTrackPart" :
+        analysisType = a
+        break;
+    
+print "analysisType=" + analysisType
 
 process.L1MuonAnalyzerOmtf= cms.EDAnalyzer("L1MuonAnalyzerOmtf", 
                                  etaCutFrom = cms.double(0.82), #OMTF eta range
                                  etaCutTo = cms.double(1.24),
                                  L1OMTFInputTag  = cms.InputTag("simBayesOmtfDigis","OMTF"),
-                                 nn_pThresholds = cms.vdouble(nn_pThresholds)
+                                 nn_pThresholds = cms.vdouble(nn_pThresholds), 
+                                 analysisType = cms.string(analysisType)
                                         )
 process.l1MuonAnalyzerOmtfPath = cms.Path(process.L1MuonAnalyzerOmtf)
 
