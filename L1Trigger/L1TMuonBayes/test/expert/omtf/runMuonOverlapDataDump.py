@@ -12,7 +12,7 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
 
-dumpHitsFileName = 'OMTFHits_pats0x0003_oldSample_files_65_95_ptUpTo13' #'OMTFHits_pats0x00031_newerSample_files_1_100'
+dumpHitsFileName = 'OMTFHits_pats0x00031_newerSample_files_1_100' #'OMTFHits_pats0x00031_newerSample_files_1_100' OMTFHits_pats0x0003_oldSample_files_30_40
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -61,8 +61,8 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 process.GlobalTag = GlobalTag(process.GlobalTag, '103X_upgrade2023_realistic_v2', '') 
 
-path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
-#path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/' #new sample, but small and more noisy
+#path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
+path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/' #new sample, but small and more noisy
 #path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v1/'
 
 #path = '/afs/cern.ch/work/a/akalinow/public/MuCorrelator/Data/SingleMu/9_3_14_FullEta_v1/'
@@ -81,16 +81,16 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
-filesPerPtBin = 30 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
+filesPerPtBin = 100 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
 
 if filesNameLike == 'allPt' :
-    for ptCode in range(13, 3, -1) :
+    for ptCode in range(31, 3, -1) :
         for sign in ['_m', '_p'] : #, m
             selFilesPerPtBin = 0
-            for i in range(65, 201, 1): #TODO
+            for i in range(1, 201, 1): #TODO
                 for f in onlyfiles:
-                   if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): #TODO for 721_FullEta_v4/
-                   #if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f):  #TODO for 9_3_14_FullEta_v2
+                   #if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): #TODO for 721_FullEta_v4/
+                   if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f):  #TODO for 9_3_14_FullEta_v2
                         #print f
                         chosenFiles.append('file://' + path + f) 
                         selFilesPerPtBin += 1
