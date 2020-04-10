@@ -19,7 +19,7 @@ config.Data.inputDataset = '/Nu_E10-pythia8-gun/PhaseIITDRSpring19DR-PU200_106X_
 
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 20
+config.Data.unitsPerJob = 30
 #config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
 config.Data.outputDatasetTag = 'CRAB3_omtf_nn_MC_analysis_MuFlatPt_PU200_v2_t30'
