@@ -55,7 +55,7 @@ namespace {
   };
 }
 
-void RPCHitCleaner::run(const edm::EventSetup& c) {
+void RPCHitCleaner::run(const edm::EventSetup& c,bool doEndcap) {
 
   std::map<detId_Ext, int> hits;
   vector<int> vcluster_size;
@@ -69,7 +69,7 @@ void RPCHitCleaner::run(const edm::EventSetup& c) {
         RPCDetId detid = (*chamber).first;
         int strip_n1 = -10000;
         int bx_n1 = -10000;
-        if(detid.region()!=0 ) continue; //Region = 0 Barrel
+        if( (detid.region()!=0 && (!doEndcap)) || (detid.region()==0 && doEndcap))  continue; //Region = 0 Barrel
         for( auto digi = (*chamber).second.first ; digi != (*chamber).second.second; ++digi ) {
              if(fabs(digi->bx())>3 ) continue;
              ///Create cluster ids and store their size
@@ -93,7 +93,7 @@ void RPCHitCleaner::run(const edm::EventSetup& c) {
 
   for( auto chamber = m_inrpcDigis.begin(); chamber != m_inrpcDigis.end(); ++chamber ){
         RPCDetId detid = (*chamber).first;
-        if(detid.region()!=0 ) continue; //Region = 0 Barrel
+        if( (detid.region()!=0 && (!doEndcap)) || (detid.region()==0 && doEndcap))  continue; //Region = 0 Barrel
         BxToStrips strips;
         int cluster_n1 = -10;
         bx_hits[detid] = 10;
