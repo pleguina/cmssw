@@ -5,7 +5,7 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#include "L1Trigger/L1TMuonBayes/interface/TrackingTriggerTrack.h"
+#include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/TrackingTriggerTrack.h"
 
 TrackingTriggerTrack::TrackingTriggerTrack(const SimTrackRef& simTrackRef): simTrackRef(simTrackRef) {
   eta = simTrackRef->momentum().eta();

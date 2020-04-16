@@ -5,8 +5,7 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#include "L1Trigger/L1TMuonBayes/interface/TTTracksInputMaker.h"
-
+#include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/TTTracksInputMaker.h"
 #include "SimDataFormats/Track/interface/SimTrack.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 

@@ -8,12 +8,12 @@
 #ifndef MUCORRELATOR_ALGOTTMUON_H_
 #define MUCORRELATOR_ALGOTTMUON_H_
 
+#include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/TrackingTriggerTrack.h"
 #include <vector>
 #include <memory>
 #include "boost/dynamic_bitset.hpp"
 
 #include "L1Trigger/L1TMuonBayes/interface/AlgoMuonBase.h"
-#include "L1Trigger/L1TMuonBayes/interface/TrackingTriggerTrack.h"
 #include "L1Trigger/L1TMuonBayes/interface/MuonStub.h"
 #include "L1Trigger/L1TMuonBayes/interface/StubResult.h"
 

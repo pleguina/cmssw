@@ -112,8 +112,8 @@ void PatternGenerator::updateStat() {
   //cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCand "<<*omtfCand<<std::endl;;
   AlgoMuon* algoMuon = omtfCand.get();
   if(!algoMuon) {
-    edm::LogImportant("l1tMuBayesEventPrint")<<":"<<__LINE__<<" ttAlgoMuon is null"<<std::endl;
-    throw runtime_error("ttAlgoMuon is null");
+    edm::LogImportant("l1tMuBayesEventPrint")<<":"<<__LINE__<<" algoMuon is null"<<std::endl;
+    throw runtime_error("algoMuon is null");
   }
 
   double ptSim = simMuon->momentum().pt();

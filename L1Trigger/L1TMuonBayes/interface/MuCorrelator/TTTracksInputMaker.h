@@ -8,7 +8,7 @@
 #ifndef L1TMUONBAYES_TTTRACKSINPUTMAKER_H_
 #define L1TMUONBAYES_TTTRACKSINPUTMAKER_H_
 
-#include "L1Trigger/L1TMuonBayes/interface/TrackingTriggerTrack.h"
+#include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/TrackingTriggerTrack.h"
 #include "L1Trigger/L1TMuonBayes/interface/ProcConfigurationBase.h"
 
 #include "FWCore/Framework/interface/Event.h"
