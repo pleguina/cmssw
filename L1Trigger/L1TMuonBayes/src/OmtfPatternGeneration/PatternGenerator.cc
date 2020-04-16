@@ -197,6 +197,12 @@ void PatternGenerator::upadatePdfs() {
           throw runtime_error(string(__FUNCTION__) + ":" + to_string(__LINE__) + "gp->getDistPhiBitShift(iLayer, iRefLayer) != 0 -  cannot change DistPhiBitShift then!!!!");
         }
 
+        if( (gp->key().thePt <= 10) && (iLayer < 6) ) {
+          gp->setDistPhiBitShift(1, iLayer, iRefLayer);
+        }
+        else
+          gp->setDistPhiBitShift(0, iLayer, iRefLayer);
+
         //watch out: the shift in a given layer must be the same for patterns in one group
         //todo  make the setting on shift on the group base
         /*if( (gp->key().thePt <= 10) && (iLayer == 3 || iLayer == 5 ) && (iRefLayer == 0 || iRefLayer == 2 || iRefLayer == 6 || iRefLayer == 7)) {
@@ -211,8 +217,6 @@ void PatternGenerator::upadatePdfs() {
         else if( (gp->key().thePt <= 10) && (iLayer == 10 || iLayer == 11 || iLayer == 12 || iLayer == 13) && (iRefLayer == 1)) {
           gp->setDistPhiBitShift(1, iLayer, iRefLayer);
         }*/
-
-        gp->setDistPhiBitShift(0, iLayer, iRefLayer);
       }
     }
   }

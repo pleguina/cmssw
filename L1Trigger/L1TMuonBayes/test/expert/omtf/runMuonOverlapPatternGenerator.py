@@ -24,7 +24,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tMuBayesEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_Patterns_0x00031_newerSample_100Files'),
+                         filename  = cms.untracked.string('log_Patterns_0x0007_oldSample_10Files'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -59,8 +59,8 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 process.GlobalTag = GlobalTag(process.GlobalTag, '103X_upgrade2023_realistic_v2', '') 
 
-#path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
-path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/' #new sample, but small and more noisy
+path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
+#path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/' #new sample, but small and more noisy
 #path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v1/'
 
 #path = '/afs/cern.ch/work/a/akalinow/public/MuCorrelator/Data/SingleMu/9_3_14_FullEta_v1/'
@@ -79,7 +79,7 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
-filesPerPtBin = 100 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
+filesPerPtBin = 10 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
 
 if filesNameLike == 'allPt' :
     for ptCode in range(31, 3, -1) :
@@ -87,8 +87,8 @@ if filesNameLike == 'allPt' :
             selFilesPerPtBin = 0
             for i in range(1, 201, 1): #TODO
                 for f in onlyfiles:
-                   #if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): #TODO for 721_FullEta_v4/
-                   if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f):  #TODO for 9_3_14_FullEta_v2
+                   if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): #TODO for 721_FullEta_v4/
+                   #if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f):  #TODO for 9_3_14_FullEta_v2
                         #print f
                         chosenFiles.append('file://' + path + f) 
                         selFilesPerPtBin += 1
@@ -189,7 +189,7 @@ process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(False)
 process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
 process.simBayesOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simBayesOmtfDigis.generatePatterns = cms.bool(True)
-process.simBayesOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x00031_newerSample_100Files.xml")
+process.simBayesOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x0007_oldSample_10Files.xml")
 
 process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
