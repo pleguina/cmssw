@@ -1,8 +1,7 @@
 #ifndef L1TMuonOverlapTTMergerTrackProducer_H
 #define L1TMuonOverlapTTMergerTrackProducer_H
 
-#include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/MuCorrelatorInputMaker.h"
-#include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/TTTracksInputMaker.h"
+
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 
@@ -22,6 +21,8 @@
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 
 #include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/MuCorrelatorProcessor.h"
+#include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/TTTracksInputMaker.h"
+#include "L1Trigger/L1TMuonBayes/interface/MuCorrelator/MuCorrelatorInputMaker.h"
 
 class L1TMuonBayesMuCorrelatorTrackProducer : public edm::EDProducer {
  public:
