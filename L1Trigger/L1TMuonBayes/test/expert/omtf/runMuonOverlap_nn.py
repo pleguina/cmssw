@@ -95,7 +95,16 @@ process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
    verbose = cms.untracked.bool(False)
 )
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v31.root'), closeFileFast = cms.untracked.bool(True) )
+analysisType = "efficiency" # or rate
+  
+for a in sys.argv :
+    if a == "efficiency" or a ==  "rate" or a == "withTrackPart" :
+        analysisType = a
+        break;
+    
+print "analysisType=" + analysisType
+
+process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v36' + analysisType + '.root'), closeFileFast = cms.untracked.bool(True) )
                                    
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonBayes.simBayesOmtfDigis_cfi')
@@ -110,7 +119,7 @@ process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
 process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(0) #valid values are 0, 1, 2, 3, 5
+process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(6) #valid values are 0, 1, 2, 3, 5
 
 process.simBayesOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
@@ -118,8 +127,8 @@ process.simBayesOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!
 #nn_pThresholds = [0.40, 0.50] 
 nn_pThresholds = [0.35, 0.40, 0.45, 0.50, 0.55] 
  
-process.simBayesOmtfDigis.neuralNetworkFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/omtfClassifier_withPtBins_v32.txt")
-process.simBayesOmtfDigis.ptCalibrationFileName = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PtCalibration_v32.root")
+process.simBayesOmtfDigis.neuralNetworkFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/omtfClassifier_withPtBins_v33.txt")
+process.simBayesOmtfDigis.ptCalibrationFileName = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PtCalibration_v33.root")
 
 process.simBayesOmtfDigis.nn_pThresholds = cms.vdouble(nn_pThresholds)
 
@@ -130,14 +139,7 @@ process.simBayesOmtfDigis.nn_pThresholds = cms.vdouble(nn_pThresholds)
 #process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 #process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
-analysisType = "efficiency" # or rate
-  
-for a in sys.argv :
-    if a == "efficiency" or a ==  "rate" or a == "withTrackPart" :
-        analysisType = a
-        break;
-    
-print "analysisType=" + analysisType
+
 
 process.L1MuonAnalyzerOmtf= cms.EDAnalyzer("L1MuonAnalyzerOmtf", 
                                  etaCutFrom = cms.double(0.82), #OMTF eta range

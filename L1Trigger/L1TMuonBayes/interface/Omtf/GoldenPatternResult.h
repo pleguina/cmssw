@@ -172,6 +172,8 @@ public:
       finalise3();
     else if(finalizeFunction == 5)
       finalise5();
+    else if(finalizeFunction == 6)
+      finalise6();
     else
       finalise0();
   }
@@ -189,6 +191,8 @@ public:
   void finalise3();
 
   void finalise5();
+
+  void finalise6();
   //bool empty() const;
 
   friend std::ostream & operator << (std::ostream &out, const GoldenPatternResult & aResult);
