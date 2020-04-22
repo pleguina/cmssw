@@ -153,6 +153,12 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000000110000").to_ulong()
          ) quality = 1;
     }
+    if( this->myOmtfConfig->fwVersion() >= 6 ) { //TODO fix the fwVersion
+      if (   static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000110000000001").to_ulong()
+          || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001100000000100").to_ulong()
+          || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000110000000010000").to_ulong()
+      ) quality = 1;
+    }
 //  if (abs(myCand->getEta()) == 121) quality = 4;
     if (abs(myCand->getEtaHw()) == 121) quality = 0; // changed on request from HI
 
