@@ -104,7 +104,7 @@ for a in sys.argv :
     
 print "analysisType=" + analysisType
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v36' + analysisType + '.root'), closeFileFast = cms.untracked.bool(True) )
+process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v42' + analysisType + '.root'), closeFileFast = cms.untracked.bool(True) )
                                    
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonBayes.simBayesOmtfDigis_cfi')
@@ -127,8 +127,8 @@ process.simBayesOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!
 #nn_pThresholds = [0.40, 0.50] 
 nn_pThresholds = [0.35, 0.40, 0.45, 0.50, 0.55] 
  
-process.simBayesOmtfDigis.neuralNetworkFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/omtfClassifier_withPtBins_v33.txt")
-process.simBayesOmtfDigis.ptCalibrationFileName = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PtCalibration_v33.root")
+process.simBayesOmtfDigis.neuralNetworkFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/omtfClassifier_withPtBins_v34.txt")
+process.simBayesOmtfDigis.ptCalibrationFileName = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PtCalibration_v34.root")
 
 process.simBayesOmtfDigis.nn_pThresholds = cms.vdouble(nn_pThresholds)
 
