@@ -1,17 +1,17 @@
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'omtf_nn_MC_analysis_SingleNeutrino_PU200_v2_t43'
+config.General.requestName = 'omtf_nn_MC_analysis_SingleNeutrino_PU200_mtd5_v2_t43'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
 
 config.JobType.pluginName = 'Analysis'
 #config.JobType.psetName = 'runMuonOverlapTTMergerAnalyzerCrab.py'
-config.JobType.psetName = 'runMuonOverlap_nn.py'
+config.JobType.psetName = 'runMuonOverlap_nn_mtd5.py'
 config.JobType.pyCfgParams = ['rate']
 
-config.Data.inputDataset = '/Nu_E10-pythia8-gun/PhaseIITDRSpring19DR-PU200_106X_upgrade2023_realistic_v3-v3/GEN-SIM-DIGI-RAW'
+config.Data.inputDataset = '/NeutrinoGun_E_10GeV/PhaseIIMTDTDRAutumn18DR-PU200_103X_upgrade2023_realistic_v2-v1/FEVT'
 #config.Data.inputDataset = '/SingleNeutrino/PhaseIIFall17D-L1TPU200_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
 #'/QCD_Pt-0to1000_Tune4C_14TeV_pythia8/PhaseIIFall17D-L1TPU200_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
 #config.Data.inputDataset = '/SingleMu_FlatPt-2to100/PhaseIIFall17D-L1TPU200_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
@@ -19,11 +19,11 @@ config.Data.inputDataset = '/Nu_E10-pythia8-gun/PhaseIITDRSpring19DR-PU200_106X_
 
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 20
+config.Data.unitsPerJob = 40
 #config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'CRAB3_omtf_nn_MC_analysis_SingleNeutrino_PU200_v2_t43'
-config.Data.totalUnits = 1667
+config.Data.outputDatasetTag = 'CRAB3_omtf_nn_MC_analysis_SingleNeutrino_PU200_mtd5_v2_t43'
+config.Data.totalUnits = 2599
 config.Data.ignoreLocality = False
 
 config.section_("Debug")
