@@ -104,7 +104,7 @@ for a in sys.argv :
     
 print "analysisType=" + analysisType
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v42' + analysisType + '.root'), closeFileFast = cms.untracked.bool(True) )
+process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v45' + analysisType + '.root'), closeFileFast = cms.untracked.bool(True) )
                                    
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonBayes.simBayesOmtfDigis_cfi')
@@ -119,7 +119,7 @@ process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
 process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(6) #valid values are 0, 1, 2, 3, 5
+process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(0) #valid values are 0, 1, 2, 3, 5
 
 process.simBayesOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 

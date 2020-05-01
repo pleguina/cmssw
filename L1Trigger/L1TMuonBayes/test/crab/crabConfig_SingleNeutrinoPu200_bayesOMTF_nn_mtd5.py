@@ -1,7 +1,7 @@
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'omtf_nn_MC_analysis_SingleNeutrino_PU200_mtd5_v2_t40'
+config.General.requestName = 'omtf_nn_MC_analysis_SingleNeutrino_PU200_mtd5_v2_t44'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
@@ -19,10 +19,10 @@ config.Data.inputDataset = '/NeutrinoGun_E_10GeV/PhaseIIMTDTDRAutumn18DR-PU200_1
 
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 40
+config.Data.unitsPerJob = 50
 #config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'CRAB3_omtf_nn_MC_analysis_SingleNeutrino_PU200_mtd5_v2_t40'
+config.Data.outputDatasetTag = 'CRAB3_omtf_nn_MC_analysis_SingleNeutrino_PU200_mtd5_v2_t44'
 config.Data.totalUnits = 2599
 config.Data.ignoreLocality = False
 
