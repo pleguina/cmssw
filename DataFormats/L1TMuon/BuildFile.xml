@@ -10,6 +10,7 @@
 <use name="DataFormats/L1CSCTrackFinder"/>
 <use name="DataFormats/Common"/>
 <use name="DataFormats/Candidate"/>
+<use name="DataFormats/L1Trigger"/>
 <use name="rootrflx"/>
 <Use name="hepmc"/>
 <flags ADD_SUBDIR="1"/>
