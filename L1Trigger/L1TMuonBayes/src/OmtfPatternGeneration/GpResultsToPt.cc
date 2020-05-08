@@ -5,7 +5,7 @@
  *      Author: kbunkow
  */
 
-#include "L1Trigger/L1TMuonBayes/interface/Omtf/GpResultsToPt.h"
+#include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/GpResultsToPt.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include "TH2F.h"

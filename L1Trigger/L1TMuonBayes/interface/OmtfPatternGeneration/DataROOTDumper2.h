@@ -12,7 +12,7 @@
 
 #include "L1Trigger/L1TMuonBayes/interface/Omtf/IOMTFEmulationObserver.h"
 #include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/PatternOptimizerBase.h"
-#include "L1Trigger/L1TMuonBayes/interface/Omtf/GpResultsToPt.h"
+#include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/GpResultsToPt.h"
 #include <functional>
 
 #include "FWCore/Framework/interface/Event.h"

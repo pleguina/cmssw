@@ -9,7 +9,7 @@
 #define INTERFACE_OMTFPATTERNGENERATION_PATTERNSPTASSIGNMENT_H_
 
 #include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/PatternOptimizerBase.h"
-#include "L1Trigger/L1TMuonBayes/interface/Omtf/GpResultsToPt.h"
+#include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/GpResultsToPt.h"
 
 class PatternsPtAssignment: public PatternOptimizerBase {
 public:

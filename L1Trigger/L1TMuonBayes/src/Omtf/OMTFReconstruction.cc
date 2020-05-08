@@ -25,6 +25,10 @@
 #include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/PatternGenerator.h"
 #include "L1Trigger/L1TMuonBayes/interface/OmtfPatternGeneration/PatternsPtAssignment.h"
 
+#include "L1Trigger/L1TMuonBayes/interface/Omtf/PtAssignmentNN.h" //TODO remove from here
+
+
+
 /*OMTFReconstruction::OMTFReconstruction() :
   m_OMTFConfig(nullptr), m_OMTF(nullptr), aTopElement(nullptr), m_OMTFConfigMaker(nullptr), m_Writer(nullptr){}*/
 /////////////////////////////////////////////////////
