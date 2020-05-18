@@ -9,6 +9,8 @@
 #define INTERFACE_OMTF_PTASSIGNMENTNN_H_
 
 #include "L1Trigger/L1TMuonBayes/interface/Omtf/PtAssignmentBase.h"
+#include "lutNN/lutNN2/interface/LutInterNetwork.h"
+#include "lutNN/lutNN2/interface/ClassifierToRegression.h"
 
 class PtAssignmentNN: public PtAssignmentBase {
 public:

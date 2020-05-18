@@ -56,6 +56,8 @@ public:
     return patternPts;
   }
 
+  virtual void printInfo() const;
+
 protected:
   ///vector holding Golden Patterns
   GoldenPatternVec theGPs;

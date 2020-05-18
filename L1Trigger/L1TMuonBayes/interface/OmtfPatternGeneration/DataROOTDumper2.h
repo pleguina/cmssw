@@ -68,7 +68,7 @@ public:
 class DataROOTDumper2: public PatternOptimizerBase {
 public:
   DataROOTDumper2(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
-         std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName);
+         const std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName);
 
   virtual ~DataROOTDumper2();
 

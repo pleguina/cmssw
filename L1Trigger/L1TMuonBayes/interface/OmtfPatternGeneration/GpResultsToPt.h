@@ -18,9 +18,9 @@
 
 class GpResultsToPt {
 public:
-  GpResultsToPt(std::vector<std::shared_ptr<GoldenPattern> >& gps, const OMTFConfiguration* omtfConfig,  unsigned int lutSize); //for training
+  GpResultsToPt(const std::vector<std::shared_ptr<GoldenPattern> >& gps, const OMTFConfiguration* omtfConfig,  unsigned int lutSize); //for training
 
-  GpResultsToPt(std::vector<std::shared_ptr<GoldenPattern> >& gps, const OMTFConfiguration* omtfConfig); //for running, gpResultsToPtLuts should be read from archive
+  GpResultsToPt(const std::vector<std::shared_ptr<GoldenPattern> >& gps, const OMTFConfiguration* omtfConfig); //for running, gpResultsToPtLuts should be read from archive
   virtual ~GpResultsToPt();
 
 
@@ -53,7 +53,7 @@ public:
 
 private:
   unsigned int lutSize = 1024;
-  std::vector<std::shared_ptr<GoldenPattern> >& gps;
+  const std::vector<std::shared_ptr<GoldenPattern> >& gps;
 
   const OMTFConfiguration* omtfConfig =  nullptr;
 

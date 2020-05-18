@@ -16,7 +16,7 @@
 #include <boost/archive/text_iarchive.hpp>
 
 PatternsPtAssignment::PatternsPtAssignment(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
-    std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName):
+    const std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName):
     PatternOptimizerBase(edmCfg, omtfConfig), gps(gps) {
 
   gpResultsToPt = new GpResultsToPt(gps, omtfConfig, 1024); //TODO move to processor

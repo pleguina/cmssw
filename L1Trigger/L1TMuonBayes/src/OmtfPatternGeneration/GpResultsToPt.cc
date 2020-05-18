@@ -11,7 +11,7 @@
 #include "TH2F.h"
 #include "TFile.h"
 
-GpResultsToPt::GpResultsToPt(std::vector<std::shared_ptr<GoldenPattern> >& gps, const OMTFConfiguration* omtfConfig, unsigned int lutSize): lutSize(lutSize), gps(gps), omtfConfig(omtfConfig),
+GpResultsToPt::GpResultsToPt(const std::vector<std::shared_ptr<GoldenPattern> >& gps, const OMTFConfiguration* omtfConfig, unsigned int lutSize): lutSize(lutSize), gps(gps), omtfConfig(omtfConfig),
 gpResultsToPtLuts(gps.size(), std::vector<int>(lutSize)),
 gpResultsStatLuts(gps.size(), std::vector<double>(lutSize)),
 entries(gps.size(), std::vector<int>(lutSize)),
@@ -61,7 +61,7 @@ higerGps(gps.size(), nullptr)
   }
 }
 
-GpResultsToPt::GpResultsToPt(std::vector<std::shared_ptr<GoldenPattern> >& gps, const OMTFConfiguration* omtfConfig): gps(gps), omtfConfig(omtfConfig),
+GpResultsToPt::GpResultsToPt(const std::vector<std::shared_ptr<GoldenPattern> >& gps, const OMTFConfiguration* omtfConfig): gps(gps), omtfConfig(omtfConfig),
 lowerGps(gps.size(), nullptr),
 higerGps(gps.size(), nullptr)
 {

@@ -41,7 +41,7 @@ class OMTFReconstruction {
 
     OMTFReconstruction(const edm::ParameterSet&, MuStubsInputTokens& muStubsInputTokens);
 
-    ~OMTFReconstruction();
+    virtual ~OMTFReconstruction();
 
     void beginJob();
 
@@ -51,9 +51,12 @@ class OMTFReconstruction {
 
     std::unique_ptr<l1t::RegionalMuonCandBxCollection> reconstruct(const edm::Event&, const edm::EventSetup&);
 
+    void virtual modifyOmtfConfig();
+
+    void virtual addObservers();
   private:
 
-    edm::ParameterSet m_Config;
+    edm::ParameterSet edmParameterSet;
 
     MuStubsInputTokens& muStubsInputTokens;
 
@@ -70,13 +73,14 @@ class OMTFReconstruction {
     int bxMin, bxMax;
 
   ///OMTF objects
-    OMTFConfiguration   *m_OMTFConfig;
+    OMTFConfiguration* omtfConfig;
 
-    //OMTFProcessor<GoldenPattern>  *m_OMTF;
-    unique_ptr<IProcessorEmulator> m_OMTF;
+    unique_ptr<OMTFinputMaker> inputMaker;
+
+    unique_ptr<IProcessorEmulator> omtfProc;
   ///
     //xercesc::DOMElement *aTopElement;
-    OMTFConfigMaker     *m_OMTFConfigMaker;
+    OMTFConfigMaker* m_OMTFConfigMaker;
     //XMLConfigWriter     *m_Writer;
 
     std::vector<std::unique_ptr<IOMTFEmulationObserver> > observers;

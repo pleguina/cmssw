@@ -40,9 +40,9 @@ template <class GoldenPatternType>
 class OMTFProcessor: public ProcessorBase<GoldenPatternType>, public IProcessorEmulator {
  public:
 
-  OMTFProcessor(OMTFConfiguration* omtfConfig, const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup, const L1TMuonOverlapParams* omtfPatterns, MuStubsInputTokens& muStubsInputTokens);
+  OMTFProcessor(OMTFConfiguration* omtfConfig, const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup, const L1TMuonOverlapParams* omtfPatterns);
 
-  OMTFProcessor(OMTFConfiguration* omtfConfig, const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup, const typename ProcessorBase<GoldenPatternType>::GoldenPatternVec& gps, MuStubsInputTokens& muStubsInputTokens);
+  OMTFProcessor(OMTFConfiguration* omtfConfig, const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup, const typename ProcessorBase<GoldenPatternType>::GoldenPatternVec& gps);
 
   virtual ~OMTFProcessor();
 
@@ -84,15 +84,11 @@ class OMTFProcessor: public ProcessorBase<GoldenPatternType>, public IProcessorE
     this->ptAssignment.reset(ptAssignment);
   }
 
-  virtual void loadAndFilterDigis(const edm::Event& iEvent, const edm::ParameterSet& edmCfg);
+  virtual std::vector<l1t::RegionalMuonCand> run(unsigned int iProcessor, l1t::tftype mtfType, int bx, OMTFinputMaker* inputMaker, std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers);
 
-  virtual std::vector<l1t::RegionalMuonCand> run(unsigned int iProcessor, l1t::tftype mtfType, int bx, std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers);
-
-protected:
-  OMTFinputMaker       inputMaker;
-
+  virtual void printInfo() const;
  private:
-  virtual void init(const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup, MuStubsInputTokens& muStubsInputTokens);
+  virtual void init(const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup);
 
   ///Check if the hit pattern of given OMTF candite is not on the list
   ///of invalid hit patterns. Invalid hit patterns provode very little
