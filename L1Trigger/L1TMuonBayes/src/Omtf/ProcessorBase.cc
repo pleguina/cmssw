@@ -45,7 +45,7 @@ bool ProcessorBase<GoldenPatternType>::configure(OMTFConfiguration* omtfConfig,
   const l1t::LUT* meanDistPhiLUT =  omtfPatterns->meanDistPhiLUT();
 
   unsigned int nGPs = myOmtfConfig->nGoldenPatterns();
-  edm::LogInfo("MTFProcessor::configure")<<"myOmtfConfig->nGoldenPatterns() "<<nGPs<<std::endl;
+  edm::LogInfo("OMTFReconstruction")<<"myOmtfConfig->nGoldenPatterns() "<<nGPs<<std::endl;
   unsigned int address = 0;
   unsigned int iEta, iPt;
   int iCharge;
@@ -57,7 +57,13 @@ bool ProcessorBase<GoldenPatternType>::configure(OMTFConfiguration* omtfConfig,
     iPt = ptLUT->data(address);
 
     Key aKey(iEta,iPt,iCharge,iGP);
-    edm::LogInfo("ProcessorBase::configure")<<"adding pattern "<<aKey<<" "<<std::endl; //<<myOmtfConfig->getPatternPtRange(iGP).ptFrom<<" - "<<myOmtfConfig->getPatternPtRange(iGP).ptTo<<" GeV"<<std::endl; PatternPtRange is not initialized here yet!!!!
+    if(iPt == 0) {
+      edm::LogInfo("OMTFReconstruction")<<"skipping empty pattern "<<aKey<<" "<<std::endl; //<<myOmtfConfig->getPatternPtRange(iGP).ptFrom<<" - "<<myOmtfConfig->getPatternPtRange(iGP).ptTo<<" GeV"<<std::endl; PatternPtRange is not initialized here yet!!!!
+      continue;
+    }
+
+    edm::LogInfo("OMTFReconstruction")<<"adding pattern "<<aKey<<" "<<std::endl; //<<myOmtfConfig->getPatternPtRange(iGP).ptFrom<<" - "<<myOmtfConfig->getPatternPtRange(iGP).ptTo<<" GeV"<<std::endl; PatternPtRange is not initialized here yet!!!!
+
     GoldenPatternType* aGP = new GoldenPatternType(aKey, myOmtfConfig);
 
     ///Mean dist phi data
@@ -85,6 +91,7 @@ bool ProcessorBase<GoldenPatternType>::configure(OMTFConfiguration* omtfConfig,
         }
       }
     }
+
     addGP(aGP);
   }
 
@@ -205,6 +212,15 @@ void ProcessorBase<GoldenPatternType>::initPatternPtRange(bool firstPatFrom0) {
   }*/
 
   cout<<__FUNCTION__<<":"<<__LINE__<<" patternPts.size() "<<patternPts.size()<<endl;
+}
+
+template <class GoldenPatternType>
+void ProcessorBase<GoldenPatternType>::printInfo() const {
+  for(auto& gp : theGPs) {
+    edm::LogImportant("OMTFReconstruction")<<gp->key()<<" "
+        <<myOmtfConfig->getPatternPtRange(gp->key().theNumber).ptFrom
+        <<" - "<<myOmtfConfig->getPatternPtRange(gp->key().theNumber).ptTo<<" GeV"<<std::endl;
+  }
 }
 
 //to force compiler to compile the above methods with needed GoldenPatterns types

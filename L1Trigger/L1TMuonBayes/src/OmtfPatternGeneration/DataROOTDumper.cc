@@ -14,9 +14,8 @@
 
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
-DataROOTDumper::DataROOTDumper(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
-			       std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps):
-  PatternOptimizerBase(edmCfg, omtfConfig, gps){
+DataROOTDumper::DataROOTDumper(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig):
+  PatternOptimizerBase(edmCfg, omtfConfig){
 
   initializeTTree();
 

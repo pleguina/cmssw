@@ -59,13 +59,8 @@ XMLConfigReader::~XMLConfigReader()
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapParams& aConfig, const std::vector<std::string> & types){
-
   ///Fill payload string
-  std::vector<std::shared_ptr<GoldenPattern> > aGPs;
-  for(auto aPatternsFile: patternsFiles){
-    auto tmpGPs = readPatterns<GoldenPattern>(aConfig, aPatternsFile);
-    aGPs.insert(aGPs.begin(), tmpGPs.begin(), tmpGPs.end());
-  }
+  std::vector<std::shared_ptr<GoldenPattern> > aGPs = readPatterns<GoldenPattern>(aConfig, patternsFiles);
 
   for ( unsigned int i=0; i< luts.size(); i++ ) {
     l1t::LUT* lut=luts[i];
@@ -188,7 +183,7 @@ unsigned int XMLConfigReader::getPatternsVersion() const{
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 template <class GoldenPatternType>
-std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(const L1TMuonOverlapParams& aConfig, const std::string & patternsFile) {
+std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(const L1TMuonOverlapParams& aConfig, const std::string& patternsFile) {
   std::vector<std::shared_ptr<GoldenPatternType> > aGPs;
   aGPs.clear();
 
@@ -254,6 +249,17 @@ std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(c
 
   XMLPlatformUtils::Terminate();
 
+  return aGPs;
+}
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+template <class GoldenPatternType>
+std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(const L1TMuonOverlapParams& aConfig, const std::vector<std::string>& patternsFiles) {
+  std::vector<std::shared_ptr<GoldenPatternType> > aGPs;
+  for(auto aPatternsFile: patternsFiles){
+    auto tmpGPs = readPatterns<GoldenPatternType>(aConfig, aPatternsFile);
+    aGPs.insert(aGPs.begin(), tmpGPs.begin(), tmpGPs.end());
+  }
   return aGPs;
 }
 //////////////////////////////////////////////////
@@ -716,4 +722,10 @@ template
 std::vector<std::shared_ptr<GoldenPatternWithStat> > XMLConfigReader::readPatterns<GoldenPatternWithStat>(const L1TMuonOverlapParams& aConfig, const std::string & patternsFile);
 
 template
+std::vector<std::shared_ptr<GoldenPatternWithStat> > XMLConfigReader::readPatterns<GoldenPatternWithStat>(const L1TMuonOverlapParams& aConfig, const std::vector<std::string>& patternsFiles);
+
+template
 std::vector<std::shared_ptr<GoldenPatternWithThresh> > XMLConfigReader::readPatterns<GoldenPatternWithThresh>(const L1TMuonOverlapParams& aConfig, const std::string & patternsFile);
+
+template
+std::vector<std::shared_ptr<GoldenPatternWithThresh> > XMLConfigReader::readPatterns<GoldenPatternWithThresh>(const L1TMuonOverlapParams& aConfig, const std::vector<std::string>& patternsFiles);

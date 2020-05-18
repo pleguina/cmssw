@@ -28,7 +28,7 @@
 #include <boost/archive/text_iarchive.hpp>
 
 DataROOTDumper2::DataROOTDumper2(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
-    std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName):
+    const std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName):
 PatternOptimizerBase(edmCfg, omtfConfig), gps(gps), event(omtfConfig->nTestRefHits(), gps.size())
 {
   edm::LogVerbatim("l1tMuBayesEventPrint")<<" gps.size() "<<gps.size()<<" omtfConfig->nTestRefHits() "<<omtfConfig->nTestRefHits()<<" event.omtfGpResultsPdfSum.num_elements() "<<event.omtfGpResultsPdfSum.num_elements()<<endl;

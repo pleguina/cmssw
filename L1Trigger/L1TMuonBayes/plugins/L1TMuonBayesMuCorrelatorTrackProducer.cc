@@ -132,7 +132,7 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
   ttTracksInputMaker = std::make_unique<TTTracksInputMaker>(edmParameterSet);;
 
   if(!muCorrelatorProcessor) {
-    std::string pdfModuleType = "PdfModule"; //GoldenPatternParametrised GoldenPatternWithStat GoldenPattern
+    std::string pdfModuleType = "PdfModule";
     if(edmParameterSet.exists("pdfModuleType") ) {
       pdfModuleType = edmParameterSet.getParameter<std::string>("pdfModuleType");
     }

@@ -8,10 +8,7 @@
 #ifndef INTERFACE_OMTF_PTASSIGNMENTBASE_H_
 #define INTERFACE_OMTF_PTASSIGNMENTBASE_H_
 
-
 #include "L1Trigger/L1TMuonBayes/interface/Omtf/AlgoMuon.h"
-#include "lutNN/lutNN2/interface/LutInterNetwork.h"
-#include "lutNN/lutNN2/interface/ClassifierToRegression.h"
 
 /*
  * base class for the objects providing an alternative pt assignment on top of the OMTF golden pattern (like neural network)

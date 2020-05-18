@@ -14,6 +14,7 @@
 #include <L1Trigger/L1TMuonBayes/interface/Omtf/IOMTFEmulationObserver.h>
 #include <L1Trigger/L1TMuonBayes/interface/Omtf/OMTFinput.h>
 #include <L1Trigger/L1TMuonBayes/interface/Omtf/OMTFSorter.h>
+#include "L1Trigger/L1TMuonBayes/interface/Omtf/OMTFinputMaker.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 
 
@@ -41,10 +42,9 @@ public:
 
   virtual std::vector<l1t::RegionalMuonCand> getFinalcandidates(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& algoCands) = 0;
 
+  virtual std::vector<l1t::RegionalMuonCand> run(unsigned int iProcessor, l1t::tftype mtfType, int bx, OMTFinputMaker* inputMaker, std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) = 0;
 
-  virtual void loadAndFilterDigis(const edm::Event& iEvent, const edm::ParameterSet& edmCfg) = 0;
-
-  virtual std::vector<l1t::RegionalMuonCand> run(unsigned int iProcessor, l1t::tftype mtfType, int bx, std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) = 0;
+  virtual void printInfo() const = 0;
 };
 
 

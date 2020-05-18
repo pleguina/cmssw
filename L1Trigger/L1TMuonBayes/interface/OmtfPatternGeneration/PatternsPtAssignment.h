@@ -14,7 +14,7 @@
 class PatternsPtAssignment: public PatternOptimizerBase {
 public:
   PatternsPtAssignment(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
-      std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName);
+      const std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName);
 
   virtual ~PatternsPtAssignment();
 
