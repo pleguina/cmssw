@@ -1,6 +1,6 @@
 /*
  * BayesMuCorrelatorTrack.h
- * The objects of this class are produced by the L1Trigger/L1TMuonBayes/plugins/L1TMuonBayesMuCorrelatorTrackProducer.h
+ * The objects of this class are produced by the L1Trigger/L1TMuonOverlapPhase1/plugins/L1TMuonBayesMuCorrelatorTrackProducer.h
  * It is a muon track formed by matching the tracking trigger tracks to the muon stubs (DT, CSC, RPC) .
  *  Created on: Mar 15, 2019
  *      Author: Karol Bunkowski kbunkow@cern.ch
