@@ -5,7 +5,7 @@
  *      Author: kbunkow
  */
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/GpResultsToPt.h"
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/GpResultsToPt.h>
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include "TH2F.h"

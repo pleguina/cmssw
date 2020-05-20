@@ -5,9 +5,9 @@
  *      Author: kbunkow
  */
 
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/EventCapture.h>
 #include <sstream>
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/EventCapture.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OmtfName.h"
 
 #include "FWCore/Framework/interface/Event.h"

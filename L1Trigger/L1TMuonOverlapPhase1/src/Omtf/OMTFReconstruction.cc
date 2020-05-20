@@ -18,12 +18,12 @@
 #include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h>
 #include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigWriter.h>
 #include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLEventWriter.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/PatternOptimizer.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/DataROOTDumper.h>
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/DataROOTDumper2.h"
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/EventCapture.h"
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/PatternGenerator.h"
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/PatternsPtAssignment.h"
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper.h>
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper2.h>
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/EventCapture.h>
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternGenerator.h>
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizer.h>
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternsPtAssignment.h>
 
 //#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/PtAssignmentNN.h" //TODO remove from here
 

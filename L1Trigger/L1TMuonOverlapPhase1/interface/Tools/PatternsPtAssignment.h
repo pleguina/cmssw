@@ -5,11 +5,11 @@
  *      Author: kbunkow
  */
 
-#ifndef INTERFACE_OMTFPATTERNGENERATION_PATTERNSPTASSIGNMENT_H_
-#define INTERFACE_OMTFPATTERNGENERATION_PATTERNSPTASSIGNMENT_H_
+#ifndef INTERFACE_TOOLS_PATTERNSPTASSIGNMENT_H_
+#define INTERFACE_TOOLS_PATTERNSPTASSIGNMENT_H_
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/PatternOptimizerBase.h"
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/GpResultsToPt.h"
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/GpResultsToPt.h>
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h>
 
 class PatternsPtAssignment: public PatternOptimizerBase {
 public:
@@ -29,4 +29,4 @@ private:
   GpResultsToPt* gpResultsToPt = nullptr;
 };
 
-#endif /* INTERFACE_OMTFPATTERNGENERATION_PATTERNSPTASSIGNMENT_H_ */
+#endif /* INTERFACE_TOOLS_PATTERNSPTASSIGNMENT_H_ */

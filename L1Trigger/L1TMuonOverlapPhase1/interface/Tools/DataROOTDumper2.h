@@ -5,14 +5,14 @@
  *      Author: kbunkow
  */
 
-#ifndef INTERFACE_OMTFPATTERNGENERATION_DATAROOTDUMPER2_H_
-#define INTERFACE_OMTFPATTERNGENERATION_DATAROOTDUMPER2_H_
+#ifndef INTERFACE_TOOLS_DATAROOTDUMPER2_H_
+#define INTERFACE_TOOLS_DATAROOTDUMPER2_H_
 
 
 
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/GpResultsToPt.h>
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h>
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/PatternOptimizerBase.h"
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/GpResultsToPt.h"
 #include <functional>
 
 #include "FWCore/Framework/interface/Event.h"
@@ -97,4 +97,4 @@ private:
   GpResultsToPt* gpResultsToPt = nullptr; //TODO move to OmtfProcessor
 };
 
-#endif /* INTERFACE_OMTFPATTERNGENERATION_DATAROOTDUMPER2_H_ */
+#endif /* INTERFACE_TOOLS_DATAROOTDUMPER2_H_ */

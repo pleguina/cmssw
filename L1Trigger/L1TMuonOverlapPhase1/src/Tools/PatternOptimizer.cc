@@ -14,7 +14,7 @@
 #include <boost/timer/timer.hpp>
 #include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h>
 #include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigWriter.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/PatternOptimizer.h>
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizer.h>
 #include "TH1F.h"
 #include "TFile.h"
 #include "TCanvas.h"

@@ -7,7 +7,7 @@
 
 #include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h>
 #include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigWriter.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/PatternOptimizerBase.h>
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h>
 #include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 
 #include "Math/VectorUtil.h"

@@ -10,7 +10,7 @@
 
 #include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h>
 #include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/PatternOptimizerBase.h>
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h>
 #include <functional>
 
 #include "FWCore/Framework/interface/Event.h"

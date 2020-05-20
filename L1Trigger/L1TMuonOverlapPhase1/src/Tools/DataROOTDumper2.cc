@@ -5,13 +5,9 @@
  *      Author: kbunkow
  */
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/DataROOTDumper2.h"
-
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/timer/timer.hpp>
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/DataROOTDumper.h"
-
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
 #include "DataFormats/MuonDetId/interface/RPCDetId.h"
 #include "DataFormats/MuonDetId/interface/DTChamberId.h"
@@ -26,6 +22,8 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper.h>
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper2.h>
 
 DataROOTDumper2::DataROOTDumper2(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
     const std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName):

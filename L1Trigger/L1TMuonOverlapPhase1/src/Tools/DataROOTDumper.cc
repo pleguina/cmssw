@@ -7,8 +7,7 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/timer/timer.hpp>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/DataROOTDumper.h>
-
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper.h>
 #include "TFile.h"
 #include "TTree.h"
 

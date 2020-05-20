@@ -2,7 +2,7 @@
 #include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h>
 #include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h>
 #include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigWriter.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPatternGeneration/OMTFConfigMaker.h>
+#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/OMTFConfigMaker.h>
 #include <iostream>
 #include <strstream>
 #include <iomanip>
