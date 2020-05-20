@@ -1,6 +1,4 @@
 
-#include "L1Trigger/L1TMuonOverlapPhase1/plugins/L1TMuonBayesMuCorrelatorTrackProducer.h"
-
 #include <iostream>
 #include <strstream>
 #include <vector>
@@ -14,6 +12,8 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <L1Trigger/L1TkMuonBayes/interface/PdfModuleWithStats.h>
+#include <L1Trigger/L1TkMuonBayes/plugins/L1TMuonBayesMuCorrelatorTrackProducer.h>
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -23,7 +23,6 @@
 #include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuCorrelator/PdfModuleWithStats.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuTimingModuleWithStat.h"
 
 L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(const edm::ParameterSet& cfg)

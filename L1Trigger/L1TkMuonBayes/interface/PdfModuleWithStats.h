@@ -5,11 +5,10 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#ifndef INTERFACE_MUCORRELATOR_PDFMODULEWITHSTATS_H_
-#define INTERFACE_MUCORRELATOR_PDFMODULEWITHSTATS_H_
+#ifndef INTERFACE_PDFMODULEWITHSTATS_H_
+#define INTERFACE_PDFMODULEWITHSTATS_H_
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuCorrelator/PdfModule.h"
-
+#include <L1Trigger/L1TkMuonBayes/interface/PdfModule.h>
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
@@ -38,4 +37,4 @@ private:
   double sigmaFactor = 1.;
 };
 
-#endif /* INTERFACE_MUCORRELATOR_PDFMODULEWITHSTATS_H_ */
+#endif /* INTERFACE_PDFMODULEWITHSTATS_H_ */

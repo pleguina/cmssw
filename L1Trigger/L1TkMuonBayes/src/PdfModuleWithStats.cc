@@ -5,8 +5,7 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuCorrelator/PdfModuleWithStats.h"
-
+#include <L1Trigger/L1TkMuonBayes/interface/PdfModuleWithStats.h>
 #include "TFitResultPtr.h"
 #include "TFitResult.h"
 #include "TF1.h"

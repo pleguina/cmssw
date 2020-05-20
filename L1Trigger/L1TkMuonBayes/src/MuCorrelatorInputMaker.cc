@@ -5,7 +5,7 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/MuCorrelator/MuCorrelatorInputMaker.h>
+#include <L1Trigger/L1TkMuonBayes/interface/MuCorrelatorInputMaker.h>
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 MuCorrelatorInputMaker::MuCorrelatorInputMaker(const edm::ParameterSet& edmCfg, const edm::EventSetup& es, MuCorrelatorConfigPtr config, MuStubsInputTokens& muStubsInputTokens):

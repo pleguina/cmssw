@@ -9,6 +9,7 @@
 #define MUCORRELATOR_MUONCORRELATORINPUTMAKER_H_
 
 
+#include <L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h>
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -23,7 +24,6 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubMakerBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubsInput.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/AngleConverterBase.h"
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuCorrelator/MuCorrelatorConfig.h"
 
 
 

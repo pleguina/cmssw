@@ -6,7 +6,7 @@
  */
 
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuCorrelator/PdfModule.h"
+#include <L1Trigger/L1TkMuonBayes/interface/PdfModule.h>
 
 PdfModule::PdfModule(MuCorrelatorConfigPtr& config): IPdfModule(config), coefficients(config->nLayers() )  {
   init();

@@ -5,17 +5,17 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#ifndef INTERFACE_MUCORRELATOR_PDFMODULE_H_
-#define INTERFACE_MUCORRELATOR_PDFMODULE_H_
+#ifndef INTERFACE_PDFMODULE_H_
+#define INTERFACE_PDFMODULE_H_
 
 #include <vector>
 
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/vector.hpp>
+#include <L1Trigger/L1TkMuonBayes/interface/AlgoTTMuon.h>
+#include <L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h>
 #include <L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubsInput.h>
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuCorrelator/MuCorrelatorConfig.h"
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuCorrelator/AlgoTTMuon.h"
 
 class IPdfModule {
 public:
@@ -83,4 +83,4 @@ protected:
 
 
 
-#endif /* INTERFACE_MUCORRELATOR_PDFMODULE_H_ */
+#endif /* INTERFACE_PDFMODULE_H_ */

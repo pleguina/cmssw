@@ -5,8 +5,7 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuCorrelator/MuCorrelatorConfig.h"
-
+#include <L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h>
 #include <math.h>
 #include <limits>
 #include <sstream>

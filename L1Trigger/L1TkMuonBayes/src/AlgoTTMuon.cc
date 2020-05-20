@@ -5,8 +5,7 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuCorrelator/AlgoTTMuon.h"
-
+#include <L1Trigger/L1TkMuonBayes/interface/AlgoTTMuon.h>
 #include <iomanip>
 
 

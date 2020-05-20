@@ -23,9 +23,6 @@
 <use name="L1Trigger/RPCTrigger"/>
 <use name="DataFormats/L1TMuon"/>
 
-<use name="lutNN/lutNN2"/>
-
-
 <use name="Geometry/Records"/>
 <use name="Geometry/DTGeometry"/>
 <use name="Geometry/CSCGeometry"/>
