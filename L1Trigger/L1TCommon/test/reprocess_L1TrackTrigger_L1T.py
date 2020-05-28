@@ -7,7 +7,7 @@ import os
 #process = cms.Process("L1TrackNtuple")
 
 from Configuration.StandardSequences.Eras import eras
-process = cms.Process('REPR',eras.Phase2C9_trigger)
+process = cms.Process('REPR',eras.Phase2)
 
 ############################################################
 # edit options here
@@ -31,26 +31,29 @@ if (L1TRKALGO == 'HYBRID_FLOAT'):
 # import standard configurations
 ############################################################
 
+if GEOMETRY == "D35": 
+    print "using geometry " + GEOMETRY + " (tilted)"
+    process = cms.Process('REPR',eras.Phase2C4)
+    process.load('Configuration.Geometry.GeometryExtended2026D35Reco_cff')
+    process.load('Configuration.Geometry.GeometryExtended2026D35_cff')
+elif GEOMETRY == "D41": 
+    print "using geometry " + GEOMETRY + " (tilted)"
+    process = cms.Process('REPR',eras.Phase2C8)
+    process.load('Configuration.Geometry.GeometryExtended2026D41Reco_cff')
+    process.load('Configuration.Geometry.GeometryExtended2026D41_cff')
+elif GEOMETRY == "D49": 
+    print "using geometry " + GEOMETRY + " (tilted)"
+    process = cms.Process('REPR',eras.Phase2C9)
+    process.load('Configuration.Geometry.GeometryExtended2026D49Reco_cff')
+    process.load('Configuration.Geometry.GeometryExtended2026D49_cff')
+else:
+    print "this is not a valid geometry!!!"
+
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
-
-if GEOMETRY == "D35": 
-    print "using geometry " + GEOMETRY + " (tilted)"
-    process.load('Configuration.Geometry.GeometryExtended2026D35Reco_cff')
-    process.load('Configuration.Geometry.GeometryExtended2026D35_cff')
-elif GEOMETRY == "D41": 
-    print "using geometry " + GEOMETRY + " (tilted)"
-    process.load('Configuration.Geometry.GeometryExtended2026D41Reco_cff')
-    process.load('Configuration.Geometry.GeometryExtended2026D41_cff')
-elif GEOMETRY == "D49": 
-    print "using geometry " + GEOMETRY + " (tilted)"
-    process.load('Configuration.Geometry.GeometryExtended2026D49Reco_cff')
-    process.load('Configuration.Geometry.GeometryExtended2026D49_cff')
-else:
-    print "this is not a valid geometry!!!"
 
 process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')

@@ -11,6 +11,10 @@ Implementation:
 //
 // Original Author: Cecile Caillol
 // Created: Tue Aug 10 2018
+// 
+// Redesign Calibration: Vladimir Rekovic
+// Date: Tue May 12 2020
+//
 // $Id$
 //
 //
@@ -125,161 +129,10 @@ Implementation:
 // Output tower collection
 #include "DataFormats/Phase2L1CaloTrig/interface/L1CaloTower.h"
 
+#include "L1Trigger/L1CaloTrigger/interface/ParametricCalibration.h"
+
 bool do_brem=true;
 
-float get_calibration(float pt, float eta){
-   if (pt<12){
-        if (fabs(eta)<0.087) return 1.18*1.1;
-        else if (fabs(eta)<0.174) return 1.17*1.1;
-        else if (fabs(eta)<0.261) return 1.19*1.1;
-        else if (fabs(eta)<0.348) return 1.18*1.1;
-        else if (fabs(eta)<0.435) return 1.19*1.1;
-        else if (fabs(eta)<0.522) return 1.19*1.1;
-        else if (fabs(eta)<0.609) return 1.19*1.1;
-        else if (fabs(eta)<0.696) return 1.18*1.1;
-        else if (fabs(eta)<0.783) return 1.19*1.1;
-        else if (fabs(eta)<0.87) return 1.18*1.1;
-        else if (fabs(eta)<0.957) return 1.19*1.1;
-        else if (fabs(eta)<1.044) return 1.19*1.1;
-        else if (fabs(eta)<1.131) return 1.19*1.1;
-        else if (fabs(eta)<1.218) return 1.2*1.1;
-        else if (fabs(eta)<1.305) return 1.19*1.1;
-        else if (fabs(eta)<1.392) return 1.2*1.1;
-        else if (fabs(eta)<1.479) return 1.19*1.1;           
-        else return 1.0;
-   }
-   else if (pt<20){
-        if (fabs(eta)<0.087) return 1.14*1.03;
-        else if (fabs(eta)<0.174) return 1.13*1.03;
-        else if (fabs(eta)<0.261) return 1.13*1.03;
-        else if (fabs(eta)<0.348) return 1.13*1.03;
-        else if (fabs(eta)<0.435) return 1.13*1.03;
-        else if (fabs(eta)<0.522) return 1.13*1.03;
-        else if (fabs(eta)<0.609) return 1.13*1.03;
-        else if (fabs(eta)<0.696) return 1.14*1.03;
-        else if (fabs(eta)<0.783) return 1.14*1.03;
-        else if (fabs(eta)<0.87) return 1.13*1.03;
-        else if (fabs(eta)<0.957) return 1.13*1.03;
-        else if (fabs(eta)<1.044) return 1.14*1.03;
-        else if (fabs(eta)<1.131) return 1.13*1.03;
-        else if (fabs(eta)<1.218) return 1.13*1.03;
-        else if (fabs(eta)<1.305) return 1.14*1.03;
-        else if (fabs(eta)<1.392) return 1.14*1.03;
-        else if (fabs(eta)<1.479) return 1.12*1.03;           
-        else return 1.0;
-   }
-   else if (pt<30){
-        if (fabs(eta)<0.087) return 1.11;
-        else if (fabs(eta)<0.174) return 1.11;
-        else if (fabs(eta)<0.261) return 1.11;
-        else if (fabs(eta)<0.348) return 1.11;
-        else if (fabs(eta)<0.435) return 1.11;//1.1;
-        else if (fabs(eta)<0.522) return 1.11;//1.08;
-        else if (fabs(eta)<0.609) return 1.11;
-        else if (fabs(eta)<0.696) return 1.11;
-        else if (fabs(eta)<0.783) return 1.11;
-        else if (fabs(eta)<0.87) return 1.11;
-        else if (fabs(eta)<0.957) return 1.11;
-        else if (fabs(eta)<1.044) return 1.11;
-        else if (fabs(eta)<1.131) return 1.11;
-        else if (fabs(eta)<1.218) return 1.11;
-        else if (fabs(eta)<1.305) return 1.11;
-        else if (fabs(eta)<1.392) return 1.11;
-        else if (fabs(eta)<1.479) return 1.10;           
-        else return 1.0;
-   }
-   else if (pt<40){
-        if (fabs(eta)<0.087) return 1.09;
-        else if (fabs(eta)<0.174) return 1.09;
-        else if (fabs(eta)<0.261) return 1.09;
-        else if (fabs(eta)<0.348) return 1.09;
-        else if (fabs(eta)<0.435) return 1.09;
-        else if (fabs(eta)<0.522) return 1.09;
-        else if (fabs(eta)<0.609) return 1.09;
-        else if (fabs(eta)<0.696) return 1.09;
-        else if (fabs(eta)<0.783) return 1.09;
-        else if (fabs(eta)<0.87) return 1.09;
-        else if (fabs(eta)<0.957) return 1.09;
-        else if (fabs(eta)<1.044) return 1.09;
-        else if (fabs(eta)<1.131) return 1.09;
-        else if (fabs(eta)<1.218) return 1.09;
-        else if (fabs(eta)<1.305) return 1.09;
-        else if (fabs(eta)<1.392) return 1.09;
-        else if (fabs(eta)<1.479) return 1.09;           
-        else return 1.0;
-   }
-
-   else if (pt<55){
-        if (fabs(eta)<0.087) return 1.07;
-        else if (fabs(eta)<0.174) return 1.07;
-        else if (fabs(eta)<0.261) return 1.07;
-        else if (fabs(eta)<0.348) return 1.07;
-        else if (fabs(eta)<0.435) return 1.07;
-        else if (fabs(eta)<0.522) return 1.07;
-        else if (fabs(eta)<0.609) return 1.07;
-        else if (fabs(eta)<0.696) return 1.08;
-        else if (fabs(eta)<0.783) return 1.07;
-        else if (fabs(eta)<0.87) return 1.07;
-        else if (fabs(eta)<0.957) return 1.08;
-        else if (fabs(eta)<1.044) return 1.08;
-        else if (fabs(eta)<1.131) return 1.07;
-        else if (fabs(eta)<1.218) return 1.08;
-        else if (fabs(eta)<1.305) return 1.08;
-        else if (fabs(eta)<1.392) return 1.08;
-        else if (fabs(eta)<1.479) return 1.08;           
-        else return 1.0;
-   }
-
-   else if (pt<90){
-        if (fabs(eta)<0.087) return 1.06;
-        else if (fabs(eta)<0.174) return 1.06;
-        else if (fabs(eta)<0.261) return 1.06;
-        else if (fabs(eta)<0.348) return 1.06;
-        else if (fabs(eta)<0.435) return 1.05;
-        else if (fabs(eta)<0.522) return 1.05;
-        else if (fabs(eta)<0.609) return 1.06;
-        else if (fabs(eta)<0.696) return 1.06;
-        else if (fabs(eta)<0.783) return 1.06;
-        else if (fabs(eta)<0.87) return 1.06;
-        else if (fabs(eta)<0.957) return 1.06;
-        else if (fabs(eta)<1.044) return 1.06;
-        else if (fabs(eta)<1.131) return 1.06;
-        else if (fabs(eta)<1.218) return 1.06;
-        else if (fabs(eta)<1.305) return 1.06;
-        else if (fabs(eta)<1.392) return 1.06;
-        else if (fabs(eta)<1.479) return 1.06;           
-        else return 1.0;
-   }
-   
-   else{                                         // for Energy > 90 GeV
-       if (fabs(eta)<0.087) return 1.04;
-        else if (fabs(eta)<0.174) return 1.04;
-        else if (fabs(eta)<0.261) return 1.04;
-        else if (fabs(eta)<0.348) return 1.04;
-        else if (fabs(eta)<0.435) return 1.05;
-        else if (fabs(eta)<0.522) return 1.04;
-        else if (fabs(eta)<0.609) return 1.05;
-        else if (fabs(eta)<0.696) return 1.05;
-        else if (fabs(eta)<0.783) return 1.05;
-        else if (fabs(eta)<0.87) return 1.05;
-        else if (fabs(eta)<0.957) return 1.05;
-        else if (fabs(eta)<1.044) return 1.05;
-        else if (fabs(eta)<1.131) return 1.05;
-        else if (fabs(eta)<1.218) return 1.05;
-        else if (fabs(eta)<1.305) return 1.05;
-        else if (fabs(eta)<1.392) return 1.05;
-        else if (fabs(eta)<1.479) return 1.05;           
-        else return 1.0;
-   }
-}
-
-float mydeltarv2(float eta1, float eta2, float phi1, float phi2){
-   float deta2=(eta1-eta2)*(eta1-eta2);
-   float dphi=(phi1-phi2);
-   while (dphi>3.14) dphi=dphi-6.28;
-   while (dphi<-3.14) dphi=dphi+6.28;
-   return sqrt(deta2+dphi*dphi);
-}
 
 float getEta_fromL2LinkCardTowerCrystal(int link, int card, int tower, int crystal){
     int etaID=5*(17*((link/4)%2)+(tower%17))+crystal%5;
@@ -378,18 +231,6 @@ int getCrystalIDInTower(int etaID, int phiID){
    return int(5*(phiID%5)+(etaID%5));
 }
 
-int getTowerInFullDetector_etaID(float eta){
-   float size_cell=2*1.4841/(34);
-   int etaID=int((eta+1.4841)/size_cell);
-   return etaID;
-}
-
-int getTowerInFullDetector_phiID(float phi){
-   float size_cell=2*3.14159/(72);
-   int phiID=int((phi+3.14159)/size_cell);
-   return phiID;
-}
-
 int get_towerEta_fromCardTowerInCard(int card, int towerincard){
    return 17*(card%2)+towerincard%17;
 }
@@ -442,30 +283,6 @@ int getPhiMin_card(int card){
     return phimin;
 }
 
-int getEtaMaxTower_card(int card){
-    int etamax=0;
-    if (card%2==0) etamax=17-1; // First eta half. 5 crystals in eta in 1 tower.
-    else etamax=34-1;
-    return etamax;
-}
-
-int getEtaMinTower_card(int card){
-    int etamin=0;
-    if (card%2==0) etamin=0; // First eta half. 5 crystals in eta in 1 tower.
-    else etamin=17;
-    return etamin;
-}
-
-int getPhiMaxTower_card(int card){
-    int phimax=(card+1)*4-1;
-    return phimax;
-}
-
-int getPhiMinTower_card(int card){
-    int phimin=card*4;
-    return phimin;
-}
-
 class L1EGCrystalClusterEmulatorProducer : public edm::EDProducer {
    public:
       explicit L1EGCrystalClusterEmulatorProducer(const edm::ParameterSet&);
@@ -484,6 +301,8 @@ class L1EGCrystalClusterEmulatorProducer : public edm::EDProducer {
       edm::EDGetTokenT<EcalEBTrigPrimDigiCollection> ecalTPEBToken_;
       edm::EDGetTokenT< edm::SortedCollection<HcalTriggerPrimitiveDigi> > hcalTPToken_;
       edm::ESHandle<CaloTPGTranscoder> decoder_;
+
+      l1tp2::ParametricCalibration calib_;
 
       edm::ESHandle<CaloGeometry> caloGeometry_;
       const CaloSubdetectorGeometry * ebGeometry;
@@ -573,7 +392,8 @@ class L1EGCrystalClusterEmulatorProducer : public edm::EDProducer {
 
 L1EGCrystalClusterEmulatorProducer::L1EGCrystalClusterEmulatorProducer(const edm::ParameterSet& iConfig) :
    ecalTPEBToken_(consumes<EcalEBTrigPrimDigiCollection>(iConfig.getParameter<edm::InputTag>("ecalTPEB"))),
-   hcalTPToken_(consumes< edm::SortedCollection<HcalTriggerPrimitiveDigi> >(iConfig.getParameter<edm::InputTag>("hcalTP")))
+   hcalTPToken_(consumes< edm::SortedCollection<HcalTriggerPrimitiveDigi> >(iConfig.getParameter<edm::InputTag>("hcalTP"))),
+   calib_(iConfig.getParameter<edm::ParameterSet>("calib"))
 {
    produces<l1slhc::L1EGCrystalClusterCollection>("L1EGXtalClusterEmulator");
    produces< BXVector<l1t::EGamma> >("L1EGammaCollectionBXVEmulator");
@@ -866,7 +686,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
 		 }
 	     }
 	     if (cluster_list[cc][jj].cpt>0){
-                 cluster_list[cc][jj].cpt=cluster_list[cc][jj].cpt*get_calibration(cluster_list[cc][jj].cpt,cluster_list[cc][jj].craweta); //Mark's calibration as a function of eta and pt
+                 cluster_list[cc][jj].cpt=cluster_list[cc][jj].cpt*calib_(cluster_list[cc][jj].cpt,fabs(cluster_list[cc][jj].craweta)); //Mark's calibration as a function of eta and pt
 	         cluster_list_merged[cc].push_back(cluster_list[cc][jj]);
 	      }
 	  }
@@ -899,7 +719,7 @@ void L1EGCrystalClusterEmulatorProducer::produce(edm::Event& iEvent, const edm::
              	      for (int ii=0; ii<17; ++ii){
 			 //Apply Mark's calibration at the same time (row of the lowest pT, as a function of eta)
             	         if ((getCrystal_etaID(hit.position.eta())/5)%17==ii){ 
-			     ECAL_tower_L1Card[jj][ii][cc]+=hit.pt()*get_calibration(0,hit.position.eta());     
+			     ECAL_tower_L1Card[jj][ii][cc]+=hit.pt()*calib_(0,fabs(hit.position.eta()));
                              iEta_tower_L1Card[jj][ii][cc]=getTower_absoluteEtaID(hit.position.eta());//hit.id.ieta();
                              iPhi_tower_L1Card[jj][ii][cc]=getTower_absolutePhiID(hit.position.phi());//hit.id.iphi();
 			 }
