@@ -26,7 +26,6 @@ class OMTFConfigMaker;
 
 class OMTFReconstruction {
   public:
-    //OMTFReconstruction();
 
     OMTFReconstruction(const edm::ParameterSet&, MuStubsInputTokens& muStubsInputTokens);
 
@@ -54,10 +53,6 @@ class OMTFReconstruction {
 
     MuStubsInputTokens& muStubsInputTokens;
 
-/*    void loadAndFilterDigis(const edm::Event&);
-
-    void getProcessorCandidates(unsigned int iProcessor, l1t::tftype mtfType, int bx,
-            l1t::RegionalMuonCandBxCollection & myCandidates);*/
 
     int bxMin, bxMax;
 
@@ -67,7 +62,7 @@ class OMTFReconstruction {
     unique_ptr<OMTFinputMaker> inputMaker;
 
     unique_ptr<IProcessorEmulator> omtfProc;
-  ///
+
     OMTFConfigMaker* m_OMTFConfigMaker;
 
     std::vector<std::unique_ptr<IOMTFEmulationObserver> > observers;

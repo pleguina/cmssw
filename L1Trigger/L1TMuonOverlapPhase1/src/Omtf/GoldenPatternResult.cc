@@ -42,19 +42,6 @@ void GoldenPatternResult::set(int refLayer_, int phi, int eta, int refHitPhi) {
   this->refHitPhi = refHitPhi;
 }
 
-/*void GoldenPatternResult::setLayerResult(unsigned int iLayer, LayerResult layerResult) {
-  pdfValues.at(iLayer) = layerResult.pdfVal;
-  if(layerResult.valid) {
-    firedLayerBits |= (1<< iLayer);stubResults
-  }
-  hitPdfBins[iLayer] = layerResult.pdfBin;
-  hits[iLayer] = layerResult.hit;
-  if(layerResult.valid || layerResult.pdfVal)
-    " iLayer "<<iLayer<<" refLayer "<<refLayer<<" pdfBin "<<layerResult.pdfBin<<" val "<<layerResult.pdfVal<<" valid "<<layerResult.valid<<std::endl;
-  //pdfSum += pdfVal; - this cannot be done here, because the pdfVal for the banding layer must be added only
-  //if hit in the corresponding phi layer was accpeted (i.e. its pdfVal > 0. therefore it is done in finalise()
-}*/
-
 void GoldenPatternResult::setStubResult(float pdfVal, bool valid, int pdfBin, int layer, MuonStubPtr stub) {
   if(valid) {
     //pdfSum += pdfVal;
@@ -117,21 +104,6 @@ void GoldenPatternResult::reset() {
   gpProbability2 = 0;
 }
 
-
-/*void GoldenPatternResult::clear() {
-  if(refLayerResults.size() == 0)
-    refLayerResults.assign(myOmtfConfig->nRefLayers(), RefLayerResult());
-  for (auto& reflayerRes: refLayerResults) {
-    reflayerRes.reset();
-  }
-  results1D.assign(myOmtfConfig->nRefLayers(),0);
-  hits1D.assign(myOmtfConfig->nRefLayers(),0);
-  results.assign(myOmtfConfig->nLayers(),results1D);
-  refPhi1D.assign(myOmtfConfig->nRefLayers(),1024);
-  refEta1D.assign(myOmtfConfig->nRefLayers(),1024);
-  hitsBits.assign(myOmtfConfig->nRefLayers(),0);  
-  refPhiRHit1D.assign(myOmtfConfig->nRefLayers(),1024);
-}*/
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 //default version
@@ -291,16 +263,6 @@ void GoldenPatternResult::finalise6() {
   //by default result becomes valid here, but can be overwritten later
 }*/
 
-////////////////////////////////////////////
-////////////////////////////////////////////
-/*bool GoldenPatternResults::empty() const{
-
-  unsigned int nHits = 0;
-  for(unsigned int iRefLayer=0; iRefLayer<myOmtfConfig->nRefLayers(); ++iRefLayer){
-    nHits+=hits1D[iRefLayer];
-  }      
-  return (nHits==0);
-}*/
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 std::ostream & operator << (std::ostream &out, const GoldenPatternResult & gpResult) {

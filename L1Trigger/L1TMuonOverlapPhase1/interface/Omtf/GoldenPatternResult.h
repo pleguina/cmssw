@@ -11,18 +11,6 @@
 class GoldenPatternResult {
 public:
 
-/*  struct LayerResult {
-    PdfValueType pdfVal = 0;
-    bool valid = false;
-
-    int pdfBin = 0; //hit deltaPhi, bin=0 is reserved for no valid hit, see GoldenPatternBase::process1Layer1RefLayer, is obtained from it, see GoldenPatternBase::process1Layer1RefLayer
-    int hit = 0; //original hit phi
-
-    LayerResult(PdfValueType pdfVal, bool valid, int pdfBin, int hit) :
-      pdfVal(pdfVal), valid(valid), pdfBin(pdfBin), hit(hit) {
-    };
-  };*/
-
 private:
   bool valid = false;
 
@@ -70,8 +58,6 @@ public:
 
   void set(int refLayer, int phi, int eta, int refHitPhi);
 
-  //void setLayerResult(unsigned int iLayer, LayerResult layerResult);
-
   void setStubResult(float pdfVal, bool valid, int pdfBin, int layer, MuonStubPtr stub);
 
   void setStubResult(int layer, StubResult& stubResult);
@@ -108,12 +94,6 @@ public:
     this->firedLayerCnt = firedLayerCnt;
   }
 
-  /*
-   * pdfValue from each layer
-   */
-/*  const std::vector<PdfValueType>& getPdfValues() const {
-    return pdfValues;
-  }*/
 
   /*
    * sum of the pdfValues in layers
@@ -122,14 +102,6 @@ public:
   PdfValueType getPdfSum() const {
     return pdfSum;
   }
-
-/*  const std::vector<int>& getHitPdfBins() const {
-    return hitPdfBins;
-  }
-
-  const std::vector<int>& getHits() const {
-    return hits;
-  }*/
 
   const StubResults& getStubResults() const {
     return stubResults;
@@ -161,21 +133,6 @@ public:
   //dont use this in the pattern construction, since the myOmtfConfig is null then
   GoldenPatternResult(const OMTFConfiguration* omtfConfig);
 
-/*  void finalise() {
-    if(finalizeFunction == 1)
-      finalise1();
-    else if(finalizeFunction == 2)
-      finalise2();
-    else if(finalizeFunction == 3)
-      finalise3();
-    else if(finalizeFunction == 5)
-      finalise5();
-    else if(finalizeFunction == 6)
-      finalise6();
-    else
-      finalise0();
-  }*/
-
   std::function<void ()> finalise;
 
    //version for the "normal" patterns, i.e. without pdfSum threshold
@@ -193,7 +150,6 @@ public:
   void finalise5();
 
   void finalise6();
-  //bool empty() const;
 
   friend std::ostream & operator << (std::ostream &out, const GoldenPatternResult & aResult);
 

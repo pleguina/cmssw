@@ -16,15 +16,9 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/Exception.h"
 
-/*ProcessorBase::ProcessorBase(): myOmtfConfig(0) {
-  // TODO Auto-generated constructor stub
-}*/
-
 
 template<class GoldenPatternType>
 void ProcessorBase<GoldenPatternType>::resetConfiguration() {
-  //myResults.clear();
-  //for(auto it: theGPs) delete it;
   theGPs.clear();
 }
 
@@ -36,8 +30,6 @@ bool ProcessorBase<GoldenPatternType>::configure(OMTFConfiguration* omtfConfig,
   resetConfiguration();
 
   myOmtfConfig = omtfConfig;
-
-  //myResults.assign(myOmtfConfig->nTestRefHits(),ProcessorBase::resultsMap());
 
   const l1t::LUT* chargeLUT =  omtfPatterns->chargeLUT();
   const l1t::LUT* etaLUT =  omtfPatterns->etaLUT();
@@ -123,23 +115,6 @@ void ProcessorBase<GoldenPatternType>::setGPs(const GoldenPatternVec& gps) {
 }
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-/*template<class GoldenPatternType>
-OMTFinput::vector1D ProcessorBase<GoldenPatternType>::restrictInput(unsigned int iProcessor,
-    unsigned int iRegion,
-    unsigned int iLayer,
-    const OMTFinput::vector1D & layerHits) {
-
-  OMTFinput::vector1D myHits = layerHits;
-
-  unsigned int iStart = myOmtfConfig->getConnections()[iProcessor][iRegion][iLayer].first;
-  unsigned int iEnd = iStart + myOmtfConfig->getConnections()[iProcessor][iRegion][iLayer].second -1;
-
-  for(unsigned int iInput=0;iInput<myHits.size();++iInput){
-    if(iInput<iStart || iInput>iEnd) myHits[iInput] = myOmtfConfig->nPhiBins();
-  }
-  return myHits;
-}*/
-
 template<class GoldenPatternType>
 MuonStubPtrs1D ProcessorBase<GoldenPatternType>::restrictInput(unsigned int iProcessor,
           unsigned int iRegion,

@@ -1,16 +1,17 @@
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h"
+#include "L1Trigger/RPCTrigger/interface/RPCConst.h"
+
+#include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
 #include <iostream>
 #include <cmath>
 #include <algorithm>
 #include <utility>
 #include <array>
-
-#include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
-
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include "xercesc/framework/StdOutFormatTarget.hpp"
 #include "xercesc/framework/LocalFileFormatTarget.hpp"
@@ -24,7 +25,6 @@
 #include "xercesc/util/XercesDefs.hpp"
 XERCES_CPP_NAMESPACE_USE
 
-#include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 //////////////////////////////////
 // XMLConfigReader
 //////////////////////////////////

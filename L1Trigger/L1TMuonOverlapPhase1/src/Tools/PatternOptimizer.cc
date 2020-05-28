@@ -666,7 +666,7 @@ void PatternOptimizer::updatePdfCloseResults() {
       unsigned int selectedSmallerBin = 0;
       int maxDiffSmaller = 0;
 
-      unsigned int refLayerLogicNumber = omtfConfig->getRefToLogicNumber()[iRefLayer];
+      //unsigned int refLayerLogicNumber = omtfConfig->getRefToLogicNumber()[iRefLayer];
       for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
        /* if(refLayerLogicNumber == iLayer)
           continue; //not taking into account the class probability*/
@@ -710,7 +710,7 @@ void PatternOptimizer::updatePdfCloseResults() {
 
 
 void PatternOptimizer::calculateThresholds(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) {
-  unsigned int iRefHit = omtfCand->getRefHitNumber();
+  //unsigned int iRefHit = omtfCand->getRefHitNumber();
 /*  cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfCand->getGpResult()\n"<<omtfCand->getGpResult()<<std::endl;
   cout<<__FUNCTION__<<":"<<__LINE__<<" "<<exptCandGp->key()<<" exptResult\n"<<exptResult<<std::endl;
   cout<<"all golden patterns:"<<endl;
@@ -1010,7 +1010,7 @@ void PatternOptimizer::calculateThresholds(double targetEff) {
 }*/
 
 void PatternOptimizer::tuneClassProb(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) {
-  unsigned int iRefHit = omtfCand->getRefHitNumber();
+  //unsigned int iRefHit = omtfCand->getRefHitNumber();
   //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<omtfCandGp->key()<<" omtfCand->getGpResult()\n"<<omtfCand->getGpResult()<<std::endl;
   //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<exptCandGp->key()<<" exptResult\n"<<exptResult<<std::endl;
 

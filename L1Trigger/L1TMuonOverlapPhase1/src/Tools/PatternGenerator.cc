@@ -65,7 +65,7 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg, const OMTFCo
   for(auto& gp : goldenPatterns) {
     for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
       for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
-        unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
+        //unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
         //if(refLayerLogicNum == iLayer)
         {
           for(unsigned int iBin = 0; iBin < gp->getPdf()[iLayer][iRefLayer].size(); iBin++) {

@@ -26,13 +26,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-
-//#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/PtAssignmentNN.h" //TODO remove from here
-
-
-
-/*OMTFReconstruction::OMTFReconstruction() :
-  omtfConfig(nullptr), omtfProc(nullptr), aTopElement(nullptr), m_OMTFConfigMaker(nullptr), m_Writer(nullptr){}*/
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 OMTFReconstruction::OMTFReconstruction(const edm::ParameterSet& theConfig, MuStubsInputTokens& muStubsInputTokens) :
@@ -47,16 +40,13 @@ OMTFReconstruction::OMTFReconstruction(const edm::ParameterSet& theConfig, MuStu
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 OMTFReconstruction::~OMTFReconstruction(){
-  //delete omtfConfig;
 
-  //if (m_Writer) delete m_Writer;
 }
 
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFReconstruction::beginJob() {
-  //std::cout<<__FUNCTION__<<":"<<__LINE__<<"test!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<std::endl;
-  //omtfConfig = new OMTFConfiguration();
+
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -127,7 +117,6 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
     //patterns from the edm::EventSetup are reloaded every beginRun
     if(buildPatternsFromXml == false) {
       edm::LogImportant("OMTFReconstruction") << "getting patterns from EventSetup" << std::endl;
-      //omtfConfig->initPatternPtRange();
       if(processorType == "OMTFProcessor")
         omtfProc = std::make_unique<OMTFProcessor<GoldenPattern> >(omtfConfig.get(), edmParameterSet, eventSetup, omtfParams);
     }

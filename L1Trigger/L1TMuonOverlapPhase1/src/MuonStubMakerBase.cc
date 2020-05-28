@@ -138,14 +138,6 @@ MuonStubMakerBase::~MuonStubMakerBase(){ }
 ///////////////////////////////////////
 
 void MuonStubMakerBase::loadAndFilterDigis(const edm::Event& event) {
-  // Filter digis by dropping digis from selected (by cfg.py) subsystems
-/*  if(!dropDTPrimitives){
-    event.getByToken(muStubsInputTokens.inputTokenDtPh, dtPhDigis);
-    event.getByToken(muStubsInputTokens.inputTokenDtTh, dtThDigis);
-  }
-  if(!dropRPCPrimitives) event.getByToken(muStubsInputTokens.inputTokenRPC, rpcDigis);
-  if(!dropCSCPrimitives) event.getByToken(muStubsInputTokens.inputTokenCSC, cscDigis);*/
-
   for(auto& digiToStubsConverter: digiToStubsConverters)
     digiToStubsConverter->loadDigis(event);
 }
@@ -154,10 +146,6 @@ void MuonStubMakerBase::loadAndFilterDigis(const edm::Event& event) {
 void MuonStubMakerBase::buildInputForProcessor(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor,
     l1t::tftype procTyp, int bxFrom, int bxTo) {
   LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<" preocType "<<procTyp<<std::endl;
-/*  processDT( muonStubsInLayers, dtPhDigis.product(), dtThDigis.product(), iProcessor, procTyp, false, bxFrom, bxTo);
-  processCSC(muonStubsInLayers, cscDigis.product(), iProcessor, procTyp, bxFrom, bxTo);
-  processRPC(muonStubsInLayers, rpcDigis.product(), iProcessor, procTyp, bxFrom, bxTo);*/
-  //cout<<result<<endl;
 
   for(auto& digiToStubsConverter: digiToStubsConverters)
     digiToStubsConverter->makeStubs(muonStubsInLayers, iProcessor, procTyp, bxFrom, bxTo);
