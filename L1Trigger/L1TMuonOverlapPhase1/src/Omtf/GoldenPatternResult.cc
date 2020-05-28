@@ -1,5 +1,6 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+
 #include <iostream>
 #include <ostream>
 #include <iomanip>
@@ -8,11 +9,13 @@
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-int GoldenPatternResult::finalizeFunction = 0;
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-GoldenPatternResult::GoldenPatternResult(const OMTFConfiguration * omtfConfig):  valid(false), omtfConfig(omtfConfig) {
+GoldenPatternResult::GoldenPatternResult(const OMTFConfiguration * omtfConfig):
+  finalise([this]() { finalise0(); }),
+  omtfConfig(omtfConfig)
+{
   if(omtfConfig)
     init(omtfConfig);
 }
@@ -78,6 +81,21 @@ void GoldenPatternResult::setStubResult(int layer, StubResult& stubResult) {
 ////////////////////////////////////////////
 void GoldenPatternResult::init(const OMTFConfiguration* omtfConfig) {
   this->omtfConfig = omtfConfig;
+
+  finalizeFunction = this->omtfConfig->getGoldenPatternResultFinalizeFunction();
+
+  if(finalizeFunction == 1)
+    finalise = [this]() { finalise1(); };
+  else if(finalizeFunction == 2)
+    finalise = [this]() { finalise2(); };
+  else if(finalizeFunction == 3)
+    finalise = [this]() { finalise3(); };
+  else if(finalizeFunction == 5)
+    finalise = [this]() { finalise5(); };
+  else if(finalizeFunction == 6)
+    finalise = [this]() { finalise6(); };
+  else
+    finalise = [this]() { finalise0(); };
 
   stubResults.assign(omtfConfig->nLayers(), StubResult() );
   reset();

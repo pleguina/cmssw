@@ -8,9 +8,16 @@
 #ifndef OMTF_IOMTFRECONSTRUCTIONOBSERVER_H_
 #define OMTF_IOMTFRECONSTRUCTIONOBSERVER_H_
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h>
-#include "FWCore/Framework/interface/Event.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
+#include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
+#include <memory>
+#include <vector>
+
+namespace edm {
+class Event;
+} /* namespace edm */
 
 class IOMTFEmulationObserver {
 public:

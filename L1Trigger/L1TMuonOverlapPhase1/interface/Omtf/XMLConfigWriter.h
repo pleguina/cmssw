@@ -1,8 +1,8 @@
 #ifndef OMTF_XMLConfigWriter_H
 #define OMTF_XMLConfigWriter_H
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OmtfName.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OmtfName.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
 #include <string>
 #include <vector>
 

@@ -8,10 +8,9 @@
 #ifndef INTERFACE_MUTIMINGMODULEWITHSTAT_H_
 #define INTERFACE_MUTIMINGMODULEWITHSTAT_H_
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/MuTimingModule.h>
-
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "L1Trigger/L1TkMuonBayes/interface/MuTimingModule.h"
 
 #include "TH2I.h"
 

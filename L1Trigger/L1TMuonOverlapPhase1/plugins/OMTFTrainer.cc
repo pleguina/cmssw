@@ -1,8 +1,8 @@
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigWriter.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/OMTFConfigMaker.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigWriter.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/OMTFConfigMaker.h"
 #include <iostream>
 #include <strstream>
 #include <iomanip>
@@ -21,7 +21,7 @@
 
 #include "L1Trigger/RPCTrigger/interface/RPCConst.h"
 
-#include <TH2F.h>
+#include "TH2F.h"
 #include "TFile.h"
 
 
@@ -31,8 +31,8 @@ g4SimTrackSrc(cfg.getParameter<edm::InputTag>("g4SimTrackSrc")), m_Reconstructio
 
   produces<l1t::RegionalMuonCandBxCollection >("OMTF");
 
-  muStubsInputTokens.inputTokenDTPh = consumes<L1MuDTChambPhContainer>(theConfig.getParameter<edm::InputTag>("srcDTPh"));
-  muStubsInputTokens.inputTokenDTTh = consumes<L1MuDTChambThContainer>(theConfig.getParameter<edm::InputTag>("srcDTTh"));
+  muStubsInputTokens.inputTokenDtPh = consumes<L1MuDTChambPhContainer>(theConfig.getParameter<edm::InputTag>("srcDTPh"));
+  muStubsInputTokens.inputTokenDtTh = consumes<L1MuDTChambThContainer>(theConfig.getParameter<edm::InputTag>("srcDTTh"));
   muStubsInputTokens.inputTokenCSC = consumes<CSCCorrelatedLCTDigiCollection>(theConfig.getParameter<edm::InputTag>("srcCSC"));
   muStubsInputTokens.inputTokenRPC = consumes<RPCDigiCollection>(theConfig.getParameter<edm::InputTag>("srcRPC"));
 

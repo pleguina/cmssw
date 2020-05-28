@@ -4,24 +4,40 @@
  *  Created on: Oct 12, 2017
  *      Author: kbunkow
  */
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-#include "L1Trigger/RPCTrigger/interface/RPCConst.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizer.h"
 
-#include "Math/VectorUtil.h"
+#include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
+#include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternBase.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/StubResult.h"
+#include "Math/GenVector/LorentzVector.h"
+#include "SimDataFormats/Track/interface/CoreSimTrack.h"
+#include "SimDataFormats/Track/interface/SimTrack.h"
+
+#include "TAxis.h"
+#include "TFile.h"
+#include "TH1.h"
+#include "TH2.h"
 
 #include <boost/range/adaptor/reversed.hpp>
-#include <boost/timer/timer.hpp>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigWriter.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizer.h>
-#include "TH1F.h"
-#include "TFile.h"
-#include "TCanvas.h"
-#include "TStyle.h"
-#include <fstream>
-#include "TTree.h"
 
+#include <cmath>
+#include <cstdlib>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include "boost/multi_array/multi_array_ref.hpp"
+#include "boost/multi_array/subarray.hpp"
 
 PatternOptimizer::PatternOptimizer(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps):
   PatternOptimizerBase(edmCfg, omtfConfig, gps),

@@ -5,9 +5,10 @@
  *      Author: kbunkow
  */
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/ProcessorBase.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/ProcessorBase.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
+
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
 #include "SimDataFormats/Track/interface/SimTrack.h"
 

@@ -9,14 +9,14 @@
 #define OMTF_IPROCESSOREMULATOR_H_
 
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GhostBuster.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorter.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GhostBuster.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
-#include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 
+#include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 
 class IProcessorEmulator {
 public:

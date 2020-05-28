@@ -1,12 +1,11 @@
 #ifndef ANGLECONVERTER_H
 #define ANGLECONVERTER_H
 
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
+
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
-
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
-
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
 
 #include <memory>
 
@@ -51,7 +50,8 @@ class AngleConverterBase {
     /// get phi of DT,CSC and RPC azimutal angle digi in processor scale, used by OMTF algorithm.
     /// in case of wrong phi returns OMTFConfiguration::instance()->nPhiBins
     /// phiZero - desired phi where the scale should start, should be in the desired scale, use getProcessorPhiZero to obtain it
-    virtual int getProcessorPhi(int phiZero, l1t::tftype part, const L1MuDTChambPhDigi& digi) const;
+    virtual int getProcessorPhi(int phiZero, l1t::tftype part, int dtScNum, int dtPhi) const;
+
     virtual int getProcessorPhi(int phiZero, l1t::tftype part, const CSCDetId& csc, const CSCCorrelatedLCTDigi& digi) const;
 
     virtual int getProcessorPhi(unsigned int iProcessor, l1t::tftype part, const RPCDetId& rollId, const unsigned int& digi) const;
@@ -62,20 +62,20 @@ class AngleConverterBase {
     virtual EtaValue getGlobalEtaDt(const DTChamberId& detId) const;
     
     //adds the eta segments from the thetaDigi to etaSegments
-    virtual void getGlobalEta(const L1MuDTChambThDigi& thetaDigi, std::vector<EtaValue>& etaSegments);
+    virtual void getGlobalEta(const L1MuDTChambThDigi& thetaDigi, std::vector<EtaValue>& etaSegments) const;
     virtual std::vector<EtaValue> getGlobalEta(const L1MuDTChambThContainer* dtThDigis, int bxFrom, int bxTo);
 
     ///Convert local eta coordinate to global digital microGMT scale.
-    virtual EtaValue getGlobalEta(const CSCDetId& detId, const CSCCorrelatedLCTDigi& aDigi);
+    virtual EtaValue getGlobalEta(const CSCDetId& detId, const CSCCorrelatedLCTDigi& aDigi) const ;
     
     ///returns the eta position of the CSC chamber
-    virtual EtaValue getGlobalEtaCsc(const CSCDetId& detId);
+    virtual EtaValue getGlobalEtaCsc(const CSCDetId& detId) const ;
 
     ///Convert local eta coordinate to global digital microGMT scale.
     ///EtaValue::etaSigma is half of the strip
-    virtual EtaValue getGlobalEta(unsigned int rawid, const unsigned int& aDigi);
+    virtual EtaValue getGlobalEta(unsigned int rawid, const unsigned int& aDigi) const ;
 
-    float cscChamberEtaSize(const CSCDetId& id);
+    float cscChamberEtaSize(const CSCDetId& id) const;
   protected:
 
     ///Check orientation of strips in given CSC chamber

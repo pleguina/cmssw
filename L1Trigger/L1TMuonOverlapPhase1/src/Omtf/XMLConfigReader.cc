@@ -1,7 +1,7 @@
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h"
 #include <iostream>
 #include <cmath>
 #include <algorithm>

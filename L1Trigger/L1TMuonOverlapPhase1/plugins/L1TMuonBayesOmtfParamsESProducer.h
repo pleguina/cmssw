@@ -1,9 +1,6 @@
-// system include files
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h>
-#include <memory>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h"
 
-// user include files
 #include "FWCore/Framework/interface/ModuleFactory.h"
 #include "FWCore/Framework/interface/ESProducer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -12,6 +9,7 @@
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
 #include "CondFormats/DataRecord/interface/L1TMuonOverlapParamsRcd.h"
 
+#include <memory>
 
 class L1TMuonBayesOmtfParamsESProducer : public edm::ESProducer {
    public:

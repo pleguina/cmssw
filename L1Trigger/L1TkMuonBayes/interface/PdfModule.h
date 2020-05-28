@@ -8,14 +8,13 @@
 #ifndef INTERFACE_PDFMODULE_H_
 #define INTERFACE_PDFMODULE_H_
 
-#include <vector>
+#include "L1Trigger/L1TkMuonBayes/interface/AlgoTTMuon.h"
+#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubsInput.h"
 
+#include <vector>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/vector.hpp>
-#include <L1Trigger/L1TkMuonBayes/interface/AlgoTTMuon.h>
-#include <L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubsInput.h>
-
 
 class IPdfModule {
 public:

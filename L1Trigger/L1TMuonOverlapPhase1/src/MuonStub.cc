@@ -4,15 +4,14 @@
  *  Created on: Dec 21, 2018
  *      Author: kbunkow
  */
-
-
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
-#include <iomanip>
 
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
 #include "DataFormats/MuonDetId/interface/RPCDetId.h"
 #include "DataFormats/MuonDetId/interface/DTChamberId.h"
 #include "DataFormats/MuonDetId/interface/MuonSubdetId.h"
+
+#include <iomanip>
 
 MuonStub::MuonStub() {
 

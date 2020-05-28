@@ -26,3 +26,27 @@ int ProcConfigurationBase::foldPhi(int phi) const {
 
   return phi;
 }
+
+
+void ProcConfigurationBase::configureFromEdmParameterSet(const edm::ParameterSet& edmParameterSet) {
+  if(edmParameterSet.exists("rpcMaxClusterSize") )
+    setRpcMaxClusterSize(edmParameterSet.getParameter<int>("rpcMaxClusterSize"));
+
+  if(edmParameterSet.exists("rpcMaxClusterCnt") )
+    setRpcMaxClusterCnt(edmParameterSet.getParameter<int>("rpcMaxClusterCnt"));
+
+  if(edmParameterSet.exists("rpcDropAllClustersIfMoreThanMax") )
+    setRpcDropAllClustersIfMoreThanMax(edmParameterSet.getParameter<bool>("rpcDropAllClustersIfMoreThanMax"));
+
+  if(edmParameterSet.exists("lctCentralBx")) {
+    cscLctCentralBx_  = edmParameterSet.getParameter<int>("lctCentralBx");
+  }
+
+  if(edmParameterSet.exists("minDtPhiQuality")) {
+    minDtPhiQuality  = edmParameterSet.getParameter<int>("minDtPhiQuality");
+  }
+
+  if(edmParameterSet.exists("minDtPhiBQuality")) {
+    minDtPhiBQuality  = edmParameterSet.getParameter<int>("minDtPhiBQuality");
+  }
+}

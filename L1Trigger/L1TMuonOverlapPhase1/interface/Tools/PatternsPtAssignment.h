@@ -8,8 +8,8 @@
 #ifndef INTERFACE_TOOLS_PATTERNSPTASSIGNMENT_H_
 #define INTERFACE_TOOLS_PATTERNSPTASSIGNMENT_H_
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/GpResultsToPt.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/GpResultsToPt.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h"
 
 class PatternsPtAssignment: public PatternOptimizerBase {
 public:

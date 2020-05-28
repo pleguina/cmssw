@@ -8,9 +8,8 @@
 #ifndef OMTF_DATAROOTDUMPER_H_
 #define OMTF_DATAROOTDUMPER_H_
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h>
-#include <functional>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -19,6 +18,8 @@
 
 #include "TMap.h"
 #include "TArrayI.h"
+
+#include <functional>
 
 class TTree;
 

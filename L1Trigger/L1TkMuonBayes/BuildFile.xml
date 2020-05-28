@@ -29,6 +29,7 @@
 <use name="L1Trigger/CSCCommonTrigger"/>
 <use name="L1Trigger/DTUtilities"/>
 <use name="L1Trigger/L1TMuonOverlapPhase1"/>
+<use name="L1Trigger/L1TMuonOverlapPhase2"/>
 
 <use   name="PhysicsTools/UtilAlgos"/>
 <use   name="FWCore/ServiceRegistry"/>

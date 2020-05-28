@@ -4,23 +4,26 @@
  *  Created on: Oct 7, 2017
  *      Author: kbunkow
  */
-
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GhostBusterPreferRefDt.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFProcessor.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorterWithThreshold.h>
-#include <iostream>
-#include <algorithm>
-#include <strstream>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFProcessor.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubsInput.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GhostBuster.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GhostBusterPreferRefDt.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorter.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/StubResult.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/FileInPath.h"
-#include "FWCore/Utilities/interface/Exception.h"
 
-#include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
-
-
+#include <bitset>
+#include <cmath>
+#include <cstdlib>
+#include <iostream>
+#include <map>
+#include <string>
+#include <vector>
 
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
@@ -44,25 +47,6 @@ OMTFProcessor<GoldenPatternType>::~OMTFProcessor() {
 
 template <class GoldenPatternType>
 void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup) {
-  //TODO make it working....
-/*  if(edmCfg.exists("sorterType") ) {//TODO add it also for the patternType == "GoldenPattern" - if needed
-    string sorterType = edmCfg.getParameter<std::string>("sorterType");
-    edm::LogImportant("OMTFReconstruction") << "OMTFProcessor constructed. sorterType: "<<sorterType<< std::endl;
-    if(sorterType == "sorterWithThreshold") {
-      GoldenPatternResult::setFinalizeFunction(2);
-
-      typename OMTFSorterWithThreshold<GoldenPatternType>::Mode mode = OMTFSorterWithThreshold<GoldenPatternType>::bestGPByMaxGpProbability1;
-      string modeStr = edmCfg.getParameter<std::string>("sorterWithThresholdMode");
-      if(modeStr == "bestGPByThresholdOnProbability2")
-        mode = OMTFSorterWithThreshold<GoldenPatternType>::bestGPByThresholdOnProbability2;
-      else if(modeStr == "bestGPByMaxGpProbability1")
-        mode = OMTFSorterWithThreshold<GoldenPatternType>::bestGPByMaxGpProbability1;
-
-      setSorter(new OMTFSorterWithThreshold<GoldenPatternType>(this->myOmtfConfig, mode));
-    }
-  }
-  else*/
-
   int sorterTypeFlag = 0;
   if(edmCfg.exists("sorterType")) {
     string sorterType = edmCfg.getParameter<std::string>("sorterType");
@@ -80,12 +64,6 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
   }
   else {
     setGhostBuster(new GhostBuster()); //initialize with the default sorter
-  }
-
-  if(edmCfg.exists("goldenPatternResultFinalizeFunction")) {
-    int finalizeFunction = edmCfg.getParameter<int>("goldenPatternResultFinalizeFunction");
-    GoldenPatternResult::setFinalizeFunction(finalizeFunction);
-    edm::LogImportant("OMTFReconstruction") << "GoldenPatternResult::setFinalizeFunction: "<<finalizeFunction << std::endl;
   }
 }
 
@@ -382,9 +360,6 @@ run(unsigned int iProcessor, l1t::tftype mtfType, int bx, OMTFinputMaker* inputM
      candMuon.setHwQual( candMuon.hwQual() | flag);         //FIXME temporary debug fix
   }
 
-  //dump to XML
-  //if(bx==0) writeResultToXML(iProcessor, mtfType,  input, algoCandidates, candMuons); //TODO handle bx
-  //if(bx==0)
   for(auto& obs : observers) {
     obs->observeProcesorEmulation(iProcessor, mtfType,  input, algoCandidates, gbCandidates, candMuons);
   }

@@ -8,7 +8,7 @@
 #ifndef INTERFACE_PDFMODULEWITHSTATS_H_
 #define INTERFACE_PDFMODULEWITHSTATS_H_
 
-#include <L1Trigger/L1TkMuonBayes/interface/PdfModule.h>
+#include "L1Trigger/L1TkMuonBayes/interface/PdfModule.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 

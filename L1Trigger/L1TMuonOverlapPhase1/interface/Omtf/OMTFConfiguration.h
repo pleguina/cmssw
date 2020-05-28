@@ -69,7 +69,7 @@ class OMTFConfiguration: public ProcConfigurationBase {
 
   OMTFConfiguration(){;};
 
-  void configure(const L1TMuonOverlapParams* omtfParams);
+  virtual void configure(const L1TMuonOverlapParams* omtfParams);
 
   void initCounterMatrices();
   
@@ -256,6 +256,13 @@ class OMTFConfiguration: public ProcConfigurationBase {
     return mergedPatterns;
   }
 
+  int getGoldenPatternResultFinalizeFunction() const {
+    return goldenPatternResultFinalizeFunction;
+  }
+
+  void setGoldenPatternResultFinalizeFunction(int goldenPatternResultFinalizeFunction = 0) {
+    this->goldenPatternResultFinalizeFunction = goldenPatternResultFinalizeFunction;
+  }
 
   friend std::ostream & operator << (std::ostream &out, const OMTFConfiguration & aConfig);
 
@@ -311,6 +318,8 @@ class OMTFConfiguration: public ProcConfigurationBase {
 
   int pdfMaxVal = 0;
   unsigned int pdfBins = 0;
+
+  int goldenPatternResultFinalizeFunction = 0;
 };
 
 

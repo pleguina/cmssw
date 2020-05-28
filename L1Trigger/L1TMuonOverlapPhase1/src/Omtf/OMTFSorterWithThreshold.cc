@@ -1,6 +1,7 @@
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorterWithThreshold.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorterWithThreshold.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+
 #include <cassert>
 #include <iostream>
 #include <strstream>

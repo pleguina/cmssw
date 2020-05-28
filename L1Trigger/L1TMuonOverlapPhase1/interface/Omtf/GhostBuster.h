@@ -1,8 +1,9 @@
 #ifndef OMTF_GhostBuster_H
 #define OMTF_GhostBuster_H
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IGhostBuster.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IGhostBuster.h"
+
 #include <vector>
 #include <ostream>
 

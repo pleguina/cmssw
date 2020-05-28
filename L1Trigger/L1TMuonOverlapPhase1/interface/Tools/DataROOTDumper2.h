@@ -8,12 +8,9 @@
 #ifndef INTERFACE_TOOLS_DATAROOTDUMPER2_H_
 #define INTERFACE_TOOLS_DATAROOTDUMPER2_H_
 
-
-
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/GpResultsToPt.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/GpResultsToPt.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
-#include <functional>
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -22,6 +19,8 @@
 
 #include "TMap.h"
 #include "TArrayI.h"
+
+#include <functional>
 
 class TTree;
 

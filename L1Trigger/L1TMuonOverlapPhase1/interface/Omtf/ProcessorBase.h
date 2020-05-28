@@ -8,8 +8,10 @@
 #ifndef OMTF_PROCESSORBASE_H_
 #define OMTF_PROCESSORBASE_H_
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternBase.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternBase.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
+
 #include <memory>
 
 

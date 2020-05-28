@@ -1,15 +1,14 @@
 #ifndef OMTF_GoldenPatternBase_H
 #define OMTF_GoldenPatternBase_H
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h>
-#include <vector>
+#include "boost/multi_array.hpp"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
 #include <ostream>
+#include <vector>
 
 
-class OMTFConfigMaker;
-class OMTFConfiguration;
 //////////////////////////////////
 // Key
 //////////////////////////////////

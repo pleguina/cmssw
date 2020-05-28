@@ -1,8 +1,8 @@
 #ifndef OMTF_OMTFSorterWithThreshold_H
 #define OMTF_OMTFSorterWithThreshold_H
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/SorterBase.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/SorterBase.h"
 #include <vector>
 
 template <class GoldenPatternType>

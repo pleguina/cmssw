@@ -1,139 +1,247 @@
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/AngleConverterBase.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h>
-#include <cmath>
-#include <vector>
-#include <iostream>
-#include <iomanip>
-#include <algorithm>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
 
+#include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigi.h"
+#include "DataFormats/DetId/interface/DetId.h"
+#include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhDigi.h"
+#include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
-#include "DataFormats/MuonDetId/interface/RPCDetId.h"
 #include "DataFormats/MuonDetId/interface/DTChamberId.h"
 #include "DataFormats/MuonDetId/interface/MuonSubdetId.h"
-
-#include "L1Trigger/CSCCommonTrigger/interface/CSCConstants.h"
-#include "FWCore/Framework/interface/EventSetup.h"
+#include "DataFormats/MuonDetId/interface/RPCDetId.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-///////////////////////////////////////
-///////////////////////////////////////
-OMTFinputMaker::OMTFinputMaker(): rpcClusterization() {
+#include <map>
+#include <sstream>
+#include <string>
 
+//dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
+void DtDigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambPhDigi& digi, const L1MuDTChambThContainer *dtThDigis,
+    unsigned int iProcessor, l1t::tftype procTyp)
+{
+  DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum()+1);
+
+  //LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" OMTFinputMaker "<<" detid "<<detid<<endl;
+  ///Check Trigger primitive quality
+  ///Ts2Tag() == 0 - take only first track from DT Trigger Server
+  ///BxCnt()  == 0 - ??
+  ///code()>=3     - take only double layer hits, HH, HL and LL
+  // FIXME (MK): at least Ts2Tag selection is not correct! Check it
+  //    if (digiIt.bxNum()!= 0 || digiIt.BxCnt()!= 0 || digiIt.Ts2Tag()!= 0 || digiIt.code()<4) continue;
+
+  if(digi.code() ==  7 || digi.code() < config->getMinDtPhiQuality()) //7 is empty digi, TODO update if the definition of the quality is changed
+    return;
+
+  unsigned int hwNumber = config->getLayerNumber(detid.rawId());
+  if(config->getHwToLogicLayer().find(hwNumber) == config->getHwToLogicLayer().end())
+    return;
+
+  auto iter = config->getHwToLogicLayer().find(hwNumber);
+  unsigned int iLayer = iter->second;
+  unsigned int iInput = OMTFinputMaker::getInputNumber(config, detid.rawId(), iProcessor, procTyp);
+  //MuonStub& stub = muonStubsInLayers[iLayer][iInput];
+  MuonStub stub;
+
+  stub.type = MuonStub::DT_PHI_ETA;
+  //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
+  stub.phiHw  =  angleConverter->getProcessorPhi(OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, digi.scNum(), digi.phi());
+  stub.etaHw  =  angleConverter->getGlobalEta(detid, dtThDigis, digi.bxNum() );
+  stub.phiBHw = digi.phiB();
+  stub.qualityHw = digi.code();
+
+  stub.bx = digi.bxNum(); //TODO sholdn't  it be BxCnt()?
+  //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
+
+  //stub.etaType = ?? TODO
+  stub.logicLayer = iLayer;
+  stub.detId = detid;
+
+  OMTFinputMaker::addStub(config, muonStubsInLayers, iLayer, iInput, stub);
 }
 
-void OMTFinputMaker::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es, const OMTFConfiguration* procConf, MuStubsInputTokens& muStubsInputTokens) {
-  this->config = procConf;
-  MuonStubMakerBase::initialize(edmCfg, es, config, muStubsInputTokens);
-  angleConverter.checkAndUpdateGeometry(es, config);
+void DtDigiToStubsConverterOmtf::addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambThDigi& thetaDigi,
+    unsigned int iProcessor, l1t::tftype procTyp) {
+//in the Phase1 omtf the theta stubs are merged with the phi in the addDTphiDigi
 }
 
-///////////////////////////////////////
-///////////////////////////////////////
-OMTFinputMaker::~OMTFinputMaker(){ }
-///////////////////////////////////////
-///////////////////////////////////////
-bool  OMTFinputMaker::acceptDigi(uint32_t rawId,
-    unsigned int iProcessor,
-    l1t::tftype type){
+bool DtDigiToStubsConverterOmtf::acceptDigi(const DTChamberId& dTChamberId, unsigned int iProcessor, l1t::tftype procType) {
+  return OMTFinputMaker::acceptDtDigi(config, dTChamberId, iProcessor, procType);
+}
+
+void CscDigiToStubsConverterOmtf::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int rawid, const CSCCorrelatedLCTDigi& digi,
+       unsigned int iProcessor, l1t::tftype procTyp)
+{
+  //CSCDetId csc(rawid);
+
+  unsigned int hwNumber = config->getLayerNumber(rawid);
+  if(config->getHwToLogicLayer().find(hwNumber) == config->getHwToLogicLayer().end())
+    return;
+
+  unsigned int iLayer = config->getHwToLogicLayer().at(hwNumber);
+  unsigned int iInput= OMTFinputMaker::getInputNumber(config, rawid, iProcessor, procTyp);
+
+  MuonStub stub;
+  stub.type = MuonStub::CSC_PHI_ETA;
+  stub.phiHw  =  angleConverter->getProcessorPhi(OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, CSCDetId(rawid), digi);
+  stub.etaHw  =  angleConverter->getGlobalEta(rawid, digi);
+  stub.phiBHw = digi.getPattern(); //TODO change to phiB when implemented
+  stub.qualityHw = digi.getQuality();
+
+  stub.bx = digi.getBX() - config->cscLctCentralBx(); //TODO sholdn't  it be getBX0()?
+  //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
+
+  //stub.etaType = ?? TODO
+  stub.logicLayer = iLayer;
+  stub.detId = rawid;
+
+  OMTFinputMaker::addStub(config, muonStubsInLayers, iLayer, iInput, stub);
+  ///Accept CSC digis only up to eta=1.26.
+  ///The nominal OMTF range is up to 1.24, but cutting at 1.24
+  ///kill efficnency at the edge. 1.26 is one eta bin above nominal.
+  //if(abs(iEta)>1.26/2.61*240) continue;
+  //if (abs(iEta) > 115) continue;
+
+  //    std::cout <<" ADDING CSC hit, proc: "<<iProcessor<<" iPhi : " << iPhi <<" iEta: "<< iEta << std::endl;
+}
+
+bool CscDigiToStubsConverterOmtf::acceptDigi(const CSCDetId& csc, unsigned int iProcessor, l1t::tftype procType) {
   unsigned int aMin = config->getBarrelMin()[iProcessor];
   unsigned int aMax = config->getBarrelMax()[iProcessor];
-  unsigned int aSector = 99;
 
-  ///Clean up digis. Remove unconnected detectors
-  DetId detId(rawId);
-  if (detId.det() != DetId::Muon) 
-    edm::LogError("Critical OMTFinputMaker") << "PROBLEM: hit in unknown Det, detID: "<<detId.det()<<std::endl;
-  switch (detId.subdetId()) {
-  case MuonSubdetId::RPC: {
-    RPCDetId aId(rawId);
+  if(procType==l1t::tftype::omtf_pos &&
+      (csc.endcap()==2 || csc.ring()==1 || csc.station()==4)) return false;
+  if(procType==l1t::tftype::omtf_neg &&
+      (csc.endcap()==1 || csc.ring()==1 || csc.station()==4)) return false;
 
-    ///Select RPC chambers connected to OMTF
-    if(type==l1t::tftype::omtf_pos &&
-        (aId.region()<0 ||
-            (aId.region()==0 && aId.ring()!=2) ||
-            (aId.region()==0 && aId.station()==4) ||
-            (aId.region()==0 && aId.station()==2 && aId.layer()==2 && aId.roll()==1) ||
-            (aId.region()==0 && aId.station()==3 && aId.roll()==1) ||
-            (aId.region()==1 && aId.station()==4) ||
-            ///RPC RE1/2 temporarily not used (aId.region()==1 && aId.station()==1 && aId.ring()<2) ||
-            (aId.region()==1 && aId.station()>0 && aId.ring()<3))
-    ) return false;
+  if(procType==l1t::tftype::emtf_pos &&
+      (csc.endcap()==2 || (csc.station()==1 && csc.ring()==3))
+  ) return false;
+  if(procType==l1t::tftype::emtf_neg &&
+      (csc.endcap()==1 || (csc.station()==1 && csc.ring()==3))
+  ) return false;
 
-    if(type==l1t::tftype::omtf_neg &&
-        (aId.region()>0 ||
-            (aId.region()==0 && aId.ring()!=-2) ||
-            (aId.region()==0 && aId.station()==4) ||
-            (aId.region()==0 && aId.station()==2 && aId.layer()==2 && aId.roll()==1) ||
-            (aId.region()==0 && aId.station()==3 && aId.roll()==1) ||
-            (aId.region()==-1 && aId.station()==4) ||
-            //RPC RE1/2 temporarily not used (aId.region()==1 && aId.station()==1 && aId.ring()<2) ||
-            (aId.region()==-1 && aId.station()>0 && aId.ring()<3))
-    ) return false;
+  unsigned int aSector =  csc.chamber();
+  aMin = config->getEndcap10DegMin()[iProcessor];
+  aMax = config->getEndcap10DegMax()[iProcessor];
 
-    if(type==l1t::tftype::omtf_pos || type==l1t::tftype::omtf_neg) {
-      if(aId.region()!=0 && aId.station() == 3) { //endcaps, layer 17
-        unsigned int iInput= getInputNumber(rawId, iProcessor, type);
-             if(iInput==0 || iInput==1)
-               return false;  // FIXME (MK) there is no RPC link for that input, because it is taken by DAQ link
-      }
-    }
-
-    if(type==l1t::tftype::bmtf && aId.region()!=0) return false;
-
-    if(type==l1t::tftype::emtf_pos &&
-        (aId.region()<=0 ||
-            (aId.station()==1 && aId.ring()==3))) return false;
-    if(type==l1t::tftype::emtf_neg &&
-        (aId.region()>=0 ||
-            (aId.station()==1 && aId.ring()==3))) return false;
-    ////////////////
-    if(aId.region()==0) aSector = aId.sector();
-    if(aId.region()!=0){
-      aSector = (aId.sector()-1)*6+aId.subsector();
-      aMin = config->getEndcap10DegMin()[iProcessor];
-      aMax = config->getEndcap10DegMax()[iProcessor];
-    }
-
-    break;
+  if( (procType == l1t::tftype::emtf_pos || procType == l1t::tftype::emtf_neg) &&
+      csc.station()>1 && csc.ring()==1){
+    aMin = config->getEndcap20DegMin()[iProcessor];
+    aMax = config->getEndcap20DegMax()[iProcessor];
   }
-  case MuonSubdetId::DT: {
-    DTChamberId dt(rawId);
 
-    if(type==l1t::tftype::omtf_pos && dt.wheel()!=2) return false;
-    if(type==l1t::tftype::omtf_neg && dt.wheel()!=-2) return false;
-    if(type==l1t::tftype::emtf_pos || type==l1t::tftype::emtf_neg) return false;
+  if(aMax>aMin && aSector>=aMin && aSector<=aMax) return true;
+  if(aMax<aMin && (aSector>=aMin || aSector<=aMax)) return true;
 
-    aSector =  dt.sector();   	
-    break;
+  return false;
+}
+
+void RpcDigiToStubsConverterOmtf::addRPCstub(MuonStubPtrs2D& muonStubsInLayers, const RPCDetId& roll, const RpcCluster& cluster,
+     unsigned int iProcessor, l1t::tftype procTyp)
+{
+  //      int iPhiHalfStrip1 = myangleConverter->getProcessorPhi(getProcessorPhiZero(iProcessor), type, roll, cluster.first);
+  //      int iPhiHalfStrip2 = myangleConverter->getProcessorPhi(getProcessorPhiZero(iProcessor), type, roll, cluster.second);
+
+  //unsigeint cSize =  cluster.size();
+
+  //      std::cout << " HStrip_1: " << iPhiHalfStrip1 <<" HStrip_2: "<<iPhiHalfStrip2<<" iPhi: " << iPhi << " cluster: ["<< cluster.first << ", "<<  cluster.second <<"]"<< std::endl;
+  //if (cSize>3) continue; this icut is allready in rpcClusterization.getClusters
+
+  unsigned int rawid = roll.rawId();
+
+  unsigned int hwNumber = config->getLayerNumber(rawid);
+  unsigned int iLayer = config->getHwToLogicLayer().at(hwNumber);
+  unsigned int iInput= OMTFinputMaker::getInputNumber(config, rawid, iProcessor, procTyp);
+  //      std::cout <<"ADDING HIT: iLayer = " << iLayer << " iInput: " << iInput << " iPhi: " << iPhi << std::endl;
+  //if (iLayer==17 && (iInput==0 || iInput==1)) continue;  // FIXME (MK) there is no RPC link for that input, because it is taken by DAQ link
+
+  MuonStub stub;
+  stub.type = MuonStub::RPC;
+  stub.phiHw  =  angleConverter->getProcessorPhi(OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, roll, cluster.firstStrip, cluster.lastStrip);
+  stub.etaHw  =  angleConverter->getGlobalEtaRpc(rawid, cluster.firstStrip);
+  //angleConverter->AngleConverterBase::getGlobalEta(rawid, cluster.firstStrip);
+  //stub.phiBHw =
+  stub.qualityHw = cluster.size();
+
+  stub.bx = cluster.bx;
+  stub.timing = cluster.timing;
+
+  //stub.etaType = ?? TODO
+  stub.logicLayer = iLayer;
+  stub.detId = rawid;
+
+  OMTFinputMaker::addStub(config, muonStubsInLayers, iLayer, iInput, stub);
+
+  //      if (cSize>2) flag |= 2;
+  //      if (!outres) flag |= 1;
+
+  std::ostringstream str;
+  str <<" RPC halfDigi "
+      <<" begin: "<<cluster.firstStrip<<" end: "<<cluster.lastStrip
+      <<" iPhi: "<<stub.phiHw
+      <<" iEta: "<<stub.etaHw
+      <<" hwNumber: "<<hwNumber
+      <<" iInput: "<<iInput
+      <<" iLayer: "<<iLayer
+      //<<" out: " << outres
+      <<std::endl;
+
+  LogTrace("l1tMuBayesEventPrint")<<str.str();
+}
+
+bool RpcDigiToStubsConverterOmtf::acceptDigi(const RPCDetId& rpcDetId, unsigned int iProcessor, l1t::tftype procType) {
+  unsigned int aMin = config->getBarrelMin()[iProcessor];
+  unsigned int aMax = config->getBarrelMax()[iProcessor];
+
+  unsigned int aSector = rpcDetId.sector();
+
+  ///Select RPC chambers connected to OMTF
+  if(procType ==l1t::tftype::omtf_pos &&
+      (rpcDetId.region()<0 ||
+          (rpcDetId.region()==0 && rpcDetId.ring()!=2) ||
+          (rpcDetId.region()==0 && rpcDetId.station()==4) ||
+          (rpcDetId.region()==0 && rpcDetId.station()==2 && rpcDetId.layer()==2 && rpcDetId.roll()==1) ||
+          (rpcDetId.region()==0 && rpcDetId.station()==3 && rpcDetId.roll()==1) ||
+          (rpcDetId.region()==1 && rpcDetId.station()==4) ||
+          ///RPC RE1/2 temporarily not used (rpcDetId.region()==1 && rpcDetId.station()==1 && rpcDetId.ring()<2) ||
+          (rpcDetId.region()==1 && rpcDetId.station()>0 && rpcDetId.ring()<3))
+  ) return false;
+
+  if(procType ==l1t::tftype::omtf_neg &&
+      (rpcDetId.region()>0 ||
+          (rpcDetId.region()==0 && rpcDetId.ring()!=-2) ||
+          (rpcDetId.region()==0 && rpcDetId.station()==4) ||
+          (rpcDetId.region()==0 && rpcDetId.station()==2 && rpcDetId.layer()==2 && rpcDetId.roll()==1) ||
+          (rpcDetId.region()==0 && rpcDetId.station()==3 && rpcDetId.roll()==1) ||
+          (rpcDetId.region()==-1 && rpcDetId.station()==4) ||
+          //RPC RE1/2 temporarily not used (rpcDetId.region()==1 && rpcDetId.station()==1 && rpcDetId.ring()<2) ||
+          (rpcDetId.region()==-1 && rpcDetId.station()>0 && rpcDetId.ring()<3))
+  ) return false;
+
+  if(procType ==l1t::tftype::omtf_pos || procType ==l1t::tftype::omtf_neg) {
+    if(rpcDetId.region()!=0 && rpcDetId.station() == 3) { //endcaps, layer 17
+      unsigned int iInput= OMTFinputMaker::getInputNumber(config, rpcDetId.rawId(), iProcessor, procType);
+           if(iInput==0 || iInput==1)
+             return false;  // FIXME (MK) there is no RPC link for that input, because it is taken by DAQ link
+    }
   }
-  case MuonSubdetId::CSC: {
 
-    CSCDetId csc(rawId);    
-    if(type==l1t::tftype::omtf_pos &&
-        (csc.endcap()==2 || csc.ring()==1 || csc.station()==4)) return false;
-    if(type==l1t::tftype::omtf_neg &&
-        (csc.endcap()==1 || csc.ring()==1 || csc.station()==4)) return false;
+  if(procType ==l1t::tftype::bmtf && rpcDetId.region()!=0) return false;
 
-    if(type==l1t::tftype::emtf_pos &&
-        (csc.endcap()==2 || (csc.station()==1 && csc.ring()==3))
-    ) return false;
-    if(type==l1t::tftype::emtf_neg &&
-        (csc.endcap()==1 || (csc.station()==1 && csc.ring()==3))
-    ) return false;
-
-    aSector =  csc.chamber();   	
+  if(procType ==l1t::tftype::emtf_pos &&
+      (rpcDetId.region()<=0 ||
+          (rpcDetId.station()==1 && rpcDetId.ring()==3))) return false;
+  if(procType ==l1t::tftype::emtf_neg &&
+      (rpcDetId.region()>=0 ||
+          (rpcDetId.station()==1 && rpcDetId.ring()==3))) return false;
+  ////////////////
+  if(rpcDetId.region()==0) aSector = rpcDetId.sector();
+  if(rpcDetId.region()!=0){
+    aSector = (rpcDetId.sector()-1)*6+rpcDetId.subsector();
     aMin = config->getEndcap10DegMin()[iProcessor];
     aMax = config->getEndcap10DegMax()[iProcessor];
-
-    if( (type==l1t::tftype::emtf_pos || type==l1t::tftype::emtf_neg) &&
-        csc.station()>1 && csc.ring()==1){
-      aMin = config->getEndcap20DegMin()[iProcessor];
-      aMax = config->getEndcap20DegMax()[iProcessor];
-    }
-    break;
-  }    
   }
 
   if(aMax>aMin && aSector>=aMin && aSector<=aMax) return true;
@@ -143,9 +251,48 @@ bool  OMTFinputMaker::acceptDigi(uint32_t rawId,
 }
 ///////////////////////////////////////
 ///////////////////////////////////////
-unsigned int OMTFinputMaker::getInputNumber(unsigned int rawId, 
+bool OMTFinputMaker::acceptDtDigi(const OMTFConfiguration* config, const DTChamberId& dTChamberId, unsigned int iProcessor, l1t::tftype procType) {
+  unsigned int aMin = config->getBarrelMin()[iProcessor];
+  unsigned int aMax = config->getBarrelMax()[iProcessor];
+
+  if(procType==l1t::tftype::omtf_pos && dTChamberId.wheel()!=2) return false;
+  if(procType==l1t::tftype::omtf_neg && dTChamberId.wheel()!=-2) return false;
+  if(procType==l1t::tftype::emtf_pos || procType==l1t::tftype::emtf_neg) return false;
+
+  unsigned int aSector =  dTChamberId.sector();
+
+  if(aMax>aMin && aSector>=aMin && aSector<=aMax) return true;
+  if(aMax<aMin && (aSector>=aMin || aSector<=aMax)) return true;
+
+  return false;
+}
+
+///////////////////////////////////////
+///////////////////////////////////////
+OMTFinputMaker::OMTFinputMaker(const edm::ParameterSet& edmParameterSet, MuStubsInputTokens& muStubsInputTokens, const OMTFConfiguration* config): MuonStubMakerBase(config), config(config) {
+  if(!edmParameterSet.getParameter<bool>("dropDTPrimitives"))
+    digiToStubsConverters.emplace_back(std::make_unique<DtDigiToStubsConverterOmtf>(config, &angleConverter, muStubsInputTokens.inputTokenDtPh, muStubsInputTokens.inputTokenDtTh));
+
+  if(!edmParameterSet.getParameter<bool>("dropCSCPrimitives"))
+    digiToStubsConverters.emplace_back(std::make_unique<CscDigiToStubsConverterOmtf>(config, &angleConverter, muStubsInputTokens.inputTokenCSC));
+
+  if(!edmParameterSet.getParameter<bool>("dropRPCPrimitives"))
+    digiToStubsConverters.emplace_back(std::make_unique<RpcDigiToStubsConverterOmtf>(config, &angleConverter, &rpcClusterization, muStubsInputTokens.inputTokenRPC));
+}
+
+void OMTFinputMaker::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es) {
+  MuonStubMakerBase::initialize(edmCfg, es);
+  angleConverter.checkAndUpdateGeometry(es, config);
+}
+
+///////////////////////////////////////
+///////////////////////////////////////
+OMTFinputMaker::~OMTFinputMaker(){ }
+///////////////////////////////////////
+///////////////////////////////////////
+unsigned int OMTFinputMaker::getInputNumber(const OMTFConfiguration* config, unsigned int rawId,
     unsigned int iProcessor,
-    l1t::tftype type){
+    l1t::tftype type) {
 
   unsigned int iInput = 99;
   unsigned int aSector = 99;
@@ -224,7 +371,7 @@ unsigned int OMTFinputMaker::getInputNumber(unsigned int rawId,
 ////////////////////////////////////////////
 
 //iProcessor counted from 0
-int OMTFinputMaker::getProcessorPhiZero(unsigned int iProcessor) {
+int OMTFinputMaker::getProcessorPhiZero(const OMTFConfiguration* config, unsigned int iProcessor) {
 
   unsigned int nPhiBins = config->nPhiBins();
 
@@ -233,153 +380,9 @@ int OMTFinputMaker::getProcessorPhiZero(unsigned int iProcessor) {
 
 }
 
-
-void OMTFinputMaker::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambPhDigi& digi,
-    const L1MuDTChambThContainer *dtThDigis,
-    unsigned int iProcessor, l1t::tftype procTyp)
-{
-
-  DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum()+1);
-
-  //LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" OMTFinputMaker "<<" detid "<<detid<<endl;
-  ///Check Trigger primitive quality
-  ///Ts2Tag() == 0 - take only first track from DT Trigger Server
-  ///BxCnt()  == 0 - ??
-  ///code()>=3     - take only double layer hits, HH, HL and LL
-  // FIXME (MK): at least Ts2Tag selection is not correct! Check it
-  //    if (digiIt.bxNum()!= 0 || digiIt.BxCnt()!= 0 || digiIt.Ts2Tag()!= 0 || digiIt.code()<4) continue;
-
-  if (config->fwVersion() <= 4) {
-    if (digi.code() != 4 && digi.code() != 5 && digi.code() != 6)
-      return;
-  } else {
-    if (digi.code() != 2 && digi.code() != 3 && digi.code() != 4 && digi.code() != 5 && digi.code() != 6)
-      return;
-  }
-/*  if (digi.code() != 4 && digi.code() != 5 && digi.code() != 6)
-    return;*/
-  //if (digiIt.code() != 2 && digiIt.code() != 3 && digiIt.code() != 4 && digiIt.code() != 5 && digiIt.code() != 6) continue;
-
-  unsigned int hwNumber = config->getLayerNumber(detid.rawId());
-  if(config->getHwToLogicLayer().find(hwNumber) == config->getHwToLogicLayer().end())
-    return;
-
-  auto iter = config->getHwToLogicLayer().find(hwNumber);
-  unsigned int iLayer = iter->second;
-  unsigned int iInput= getInputNumber(detid.rawId(), iProcessor, procTyp);
-  //MuonStub& stub = muonStubsInLayers[iLayer][iInput];
-  MuonStub stub;
-
-  stub.type = MuonStub::DT_PHI_ETA;
-  //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
-  stub.phiHw  =  angleConverter.getProcessorPhi(getProcessorPhiZero(iProcessor), procTyp, digi);
-  stub.etaHw  =  angleConverter.getGlobalEta(digi, dtThDigis);
-  stub.phiBHw = digi.phiB();
-  stub.qualityHw = digi.code();
-
-  stub.bx = digi.bxNum(); //TODO sholdn't  it be BxCnt()?
-  //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
-
-  //stub.etaType = ?? TODO
-  stub.logicLayer = iLayer;
-  stub.detId = detid;
-
-  addStub(muonStubsInLayers, iLayer, iInput, stub);
-}
-
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-
-void OMTFinputMaker::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int rawid, const CSCCorrelatedLCTDigi& digi,
-   unsigned int iProcessor, l1t::tftype procTyp)
-{
-  unsigned int hwNumber = config->getLayerNumber(rawid);
-  if(config->getHwToLogicLayer().find(hwNumber) == config->getHwToLogicLayer().end())
-    return;
-
-  unsigned int iLayer = config->getHwToLogicLayer().at(hwNumber);
-  unsigned int iInput= getInputNumber(rawid, iProcessor, procTyp);
-
-  MuonStub stub;
-  stub.type = MuonStub::CSC_PHI_ETA;
-  stub.phiHw  =  angleConverter.getProcessorPhi(getProcessorPhiZero(iProcessor), procTyp, CSCDetId(rawid), digi);
-  stub.etaHw  =  angleConverter.getGlobalEta(rawid, digi);
-  stub.phiBHw = digi.getPattern(); //TODO change to phiB when implemented
-  stub.qualityHw = digi.getQuality();
-
-  stub.bx = digi.getBX() - config->cscLctCentralBx(); //TODO sholdn't  it be getBX0()?
-  //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
-
-  //stub.etaType = ?? TODO
-  stub.logicLayer = iLayer;
-  stub.detId = rawid;
-
-  addStub(muonStubsInLayers, iLayer, iInput, stub);
-  ///Accept CSC digis only up to eta=1.26.
-  ///The nominal OMTF range is up to 1.24, but cutting at 1.24
-  ///kill efficnency at the edge. 1.26 is one eta bin above nominal.
-  //if(abs(iEta)>1.26/2.61*240) continue;
-  //if (abs(iEta) > 115) continue;
-
-  //    std::cout <<" ADDING CSC hit, proc: "<<iProcessor<<" iPhi : " << iPhi <<" iEta: "<< iEta << std::endl;
-}
-
-////////////////////////////////////////////
-////////////////////////////////////////////
-
-void OMTFinputMaker::addRPCstub(MuonStubPtrs2D& muonStubsInLayers, const RPCDetId& roll, const RpcCluster& cluster,
-   unsigned int iProcessor, l1t::tftype procTyp) {
-  //      int iPhiHalfStrip1 = myangleConverter.getProcessorPhi(getProcessorPhiZero(iProcessor), type, roll, cluster.first);
-  //      int iPhiHalfStrip2 = myangleConverter.getProcessorPhi(getProcessorPhiZero(iProcessor), type, roll, cluster.second);
-
-  //unsigeint cSize =  cluster.size();
-
-  //      std::cout << " HStrip_1: " << iPhiHalfStrip1 <<" HStrip_2: "<<iPhiHalfStrip2<<" iPhi: " << iPhi << " cluster: ["<< cluster.first << ", "<<  cluster.second <<"]"<< std::endl;
-  //if (cSize>3) continue; this icut is allready in rpcClusterization.getClusters
-  unsigned int rawid = roll.rawId();
-  unsigned int hwNumber = config->getLayerNumber(rawid);
-  unsigned int iLayer = config->getHwToLogicLayer().at(hwNumber);
-  unsigned int iInput= getInputNumber(rawid, iProcessor, procTyp);
-  //      std::cout <<"ADDING HIT: iLayer = " << iLayer << " iInput: " << iInput << " iPhi: " << iPhi << std::endl;
-  //if (iLayer==17 && (iInput==0 || iInput==1)) continue;  // FIXME (MK) there is no RPC link for that input, because it is taken by DAQ link
-
-  MuonStub stub;
-  stub.type = MuonStub::RPC;
-  stub.phiHw  =  angleConverter.getProcessorPhi(getProcessorPhiZero(iProcessor), procTyp, roll, cluster.firstStrip, cluster.lastStrip);
-  stub.etaHw  =  angleConverter.getGlobalEta(rawid, cluster.firstStrip);
-  angleConverter.AngleConverterBase::getGlobalEta(rawid, cluster.firstStrip);
-  //stub.phiBHw =
-  stub.qualityHw = cluster.size();
-
-  stub.bx = cluster.bx;
-  stub.timing = cluster.timing;
-
-  //stub.etaType = ?? TODO
-  stub.logicLayer = iLayer;
-  stub.detId = rawid;
-
-  addStub(muonStubsInLayers, iLayer, iInput, stub);
-
-  //      if (cSize>2) flag |= 2;
-  //      if (!outres) flag |= 1;
-
-  std::ostringstream str;
-  str <<" RPC halfDigi "
-      <<" begin: "<<cluster.firstStrip<<" end: "<<cluster.lastStrip
-      <<" iPhi: "<<stub.phiHw
-      <<" iEta: "<<stub.etaHw
-      <<" hwNumber: "<<hwNumber
-      <<" iInput: "<<iInput
-      <<" iLayer: "<<iLayer
-      //<<" out: " << outres
-      <<std::endl;
-
-  LogTrace("l1tMuBayesEventPrint")<<str.str();
-}
-
-////////////////////////////////////////////
-////////////////////////////////////////////
-void OMTFinputMaker::addStub(MuonStubPtrs2D& muonStubsInLayers, unsigned int iLayer, unsigned int iInput, MuonStub& stub) {
+void OMTFinputMaker::addStub(const OMTFConfiguration* config, MuonStubPtrs2D& muonStubsInLayers, unsigned int iLayer, unsigned int iInput, MuonStub& stub) {
   LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iInput "<<iInput<<" "<<stub<<endl;
   //in principle it is possible that in the DAQ data the digis are duplicated,
   //since the same link is connected to two OMTF boards
@@ -403,23 +406,3 @@ void OMTFinputMaker::addStub(MuonStubPtrs2D& muonStubsInLayers, unsigned int iLa
   //cout<<__FUNCTION__<<":"<<__LINE__<<" stub phi "<<stub.phiHw<<endl;
 }
 
-////////////////////////////////////////////
-////////////////////////////////////////////
-/*const OMTFinput OMTFinputMaker::buildInputForProcessor(const L1MuDTChambPhContainer *dtPhDigis,
-    const L1MuDTChambThContainer *dtThDigis,
-    const CSCCorrelatedLCTDigiCollection *cscDigis,
-    const RPCDigiCollection *rpcDigis,
-    unsigned int iProcessor,
-    l1t::tftype type,
-    int bx) {
-  OMTFinput result(config);
-  //MuonStubPtrs2D& muonStubsInLayers = result.getMuonStubs();
-  int bxFrom = bx, bxTo = bx;
-  processDT(result.getMuonStubs(), dtPhDigis, dtThDigis, iProcessor, type, true, bxFrom, bxTo);
-  processCSC(result.getMuonStubs(), cscDigis, iProcessor, type, bxFrom, bxTo);
-  processRPC(result.getMuonStubs(), rpcDigis, iProcessor, type, bxFrom, bxTo);
-  //cout<<result<<endl;
-  return result;
-}*/
-////////////////////////////////////////////
-////////////////////////////////////////////

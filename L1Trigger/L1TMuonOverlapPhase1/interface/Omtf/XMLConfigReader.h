@@ -1,7 +1,9 @@
 #ifndef OMTF_XMLConfigReader_H
 #define OMTF_XMLConfigReader_H
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+#include "CondFormats/L1TObjects/interface/LUT.h"
+
 #include <string>
 #include <vector>
 #include <ostream>
@@ -9,8 +11,6 @@
 
 #include "xercesc/util/XercesDefs.hpp"
 #include "xercesc/dom/DOM.hpp"
-
-#include "CondFormats/L1TObjects/interface/LUT.h"
 
 class GoldenPattern;
 class OMTFConfiguration;

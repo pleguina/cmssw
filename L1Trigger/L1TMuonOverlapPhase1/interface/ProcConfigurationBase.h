@@ -7,11 +7,17 @@
 
 #ifndef MUONBAYES_PROCCONFIGURATIONBASE_H_
 #define MUONBAYES_PROCCONFIGURATIONBASE_H_
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 class ProcConfigurationBase {
 public:
   ProcConfigurationBase();
   virtual ~ProcConfigurationBase();
+
+  /**configuration from the edm::ParameterSet
+   * the parameters are set (i.e. overwritten) only if their exist in the edmParameterSet
+   */
+  virtual void configureFromEdmParameterSet(const edm::ParameterSet& edmParameterSet);
 
   virtual unsigned int nPhiBins() const = 0;
 
@@ -53,35 +59,51 @@ public:
     return cscLctCentralBx_;
   }
 
-  void setCscLctCentralBx(int lctCentralBx) {
+  virtual void setCscLctCentralBx(int lctCentralBx) {
     this->cscLctCentralBx_ = lctCentralBx;
   }
 
-  bool getRpcDropAllClustersIfMoreThanMax() const {
+  virtual bool getRpcDropAllClustersIfMoreThanMax() const {
     return rpcDropAllClustersIfMoreThanMax;
   }
 
-  void setRpcDropAllClustersIfMoreThanMax(bool rpcDropAllClustersIfMoreThanMax =
+  virtual void setRpcDropAllClustersIfMoreThanMax(bool rpcDropAllClustersIfMoreThanMax =
       true) {
     this->rpcDropAllClustersIfMoreThanMax = rpcDropAllClustersIfMoreThanMax;
   }
 
-  unsigned int getRpcMaxClusterCnt() const {
+  virtual unsigned int getRpcMaxClusterCnt() const {
     return rpcMaxClusterCnt;
   }
 
-  void setRpcMaxClusterCnt(unsigned int rpcMaxClusterCnt = 2) {
+  virtual void setRpcMaxClusterCnt(unsigned int rpcMaxClusterCnt = 2) {
     this->rpcMaxClusterCnt = rpcMaxClusterCnt;
   }
 
-  unsigned int getRpcMaxClusterSize() const {
+  virtual unsigned int getRpcMaxClusterSize() const {
     return rpcMaxClusterSize;
   }
 
-  void setRpcMaxClusterSize(unsigned int rpcMaxClusterSize = 4) {
+  virtual void setRpcMaxClusterSize(unsigned int rpcMaxClusterSize = 4) {
     this->rpcMaxClusterSize = rpcMaxClusterSize;
   }
-  
+
+  virtual int getMinDtPhiQuality() const {
+    return minDtPhiQuality;
+  }
+
+  virtual void setMinDtPhiQuality(int minDtPhiQuality = 2) {
+    this->minDtPhiQuality = minDtPhiQuality;
+  }
+
+  virtual int getMinDtPhiBQuality() const {
+      return minDtPhiBQuality;
+  }
+
+  virtual void setMinDtPhiBQuality(int minDtPhiBQuality = 2) {
+      this->minDtPhiBQuality = minDtPhiBQuality;
+  }
+
 private:
   int cscLctCentralBx_ = 8; //CSCConstants::LCT_CENTRAL_BX;
   
@@ -91,6 +113,9 @@ private:
 
   bool rpcDropAllClustersIfMoreThanMax = false; // if true no  cluster is return if there is more clusters then maxClusterCnt (counted regardless of the size)
   
+  int minDtPhiQuality = 2;
+
+  int minDtPhiBQuality = 2; //used on the top of the minDtPhiQuality
 };
 
 #endif /* INTERFACE_PROCCONFIGURATIONBASE_H_ */

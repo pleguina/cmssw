@@ -1,38 +1,32 @@
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFProcessor.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigWriter.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/plugins/L1TMuonBayesOmtfTrackProducer.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/plugins/L1TMuonBayesOmtfTrackProducer.h"
+
+#include "FWCore/Framework/interface/EDConsumerBase.h"
+#include "FWCore/Framework/interface/ProductRegistryHelper.h"
+#include "FWCore/PluginManager/interface/PluginFactory.h"
+#include "FWCore/Utilities/interface/EDGetToken.h"
+#include "FWCore/Utilities/interface/InputTag.h"
+
+#include <algorithm>
 #include <iostream>
-#include <strstream>
-#include <vector>
+#include <memory>
 
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
-
-#include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
-#include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
-
-#include "CondFormats/DataRecord/interface/L1TMuonOverlapParamsRcd.h"
-#include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
-
-#include "L1Trigger/RPCTrigger/interface/RPCConst.h"
-
-L1TMuonBayesOmtfTrackProducer::L1TMuonBayesOmtfTrackProducer(const edm::ParameterSet& cfg)
-  :theConfig(cfg), m_Reconstruction(cfg, muStubsInputTokens) {
-
+L1TMuonBayesOmtfTrackProducer::L1TMuonBayesOmtfTrackProducer(const edm::ParameterSet& edmParameterSet) :
+  muStubsInputTokens(
+    {
+      consumes<L1MuDTChambPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPh")),
+      consumes<L1MuDTChambThContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTTh")),
+      consumes<CSCCorrelatedLCTDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcCSC")),
+      consumes<RPCDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcRPC"))
+    } ),
+  m_Reconstruction(edmParameterSet, muStubsInputTokens)
+{
   produces<l1t::RegionalMuonCandBxCollection >("OMTF");
 
-  muStubsInputTokens.inputTokenDTPh = consumes<L1MuDTChambPhContainer>(theConfig.getParameter<edm::InputTag>("srcDTPh"));
-  muStubsInputTokens.inputTokenDTTh = consumes<L1MuDTChambThContainer>(theConfig.getParameter<edm::InputTag>("srcDTTh"));
-  muStubsInputTokens.inputTokenCSC = consumes<CSCCorrelatedLCTDigiCollection>(theConfig.getParameter<edm::InputTag>("srcCSC"));
-  muStubsInputTokens.inputTokenRPC = consumes<RPCDigiCollection>(theConfig.getParameter<edm::InputTag>("srcRPC"));
-
-
-  inputTokenSimHit = consumes<edm::SimTrackContainer>(theConfig.getParameter<edm::InputTag>("g4SimTrackSrc")); //TODO remove
+  inputTokenSimHit = consumes<edm::SimTrackContainer>(edmParameterSet.getParameter<edm::InputTag>("g4SimTrackSrc")); //TODO remove
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-L1TMuonBayesOmtfTrackProducer::~L1TMuonBayesOmtfTrackProducer(){  
+L1TMuonBayesOmtfTrackProducer::~L1TMuonBayesOmtfTrackProducer(){
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////

@@ -8,8 +8,15 @@
 #ifndef INTERFACE_OMTF_XMLEVENTWRITER_H_
 #define INTERFACE_OMTF_XMLEVENTWRITER_H_
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigWriter.h>
+#include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
+#include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigWriter.h"
+#include "xercesc/util/XercesDefs.hpp"
+#include <memory>
+#include <string>
+#include <vector>
 
 class XMLEventWriter: public IOMTFEmulationObserver {
 public:

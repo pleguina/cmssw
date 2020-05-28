@@ -1,8 +1,8 @@
 #ifndef OMTF_GoldenPatternWithStat_H
 #define OMTF_GoldenPatternWithStat_H
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
 #include <vector>
 #include <ostream>
 

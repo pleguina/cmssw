@@ -5,7 +5,7 @@
  *      Author: kbunkow
  */
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
 
 IOMTFEmulationObserver::IOMTFEmulationObserver() {
   // TODO Auto-generated constructor stub

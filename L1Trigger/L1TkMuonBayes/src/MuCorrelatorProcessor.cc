@@ -5,8 +5,8 @@
  *      Author: kbunkow
  */
 
-#include <L1Trigger/L1TkMuonBayes/interface/MuCorrelatorProcessor.h>
-#include <L1Trigger/L1TkMuonBayes/interface/PdfModuleWithStats.h>
+#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorProcessor.h"
+#include "L1Trigger/L1TkMuonBayes/interface/PdfModuleWithStats.h"
 #include <functional>
 
 MuCorrelatorProcessor::MuCorrelatorProcessor(MuCorrelatorConfigPtr& config, std::string pdfModuleType): config(config)

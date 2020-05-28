@@ -1,7 +1,7 @@
 #ifndef OMTFTrainer_H
 #define OMTFTrainer_H
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFReconstruction.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFReconstruction.h"
 
 #include "xercesc/util/XercesDefs.hpp"
 

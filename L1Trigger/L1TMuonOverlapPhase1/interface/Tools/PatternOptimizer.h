@@ -8,10 +8,9 @@
 #ifndef OMTF_PATTERNOPTIMIZER_H_
 #define OMTF_PATTERNOPTIMIZER_H_
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h>
-#include <functional>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -20,6 +19,8 @@
 
 #include "TH1I.h"
 #include "TH2I.h"
+
+#include <functional>
 
 class PatternOptimizer: public PatternOptimizerBase {
 public:

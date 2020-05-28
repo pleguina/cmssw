@@ -5,9 +5,7 @@
  *      Author: kbunkow
  */
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/EventCapture.h>
-#include <sstream>
-
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/EventCapture.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OmtfName.h"
 
 #include "FWCore/Framework/interface/Event.h"
@@ -17,6 +15,8 @@
 
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 #include "DataFormats/Common/interface/Ptr.h"
+
+#include <sstream>
 
 EventCapture::EventCapture(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig): omtfConfig(omtfConfig),
 inputInProcs(omtfConfig->processorCnt()), algoMuonsInProcs(omtfConfig->processorCnt() ), gbCandidatesInProcs(omtfConfig->processorCnt() )

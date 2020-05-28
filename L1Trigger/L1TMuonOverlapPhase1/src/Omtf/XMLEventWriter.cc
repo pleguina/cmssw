@@ -5,7 +5,12 @@
  *      Author: kbunkow
  */
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLEventWriter.h>
+#include "DataFormats/Provenance/interface/EventID.h"
+#include "FWCore/Common/interface/EventBase.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OmtfName.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLEventWriter.h"
 
 XMLEventWriter::XMLEventWriter(const OMTFConfiguration* aOMTFConfig, std::string fName):
 omtfConfig(aOMTFConfig), xmlWriter(aOMTFConfig), currentElement(nullptr), fName(fName) {
@@ -16,7 +21,7 @@ omtfConfig(aOMTFConfig), xmlWriter(aOMTFConfig), currentElement(nullptr), fName(
 
 
 XMLEventWriter::~XMLEventWriter() {
-  // TODO Auto-generated destructor stub
+
 }
 
 void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,

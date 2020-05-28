@@ -1,14 +1,19 @@
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
-#include <iostream>
-#include <algorithm>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
 
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/FileInPath.h"
-
+#include "CondFormats/L1TObjects/interface/LUT.h"
+#include "DataFormats/DetId/interface/DetId.h"
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
-#include "DataFormats/MuonDetId/interface/RPCDetId.h"
 #include "DataFormats/MuonDetId/interface/DTChamberId.h"
 #include "DataFormats/MuonDetId/interface/MuonSubdetId.h"
+#include "DataFormats/MuonDetId/interface/RPCDetId.h"
+#include "FWCore/Utilities/interface/Exception.h"
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <iostream>
+#include <iterator>
+#include <utility>
 
 
 ///////////////////////////////////////////////
@@ -167,6 +172,21 @@ void OMTFConfiguration::configure(const L1TMuonOverlapParams *omtfParams){
 
   pdfBins = (1<<rawParams.nPdfAddrBits());
   pdfMaxVal = (1<<rawParams.nPdfValBits() ) - 1;
+
+  //configuration based on the firmware version parameter
+  //TODO add next entries for the new firmware
+  if (fwVersion() <= 4) {
+    setMinDtPhiQuality(4);
+  }
+  else if (fwVersion() == 5) {
+    setMinDtPhiQuality(2);
+  }
+  else if (fwVersion() == 6) {
+    setMinDtPhiQuality(2);
+  }
+
+  //if (fwVersion() <= 6) {
+  //setGoldenPatternResultFinalizeFunction(0); //TODO add other if in the new algorithm it is changed
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////

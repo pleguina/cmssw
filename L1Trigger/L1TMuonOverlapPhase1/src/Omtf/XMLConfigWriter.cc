@@ -1,14 +1,13 @@
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigWriter.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
+
 #include "FWCore/Framework/interface/Event.h"
-
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigWriter.h>
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
-
 
 #include <iostream>
 #include <sstream>

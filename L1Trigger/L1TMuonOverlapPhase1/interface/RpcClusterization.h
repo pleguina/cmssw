@@ -46,7 +46,7 @@ public:
   }
 
   ///N.B. digis are sorted inside the function
-  virtual std::vector<RpcCluster> getClusters(const RPCDetId& roll, std::vector<RPCDigi>& digis);
+  virtual std::vector<RpcCluster> getClusters(const RPCDetId& roll, std::vector<RPCDigi>& digis) const;
 
   //converts float timing to the int timing in the scale common for the muon detectors
   virtual int convertTiming(double timing) const;

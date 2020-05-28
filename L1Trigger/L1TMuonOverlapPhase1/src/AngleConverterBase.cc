@@ -1,21 +1,19 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/AngleConverterBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
-#include "FWCore/Framework/interface/EventSetup.h"
-#include "Geometry/Records/interface/MuonGeometryRecord.h"
 
-#include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include "L1Trigger/CSCCommonTrigger/interface/CSCConstants.h"
 #include "L1Trigger/CSCCommonTrigger/interface/CSCPatternLUT.h"
-
-#include "Geometry/DTGeometry/interface/DTGeometry.h"
 #include "L1Trigger/DTUtilities/interface/DTTrigGeom.h"
-#include "Geometry/RPCGeometry/interface/RPCGeometry.h"
 
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "Geometry/Records/interface/MuonGeometryRecord.h"
+#include "Geometry/CSCGeometry/interface/CSCGeometry.h"
+#include "Geometry/DTGeometry/interface/DTGeometry.h"
+#include "Geometry/RPCGeometry/interface/RPCGeometry.h"
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigi.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhDigi.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
 #include "DataFormats/RPCDigi/interface/RPCDigi.h"
-
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include <cmath> 
@@ -59,16 +57,16 @@ void AngleConverterBase::checkAndUpdateGeometry(const edm::EventSetup& es,  cons
 }
 ///////////////////////////////////////
 ///////////////////////////////////////
-int AngleConverterBase::getProcessorPhi(int phiZero, l1t::tftype part, const L1MuDTChambPhDigi &digi) const
+int AngleConverterBase::getProcessorPhi(int phiZero, l1t::tftype part, int dtScNum, int dtPhi) const
 {
   int dtPhiBins = 4096;
 
   double hsPhiPitch = 2*M_PI/nPhiBins; // width of phi Pitch, related to halfStrip at CSC station 2
 
-  int sector  = digi.scNum()+1;   //NOTE: there is a inconsistency in DT sector numb. Thus +1 needed to get detector numb.
+  int sector  = dtScNum+1;   //NOTE: there is a inconsistency in DT sector numb. Thus +1 needed to get detector numb.
   //int wheel   = digi.whNum();
   //int station = digi.stNum();
-  int phiDT   = digi.phi();
+  //int phiDT   = digi.phi();
 
   //int offsetLoc = lround( ((ichamber-1)*M_PI/6+M_PI/12.)/hsPhiPitch );
   double scale = 1./dtPhiBins/hsPhiPitch;
@@ -81,10 +79,10 @@ int AngleConverterBase::getProcessorPhi(int phiZero, l1t::tftype part, const L1M
 
   int offsetGlobal = (int)nPhiBins  * ichamber / 12;
 
-  int phi = floor(phiDT*scale_coeff/pow(2,11)) + offsetGlobal - phiZero;
+  int phiConverted = floor(dtPhi*scale_coeff/pow(2,11)) + offsetGlobal - phiZero;
 
   //std::cout<<__FUNCTION__<<":"<<__LINE__<<" phiZero "<<phiZero<<" phiDT "<<phiDT<<" sector "<<sector<<" ichamber "<<ichamber<<" offsetGlobal "<<offsetGlobal<<" phi "<<phi<<" foldPhi(phi) "<<omtfConfig->foldPhi(phi)<<std::endl;
-  return config->foldPhi(phi);
+  return config->foldPhi(phiConverted);
 }
 ///////////////////////////////////////
 ///////////////////////////////////////
@@ -133,9 +131,9 @@ int AngleConverterBase::getProcessorPhi(int phiZero, l1t::tftype part, const CSC
 
   // a quick fix for towards geometry changes due to global tag.
   // in case of MC tag fixOff shold be identical to offsetLoc 
-  //int fixOff = fixCscOffsetGeom(offsetLoc); TODO does not work in correlator, i.e. when phiZero is always 0. .Fix this
+  int fixOff = fixCscOffsetGeom(offsetLoc); //TODO does not work in correlator, i.e. when phiZero is always 0. .Fix this
 
-  int fixOff = offsetLoc;
+  //int fixOff = offsetLoc;
 
   int phi = fixOff + order*scale*halfStrip;
   //the phi conversion is done like above - and not simply converting the layer->centerOfStrip(halfStrip/2 +1).phi() - to mimic this what is done by the firmware,
@@ -232,14 +230,13 @@ EtaValue AngleConverterBase::getGlobalEtaDt(const DTChamberId& detId) const {
       0 //timin
   };
 
-
   //std::cout<<__FUNCTION__<<":"<<__LINE__<<" rawid "<<detId.rawId()<<" baseid "<<detId<<" chamberMiddleGP.eta() "<<chamberMiddleGP.eta()<<" eta "<<etaValue.eta<<" etaSigma "<<etaValue.etaSigma<<std::endl;
   return etaValue;
 }
 
 ///////////////////////////////////////
 ///////////////////////////////////////
-void AngleConverterBase::getGlobalEta(const L1MuDTChambThDigi& thetaDigi, std::vector<EtaValue>& etaSegments) {
+void AngleConverterBase::getGlobalEta(const L1MuDTChambThDigi& thetaDigi, std::vector<EtaValue>& etaSegments) const {
   const DTChamberId baseid(thetaDigi.whNum(), thetaDigi.stNum(), thetaDigi.scNum()+1);
   // do not use this pointer for anything other than creating a trig geom
   std::unique_ptr<DTChamber> chamb(const_cast<DTChamber*>(_geodt->chamber(baseid)));
@@ -288,7 +285,7 @@ std::vector<EtaValue> AngleConverterBase::getGlobalEta(const L1MuDTChambThContai
 }
 
 //just read from the drawing
-float AngleConverterBase::cscChamberEtaSize(const CSCDetId& detId) {
+float AngleConverterBase::cscChamberEtaSize(const CSCDetId& detId) const {
   if(detId.station() == 1) {
     if(detId.ring() == 1) return (2.5 - 1.6)/2.; ///ME1/1 lower eta (b?, eta < ~2.1), muCorrelator eta bins 6-11 - but getGlobalEtaCsc(const CSCDetId& detId) gives the midle of the full chamber, so here we put the size of the full chamber
     if(detId.ring() == 2) return (1.7 - 1.2)/2.;
@@ -310,7 +307,7 @@ float AngleConverterBase::cscChamberEtaSize(const CSCDetId& detId) {
   return 0;
 }
 
-EtaValue AngleConverterBase::getGlobalEta(const CSCDetId& detId, const CSCCorrelatedLCTDigi &aDigi){
+EtaValue AngleConverterBase::getGlobalEta(const CSCDetId& detId, const CSCCorrelatedLCTDigi &aDigi) const {
    ///Code taken from GeometryTranslator.
   ///Will be replaced by direct CSC phi local to global scale
   ///transformation as used in FPGA implementation
@@ -398,7 +395,7 @@ EtaValue AngleConverterBase::getGlobalEta(const CSCDetId& detId, const CSCCorrel
 
 
 //TODO the CSC ME1/1 has strips divided int tow part a nad b, so this function in principle ca include that, then it should also receive the roll number as parameter, off course implementation should be different then
-EtaValue AngleConverterBase::getGlobalEtaCsc(const CSCDetId& detId) {
+EtaValue AngleConverterBase::getGlobalEtaCsc(const CSCDetId& detId) const {
   std::unique_ptr<const CSCChamber> chamb(_geocsc->chamber(detId));
 
 /*  std::unique_ptr<const CSCLayerGeometry> layer_geom(
@@ -427,7 +424,7 @@ EtaValue AngleConverterBase::getGlobalEtaCsc(const CSCDetId& detId) {
 
 ///////////////////////////////////////
 ///////////////////////////////////////
-EtaValue AngleConverterBase::getGlobalEta(unsigned int rawid, const unsigned int &strip) {
+EtaValue AngleConverterBase::getGlobalEta(unsigned int rawid, const unsigned int &strip) const {
   const RPCDetId id(rawid);
 
   std::unique_ptr<const RPCRoll>  roll(_georpc->roll(id));

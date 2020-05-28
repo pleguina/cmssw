@@ -5,7 +5,7 @@
  *      Author: kbunkow
  */
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/RpcClusterization.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/RpcClusterization.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include <cmath>
@@ -16,7 +16,7 @@ RpcClusterization::~RpcClusterization() {
 }
 
 
-std::vector<RpcCluster> RpcClusterization::getClusters(const RPCDetId& roll, std::vector<RPCDigi>& digis) {
+std::vector<RpcCluster> RpcClusterization::getClusters(const RPCDetId& roll, std::vector<RPCDigi>& digis) const {
   std::vector<RpcCluster> allClusters;
 
   std::sort(digis.begin(), digis.end(), [](const  RPCDigi& a, const  RPCDigi& b) { return a.strip() < b.strip(); } );

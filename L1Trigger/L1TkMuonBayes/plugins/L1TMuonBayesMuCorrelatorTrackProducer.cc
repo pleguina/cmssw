@@ -12,8 +12,9 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
-#include <L1Trigger/L1TkMuonBayes/interface/PdfModuleWithStats.h>
-#include <L1Trigger/L1TkMuonBayes/plugins/L1TMuonBayesMuCorrelatorTrackProducer.h>
+
+#include "L1Trigger/L1TkMuonBayes/interface/PdfModuleWithStats.h"
+#include "L1Trigger/L1TkMuonBayes/plugins/L1TMuonBayesMuCorrelatorTrackProducer.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -23,7 +24,7 @@
 #include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuTimingModuleWithStat.h"
+#include "L1Trigger/L1TkMuonBayes/interface/MuTimingModuleWithStat.h"
 
 L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(const edm::ParameterSet& cfg)
   :edmParameterSet(cfg), muCorrelatorConfig(std::make_shared<MuCorrelatorConfig>()) {
@@ -33,10 +34,13 @@ L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(con
   produces<l1t::BayesMuCorrTrackBxCollection >(muonTracksProductName); //"fast" tracks, i.e. with at least two muon stubs in the same bx as ttRack (i.e. not HSCPs) and passing some cuts
   produces<l1t::BayesMuCorrTrackBxCollection >(hscpTracksProductName); //"slow" tracks, i.e. exclusive versus the "fast" tracks and passing some cuts
 
-  muStubsInputTokens.inputTokenDTPh = consumes<L1MuDTChambPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPh"));
-  muStubsInputTokens.inputTokenDTTh = consumes<L1MuDTChambThContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTTh"));
+  MuStubsInputTokens muStubsInputTokens;
+  muStubsInputTokens.inputTokenDtPh = consumes<L1MuDTChambPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPh"));
+  muStubsInputTokens.inputTokenDtTh = consumes<L1MuDTChambThContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTTh"));
   muStubsInputTokens.inputTokenCSC = consumes<CSCCorrelatedLCTDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcCSC"));
   muStubsInputTokens.inputTokenRPC = consumes<RPCDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcRPC"));
+
+  edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2 = consumes<L1Phase2MuDTPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPhPhase2"));
 
   edm::InputTag l1TrackInputTag = cfg.getParameter<edm::InputTag>("L1TrackInputTag");
   ttTrackToken = consumes< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > >(l1TrackInputTag);
@@ -51,6 +55,8 @@ L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(con
   if(trackSrc == "TRACKING_PARTICLES")
 	  trackingParticleToken = mayConsume< std::vector< TrackingParticle > >(edmParameterSet.getParameter<edm::InputTag>("TrackingParticleInputTag") );
 
+  inputMaker = std::make_unique<MuCorrelatorInputMaker>(edmParameterSet, muStubsInputTokens, inputTokenDTPhPhase2, muCorrelatorConfig.get() ); //TODO why muCorrelatorConfig is not passed here?
+  ttTracksInputMaker = std::make_unique<TTTracksInputMaker>(edmParameterSet);
 
   //Range of the BXes for which the emulation is performed,
   if(edmParameterSet.exists("bxRangeMin") ){
@@ -127,9 +133,6 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
     cout<<"ptHw "<<setw(3)<<ptHw<<" = "<<setw(5)<<muCorrelatorConfig->hwPtToGev(ptHw)<<" GeV ptBin "<<muCorrelatorConfig->ptHwToPtBin(ptHw)<<endl;
   }*/
 
-  inputMaker = std::make_unique<MuCorrelatorInputMaker>(edmParameterSet, iSetup, muCorrelatorConfig, muStubsInputTokens);
-  ttTracksInputMaker = std::make_unique<TTTracksInputMaker>(edmParameterSet);;
-
   if(!muCorrelatorProcessor) {
     std::string pdfModuleType = "PdfModule";
     if(edmParameterSet.exists("pdfModuleType") ) {
@@ -180,11 +183,8 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
 
     edm::LogImportant("l1tMuBayesEventPrint")<<" muCorrelatorProcessor constructed"<<std::endl;
 
-    if(edmParameterSet.exists("lctCentralBx")) {
-      int lctCentralBx  = edmParameterSet.getParameter<int>("lctCentralBx");
-      muCorrelatorConfig->setCscLctCentralBx(lctCentralBx);
-    }
-
+    //the parameters can be overwritten from the python config
+    muCorrelatorConfig->configureFromEdmParameterSet(edmParameterSet);
   }
 }
 /////////////////////////////////////////////////////

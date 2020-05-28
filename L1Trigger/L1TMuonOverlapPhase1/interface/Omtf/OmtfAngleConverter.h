@@ -19,13 +19,13 @@ public:
 
   ///Convert local eta coordinate to global digital microGMT scale.
   ///theta is  returned only if in the dtThDigis is only one hit, otherwise eta = 95 or middle of the chamber
-  virtual int getGlobalEta(const L1MuDTChambPhDigi &aDigi, const L1MuDTChambThContainer *dtThDigis) const;
+  virtual int getGlobalEta(const DTChamberId dTChamberId, const L1MuDTChambThContainer *dtThDigis, int bxNum) const;
 
   ///Convert local eta coordinate to global digital microGMT scale.
   virtual int getGlobalEta(unsigned int rawid, const CSCCorrelatedLCTDigi &aDigi) const;
 
   ///Convert local eta coordinate to global digital microGMT scale.
-  virtual int getGlobalEta(unsigned int rawid, const unsigned int &aDigi) const;
+  virtual int getGlobalEtaRpc(unsigned int rawid, const unsigned int &aDigi) const;
 };
 
 #endif /* INTERFACE_OMTF_OMTFANGLECONVERTER_H_ */

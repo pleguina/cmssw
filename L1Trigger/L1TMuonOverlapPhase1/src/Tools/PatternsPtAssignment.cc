@@ -5,6 +5,8 @@
  *      Author: kbunkow
  */
 
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternsPtAssignment.h"
+
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include <fstream>
@@ -12,7 +14,6 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternsPtAssignment.h>
 
 PatternsPtAssignment::PatternsPtAssignment(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
     const std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName):

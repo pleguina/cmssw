@@ -1,10 +1,10 @@
 #ifndef OMTF_GOLDENPATTERNRESULTS_H
 #define OMTF_GOLDENPATTERNRESULTS_H
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/StubResult.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/StubResult.h"
 
-#include <vector>
 #include <ostream>
 
 //result for one refHit of one GoldenPattern
@@ -48,7 +48,7 @@ private:
   ///phi of the reference hits
   int refHitPhi = 0;
 
-  static int finalizeFunction;
+  int finalizeFunction = 0;
 
   double gpProbability1 = 0;
 
@@ -161,9 +161,7 @@ public:
   //dont use this in the pattern construction, since the myOmtfConfig is null then
   GoldenPatternResult(const OMTFConfiguration* omtfConfig);
 
-  void set();
-
-  void finalise() {
+/*  void finalise() {
     if(finalizeFunction == 1)
       finalise1();
     else if(finalizeFunction == 2)
@@ -176,9 +174,11 @@ public:
       finalise6();
     else
       finalise0();
-  }
+  }*/
 
-  //version for the "normal" patterns, i.e. without pdfSum threshold
+  std::function<void ()> finalise;
+
+   //version for the "normal" patterns, i.e. without pdfSum threshold
   void finalise0();
 
   //version for the patterns with pdfSum threshold
@@ -196,10 +196,6 @@ public:
   //bool empty() const;
 
   friend std::ostream & operator << (std::ostream &out, const GoldenPatternResult & aResult);
-
-  static void setFinalizeFunction(int finalizeFunction_) {
-    finalizeFunction = finalizeFunction_;
-  }
 
   double getGpProbability1() const {
     return gpProbability1;

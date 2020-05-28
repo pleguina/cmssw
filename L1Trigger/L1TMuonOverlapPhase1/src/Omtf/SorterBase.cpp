@@ -5,7 +5,7 @@
  *      Author: kbunkow
  */
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/SorterBase.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/SorterBase.h"
 
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////

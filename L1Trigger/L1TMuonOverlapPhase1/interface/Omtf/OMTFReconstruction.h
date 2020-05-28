@@ -1,13 +1,11 @@
 #ifndef OMTFReconstruction_H
 #define OMTFReconstruction_H
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GhostBuster.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IProcessorEmulator.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFProcessor.h>
-
-#include "xercesc/util/XercesDefs.hpp"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GhostBuster.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IProcessorEmulator.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFProcessor.h"
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
@@ -23,17 +21,8 @@
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigiCollection.h"
 #include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 
-
-class L1TMuonOverlapParams;
 class OMTFConfiguration;
 class OMTFConfigMaker;
-class XMLConfigWriter;
-
-namespace XERCES_CPP_NAMESPACE{
-  class DOMElement;
-  class DOMDocument;
-  class DOMImplementation;
-}
 
 class OMTFReconstruction {
   public:
@@ -53,8 +42,13 @@ class OMTFReconstruction {
 
     void virtual modifyOmtfConfig();
 
+    //takes the ownership of the inputMaker
+    void setInputMaker(OMTFinputMaker* inputMaker) {
+      this->inputMaker.reset(inputMaker);
+    }
+
     void virtual addObservers();
-  private:
+  protected:
 
     edm::ParameterSet edmParameterSet;
 
@@ -64,27 +58,19 @@ class OMTFReconstruction {
 
     void getProcessorCandidates(unsigned int iProcessor, l1t::tftype mtfType, int bx,
             l1t::RegionalMuonCandBxCollection & myCandidates);*/
-  
 
-    bool dumpResultToXML = false;
-    bool dumpDetailedResultToXML = false;
-    bool dumpResultToROOT = false;
-    bool eventCaptureDebug = false;
     int bxMin, bxMax;
 
   ///OMTF objects
-    OMTFConfiguration* omtfConfig;
+    unique_ptr<OMTFConfiguration> omtfConfig;
 
     unique_ptr<OMTFinputMaker> inputMaker;
 
     unique_ptr<IProcessorEmulator> omtfProc;
   ///
-    //xercesc::DOMElement *aTopElement;
     OMTFConfigMaker* m_OMTFConfigMaker;
-    //XMLConfigWriter     *m_Writer;
 
     std::vector<std::unique_ptr<IOMTFEmulationObserver> > observers;
-    unsigned int theEvent = 0;
 };
 
 #endif

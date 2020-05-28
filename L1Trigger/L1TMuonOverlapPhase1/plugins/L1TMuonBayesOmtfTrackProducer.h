@@ -1,12 +1,10 @@
 #ifndef OMTFProducer_H
 #define OMTFProducer_H
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFProcessor.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFReconstruction.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorter.h>
-
-#include "xercesc/util/XercesDefs.hpp"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFProcessor.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFReconstruction.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorter.h"
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
@@ -24,19 +22,6 @@
 
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 
-class L1TMuonOverlapParams;
-class OMTFConfiguration;
-class OMTFConfigMaker;
-class XMLConfigWriter;
-
-
-
-namespace XERCES_CPP_NAMESPACE{
-  class DOMElement;
-  class DOMDocument;
-  class DOMImplementation;
-}
-
 
 class L1TMuonBayesOmtfTrackProducer : public edm::EDProducer {
  public:
@@ -53,13 +38,8 @@ class L1TMuonBayesOmtfTrackProducer : public edm::EDProducer {
   void produce(edm::Event&, const edm::EventSetup&) override;
 
  private:
-
-  edm::ParameterSet theConfig;
   
   edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimHit; //TODO remove
-
-  bool dumpResultToXML = false;
-  bool dumpDetailedResultToXML = false;
 
   MuStubsInputTokens muStubsInputTokens;
 

@@ -5,7 +5,7 @@
  *      Author: kbunkow
  */
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternGenerator.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternGenerator.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include "TFile.h"
@@ -57,8 +57,8 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg, const OMTFCo
       gp->iniStatisitics(statBinsCnt, 1); //TODO
   }
 
-  GoldenPatternResult::setFinalizeFunction(3);
-  edm::LogImportant("l1tMuBayesEventPrint") << "reseting golden pattern !!!!!" << std::endl;
+  //GoldenPatternResult::setFinalizeFunction(3); TODO why it was this one????
+ // edm::LogImportant("l1tMuBayesEventPrint") << "reseting golden pattern !!!!!" << std::endl;
 
   //setting all pdf to 1, this will cause that the when the OmtfProcessor process the input, the result will be based only on the number of fired layers,
   //and then the omtfCand will come from the processor that has the biggest number of fired layers

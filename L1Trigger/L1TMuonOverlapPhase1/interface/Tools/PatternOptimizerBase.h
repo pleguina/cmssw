@@ -8,8 +8,8 @@
 #ifndef OMTF_PATTERNOPTIMIZERBASE_H_
 #define OMTF_PATTERNOPTIMIZERBASE_H_
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
 #include <functional>
 
 #include "FWCore/Framework/interface/Event.h"

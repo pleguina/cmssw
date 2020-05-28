@@ -8,7 +8,7 @@
 #ifndef OMTF_PATTERNGENERATOR_H_
 #define OMTF_PATTERNGENERATOR_H_
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h"
 
 class PatternGenerator: public PatternOptimizerBase {
 public:

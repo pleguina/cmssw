@@ -8,13 +8,13 @@
 #ifndef OMTF_SORTERBASE_H_
 #define OMTF_SORTERBASE_H_
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h>
-#include <vector>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 
+#include <vector>
 
 template <class GoldenPatternType>
 class SorterBase {

@@ -1,28 +1,23 @@
 #ifndef L1TMuonOverlapTTMergerTrackProducer_H
 #define L1TMuonOverlapTTMergerTrackProducer_H
 
-
-#include <L1Trigger/L1TkMuonBayes/interface/MuCorrelatorInputMaker.h>
-#include <L1Trigger/L1TkMuonBayes/interface/MuCorrelatorProcessor.h>
-#include <L1Trigger/L1TkMuonBayes/interface/TTTracksInputMaker.h>
-#include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
-#include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
-
-#include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/EventSetup.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/Framework/interface/EDProducer.h"
-
-#include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhContainer.h"
-#include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
-#include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigiCollection.h"
-#include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
-
+#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Utilities/interface/EDGetToken.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
+#include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
 
+#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubMakerBase.h"
+#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorInputMaker.h"
+#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorProcessor.h"
+#include "L1Trigger/L1TkMuonBayes/interface/TTTracksInputMaker.h"
+
+#include <memory>
+#include <string>
+#include <vector>
 
 class L1TMuonBayesMuCorrelatorTrackProducer : public edm::EDProducer {
  public:
@@ -57,8 +52,6 @@ class L1TMuonBayesMuCorrelatorTrackProducer : public edm::EDProducer {
   edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDTTh;
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> inputTokenCSC;
   edm::EDGetTokenT<RPCDigiCollection> inputTokenRPC;*/
-
-  MuStubsInputTokens muStubsInputTokens;
 
   edm::EDGetTokenT< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > > ttTrackToken;
 

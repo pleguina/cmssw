@@ -1,12 +1,7 @@
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h>
-#include <cassert>
-#include <iostream>
-#include <iomanip>
-#include <cmath>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
 
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include <iomanip>
 
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
@@ -15,31 +10,11 @@ OMTFinput::OMTFinput(const OMTFConfiguration* omtfConfig): MuonStubsInput(omtfCo
 
   myOmtfConfig = omtfConfig;
   //muonStubsInLayers.assign(omtfConfig->nLayers(), std::vector<MuonStub>(inputsPerLayer, MuonStub(myOmtfConfig->nPhiBins(), myOmtfConfig->nPhiBins())) );
-  muonStubsInLayers.assign(omtfConfig->nLayers(), std::vector<MuonStubPtr>(inputsPerLayer ) ); //, MuonStub(myOmtfConfig->nPhiBins(), myOmtfConfig->nPhiBins()) TODO do we want to create the MuonStubs fro every input???
+  muonStubsInLayers.assign(omtfConfig->nLayers(), std::vector<MuonStubPtr>(inputsPerLayer ) ); //, MuonStub(myOmtfConfig->nPhiBins(), myOmtfConfig->nPhiBins()) TODO do we want to create the MuonStubs for every input???
   //clear();
 }
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
-/*const OMTFinput::vector1D & OMTFinput::getLayerData(unsigned int iLayer, bool giveEta) const{
-  assert(iLayer < measurementsPhi.size());
-
-  if(giveEta) return measurementsEta[iLayer];
-  return measurementsPhi[iLayer];
-}*/
-
-/*const MuonStubPtr OMTFinput::getMuonStub(unsigned int iLayer, unsigned int iInput) const {
-  assert(iLayer < muonStubsInLayers.size());
-  assert(iInput < muonStubsInLayers[iLayer].size());
-
-  if(this->myOmtfConfig->isBendingLayer(iLayer) ) {
-    MuonStub stub = muonStubsInLayers[iLayer-1][iInput];
-    stub.phiHw = stub.phiBHw;
-    return stub;
-  }
-
-  return muonStubsInLayers[iLayer][iInput];
-}*/
-
 
 //TODO remove and leave only the MuonStubsInput::getPhiHw
 int OMTFinput::getPhiHw(unsigned int iLayer, unsigned int iInput) const {

@@ -1,15 +1,14 @@
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/plugins/L1TMuonBayesOmtfParamsESProducer.h>
-#include "sstream"
+#include "L1Trigger/L1TMuonOverlapPhase1/plugins/L1TMuonBayesOmtfParamsESProducer.h"
+#include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
+#include "CondFormats/DataRecord/interface/L1TMuonOverlapParamsRcd.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h"
 
-// user include files
 #include "FWCore/Framework/interface/ModuleFactory.h"
 #include "FWCore/Framework/interface/ESProducer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/ESProducts.h"
 
-#include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
-#include "CondFormats/DataRecord/interface/L1TMuonOverlapParamsRcd.h"
+#include <sstream>
 
 
 ///////////////////////////////////////////////////////////////////

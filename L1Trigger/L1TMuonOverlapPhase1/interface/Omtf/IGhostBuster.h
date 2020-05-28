@@ -8,7 +8,7 @@
 #ifndef OMTF_IGHOSTBUSTER_H_
 #define OMTF_IGHOSTBUSTER_H_
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
 
 class IGhostBuster {
 public:

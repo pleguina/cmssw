@@ -1,16 +1,12 @@
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h>
-#include <iostream>
-#include <iomanip>
-#include <cmath>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternBase.h"
 
-#include <TF1.h>
-#include <TLinearFitter.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+#include "TH1.h"
+#include <string>
 
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
-
-
+#include "boost/multi_array/base.hpp"
+#include "boost/multi_array/subarray.hpp"
 
 ////////////////////////////////////////////////////
 ////////////////////////////////////////////////////

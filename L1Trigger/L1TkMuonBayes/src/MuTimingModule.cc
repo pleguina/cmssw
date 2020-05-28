@@ -5,12 +5,12 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuTimingModule.h"
 #include <math.h>
 #include <iomanip>
 #include <iostream>
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "L1Trigger/L1TkMuonBayes/interface/MuTimingModule.h"
 
 MuTimingModule::MuTimingModule(const ProcConfigurationBase* config): config(config),
   timigTo1_Beta(config->nLayers() )

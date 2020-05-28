@@ -2,8 +2,8 @@
 #define AlgoMuon_H
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/AlgoMuonBase.h"
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternBase.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternBase.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
 #include <ostream>
 
 class AlgoMuon: public AlgoMuonBase {

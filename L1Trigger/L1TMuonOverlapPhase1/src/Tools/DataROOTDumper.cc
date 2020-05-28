@@ -4,10 +4,12 @@
  *  Created on: Tue Apr 16 09:57:08 CEST 2019
  *      Author: akalinow
  */
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper.h"
+
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
+
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/timer/timer.hpp>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper.h>
 #include "TFile.h"
 #include "TTree.h"
 

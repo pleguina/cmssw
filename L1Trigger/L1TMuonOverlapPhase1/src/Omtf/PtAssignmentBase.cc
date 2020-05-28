@@ -9,6 +9,6 @@
 
 
 PtAssignmentBase::~PtAssignmentBase() {
-  // TODO Auto-generated destructor stub
+
 }
 

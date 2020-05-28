@@ -1,11 +1,9 @@
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h>
-#include <iostream>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/OMTFConfigMaker.h"
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Tools/OMTFConfigMaker.h>
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include <iostream>
+#include <stdexcept>
+#include <vector>
 
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////

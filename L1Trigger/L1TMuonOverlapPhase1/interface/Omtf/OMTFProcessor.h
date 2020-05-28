@@ -1,16 +1,16 @@
 #ifndef OMTF_OMTFProcessor_H
 #define OMTF_OMTFProcessor_H
 
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IGhostBuster.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IProcessorEmulator.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/ProcessorBase.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/SorterBase.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/SorterBase.h>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IGhostBuster.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IProcessorEmulator.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/ProcessorBase.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/SorterBase.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/SorterBase.h"
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/PtAssignmentBase.h"
 

@@ -206,7 +206,7 @@ process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorr
 process.simBayesMuCorrelatorTrackProducer.g4SimTrackSrc = cms.InputTag('g4SimHits')
 process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("SIM_TRACKS")
 process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
-process.simBayesMuCorrelatorTrackProducer.minDtPhQuality = cms.int32(4);
+process.simBayesMuCorrelatorTrackProducer.minDtPhiQuality = cms.int32(4);
 process.simBayesMuCorrelatorTrackProducer.generatePdfs = cms.bool(True);
 process.simBayesMuCorrelatorTrackProducer.outPdfModuleFile = cms.string("pdfModuleSimTracks100FilesSigma1p3_t8.xml") #TODO
 process.simBayesMuCorrelatorTrackProducer.generateTiming = cms.bool(False)

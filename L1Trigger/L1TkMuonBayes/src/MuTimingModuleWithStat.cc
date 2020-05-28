@@ -5,9 +5,8 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuTimingModuleWithStat.h"
-
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "L1Trigger/L1TkMuonBayes/interface/MuTimingModuleWithStat.h"
 #include "TF1.h"
 
 MuTimingModuleWithStat::MuTimingModuleWithStat(const ProcConfigurationBase* config): MuTimingModule(config),

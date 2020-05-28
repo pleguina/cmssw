@@ -1,11 +1,10 @@
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h>
-#include <L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h>
-#include <iostream>
-#include <iomanip>
-#include <cmath>
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h"
 
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "boost/multi_array/multi_array_ref.hpp"
+#include "boost/multi_array/subarray.hpp"
+
+#include <cmath>
+#include <iomanip>
 
 
 int GoldenPattern::meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB) const {
