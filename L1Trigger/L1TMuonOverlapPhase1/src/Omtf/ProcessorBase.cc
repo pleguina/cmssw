@@ -51,7 +51,7 @@ bool ProcessorBase<GoldenPatternType>::configure(OMTFConfiguration* omtfConfig,
 
     Key aKey(iEta,iPt,iCharge,iGP);
     if(iPt == 0) {
-      edm::LogInfo("OMTFReconstruction")<<"skipping empty pattern "<<aKey<<" "<<std::endl; //<<myOmtfConfig->getPatternPtRange(iGP).ptFrom<<" - "<<myOmtfConfig->getPatternPtRange(iGP).ptTo<<" GeV"<<std::endl; PatternPtRange is not initialized here yet!!!!
+      LogTrace("OMTFReconstruction")<<"skipping empty pattern "<<aKey<<" "<<std::endl; //<<myOmtfConfig->getPatternPtRange(iGP).ptFrom<<" - "<<myOmtfConfig->getPatternPtRange(iGP).ptTo<<" GeV"<<std::endl; PatternPtRange is not initialized here yet!!!!
       continue;
     }
 

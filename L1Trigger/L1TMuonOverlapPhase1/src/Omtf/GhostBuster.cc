@@ -10,11 +10,15 @@ namespace {
 }
 
 AlgoMuons GhostBuster::select(AlgoMuons refHitCands, int charge){
+  //edm::LogImportant("OMTFReconstruction")<<"calling "<<__PRETTY_FUNCTION__ <<std::endl;
 
   AlgoMuons refHitCleanCands;
   // Sort candidates with decreased goodness,
-  // where goodness definied in < operator of AlgoMuon
-  std::sort( refHitCands.rbegin(), refHitCands.rend() );
+  auto customLess = [&](const AlgoMuons::value_type& a, const AlgoMuons::value_type& b)->bool {
+    return (*a) < (*b); //< operator of AlgoMuon
+  };
+
+  std::sort( refHitCands.rbegin(), refHitCands.rend(), customLess );
 
   for(AlgoMuons::iterator it1 = refHitCands.begin();
       it1 != refHitCands.end(); ++it1){

@@ -18,7 +18,7 @@ simBayesOmtfDigis = cms.EDProducer("L1TMuonBayesOmtfTrackProducer",
   dropDTPrimitives = cms.bool(False),                                    
   dropCSCPrimitives = cms.bool(False),
   processorType = cms.string("OMTFProcessor"),
-  ghostBusterType = cms.string("GhostBusterPreferRefDt"),
+  #ghostBusterType = cms.string("GhostBusterPreferRefDt"),
   
   #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00020007.xml")
   #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")                               

@@ -391,7 +391,7 @@ void OMTFinputMaker::addStub(const OMTFConfiguration* config, MuonStubPtrs2D& mu
       muonStubsInLayers[iLayer][iInput]->phiHw == stub.phiHw &&
       muonStubsInLayers[iLayer][iInput]->phiBHw == stub.phiBHw &&
       muonStubsInLayers[iLayer][iInput]->etaHw == stub.etaHw) {
-    edm::LogWarning("OMTFInputMaker")<<"addStub: the stub with exactly the same phi, phiB and eta was already added, stub.type: "<<stub.type;
+    edm::LogWarning("OMTFReconstruction")<<"addStub: the stub with exactly the same phi, phiB and eta was already added, stub.type: "<<stub.type;
     return;
   }
 

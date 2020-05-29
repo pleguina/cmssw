@@ -7,8 +7,33 @@ import commands
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
-process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(50)
-process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
+process.MessageLogger = cms.Service("MessageLogger",
+        # suppressInfo       = cms.untracked.vstring('AfterSource', 'PostModule'),
+        destinations=cms.untracked.vstring(
+                                               # 'detailedInfo',
+                                               # 'critical',
+                                               'cout',
+                                               #'cerr',
+                                               # 'omtfEventPrint'
+                    ),
+        categories=cms.untracked.vstring('l1tMuBayesEventPrint', 'OMTFReconstruction'), #, 'FwkReport'
+        cout=cms.untracked.PSet(
+                         threshold=cms.untracked.string('INFO'),
+                         default=cms.untracked.PSet(limit=cms.untracked.int32(0)),
+                         # INFO   =  cms.untracked.int32(0),
+                         # DEBUG   = cms.untracked.int32(0),
+                         l1tMuBayesEventPrint=cms.untracked.PSet(limit=cms.untracked.int32(1000000000)),
+                         OMTFReconstruction=cms.untracked.PSet(limit=cms.untracked.int32(1000000000)),
+                         #FwkReport=cms.untracked.PSet(reportEvery = cms.untracked.int32(50) ),
+                       ), 
+       debugModules=cms.untracked.vstring('simBayesOmtfDigis') 
+       # debugModules = cms.untracked.vstring('*')
+    )
+
+#process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(50)
+process.options = cms.untracked.PSet(wantSummary=cms.untracked.bool(False),
+                                         # SkipEvent = cms.untracked.vstring('ProductNotFound') 
+                                     )
 
 process.source = cms.Source('PoolSource',
  #fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/g/gflouris/public/SingleMuPt6180_noanti_10k_eta1.root')

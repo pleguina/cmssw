@@ -1,5 +1,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
 
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
 #include <bitset> 
 #include <iostream>
 

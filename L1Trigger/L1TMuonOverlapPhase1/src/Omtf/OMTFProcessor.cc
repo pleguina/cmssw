@@ -56,14 +56,18 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
   setSorter(new OMTFSorter<GoldenPatternType>(sorterTypeFlag)); //initialize with the default sorter
   
   if(edmCfg.exists("ghostBusterType") ) {
-    if(edmCfg.getParameter<std::string>("ghostBusterType") == "GhostBusterPreferRefDt")
+    if(edmCfg.getParameter<std::string>("ghostBusterType") == "GhostBusterPreferRefDt") {
       setGhostBuster(new GhostBusterPreferRefDt(this->myOmtfConfig));
+      edm::LogInfo("OMTFReconstruction")<<"setting GhostBusterPreferRefDt" <<std::endl;
+    }
   }
   else if (this->myOmtfConfig->fwVersion() >= 5) {
     setGhostBuster(new GhostBusterPreferRefDt(this->myOmtfConfig) );
+    edm::LogInfo("OMTFReconstruction")<<"setting GhostBusterPreferRefDt" <<std::endl;
   }
   else {
     setGhostBuster(new GhostBuster()); //initialize with the default sorter
+    edm::LogInfo("OMTFReconstruction")<<"setting GhostBuster" <<std::endl;
   }
 }
 
