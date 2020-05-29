@@ -10,7 +10,7 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOmtfPhase2TrackProducer",
   srcDTPhPhase2 = cms.InputTag('dtTriggerPhase2PrimitiveDigis'),
   
   g4SimTrackSrc = cms.InputTag('g4SimHits'),                             
-  dumpResultToXML = cms.bool(True),
+  dumpResultToXML = cms.bool(False),
   dumpDetailedResultToXML = cms.bool(False),
   XMLDumpFileName = cms.string("TestEvents.xml"),                                     
   dumpGPToXML = cms.bool(False),  
@@ -24,7 +24,7 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOmtfPhase2TrackProducer",
   usePhase2DTPrimitives = cms.bool(True),
   
   processorType = cms.string("OMTFProcessor"),
-  ghostBusterType = cms.string("GhostBusterPreferRefDt"),
+  #ghostBusterType = cms.string("GhostBusterPreferRefDt"),
   
   #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00020007.xml")
   #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")                               
