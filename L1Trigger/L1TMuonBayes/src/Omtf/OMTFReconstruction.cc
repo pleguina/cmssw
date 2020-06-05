@@ -199,10 +199,9 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
     }
   }
 
-  omtfProc->printInfo();
-
   if(firstRun) {
     addObservers();
+    omtfProc->printInfo();
   }
 
 }

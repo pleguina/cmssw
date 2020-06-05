@@ -14,7 +14,7 @@ omtfParams = cms.ESProducer(
         cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")),
         #cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/Patterns_0x0003_TT.xml")),
     ),
-    configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008.xml"),
+    configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen.xml"),
 )
 
 

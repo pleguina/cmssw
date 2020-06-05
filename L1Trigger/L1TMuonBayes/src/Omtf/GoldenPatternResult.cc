@@ -198,7 +198,7 @@ void GoldenPatternResult::finalise3() {
     //TODO check if it affects performance
     pdfSum += stubResults[iLogicLayer].getPdfVal();
 
-    if(stubResults[iLogicLayer].getPdfBin() != 5464 )//TODO in principle should (int)myOmtfConfig->nPhiBins(), but in GoldenPatternBase::process1Layer1RefLayer pdfMiddle is added
+    if(stubResults[iLogicLayer].getMuonStub())
       firedLayerCnt ++;
   }
 

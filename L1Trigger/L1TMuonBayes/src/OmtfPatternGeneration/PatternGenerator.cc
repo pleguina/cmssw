@@ -58,7 +58,7 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg, const OMTFCo
       gp->iniStatisitics(statBinsCnt, 1); //TODO
   }
 
-  GoldenPatternResult::setFinalizeFunction(3);
+  //GoldenPatternResult::setFinalizeFunction(3);
   edm::LogImportant("l1tMuBayesEventPrint") << "reseting golden pattern !!!!!" << std::endl;
 
   //setting all pdf to 1, this will cause that the when the OmtfProcessor process the input, the result will be based only on the number of fired layers,
@@ -145,7 +145,18 @@ void PatternGenerator::updateStat() {
       //cout<<__FUNCTION__<<":"<<__LINE__<<" updating statistic"<<std::endl;
       for(unsigned int iLayer = 0;  iLayer < gpResult.getStubResults().size(); iLayer++) {
         //updating statistic for the gp which should have fired
-        if(gpResult.getStubResults()[iLayer].getMuonStub() ) {//the result is not empty
+
+        bool fired = false;
+        if(gpResult.getStubResults()[iLayer].getMuonStub() ) {
+          if(omtfConfig->isBendingLayer(iLayer) ) {
+            if(gpResult.getStubResults()[iLayer].getMuonStub()->qualityHw >= 4) //TODO change quality cut if needed
+              fired = true;
+          }
+          else
+            fired = true;
+        }
+
+        if(fired) {//the result is not empty
           int phiDist = gpResult.getStubResults()[iLayer].getPdfBin();
           phiDist += exptCandGp->meanDistPhiValue(iLayer, refLayer) - pdfMiddle; //removing the shift applied in the GoldenPatternBase::process1Layer1RefLayer
 
@@ -158,11 +169,15 @@ void PatternGenerator::updateStat() {
           phiDist += exptCandGp->getStatistics()[iLayer][refLayer].size()/2;
 
           //edm::LogImportant("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" refLayer "<<refLayer<<" iLayer "<<iLayer<<" phiDist "<<phiDist<<" getPdfBin "<<gpResult.getStubResults()[iLayer].getPdfBin()<<std::endl;
-          if( phiDist >= 0 && phiDist < (int)(exptCandGp->getStatistics()[iLayer][refLayer].size()) ) {
+          if( phiDist > 0 && phiDist < (int)(exptCandGp->getStatistics()[iLayer][refLayer].size()) ) {
             //updating statistic for the gp which found the candidate
             //edm::LogImportant("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" updating statistic "<<std::endl;
             exptCandGp->updateStat(iLayer, refLayer, phiDist, 0, 1);
           }
+        }
+        else { //if there is no hit at all in a given layer, the bin = 0 is filled
+          int phiDist = 0;
+          exptCandGp->updateStat(iLayer, refLayer, phiDist, 0, 1);
         }
       }
     }
@@ -172,6 +187,9 @@ void PatternGenerator::updateStat() {
 
 void PatternGenerator::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
   if(simMuon == 0 || omtfCand->getGoldenPatern() == 0)//no sim muon or empty candidate
+    return;
+
+  if(abs(simMuon->momentum().eta()) < 0.8 || abs(simMuon->momentum().eta()) > 1.24)
     return;
 
   PatternOptimizerBase::observeEventEnd(iEvent, finalCandidates);
@@ -227,7 +245,7 @@ void PatternGenerator::upadatePdfs() {
     if(gp->key().thePt == 0)
       continue;
 
-    edm::LogImportant("l1tMuBayesEventPrint") << "PatternGenerator::upadatePdfs() "<<gp->key()<<" eventCnt "<<eventCntPerGp[gp->key().number()] << std::endl;
+    edm::LogImportant("l1tMuBayesEventPrint") << "PatternGenerator::upadatePdfs() Calculating meanDistPhi "<<gp->key()<<" eventCnt "<<eventCntPerGp[gp->key().number()] << std::endl;
     int minHitCnt = 0.001 * eventCntPerGp[gp->key().number()];// //TODO tune threshold <<<<<<<<<<<<<<<<<<
     for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
       for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
@@ -237,7 +255,7 @@ void PatternGenerator::upadatePdfs() {
           //calculate meanDistPhi
           double meanDistPhi = 0;
           double count = 0;
-          for(unsigned int iBin = 0; iBin < gp->getStatistics()[iLayer][iRefLayer].size(); iBin++) {
+          for(unsigned int iBin = 1; iBin < gp->getStatistics()[iLayer][iRefLayer].size(); iBin++) { //iBin = 0 is reserved for the no hit
             meanDistPhi +=  iBin * gp->getStatistics()[iLayer][iRefLayer][iBin][0];
             count       +=         gp->getStatistics()[iLayer][iRefLayer][iBin][0];
           }
@@ -310,7 +328,7 @@ void PatternGenerator::upadatePdfs() {
         //if(refLayerLogicNum == iLayer)
         {
           double norm = 0;
-          for(unsigned int iBin = 0; iBin < gp->getStatistics()[iLayer][iRefLayer].size(); iBin++) {
+          for(unsigned int iBin = 0; iBin < gp->getStatistics()[iLayer][iRefLayer].size(); iBin++) { //iBin = 0 i.e. no hit is included here, to have the proper norm
             norm += gp->getStatistics()[iLayer][iRefLayer][iBin][0];
           }
 
@@ -318,23 +336,34 @@ void PatternGenerator::upadatePdfs() {
           int statBinGroupSize = 1<<gp->getDistPhiBitShift(iLayer, iRefLayer);
           for(unsigned int iBinPdf = 0; iBinPdf < gp->getPdf()[iLayer][iRefLayer].size(); iBinPdf++) {
             double pdfVal = 0;
-            int groupedBins = 0;
-            for(int i = 0; i < statBinGroupSize; i++) {
-              int iBinStat = statBinGroupSize * ((int)(iBinPdf) - pdfMiddle) + i + gp->meanDistPhiValue(iLayer, iRefLayer);
+            if(iBinPdf > 0) {
+              int groupedBins = 0;
+              for(int i = 0; i < statBinGroupSize; i++) {
+                int iBinStat = statBinGroupSize * ((int)(iBinPdf) - pdfMiddle) + i + gp->meanDistPhiValue(iLayer, iRefLayer);
 
-              iBinStat += (gp->getStatistics()[iLayer][iRefLayer].size()/2);
+                iBinStat += (gp->getStatistics()[iLayer][iRefLayer].size()/2);
 
-              if(iBinStat >= 0 && iBinStat < (int)gp->getStatistics()[iLayer][iRefLayer].size() ) {
-                pdfVal += gp->getStatistics()[iLayer][iRefLayer][iBinStat][0];
-                groupedBins++;
-                //cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" iBinStat "<<iBinStat<<" iBinPdf "<<iBinPdf<<" statVal "<<gp->getStatistics()[iLayer][iRefLayer][iBinStat][0]<<endl;
+                if(iBinStat >= 0 && iBinStat < (int)gp->getStatistics()[iLayer][iRefLayer].size() ) {
+                  pdfVal += gp->getStatistics()[iLayer][iRefLayer][iBinStat][0];
+                  groupedBins++;
+                  //cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" iBinStat "<<iBinStat<<" iBinPdf "<<iBinPdf<<" statVal "<<gp->getStatistics()[iLayer][iRefLayer][iBinStat][0]<<endl;
+                }
               }
+              if(norm > minHitCnt) {
+                pdfVal /= norm;
+              }
+              else
+                pdfVal = 0;
             }
-            if(norm > minHitCnt) {
-              pdfVal /= norm;
+            else {//iBinPdf == 0 i.e. no hit
+              int iBinStat = 0;
+              if(norm > 0) {
+                pdfVal = gp->getStatistics()[iLayer][iRefLayer][iBinStat][0] / norm;
+              }
+              edm::LogImportant("l1tMuBayesEventPrint") <<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<"calculating pdf: iLayer "<<iLayer<<" iRefLayer "<<iRefLayer
+                  <<" norm "<<std::setw(5)<<norm<<" no hits cnt "<<std::setw(5)<<gp->getStatistics()[iLayer][iRefLayer][iBinStat][0]<<" pdfVal "<<pdfVal<<endl;
+
             }
-            else
-              pdfVal = 0;
 
             double minPdfValFactor = 1.;
             const double minPlog =  log(omtfConfig->minPdfVal() * minPdfValFactor);
