@@ -102,6 +102,14 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg, const OMTFCo
         ptDeltaPhiHists[iCharge].push_back(nullptr);
     }
   }*/
+
+/* cannot be called  here
+  edm::LogImportant("OMTFReconstruction")<<" PatternGenerator constructor - patterns after modification "<<std::endl;
+  for(auto& gp : goldenPatterns) {
+    edm::LogImportant("OMTFReconstruction")<<gp->key()<<" "
+        <<omtfConfig->getPatternPtRange(gp->key().theNumber).ptFrom
+        <<" - "<<omtfConfig->getPatternPtRange(gp->key().theNumber).ptTo<<" GeV"<<std::endl;
+  }*/
 }
 
 PatternGenerator::~PatternGenerator() {
@@ -215,7 +223,7 @@ void PatternGenerator::upadatePdfs() {
           throw runtime_error(string(__FUNCTION__) + ":" + to_string(__LINE__) + "gp->getDistPhiBitShift(iLayer, iRefLayer) != 0 -  cannot change DistPhiBitShift then!!!!");
         }
 
-        if( (gp->key().thePt <= 10) && (iLayer < 6) ) {
+        if( (gp->key().thePt <= 10) && (iLayer == 1 || iLayer == 3 || iLayer == 5) ) {
           gp->setDistPhiBitShift(1, iLayer, iRefLayer);
         }
         else
@@ -350,7 +358,7 @@ void PatternGenerator::upadatePdfs() {
                 }
               }
               if(norm > minHitCnt) {
-                pdfVal /= norm;
+                pdfVal /= (norm * statBinGroupSize);
               }
               else
                 pdfVal = 0;

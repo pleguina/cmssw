@@ -256,6 +256,21 @@ void GoldenPatternResult::finalise6() {
   //by default result becomes valid here, but can be overwritten later
 }
 
+
+void GoldenPatternResult::finalise7() {
+  for(unsigned int iLogicLayer=0; iLogicLayer < stubResults.size(); ++iLogicLayer) {
+    pdfSum += stubResults[iLogicLayer].getPdfVal();
+    if( firedLayerBits & (1<<iLogicLayer) ) {
+      firedLayerCnt++;
+    }
+  }
+
+  valid = true;
+  //by default result becomes valid here, but can be overwritten later
+}
+
+
+
 /*void GoldenPatternResult::finalise2() {
   pdfSum = 1.;
   for(unsigned int iLogicLayer=0; iLogicLayer < pdfValues.size(); ++iLogicLayer) {
@@ -288,6 +303,7 @@ void GoldenPatternResult::finalise6() {
 std::ostream & operator << (std::ostream &out, const GoldenPatternResult & gpResult) {
   unsigned int refLayerLogicNum = gpResult.omtfConfig->getRefToLogicNumber()[gpResult.getRefLayer()];
 
+  unsigned int sumOverFiredLayers = 0;
   for(unsigned int iLogicLayer=0; iLogicLayer < gpResult.stubResults.size(); ++iLogicLayer) {
     out<<" layer: "<<std::setw(2)<<iLogicLayer<<" hit: ";
     if(gpResult.stubResults[iLogicLayer].getMuonStub()) {
@@ -297,6 +313,12 @@ std::ostream & operator << (std::ostream &out, const GoldenPatternResult & gpRes
         <<" pdfVal: "<<std::setw(3)<<gpResult.stubResults[iLogicLayer].getPdfVal()
         <<" fired "<<gpResult.isLayerFired(iLogicLayer)
         <<(iLogicLayer == refLayerLogicNum ? " <<< refLayer" : "");
+
+      if(gpResult.isLayerFired(iLogicLayer))
+        sumOverFiredLayers += gpResult.stubResults[iLogicLayer].getPdfVal();
+    }
+    else if(gpResult.stubResults[iLogicLayer].getPdfVal() ) {
+      out<<"                  pdfVal: "<<std::setw(3)<<gpResult.stubResults[iLogicLayer].getPdfVal();
     }
     out<<std::endl;
   }
@@ -306,6 +328,9 @@ std::ostream & operator << (std::ostream &out, const GoldenPatternResult & gpRes
 
   out<<" Sum over layers: ";
   out<<gpResult.getPdfSum()<<"\t";
+
+  out<<" sumOverFiredLayers: ";
+  out<<sumOverFiredLayers<<"\t";
 
   out<<" Number of hits: ";
   out << gpResult.getFiredLayerCnt()<<"\t";

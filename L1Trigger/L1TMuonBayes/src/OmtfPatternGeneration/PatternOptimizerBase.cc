@@ -225,6 +225,8 @@ void PatternOptimizerBase::savePatternsInRoot(std::string rootFileName) {
         }
         if((int)iLayer == (omtfConfig->getRefToLogicNumber()[iRefLayer]))
           hist->SetLineColor(kGreen);
+
+        hist->GetYaxis()->SetRangeUser(0,  omtfConfig->pdfMaxValue() + 1 );
         hist->Write();
         hist->Draw("hist");
       }
