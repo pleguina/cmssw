@@ -263,7 +263,8 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
          )
          quality = 4;
       else
-        if(    static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000011100000000").to_ulong()
+        if(    static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000110000000").to_ulong()
+            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000011100000000").to_ulong()
             || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001000000011100").to_ulong()
             || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001000000111100").to_ulong()
             || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000010110000000111").to_ulong()
