@@ -133,6 +133,10 @@ process.simBayesOmtfDigis.nn_pThresholds = cms.vdouble(nn_pThresholds)
 #process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 #process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
+process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAlong_cfi")
+#process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorOpposite_cfi")
+#process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
+
 analysisType = "efficiency" # or rate
   
 for a in sys.argv :
@@ -147,7 +151,14 @@ process.L1MuonAnalyzerOmtf= cms.EDAnalyzer("L1MuonAnalyzerOmtf",
                                  etaCutTo = cms.double(1.24),
                                  L1OMTFInputTag  = cms.InputTag("simBayesOmtfDigis","OMTF"),
                                  nn_pThresholds = cms.vdouble(nn_pThresholds), 
-                                 analysisType = cms.string(analysisType)
+                                 analysisType = cms.string(analysisType),
+                                 
+                                 simTracksTag = cms.InputTag('g4SimHits'),
+                                 simVertexesTag = cms.InputTag('g4SimHits'),
+                                 
+                                 muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev.root") #if you want to make this file, remove this entry
+
+                                 
                                         )
 process.l1MuonAnalyzerOmtfPath = cms.Path(process.L1MuonAnalyzerOmtf)
 
