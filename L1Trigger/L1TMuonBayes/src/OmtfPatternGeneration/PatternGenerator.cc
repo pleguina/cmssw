@@ -328,7 +328,7 @@ void PatternGenerator::upadatePdfs() {
   for(auto& gp : goldenPatterns) {
     if(gp->key().thePt == 0)
       continue;
-    int minHitCnt = 0.001 * eventCntPerGp[gp->key().number()];// //TODO tune threshold <<<<<<<<<<<<<<<<<<
+    int minHitCnt = 0.002 * eventCntPerGp[gp->key().number()];// //TODO tune threshold <<<<<<<<<<<<<<<<<<
 
     for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
       for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
@@ -373,7 +373,7 @@ void PatternGenerator::upadatePdfs() {
 
             }
 
-            double minPdfValFactor = 1.;
+            double minPdfValFactor = 0.1;
             const double minPlog =  log(omtfConfig->minPdfVal() * minPdfValFactor);
             const double pdfMaxVal = omtfConfig->pdfMaxValue();
 

@@ -24,7 +24,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tMuBayesEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_Patterns_0x0008_oldSample_10Files'),
+                         filename  = cms.untracked.string('log_Patterns_0x00010_oldSample_3_10Files'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -127,41 +127,9 @@ process.source = cms.Source('PoolSource',
 fileNames = cms.untracked.vstring( 
     #'file:/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/SingleMu_16_p_1_1_xTE.root',
     #'file:/afs/cern.ch/user/k/kpijanow/Neutrino_Pt-2to20_gun_50.root',
-    list(chosenFiles),
-                                  ),
-# eventsToProcess = cms.untracked.VEventRange(
-#  '3:' + str(firstEv) + '-3:' +   str(firstEv + nEvents),
-#  '4:' + str(firstEv) + '-4:' +   str(firstEv + nEvents),
-#  '5:' + str(firstEv) + '-5:' +   str(firstEv + nEvents),
-#  '6:' + str(firstEv) + '-6:' +   str(firstEv + nEvents),
-#  '7:' + str(firstEv) + '-7:' +   str(firstEv + nEvents),
-#  '8:' + str(firstEv) + '-8:' +   str(firstEv + nEvents),
-#  '9:' + str(firstEv) + '-9:' +   str(firstEv + nEvents),
-# '10:' + str(firstEv) + '-10:' +  str(firstEv + nEvents),
-# '11:' + str(firstEv) + '-11:' +  str(firstEv + nEvents),
-# '12:' + str(firstEv) + '-12:' +  str(firstEv + nEvents),
-# '13:' + str(firstEv) + '-13:' +  str(firstEv + nEvents),
-# '14:' + str(firstEv) + '-14:' +  str(firstEv + nEvents),
-# '15:' + str(firstEv) + '-15:' +  str(firstEv + nEvents),
-# '16:' + str(firstEv) + '-16:' +  str(firstEv + nEvents),
-# '17:' + str(firstEv) + '-17:' +  str(firstEv + nEvents),
-# '18:' + str(firstEv) + '-18:' +  str(firstEv + nEvents),
-# '19:' + str(firstEv) + '-19:' +  str(firstEv + nEvents),
-# '20:' + str(firstEv) + '-20:' +  str(firstEv + nEvents),
-# '21:' + str(firstEv) + '-21:' +  str(firstEv + nEvents),
-# '22:' + str(firstEv) + '-22:' +  str(firstEv + nEvents),
-# '23:' + str(firstEv) + '-23:' +  str(firstEv + nEvents),
-# '24:' + str(firstEv) + '-24:' +  str(firstEv + nEvents),
-# '25:' + str(firstEv) + '-25:' +  str(firstEv + nEvents),
-# '26:' + str(firstEv) + '-26:' +  str(firstEv + nEvents),
-# '27:' + str(firstEv) + '-27:' +  str(firstEv + nEvents),
-# '28:' + str(firstEv) + '-28:' +  str(firstEv + nEvents),
-# '29:' + str(firstEv) + '-29:' +  str(firstEv + nEvents),
-# '30:' + str(firstEv) + '-30:' +  str(firstEv + nEvents),
-# '31:' + str(firstEv) + '-31:' +  str(firstEv + nEvents)),
-skipEvents =  cms.untracked.uint32(0),
-
-        inputCommands=cms.untracked.vstring(
+    list(chosenFiles), ),
+    skipEvents =  cms.untracked.uint32(0),
+    inputCommands=cms.untracked.vstring(
         'keep *',
         'drop l1tEMTFHit2016Extras_simEmtfDigis_CSC_HLT',
         'drop l1tEMTFHit2016Extras_simEmtfDigis_RPC_HLT',
@@ -202,7 +170,7 @@ process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonBay
 
 process.simBayesOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simBayesOmtfDigis.generatePatterns = cms.bool(True)
-process.simBayesOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x0008_oldSample_10Files.xml")
+process.simBayesOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x00010_oldSample_3_10Files.xml")
 
 process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
