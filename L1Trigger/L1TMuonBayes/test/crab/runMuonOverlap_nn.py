@@ -30,7 +30,7 @@ if verbose:
                          l1tMuBayesEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) ),
                          OMTFReconstruction = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) )
                        ),
-       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'OmtfTTAnalyzer', 'simBayesOmtfDigis', 'omtfTTAnalyzer', 'simBayesMuCorrelatorTrackProducer') 
+       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'L1MuonAnalyzerOmtf', 'OmtfTTAnalyzer', 'simBayesOmtfDigis', 'omtfTTAnalyzer', 'simBayesMuCorrelatorTrackProducer') 
        #debugModules = cms.untracked.vstring('*')
     )
 
@@ -102,7 +102,7 @@ process.load('L1Trigger.L1TMuonBayes.simBayesOmtfDigis_cfi')
 
 process.simBayesOmtfDigis.dumpResultToXML = cms.bool(False)
 process.simBayesOmtfDigis.dumpResultToROOT = cms.bool(False)
-process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(False)
+process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(True)
 process.simBayesOmtfDigis.sorterType = cms.string("byLLH")
 
 process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
@@ -116,7 +116,7 @@ process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
 process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(7) #valid values are 0, 1, 2, 3, 5
+process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(8) #valid values are 0, 1, 2, 3, 5
 
 process.simBayesOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
@@ -155,8 +155,10 @@ process.L1MuonAnalyzerOmtf= cms.EDAnalyzer("L1MuonAnalyzerOmtf",
                                  
                                  simTracksTag = cms.InputTag('g4SimHits'),
                                  simVertexesTag = cms.InputTag('g4SimHits'),
+                                 trackingParticleToken = cms.InputTag("mix", "MergedTrackTruth"),
+                                 #TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                  
-                                 muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev.root") #if you want to make this file, remove this entry
+                                 muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev_withOvf.root") #if you want to make this file, remove this entry
 
                                  
                                         )

@@ -74,7 +74,7 @@ void EventCapture::observeProcesorEmulation(unsigned int iProcessor, l1t::tftype
 void EventCapture::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
   std::ostringstream ostr;
 //filtering
-
+/*
   bool wasSimMuInOmtfPos = false;
   bool wasSimMuInOmtfNeg = false;
   for(auto& simMuon : simMuons) {
@@ -113,7 +113,17 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t
 
   dump = true; ///TODO if presetn then dumps all events!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   if(!dump)
-    return;
+    return;*/
+
+  bool dump = false;
+  for(auto& finalCandidate : *finalCandidates) {
+    if(finalCandidate.hwQual() >= 8 && finalCandidate.hwPt() >= 41) {
+      dump = true;
+    }
+  }
+
+  if(!dump)
+      return;
 
   ///printing
 

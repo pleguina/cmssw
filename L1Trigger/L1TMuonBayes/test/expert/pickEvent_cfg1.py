@@ -45,8 +45,9 @@ Source_Files = cms.untracked.vstring(
          #"/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_200_TuneCP5_14TeV_pythia8/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v2/60000/A91AA4D8-5187-5544-8304-365404899406.root"
          #"/store/mc/PhaseIITDRSpring19DR/Mu_FlatPt2to100-pythia8-gun/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/60000/E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA.root"
          #"/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_200_TuneCP5_14TeV_pythia8/GEN-SIM-DIGI-RAW/PU200_HSCP_106X_upgrade2023_realistic_v3-v1/40000/ACF9C8E2-0570-6A4A-983A-E2B230F6FCAA.root"
-         "/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_871_TuneCP5_14TeV_pythia8/GEN-SIM-DIGI-RAW/PU200_HSCP_106X_upgrade2023_realistic_v3-v2/260000/1ADE9D9E-8C0C-1948-A405-5DFDA1AF5172.root"
-
+         #"/store/mc/PhaseIITDRSpring19DR/HSCPppstau_M_871_TuneCP5_14TeV_pythia8/GEN-SIM-DIGI-RAW/PU200_HSCP_106X_upgrade2023_realistic_v3-v2/260000/1ADE9D9E-8C0C-1948-A405-5DFDA1AF5172.root"
+         #"/store/mc/PhaseIITDRSpring19DR/Nu_E10-pythia8-gun/GEN-SIM-DIGI-RAW/PU200_106X_upgrade2023_realistic_v3-v3/70001/FFB3195D-E113-3744-877D-44E21C060358.root"
+         "/store/mc/PhaseIITDRSpring19DR/Nu_E10-pythia8-gun/GEN-SIM-DIGI-RAW/PU250_106X_upgrade2023_realistic_v3_ext2-v1/50002/FFE07316-3810-6E44-97A1-5753A3070D12.root"
 )
 
 process = cms.Process("PickEvent")
@@ -90,7 +91,9 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 #outputFileNme = '/eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_FlatPt-2to100/GEN-SIM-DIGI-RAW/L1TnoPU_93X_upgrade2023_realistic_v5-v1/00000/F4EEAE55-C937-E811-8C29-48FD8EE739D1_dump1000Events.root'
 #outputFileNme = 'HSCPppstau_M-651_TuneZ2star_13TeV_0E0D542C-A9C8-E611-981C-A0000420FE80_dump100Events.root'
 #outputFileNme = 'SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root'
-outputFileNme = 'HSCPppstau_M_871_PU200_v3-v2_1ADE9D9E-8C0C-1948-A405-5DFDA1AF5172_dump100Ev.root'
+#outputFileNme = 'HSCPppstau_M_871_PU200_v3-v2_1ADE9D9E-8C0C-1948-A405-5DFDA1AF5172_dump100Ev.root'
+#outputFileNme = 'Nu_E10-pythia8-gun_PU200_v3-v3_FFB3195D-E113-3744-877D-44E21C060358_dump100Ev.root'
+outputFileNme = 'Nu_E10-pythia8-gun_PU250_v3_ext2-v1_FFE07316-3810-6E44-97A1-5753A3070D12_dump100Ev.root'
 
 process.Out = cms.OutputModule("PoolOutputModule",
         fileName = cms.untracked.string (outputFileNme)

@@ -270,6 +270,30 @@ void GoldenPatternResult::finalise7() {
 }
 
 
+void GoldenPatternResult::finalise8() {
+  for(unsigned int iLogicLayer=0; iLogicLayer < stubResults.size(); ++iLogicLayer) {
+    pdfSum += stubResults[iLogicLayer].getPdfVal();  //pdfSum is counted always
+
+    unsigned int connectedLayer = omtfConfig->getLogicToLogic().at(iLogicLayer);
+    if(omtfConfig->isBendingLayer(iLogicLayer)) { //the DT phiB layer is counted only when the phi layer is fired
+      if( (firedLayerBits & (1<<iLogicLayer) ) && (firedLayerBits & (1<<connectedLayer) )  ) { // && (stubResults[iLogicLayer].getMuonStub()->qualityHw >= 4) this is not needed, as the rejecting the low quality phiB hits is on the input of the algorithm
+        firedLayerCnt++;
+      }
+      else {
+        firedLayerBits &= ~(1<<iLogicLayer);
+        stubResults[iLogicLayer].setValid(false);
+        //in principle the stub should be also removed from the stubResults[iLogicLayer], on the other hand in this way can be used e.g. for debug
+      }
+    }
+    else if( firedLayerBits & (1<<iLogicLayer) ) {
+      firedLayerCnt++;
+    }
+  }
+
+  valid = true;
+  //by default result becomes valid here, but can be overwritten later
+}
+
 
 /*void GoldenPatternResult::finalise2() {
   pdfSum = 1.;
