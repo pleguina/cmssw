@@ -117,7 +117,7 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t
 
   bool dump = false;
   for(auto& finalCandidate : *finalCandidates) {
-    if(finalCandidate.hwQual() >= 8 && finalCandidate.hwPt() >= 41) {
+    if(finalCandidate.hwQual() >= 1 && finalCandidate.hwPt() >= 41) {//41
       dump = true;
     }
   }

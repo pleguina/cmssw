@@ -21,7 +21,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tMuBayesEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_MuonOverlap_newPats_59_3'),
+                         filename  = cms.untracked.string('log_MuonOverlap_newPats_61_1'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -113,7 +113,7 @@ for a in sys.argv :
     
 print "analysisType=" + analysisType
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v59_3_nuGun_PU250_' + analysisType + '.root'), closeFileFast = cms.untracked.bool(True) )
+process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v61_1_nuGun_PU250_' + analysisType + '.root'), closeFileFast = cms.untracked.bool(True) )
                                    
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonBayes.simBayesOmtfDigis_cfi')

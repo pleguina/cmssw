@@ -7,7 +7,7 @@ import commands
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
-verbose = False
+verbose = True
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -15,7 +15,7 @@ if verbose:
        destinations   = cms.untracked.vstring(
                                                #'detailedInfo',
                                                #'critical',
-                                               #'cout',
+                                               'cout',
                                                #'cerr',
                                                'omtfEventPrint'
                     ),
@@ -23,7 +23,7 @@ if verbose:
        omtfEventPrint = cms.untracked.PSet(    
                          filename  = cms.untracked.string('log_MuonOverlap_nn'),
                          extension = cms.untracked.string('.txt'),                
-                         threshold = cms.untracked.string('DEBUG'),
+                         threshold = cms.untracked.string('INFO'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
                          #INFO   =  cms.untracked.int32(0),
                          #DEBUG   = cms.untracked.int32(0),
@@ -68,10 +68,11 @@ process.source = cms.Source('PoolSource',
  
  #fileNames = cms.untracked.vstring('file:///eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/SingleMu_31_p_101_2_DzU.root')
  #fileNames = cms.untracked.vstring('file:///eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/SingleMu_6_p_1.root'),
- fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root"),
+ #fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root"),
  #fileNames = cms.untracked.vstring('file:///eos/home-k/konec/FFCFF986-ED0B-B74F-B253-C511D19B8249.root'),
  #fileNames = cms.untracked.vstring('file:///afs/cern.ch/user/k/konec/work/CMSSW_10_6_1_patch2.displaced/src/UserCode/OmtfAnalysis/jobs/FFCFF986-ED0B-B74F-B253-C511D19B8249.root'),
- 
+ fileNames = cms.untracked.vstring("file:///afs/cern.ch/work/k/kbunkow/public/CMSSW/cmssw_10_x_x_l1tOfflinePhase2/CMSSW_10_6_1_patch2/src/L1Trigger/L1TMuonBayes/test/expert/Nu_E10-pythia8-gun_PU250_v3_ext2-v1_FFE07316-3810-6E44-97A1-5753A3070D12_dump100Ev.root"),
+
  
         inputCommands=cms.untracked.vstring(
         'keep *',
