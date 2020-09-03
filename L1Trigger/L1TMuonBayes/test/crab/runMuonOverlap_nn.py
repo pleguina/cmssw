@@ -103,7 +103,7 @@ process.load('L1Trigger.L1TMuonBayes.simBayesOmtfDigis_cfi')
 
 process.simBayesOmtfDigis.dumpResultToXML = cms.bool(False)
 process.simBayesOmtfDigis.dumpResultToROOT = cms.bool(False)
-process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(True)
+process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(False)
 process.simBayesOmtfDigis.sorterType = cms.string("byLLH")
 
 process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
@@ -117,7 +117,7 @@ process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
 process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(8) #valid values are 0, 1, 2, 3, 5
+process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(9) #valid values are 0, 1, 2, 3, 5
 
 process.simBayesOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 

@@ -178,6 +178,8 @@ public:
       finalise7();
     else if(finalizeFunction == 8)
       finalise8();
+    else if(finalizeFunction == 9)
+      finalise9();
     else
       finalise0();
   }
@@ -201,6 +203,8 @@ public:
   void finalise7();
 
   void finalise8();
+
+  void finalise9();
   //bool empty() const;
 
   friend std::ostream & operator << (std::ostream &out, const GoldenPatternResult & aResult);

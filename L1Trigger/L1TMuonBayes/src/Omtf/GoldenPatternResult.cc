@@ -294,6 +294,45 @@ void GoldenPatternResult::finalise8() {
   //by default result becomes valid here, but can be overwritten later
 }
 
+void GoldenPatternResult::finalise9() {
+  for(unsigned int iLogicLayer=0; iLogicLayer < stubResults.size(); ++iLogicLayer) {
+    unsigned int connectedLayer = omtfConfig->getLogicToLogic().at(iLogicLayer);
+
+    if(omtfConfig->isBendingLayer(iLogicLayer)) { //the DT phiB layer is counted only when the phi layer is fired
+      if( firedLayerBits & (1<<iLogicLayer)  ) { // && (stubResults[iLogicLayer].getMuonStub()->qualityHw >= 4) this is not needed, as the rejecting the low quality phiB hits is on the input of the algorithm
+        if(firedLayerBits & (1<<connectedLayer) ) {
+          firedLayerCnt++;
+          pdfSum += stubResults[iLogicLayer].getPdfVal();
+        }
+        else {
+          firedLayerBits &= ~(1<<iLogicLayer);
+          stubResults[iLogicLayer].setValid(false);
+          //if(stubResults[iLogicLayer].getPdfVal() == 0) pdfSum -= 64;; //there was hit, but it did not fire to the pdf - this is not possible here, since the banding layer if fired here
+          //so in this case simply:
+          //pdfSum += 0;
+        }
+      }
+      else {
+        if(stubResults[iLogicLayer].getPdfVal() == 0)  //banding layer fired, but not fits to the pdf
+          pdfSum -= 64;
+        else
+          pdfSum += stubResults[iLogicLayer].getPdfVal();//banding layer not fired at all
+      }
+    }
+    else {
+      if(iLogicLayer < 10 && stubResults[iLogicLayer].getPdfVal() == 0)
+        pdfSum -= 64;
+      else
+        pdfSum += stubResults[iLogicLayer].getPdfVal();
+      if( firedLayerBits & (1<<iLogicLayer) ) { //pdfSum is counted always
+        firedLayerCnt++;
+      }
+    }
+  }
+
+  valid = true;
+  //by default result becomes valid here, but can be overwritten later
+}
 
 /*void GoldenPatternResult::finalise2() {
   pdfSum = 1.;
