@@ -103,7 +103,7 @@ process.load('L1Trigger.L1TMuonBayes.simBayesOmtfDigis_cfi')
 
 process.simBayesOmtfDigis.dumpResultToXML = cms.bool(False)
 process.simBayesOmtfDigis.dumpResultToROOT = cms.bool(False)
-process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(False)
+process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(True)
 process.simBayesOmtfDigis.sorterType = cms.string("byLLH")
 
 process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
