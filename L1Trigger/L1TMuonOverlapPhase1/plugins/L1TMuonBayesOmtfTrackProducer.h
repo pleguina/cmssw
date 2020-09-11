@@ -4,7 +4,6 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFProcessor.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFReconstruction.h"
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorter.h"
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
