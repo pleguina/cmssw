@@ -28,7 +28,8 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers, 
     if(!acceptDigi(detid, iProcessor, procTyp))
       continue;
 
-    if (digiIt.bxNum() >= bxFrom && digiIt.bxNum() <= bxTo )
+    // HACK for Phase-2  (DT TPs are centered in bX=20)
+    if (digiIt.bxNum()-20 >= bxFrom && digiIt.bxNum()-20 <= bxTo )
       addDTphiDigi(muonStubsInLayers, digiIt, dtThDigis.product() , iProcessor, procTyp);
   }
 
@@ -70,14 +71,15 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
   stub.phiHw  =  angleConverter->getProcessorPhi(OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, digi.scNum(), digi.phi());
   //stub.etaHw  =  angleConverter->getGlobalEta(digi, dtThDigis);
-  stub.etaHw  =  angleConverter->getGlobalEta(detid, dtThDigis, digi.bxNum() );
-  stub.phiBHw = digi.phiBend();
+  stub.etaHw  =  angleConverter->getGlobalEta(detid, dtThDigis, digi.bxNum()-20 );
+  //phiB in Ph2 has 2018==1.4rad ... need to convert them to 512==1rad (so we can use OLD patterns)
+  stub.phiBHw = round(digi.phiBend()*1.4*512/2048.); 
   stub.qualityHw = digi.quality();
-
-  stub.bx = digi.bxNum(); //TODO sholdn't  it be BxCnt()?
+  
+  // need to shift 20-BX to roll-back the shift introduced by the DT TPs
+  stub.bx = digi.bxNum()-20; 
   //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
-
-  //stub.etaType = ?? TODO
+  
   stub.logicLayer = iLayer;
   stub.detId = detid;
 
@@ -94,9 +96,8 @@ bool DtPhase2DigiToStubsConverterOmtf::acceptDigi(const DTChamberId& dTChamberId
   return OMTFinputMaker::acceptDtDigi(config, dTChamberId, iProcessor, procType);
 }
 
-InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet, MuStubsInputTokens& muStubsInputTokens,
-    edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2, const OMTFConfiguration* config)
-    :OMTFinputMaker(edmParameterSet, muStubsInputTokens, config)
+InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet, MuStubsInputTokens& muStubsInputTokens, edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2, const OMTFConfiguration* config, OmtfAngleConverter* angleConv)
+  :OMTFinputMaker(edmParameterSet, muStubsInputTokens, config, angleConv)
 {
 	edm::LogImportant("OMTFReconstruction") << "constructing InputMakerPhase2" << std::endl;
 
@@ -113,7 +114,7 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet, MuS
 	  if(edmParameterSet.getParameter<bool>("dropDTPrimitives") != true)
 	    throw cms::Exception("L1TMuonOverlapPhase2 InputMakerPhase2::InputMakerPhase2 usePhase2DTPrimitives is true, but dropDTPrimitives is not true");
 	    //if the Phase2DTPrimitives are used, then the phase1 DT primitives should be dropped
-	  digiToStubsConverters.emplace_back(std::make_unique<DtPhase2DigiToStubsConverterOmtf>(config, &angleConverter, inputTokenDTPhPhase2, muStubsInputTokens.inputTokenDtTh));
+	  digiToStubsConverters.emplace_back(std::make_unique<DtPhase2DigiToStubsConverterOmtf>(config, angleConverter.get(), inputTokenDTPhPhase2, muStubsInputTokens.inputTokenDtTh));
 	}
 }
 

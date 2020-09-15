@@ -78,7 +78,7 @@ private:
 class OMTFinputMaker : public MuonStubMakerBase {
 public:
 
-  OMTFinputMaker(const edm::ParameterSet& edmParameterSet, MuStubsInputTokens& muStubsInputTokens, const OMTFConfiguration* config);
+  OMTFinputMaker(const edm::ParameterSet& edmParameterSet, MuStubsInputTokens& muStubsInputTokens, const OMTFConfiguration* config, OmtfAngleConverter* angleConv);
 
   virtual ~OMTFinputMaker();
 
@@ -103,10 +103,11 @@ public:
   static bool acceptDtDigi(const OMTFConfiguration* config, const DTChamberId& dTChamberId, unsigned int iProcessor, l1t::tftype procType);
 
 protected:
-  OmtfAngleConverter angleConverter;
+
 
   const OMTFConfiguration* config =  nullptr;
-
+  std::unique_ptr<OmtfAngleConverter> angleConverter;
+   
   int flag = 0;
 
 };

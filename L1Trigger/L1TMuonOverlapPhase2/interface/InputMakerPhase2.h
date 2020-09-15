@@ -19,6 +19,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubMakerBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
+#include "L1Trigger/L1TMuonOverlapPhase2/interface/OmtfPhase2AngleConverter.h"
 
 
 class DtPhase2DigiToStubsConverter: public DigiToStubsConverterBase {
@@ -76,19 +77,17 @@ private:
 
 
 class InputMakerPhase2: public OMTFinputMaker {
-public:
-	InputMakerPhase2(const edm::ParameterSet& edmParameterSet, MuStubsInputTokens& muStubsInputTokens,
-	    edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2, const OMTFConfiguration* config );
+ public:
+	InputMakerPhase2(const edm::ParameterSet& edmParameterSet, MuStubsInputTokens& muStubsInputTokens, edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2, const OMTFConfiguration* config, OmtfAngleConverter* angleConv);
 
 	virtual ~InputMakerPhase2();
 
-	 //the phi and eta digis are merged (even thought it is artificial)
-	 virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1Phase2MuDTPhDigi& digi,
+	//the phi and eta digis are merged (even thought it is artificial)
+	virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1Phase2MuDTPhDigi& digi,
 	    const L1Phase2MuDTPhContainer *dtThDigis,
 	    unsigned int iProcessor,
 	    l1t::tftype procTyp)  {}
 
-private:
 };
 
 #endif /* INTERFACE_INPUTMAKERPHASE2_H_ */

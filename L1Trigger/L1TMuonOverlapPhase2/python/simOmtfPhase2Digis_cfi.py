@@ -1,5 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
+
 ###OMTF emulator configuration
 simOmtfPhase2Digis = cms.EDProducer("L1TMuonOmtfPhase2TrackProducer",
                               
@@ -24,7 +25,7 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOmtfPhase2TrackProducer",
   usePhase2DTPrimitives = cms.bool(True),
   
   processorType = cms.string("OMTFProcessor"),
-  #ghostBusterType = cms.string("GhostBusterPreferRefDt"),
+  ghostBusterType = cms.string("GhostBusterPreferRefDt"),
   
   #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00020007.xml")
   #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")                               
