@@ -51,10 +51,7 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
 {
   DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum()+1);
 
-  //LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" OMTFinputMaker "<<" detid "<<detid<<endl;
-
-// TODO FIXME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!!!
-  if(digi.quality() ==  7 || digi.quality() < config->getMinDtPhiQuality()) //7 is empty digi, TODO update if the definition of the quality is changed
+  if(digi.quality() < config->getMinDtPhiQuality()) 
     return;
 
   unsigned int hwNumber = config->getLayerNumber(detid.rawId());
