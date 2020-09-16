@@ -70,7 +70,7 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
 
     int hitPhi = stub->phiHw;
     if(this->myOmtfConfig->isBendingLayer(iLayer)) {
-      if(stub->qualityHw < 4) //TODO ude quality threshold from config
+      if(stub->qualityHw < 2) //TODO ude quality threshold from config
         continue;   //rejecting phiB of the low quality DT stubs
 
       hitPhi = stub->phiBHw;
