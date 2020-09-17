@@ -109,8 +109,9 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     candidate.setHwSign(myCand->getCharge()<0 ? 1:0  );
     candidate.setHwSignValid(1);
 
-    unsigned int quality = 12; //checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3)
-                              //                                       : 0 | (1 << 2);
+    //unsigned int quality = 12;
+    unsigned int quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3)
+                                                                     : 0 | (1 << 2);
     if (    abs(myCand->getEtaHw()) == 115
         && (    static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001110000000").to_ulong()
              || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000001110000000").to_ulong()
@@ -119,7 +120,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
              || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001010000000").to_ulong()
            )
        ) quality = 1;
-    /*if( this->myOmtfConfig->fwVersion() >= 5 ) {
+    if( this->myOmtfConfig->fwVersion() >= 5 ) {
       if (    static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000010000000011").to_ulong()
            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000100000000011").to_ulong()
            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001000000000011").to_ulong()
@@ -145,8 +146,8 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000000000110000").to_ulong()
            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000000110000").to_ulong()
          ) quality = 1;
-    }*/
-    else if( this->myOmtfConfig->fwVersion() >= 6 ) { //TODO fix the fwVersion
+    }
+  /*  else if( this->myOmtfConfig->fwVersion() >= 6 ) { //TODO fix the fwVersion
       if (   static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000110000000001").to_ulong()
           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001100000000100").to_ulong()
           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000110000000010000").to_ulong()
@@ -242,7 +243,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
             || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("011000000010000000").to_ulong()
          )
          quality = 4;
-    }
+    } */
 //  if (abs(myCand->getEta()) == 121) quality = 4;
     if (abs(myCand->getEtaHw()) == 121) quality = 0; // changed on request from HI
 
