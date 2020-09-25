@@ -40,7 +40,7 @@ class XMLConfigReader{
   void setEventsFile(const std::string & fName) {eventsFile = fName;}
 
   template <class GoldenPatternType>
-  std::vector<std::shared_ptr<GoldenPatternType> > readPatterns(const L1TMuonOverlapParams& aConfig, const std::string & patternsFile);
+  std::vector<std::shared_ptr<GoldenPatternType> > readPatterns(const L1TMuonOverlapParams& aConfig, const std::string & patternsFile, bool resetNumbering = true);
 
   template <class GoldenPatternType>
   std::vector<std::shared_ptr<GoldenPatternType> > readPatterns(const L1TMuonOverlapParams& aConfig, const std::vector<std::string>& patternsFiles);
@@ -74,6 +74,8 @@ class XMLConfigReader{
   ///Cache with GPs read.
   //std::vector<std::shared_ptr<GoldenPattern>> aGPs;
 
+  unsigned int iGPNumber = 0;
+  unsigned int iPatternGroup = 0;
 };
 
 #endif

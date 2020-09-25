@@ -183,11 +183,16 @@ unsigned int XMLConfigReader::getPatternsVersion() const{
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 template <class GoldenPatternType>
-std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(const L1TMuonOverlapParams& aConfig, const std::string& patternsFile) {
+std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(const L1TMuonOverlapParams& aConfig, const std::string& patternsFile, bool resetNumbering) {
   std::vector<std::shared_ptr<GoldenPatternType> > aGPs;
   aGPs.clear();
 
   XMLPlatformUtils::Initialize();
+
+  if(resetNumbering) {
+    iGPNumber = 0;
+    iPatternGroup = 0;
+  }
 
   XMLCh *xmlGP= _toDOMS("GP");
   std::array<XMLCh *,4> xmliPt= {{_toDOMS("iPt1"),_toDOMS("iPt2"),_toDOMS("iPt3"),_toDOMS("iPt4") }};
@@ -210,23 +215,23 @@ std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(c
 
     DOMNode *aNode = nullptr;
     DOMElement* aGPElement = nullptr;
-    unsigned int iGPNumber=0;
+    //unsigned int iGPNumber=0;
 
-    for(unsigned int iItem=0;iItem<nElem;++iItem){
+    for(unsigned int iItem=0;iItem<nElem;++iItem, ++iPatternGroup){
       aNode = doc->getElementsByTagName(xmlGP)->item(iItem);
       aGPElement = static_cast<DOMElement *>(aNode);
 
       for(unsigned int index = 1;index<5;++index){	
         ///Patterns XML format backward compatibility. Can use both packed by 4, or by 1 XML files.
         if(aGPElement->getAttributeNode(xmliPt[index-1])) {
-          std::unique_ptr<GoldenPatternType> aGP = buildGP<GoldenPatternType>(aGPElement, aConfig, iItem, index, iGPNumber);
+          std::unique_ptr<GoldenPatternType> aGP = buildGP<GoldenPatternType>(aGPElement, aConfig, iPatternGroup, index, iGPNumber);
           if(aGP && aGP->key().thePt) {
             aGPs.emplace_back(std::move(aGP));
             iGPNumber++;
           }
         }
         else{
-          std::unique_ptr<GoldenPatternType> aGP = buildGP<GoldenPatternType>(aGPElement, aConfig, iItem);
+          std::unique_ptr<GoldenPatternType> aGP = buildGP<GoldenPatternType>(aGPElement, aConfig, iPatternGroup);
           if(aGP && aGP->key().thePt){
             aGPs.emplace_back(std::move(aGP));
             iGPNumber++;
@@ -255,10 +260,12 @@ std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(c
 //////////////////////////////////////////////////
 template <class GoldenPatternType>
 std::vector<std::shared_ptr<GoldenPatternType> > XMLConfigReader::readPatterns(const L1TMuonOverlapParams& aConfig, const std::vector<std::string>& patternsFiles) {
+  iGPNumber = 0;
+  iPatternGroup = 0;
   std::vector<std::shared_ptr<GoldenPatternType> > aGPs;
   for(auto aPatternsFile: patternsFiles){
-    auto tmpGPs = readPatterns<GoldenPatternType>(aConfig, aPatternsFile);
-    aGPs.insert(aGPs.begin(), tmpGPs.begin(), tmpGPs.end());
+    auto tmpGPs = readPatterns<GoldenPatternType>(aConfig, aPatternsFile, false);
+    aGPs.insert(aGPs.end(), tmpGPs.begin(), tmpGPs.end());
   }
   return aGPs;
 }
@@ -302,7 +309,9 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
   int iEta = std::atoi(_toString(aGPElement->getAttribute(xmliEta)).c_str());
   int iCharge = std::atoi(_toString(aGPElement->getAttribute(xmliCharge)).c_str());
   unsigned int nLayers = aGPElement->getElementsByTagName(xmlLayer)->getLength();
-  assert(nLayers==(unsigned) aConfig.nLayers());
+
+  if(nLayers)
+    assert(nLayers==(unsigned) aConfig.nLayers());
 
   DOMNode *aNode = nullptr;
   DOMElement* aLayerElement = nullptr;
@@ -719,13 +728,13 @@ void XMLConfigReader::readConfig(L1TMuonOverlapParams *aConfig) const{
 
 
 template
-std::vector<std::shared_ptr<GoldenPatternWithStat> > XMLConfigReader::readPatterns<GoldenPatternWithStat>(const L1TMuonOverlapParams& aConfig, const std::string & patternsFile);
+std::vector<std::shared_ptr<GoldenPatternWithStat> > XMLConfigReader::readPatterns<GoldenPatternWithStat>(const L1TMuonOverlapParams& aConfig, const std::string & patternsFile, bool resetNumbering = true);
 
 template
 std::vector<std::shared_ptr<GoldenPatternWithStat> > XMLConfigReader::readPatterns<GoldenPatternWithStat>(const L1TMuonOverlapParams& aConfig, const std::vector<std::string>& patternsFiles);
 
 template
-std::vector<std::shared_ptr<GoldenPatternWithThresh> > XMLConfigReader::readPatterns<GoldenPatternWithThresh>(const L1TMuonOverlapParams& aConfig, const std::string & patternsFile);
+std::vector<std::shared_ptr<GoldenPatternWithThresh> > XMLConfigReader::readPatterns<GoldenPatternWithThresh>(const L1TMuonOverlapParams& aConfig, const std::string & patternsFile, bool resetNumbering = true);
 
 template
 std::vector<std::shared_ptr<GoldenPatternWithThresh> > XMLConfigReader::readPatterns<GoldenPatternWithThresh>(const L1TMuonOverlapParams& aConfig, const std::vector<std::string>& patternsFiles);
