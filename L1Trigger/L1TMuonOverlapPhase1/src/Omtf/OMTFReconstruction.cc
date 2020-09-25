@@ -76,6 +76,15 @@ void OMTFReconstruction::modifyOmtfConfig() {
     omtfConfig->setGoldenPatternResultFinalizeFunction(finalizeFunction);
     edm::LogImportant("OMTFReconstruction") << "GoldenPatternResult::setFinalizeFunction: "<<finalizeFunction << std::endl;
   }
+
+  if(edmParameterSet.exists("noHitValueInPdf") )
+    omtfConfig->setNoHitValueInPdf(edmParameterSet.getParameter<bool>("noHitValueInPdf"));
+
+  if(edmParameterSet.exists("minDtPhiQuality") )
+    omtfConfig->setMinDtPhiQuality(edmParameterSet.getParameter<int>("minDtPhiQuality"));
+
+  if(edmParameterSet.exists("minDtPhiBQuality") )
+    omtfConfig->setMinDtPhiBQuality(edmParameterSet.getParameter<int>("minDtPhiBQuality"));
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////

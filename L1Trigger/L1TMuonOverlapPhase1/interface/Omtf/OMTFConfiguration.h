@@ -266,6 +266,14 @@ class OMTFConfiguration: public ProcConfigurationBase {
 
   friend std::ostream & operator << (std::ostream &out, const OMTFConfiguration & aConfig);
 
+  bool isNoHitValueInPdf() const {
+    return noHitValueInPdf;
+  }
+
+  void setNoHitValueInPdf(bool noHitValueInPdf = false) {
+    this->noHitValueInPdf = noHitValueInPdf;
+  }
+
  private:
 
   L1TMuonOverlapParams rawParams;
@@ -320,6 +328,8 @@ class OMTFConfiguration: public ProcConfigurationBase {
   unsigned int pdfBins = 0;
 
   int goldenPatternResultFinalizeFunction = 0;
+
+  bool noHitValueInPdf = false;
 };
 
 
