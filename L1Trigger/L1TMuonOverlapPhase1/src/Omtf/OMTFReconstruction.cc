@@ -29,13 +29,13 @@
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 OMTFReconstruction::OMTFReconstruction(const edm::ParameterSet& theConfig, MuStubsInputTokens& muStubsInputTokens) :
-  edmParameterSet(theConfig), muStubsInputTokens(muStubsInputTokens), omtfConfig(new OMTFConfiguration()), omtfProc(nullptr), m_OMTFConfigMaker(nullptr) {
+  edmParameterSet(theConfig), muStubsInputTokens(muStubsInputTokens), omtfConfig(new OMTFConfiguration()), omtfProc(nullptr), angleConv(new OmtfAngleConverter()), m_OMTFConfigMaker(nullptr) {
 
   //edmParameterSet.getParameter<std::string>("XMLDumpFileName");
   bxMin = edmParameterSet.exists("bxMin") ? edmParameterSet.getParameter<int>("bxMin") : 0;
   bxMax = edmParameterSet.exists("bxMax") ? edmParameterSet.getParameter<int>("bxMax") : 0;
 
-  inputMaker = std::make_unique<OMTFinputMaker>(theConfig, muStubsInputTokens, omtfConfig.get());
+  inputMaker = std::make_unique<OMTFinputMaker>(theConfig, muStubsInputTokens, omtfConfig.get(), angleConv.get());
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -120,9 +120,9 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
 
     //the parameters can be overwritten from the python config
     omtfConfig->configureFromEdmParameterSet(edmParameterSet);
-
+    
     inputMaker->initialize(edmParameterSet, eventSetup);
-
+    
     //patterns from the edm::EventSetup are reloaded every beginRun
     if(buildPatternsFromXml == false) {
       edm::LogImportant("OMTFReconstruction") << "getting patterns from EventSetup" << std::endl;
