@@ -63,6 +63,8 @@ class OMTFReconstruction {
 
     unique_ptr<IProcessorEmulator> omtfProc;
 
+    unique_ptr<OmtfAngleConverter> angleConv;
+
     OMTFConfigMaker* m_OMTFConfigMaker;
 
     std::vector<std::unique_ptr<IOMTFEmulationObserver> > observers;
