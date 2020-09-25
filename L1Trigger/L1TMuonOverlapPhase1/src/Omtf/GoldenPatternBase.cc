@@ -55,19 +55,27 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
   ///Select hit closest to the mean of probability
   ///distribution in given layer
   MuonStubPtr selectedStub;
+
+  int phiRefHit = 0;
+  if(refStub)
+    phiRefHit = refStub->phiHw;
+
+  if(this->myOmtfConfig->isBendingLayer(iLayer) ) {
+    phiRefHit = 0; //phi ref hit for the banding layer set to 0, since it should not be included in the phiDist
+  }
+
   for(auto& stub: layerStubs){
     if(!stub) //empty pointer
       continue;
 
     int hitPhi = stub->phiHw;
-    int phiRefHit = 0;
-    if(refStub)
-      phiRefHit = refStub->phiHw;
+    if(this->myOmtfConfig->isBendingLayer(iLayer)) {
+      if(stub->qualityHw < this->myOmtfConfig->getMinDtPhiBQuality() )
+        continue;   //rejecting phiB of the low quality DT stubs
 
-    if(this->myOmtfConfig->isBendingLayer(iLayer) ) {
       hitPhi = stub->phiBHw;
-      phiRefHit = 0; //phi ref hit for the banding layer set to 0, since it should not be included in the phiDist
     }
+
     if(hitPhi >= (int)myOmtfConfig->nPhiBins()) //TODO is this needed now? the empty hit will be empty stub
       continue;  //empty itHits are marked with nPhiBins() in OMTFProcessor::restrictInput
 
@@ -83,7 +91,13 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
   }
 
   if(!selectedStub) {
-    return StubResult(0, false, myOmtfConfig->nPhiBins(), iLayer, selectedStub);
+    if(this->myOmtfConfig->isNoHitValueInPdf() ) {
+      PdfValueType pdfVal = this->pdfValue(iLayer, iRefLayer, 0);
+      return StubResult(pdfVal, false, myOmtfConfig->nPhiBins(), iLayer, selectedStub);
+    }
+    else {
+      return StubResult(0, false, myOmtfConfig->nPhiBins(), iLayer, selectedStub); //2018 version
+    }
   }
 
   int pdfMiddle = 1<<(myOmtfConfig->nPdfAddrBits()-1);

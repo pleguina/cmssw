@@ -24,7 +24,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tMuBayesEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_Patterns_0x0007_oldSample_10Files'),
+                         filename  = cms.untracked.string('log_Patterns_0x00010_oldSample_3_10Files'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -83,6 +83,13 @@ filesPerPtBin = 10 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_Fu
 
 if filesNameLike == 'allPt' :
     for ptCode in range(31, 3, -1) :
+        if ptCode <= 7 :
+            filesPerPtBin = 10
+        elif ptCode <= 12 :
+            filesPerPtBin = 5
+        else :    
+            filesPerPtBin = 3
+            
         for sign in ['_m', '_p'] : #, m
             selFilesPerPtBin = 0
             for i in range(1, 201, 1): #TODO
@@ -96,7 +103,7 @@ if filesNameLike == 'allPt' :
                     break
                         
 else :
-    for i in range(1, filesPerPtBin+1, 1):
+    for i in range(1, 2, 1):
         for f in onlyfiles:
             if (( filesNameLike + '_' + str(i) + '_') in f):  #TODO for 721_FullEta_v4/
             #if (( filesNameLike + '_' + str(i) + '.') in f): #TODO for 9_3_14_FullEta_v2
@@ -120,41 +127,9 @@ process.source = cms.Source('PoolSource',
 fileNames = cms.untracked.vstring( 
     #'file:/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/SingleMu_16_p_1_1_xTE.root',
     #'file:/afs/cern.ch/user/k/kpijanow/Neutrino_Pt-2to20_gun_50.root',
-    list(chosenFiles),
-                                  ),
-# eventsToProcess = cms.untracked.VEventRange(
-#  '3:' + str(firstEv) + '-3:' +   str(firstEv + nEvents),
-#  '4:' + str(firstEv) + '-4:' +   str(firstEv + nEvents),
-#  '5:' + str(firstEv) + '-5:' +   str(firstEv + nEvents),
-#  '6:' + str(firstEv) + '-6:' +   str(firstEv + nEvents),
-#  '7:' + str(firstEv) + '-7:' +   str(firstEv + nEvents),
-#  '8:' + str(firstEv) + '-8:' +   str(firstEv + nEvents),
-#  '9:' + str(firstEv) + '-9:' +   str(firstEv + nEvents),
-# '10:' + str(firstEv) + '-10:' +  str(firstEv + nEvents),
-# '11:' + str(firstEv) + '-11:' +  str(firstEv + nEvents),
-# '12:' + str(firstEv) + '-12:' +  str(firstEv + nEvents),
-# '13:' + str(firstEv) + '-13:' +  str(firstEv + nEvents),
-# '14:' + str(firstEv) + '-14:' +  str(firstEv + nEvents),
-# '15:' + str(firstEv) + '-15:' +  str(firstEv + nEvents),
-# '16:' + str(firstEv) + '-16:' +  str(firstEv + nEvents),
-# '17:' + str(firstEv) + '-17:' +  str(firstEv + nEvents),
-# '18:' + str(firstEv) + '-18:' +  str(firstEv + nEvents),
-# '19:' + str(firstEv) + '-19:' +  str(firstEv + nEvents),
-# '20:' + str(firstEv) + '-20:' +  str(firstEv + nEvents),
-# '21:' + str(firstEv) + '-21:' +  str(firstEv + nEvents),
-# '22:' + str(firstEv) + '-22:' +  str(firstEv + nEvents),
-# '23:' + str(firstEv) + '-23:' +  str(firstEv + nEvents),
-# '24:' + str(firstEv) + '-24:' +  str(firstEv + nEvents),
-# '25:' + str(firstEv) + '-25:' +  str(firstEv + nEvents),
-# '26:' + str(firstEv) + '-26:' +  str(firstEv + nEvents),
-# '27:' + str(firstEv) + '-27:' +  str(firstEv + nEvents),
-# '28:' + str(firstEv) + '-28:' +  str(firstEv + nEvents),
-# '29:' + str(firstEv) + '-29:' +  str(firstEv + nEvents),
-# '30:' + str(firstEv) + '-30:' +  str(firstEv + nEvents),
-# '31:' + str(firstEv) + '-31:' +  str(firstEv + nEvents)),
-skipEvents =  cms.untracked.uint32(0),
-
-        inputCommands=cms.untracked.vstring(
+    list(chosenFiles), ),
+    skipEvents =  cms.untracked.uint32(0),
+    inputCommands=cms.untracked.vstring(
         'keep *',
         'drop l1tEMTFHit2016Extras_simEmtfDigis_CSC_HLT',
         'drop l1tEMTFHit2016Extras_simEmtfDigis_RPC_HLT',
@@ -169,6 +144,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 
 ####Event Setup Producer
 process.load('L1Trigger.L1TMuonOverlapPhase1.fakeOmtfParams_cff')
+#process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen.xml"),
+
 process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
    toGet = cms.VPSet(
       cms.PSet(record = cms.string('L1TMuonOverlapParamsRcd'),
@@ -186,16 +163,20 @@ process.simBayesOmtfDigis.dumpResultToXML = cms.bool(False)
 process.simBayesOmtfDigis.dumpResultToROOT = cms.bool(False)
 process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(False)
 
-process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
+process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/omtf/Patterns_template.xml")
+#process.simBayesOmtfDigis.patternsXMLFiles = cms.VPSet(cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_plus_v1.xml")),
+#                                                       cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_minus_v1.xml"))
+#)
+
 process.simBayesOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simBayesOmtfDigis.generatePatterns = cms.bool(True)
-process.simBayesOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x0007_oldSample_10Files.xml")
+process.simBayesOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x00010_oldSample_3_10Files.xml")
 
 process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
 process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(5) #TODO valid values are 0, 1, 2, 3, 5
+process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(3) #valid values are 0, 1, 2, 3, 5
 process.simBayesOmtfDigis.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
 
