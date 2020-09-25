@@ -151,6 +151,13 @@ public:
 
   void finalise6();
 
+  void finalise7();
+
+  void finalise8();
+
+  void finalise9();
+  //bool empty() const;
+
   friend std::ostream & operator << (std::ostream &out, const GoldenPatternResult & aResult);
 
   double getGpProbability1() const {
