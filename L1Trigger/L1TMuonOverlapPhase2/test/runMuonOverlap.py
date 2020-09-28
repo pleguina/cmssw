@@ -40,7 +40,25 @@ process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
 
 process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis1.root'), closeFileFast = cms.untracked.bool(True) )
 		
-process.load("L1Trigger.DTPhase2Trigger.dtTriggerPhase2PrimitiveDigis_cfi")		
+#Calibrate Digis
+process.load("Phase2L1Trigger.CalibratedDigis.CalibratedDigis_cfi")
+#process.CalibratedDigis.flat_calib = 325 #turn to 0 to use the DB  , 325 for JM and Jorge benchmark
+process.CalibratedDigis.dtDigiTag = "simMuonDTDigis" #turn to 0 to use the DB  , 325 for JM and Jorge benchmark
+process.CalibratedDigis.scenario = 0 # 0 for mc, 1 for data, 2 for slice test
+
+#DTTriggerPhase2
+process.load("L1Trigger.DTPhase2Trigger.dtTriggerPhase2PrimitiveDigis_cfi")
+#process.dtTriggerPhase2PrimitiveDigis.trigger_with_sl = 3  #4 means SL 1 and 3
+#for the moment the part working in phase2 format is the slice test
+#process.dtTriggerPhase2PrimitiveDigis.p2_df = True
+#process.dtTriggerPhase2PrimitiveDigis.filter_primos = True
+#for debugging
+#process.dtTriggerPhase2PrimitiveDigis.pinta = True
+#process.dtTriggerPhase2PrimitiveDigis.min_phinhits_match_segment = 4
+#process.dtTriggerPhase2PrimitiveDigis.debug = True
+process.dtTriggerPhase2PrimitiveDigis.scenario = 0
+process.dtTriggerPhase2PrimitiveDigis.dump = True
+	
 								
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonOverlapPhase2.simOmtfPhase2Digis_cfi')
@@ -52,6 +70,9 @@ process.simOmtfPhase2Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(False)
 
 process.simOmtfPhase2Digis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
+process.simOmtfPhase2Digis.dropDTPrimitives = cms.bool(True)
+process.simOmtfPhase2Digis.usePhase2DTPrimitives = cms.bool(True)
+
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
@@ -61,7 +82,8 @@ process.L1TMuonSeq = cms.Sequence( process.esProd
                                    #+ process.dumpES
 )
 
-process.L1TMuonPath = cms.Path(process.L1TMuonSeq)
+process.L1TMuonPath = cms.Path(process.CalibratedDigis * 
+							process.dtTriggerPhase2PrimitiveDigis * process.L1TMuonSeq)
 
 process.out = cms.OutputModule("PoolOutputModule", 
    fileName = cms.untracked.string("l1tomtf_superprimitives1.root")

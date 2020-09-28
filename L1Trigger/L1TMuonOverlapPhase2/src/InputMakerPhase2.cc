@@ -111,6 +111,7 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet, MuS
 	  if(edmParameterSet.getParameter<bool>("dropDTPrimitives") != true)
 	    throw cms::Exception("L1TMuonOverlapPhase2 InputMakerPhase2::InputMakerPhase2 usePhase2DTPrimitives is true, but dropDTPrimitives is not true");
 	    //if the Phase2DTPrimitives are used, then the phase1 DT primitives should be dropped
+	  edm::LogImportant("OMTFReconstruction") << " using Phase2 DT trigger primitives" << std::endl;
 	  digiToStubsConverters.emplace_back(std::make_unique<DtPhase2DigiToStubsConverterOmtf>(config, angleConverter.get(), inputTokenDTPhPhase2, muStubsInputTokens.inputTokenDtTh));
 	}
 }

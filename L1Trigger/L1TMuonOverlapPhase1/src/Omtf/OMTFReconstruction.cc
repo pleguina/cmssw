@@ -29,13 +29,13 @@
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 OMTFReconstruction::OMTFReconstruction(const edm::ParameterSet& theConfig, MuStubsInputTokens& muStubsInputTokens) :
-  edmParameterSet(theConfig), muStubsInputTokens(muStubsInputTokens), omtfConfig(new OMTFConfiguration()), omtfProc(nullptr), angleConv(new OmtfAngleConverter()), m_OMTFConfigMaker(nullptr) {
+  edmParameterSet(theConfig), muStubsInputTokens(muStubsInputTokens), omtfConfig(new OMTFConfiguration()), omtfProc(nullptr), m_OMTFConfigMaker(nullptr) {
 
   //edmParameterSet.getParameter<std::string>("XMLDumpFileName");
   bxMin = edmParameterSet.exists("bxMin") ? edmParameterSet.getParameter<int>("bxMin") : 0;
   bxMax = edmParameterSet.exists("bxMax") ? edmParameterSet.getParameter<int>("bxMax") : 0;
 
-  inputMaker = std::make_unique<OMTFinputMaker>(theConfig, muStubsInputTokens, omtfConfig.get(), angleConv.get());
+  inputMaker = std::make_unique<OMTFinputMaker>(theConfig, muStubsInputTokens, omtfConfig.get(), new OmtfAngleConverter());
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -102,7 +102,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
 
   //if the buildPatternsFromXml == false - we are making the omtfConfig and omtfProc for every run,
   //as the configuration my change between the runs,
-  //if buildPatternsFromXml == true - we assume the the entire configuration comes from python,
+  //if buildPatternsFromXml == true - we assume the the entire configuration comes from phyton,
   //so we do it only for the first run
   if(omtfProc == 0 || buildPatternsFromXml == false) {
     edm::LogImportant("OMTFReconstruction") << "retrieving omtfParams from EventSetup" << std::endl;
@@ -116,7 +116,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
     }
     omtfConfig->configure(omtfParams); //TODO remove, as the configureFromEdmParameterSet does the same
 
-    modifyOmtfConfig(); //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    modifyOmtfConfig(); //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< TODO remove it, as configureFromEdmParameterSet dpes the same
 
     //the parameters can be overwritten from the python config
     omtfConfig->configureFromEdmParameterSet(edmParameterSet);
