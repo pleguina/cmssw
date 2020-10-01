@@ -47,27 +47,15 @@ OMTFProcessor<GoldenPatternType>::~OMTFProcessor() {
 
 template <class GoldenPatternType>
 void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup) {
-  int sorterTypeFlag = 0;
-  if(edmCfg.exists("sorterType")) {
-    string sorterType = edmCfg.getParameter<std::string>("sorterType");
-    if(sorterType == "byNhitsByLLH") sorterTypeFlag = 0;
-    if(sorterType == "byLLH") sorterTypeFlag = 1;
-  }  
-  setSorter(new OMTFSorter<GoldenPatternType>(sorterTypeFlag)); //initialize with the default sorter
+  setSorter(new OMTFSorter<GoldenPatternType>(this->myOmtfConfig->getSorterType())); //initialize with the default sorter
   
-  if(edmCfg.exists("ghostBusterType") ) {
-    if(edmCfg.getParameter<std::string>("ghostBusterType") == "GhostBusterPreferRefDt") {
-      setGhostBuster(new GhostBusterPreferRefDt(this->myOmtfConfig));
-      edm::LogInfo("OMTFReconstruction")<<"setting GhostBusterPreferRefDt" <<std::endl;
-    }
-  }
-  else if (this->myOmtfConfig->fwVersion() >= 5) {
+  if (this->myOmtfConfig->getGhostBusterType() == "GhostBusterPreferRefDt" ) {
     setGhostBuster(new GhostBusterPreferRefDt(this->myOmtfConfig) );
-    edm::LogInfo("OMTFReconstruction")<<"setting GhostBusterPreferRefDt" <<std::endl;
+    edm::LogVerbatim("OMTFReconstruction")<<"setting GhostBusterPreferRefDt" <<std::endl;
   }
   else {
     setGhostBuster(new GhostBuster()); //initialize with the default sorter
-    edm::LogInfo("OMTFReconstruction")<<"setting GhostBuster" <<std::endl;
+    edm::LogVerbatim("OMTFReconstruction")<<"setting GhostBuster" <<std::endl;
   }
 }
 
@@ -373,7 +361,7 @@ run(unsigned int iProcessor, l1t::tftype mtfType, int bx, OMTFinputMaker* inputM
 
 template<class GoldenPatternType>
 void OMTFProcessor<GoldenPatternType>::printInfo() const {
-  edm::LogImportant("OMTFReconstruction")<<__PRETTY_FUNCTION__<<std::endl;
+  edm::LogVerbatim("OMTFReconstruction")<<__PRETTY_FUNCTION__<<std::endl;
 
   ProcessorBase<GoldenPatternType>::printInfo();
 }

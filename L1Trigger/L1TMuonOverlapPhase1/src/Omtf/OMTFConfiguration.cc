@@ -7,6 +7,7 @@
 #include "DataFormats/MuonDetId/interface/MuonSubdetId.h"
 #include "DataFormats/MuonDetId/interface/RPCDetId.h"
 #include "FWCore/Utilities/interface/Exception.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include <algorithm>
 #include <cmath>
@@ -180,14 +181,50 @@ void OMTFConfiguration::configure(const L1TMuonOverlapParams *omtfParams){
   }
   else if (fwVersion() == 5) {
     setMinDtPhiQuality(2);
+    setGhostBusterType("GhostBusterPreferRefDt");
   }
   else if (fwVersion() == 6) {
     setMinDtPhiQuality(2);
+    setGhostBusterType("GhostBusterPreferRefDt");
   }
 
   //if (fwVersion() <= 6) {
   //setGoldenPatternResultFinalizeFunction(0); //TODO add other if in the new algorithm it is changed
 }
+
+void OMTFConfiguration::configureFromEdmParameterSet(const edm::ParameterSet& edmParameterSet) {
+  edm::LogVerbatim("OMTFReconstruction") << "OMTFConfiguration::configureFromEdmParameterSet: " << std::endl;
+
+  ProcConfigurationBase::configureFromEdmParameterSet(edmParameterSet);
+
+  if(edmParameterSet.exists("goldenPatternResultFinalizeFunction")) {
+    int finalizeFunction = edmParameterSet.getParameter<int>("goldenPatternResultFinalizeFunction");
+    setGoldenPatternResultFinalizeFunction(finalizeFunction);
+    edm::LogVerbatim("OMTFReconstruction") << "GoldenPatternResult::setFinalizeFunction: "<<finalizeFunction << std::endl;
+  }
+
+  if(edmParameterSet.exists("noHitValueInPdf") ) {
+    setNoHitValueInPdf(edmParameterSet.getParameter<bool>("noHitValueInPdf"));
+    edm::LogVerbatim("OMTFReconstruction") << "noHitValueInPdf: "<<edmParameterSet.getParameter<bool>("noHitValueInPdf") << std::endl;
+  }
+
+  if(edmParameterSet.exists("sorterType")) {
+    string sorterTypeStr = edmParameterSet.getParameter<std::string>("sorterType");
+    if(sorterTypeStr == "byNhitsByLLH") sorterType = 0;
+    if(sorterTypeStr == "byLLH")        sorterType = 1;
+
+    edm::LogVerbatim("OMTFReconstruction") << "sorterType: "<<sorterType<<" = "<<edmParameterSet.getParameter<std::string>("sorterType") << std::endl;
+  }
+
+  if(edmParameterSet.exists("ghostBusterType") ) {
+    if(edmParameterSet.getParameter<std::string>("ghostBusterType") == "GhostBusterPreferRefDt") {
+      setGhostBusterType(edmParameterSet.getParameter<std::string>("ghostBusterType") );
+
+      edm::LogVerbatim("OMTFReconstruction")<<"setting GhostBusterPreferRefDt" <<std::endl;
+    }
+  }
+}
+
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 std::ostream & operator << (std::ostream &out, const OMTFConfiguration & aConfig){

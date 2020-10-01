@@ -39,8 +39,6 @@ class OMTFReconstruction {
 
     std::unique_ptr<l1t::RegionalMuonCandBxCollection> reconstruct(const edm::Event&, const edm::EventSetup&);
 
-    void virtual modifyOmtfConfig();
-
     //takes the ownership of the inputMaker
     void setInputMaker(OMTFinputMaker* inputMaker) {
       this->inputMaker.reset(inputMaker);

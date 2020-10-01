@@ -187,13 +187,13 @@ void ProcessorBase<GoldenPatternType>::initPatternPtRange(bool firstPatFrom0) {
     std::cout<<theGPs[iPat]->key()<<" ptFrom "<<patternPts[iPat].ptFrom<<" ptFrom "<<patternPts[iPat].ptTo<<std::endl;
   }*/
 
-  cout<<__FUNCTION__<<":"<<__LINE__<<" patternPts.size() "<<patternPts.size()<<endl;
+  edm::LogTrace_("OMTFReconstruction")<<__FUNCTION__<<":"<<__LINE__<<" patternPts.size() "<<patternPts.size()<<endl;
 }
 
 template <class GoldenPatternType>
 void ProcessorBase<GoldenPatternType>::printInfo() const {
   for(auto& gp : theGPs) {
-    edm::LogImportant("OMTFReconstruction")<<gp->key()<<" "
+    edm::LogVerbatim("OMTFReconstruction")<<gp->key()<<" "
         <<myOmtfConfig->getPatternPtRange(gp->key().theNumber).ptFrom
         <<" - "<<myOmtfConfig->getPatternPtRange(gp->key().theNumber).ptTo<<" GeV"<<std::endl;
   }

@@ -28,14 +28,13 @@
 #include <vector>
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-OMTFReconstruction::OMTFReconstruction(const edm::ParameterSet& theConfig, MuStubsInputTokens& muStubsInputTokens) :
-  edmParameterSet(theConfig), muStubsInputTokens(muStubsInputTokens), omtfConfig(new OMTFConfiguration()), omtfProc(nullptr), m_OMTFConfigMaker(nullptr) {
+OMTFReconstruction::OMTFReconstruction(const edm::ParameterSet& parameterSet, MuStubsInputTokens& muStubsInputTokens) :
+  edmParameterSet(parameterSet), muStubsInputTokens(muStubsInputTokens), omtfConfig(new OMTFConfiguration()), omtfProc(nullptr), m_OMTFConfigMaker(nullptr) {
 
   //edmParameterSet.getParameter<std::string>("XMLDumpFileName");
   bxMin = edmParameterSet.exists("bxMin") ? edmParameterSet.getParameter<int>("bxMin") : 0;
   bxMax = edmParameterSet.exists("bxMax") ? edmParameterSet.getParameter<int>("bxMax") : 0;
 
-  inputMaker = std::make_unique<OMTFinputMaker>(theConfig, muStubsInputTokens, omtfConfig.get(), new OmtfAngleConverter());
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -46,7 +45,7 @@ OMTFReconstruction::~OMTFReconstruction(){
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFReconstruction::beginJob() {
-
+  inputMaker = std::make_unique<OMTFinputMaker>(edmParameterSet, muStubsInputTokens, omtfConfig.get(), new OmtfAngleConverter());
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
@@ -56,36 +55,6 @@ void OMTFReconstruction::endJob(){
   }
 }
 
-void OMTFReconstruction::modifyOmtfConfig() {
-  if(edmParameterSet.exists("rpcMaxClusterSize") )
-    omtfConfig->setRpcMaxClusterSize(edmParameterSet.getParameter<int>("rpcMaxClusterSize"));
-
-  if(edmParameterSet.exists("rpcMaxClusterCnt") )
-    omtfConfig->setRpcMaxClusterCnt(edmParameterSet.getParameter<int>("rpcMaxClusterCnt"));
-
-  if(edmParameterSet.exists("rpcDropAllClustersIfMoreThanMax") )
-    omtfConfig->setRpcDropAllClustersIfMoreThanMax(edmParameterSet.getParameter<bool>("rpcDropAllClustersIfMoreThanMax"));
-
-  if(edmParameterSet.exists("lctCentralBx")) {
-    int lctCentralBx  = edmParameterSet.getParameter<int>("lctCentralBx");
-    omtfConfig->setCscLctCentralBx(lctCentralBx);
-  }
-
-  if(edmParameterSet.exists("goldenPatternResultFinalizeFunction")) {
-    int finalizeFunction = edmParameterSet.getParameter<int>("goldenPatternResultFinalizeFunction");
-    omtfConfig->setGoldenPatternResultFinalizeFunction(finalizeFunction);
-    edm::LogImportant("OMTFReconstruction") << "GoldenPatternResult::setFinalizeFunction: "<<finalizeFunction << std::endl;
-  }
-
-  if(edmParameterSet.exists("noHitValueInPdf") )
-    omtfConfig->setNoHitValueInPdf(edmParameterSet.getParameter<bool>("noHitValueInPdf"));
-
-  if(edmParameterSet.exists("minDtPhiQuality") )
-    omtfConfig->setMinDtPhiQuality(edmParameterSet.getParameter<int>("minDtPhiQuality"));
-
-  if(edmParameterSet.exists("minDtPhiBQuality") )
-    omtfConfig->setMinDtPhiBQuality(edmParameterSet.getParameter<int>("minDtPhiBQuality"));
-}
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& eventSetup) {
@@ -114,9 +83,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
     if (!omtfParams) {
       edm::LogError("OMTFReconstruction") << "Could not retrieve parameters from Event Setup" << std::endl;
     }
-    omtfConfig->configure(omtfParams); //TODO remove, as the configureFromEdmParameterSet does the same
-
-    modifyOmtfConfig(); //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< TODO remove it, as configureFromEdmParameterSet dpes the same
+    omtfConfig->configure(omtfParams);
 
     //the parameters can be overwritten from the python config
     omtfConfig->configureFromEdmParameterSet(edmParameterSet);
@@ -153,7 +120,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
       patternType = edmParameterSet.getParameter<std::string>("patternType");
     }
 
-    std::cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;
+    //std::cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;
     if(patternType == "GoldenPattern") {
       auto gps = xmlReader.readPatterns<GoldenPattern>(*omtfParams, patternsXMLFiles);
 

@@ -256,6 +256,11 @@ class OMTFConfiguration: public ProcConfigurationBase {
     return mergedPatterns;
   }
 
+  /**configuration from the edm::ParameterSet
+   * the parameters are set (i.e. overwritten) only if their exist in the edmParameterSet
+   */
+  virtual void configureFromEdmParameterSet(const edm::ParameterSet& edmParameterSet);
+
   int getGoldenPatternResultFinalizeFunction() const {
     return goldenPatternResultFinalizeFunction;
   }
@@ -272,6 +277,22 @@ class OMTFConfiguration: public ProcConfigurationBase {
 
   void setNoHitValueInPdf(bool noHitValueInPdf = false) {
     this->noHitValueInPdf = noHitValueInPdf;
+  }
+
+  int getSorterType() const {
+    return sorterType;
+  }
+
+  void setSorterType(int sorterType = 0) {
+    this->sorterType = sorterType;
+  }
+
+  const std::string& getGhostBusterType() const {
+    return ghostBusterType;
+  }
+
+  void setGhostBusterType(const std::string &ghostBusterType = "") {
+    this->ghostBusterType = ghostBusterType;
   }
 
  private:
@@ -330,6 +351,10 @@ class OMTFConfiguration: public ProcConfigurationBase {
   int goldenPatternResultFinalizeFunction = 0;
 
   bool noHitValueInPdf = false;
+
+  int sorterType = 0;
+
+  std::string ghostBusterType = "";
 };
 
 

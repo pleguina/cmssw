@@ -29,7 +29,7 @@ public:
 
   ProcessorBase(OMTFConfiguration* omtfConfig, const GoldenPatternVec& gps): myOmtfConfig(omtfConfig)  {
     setGPs(gps);
-    initPatternPtRange(true);
+    //initPatternPtRange(true); is called in the setGPs
     omtfConfig->setPatternPtRange( getPatternPtRange() );
   };
 
