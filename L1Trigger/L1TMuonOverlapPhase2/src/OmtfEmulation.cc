@@ -9,13 +9,17 @@
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/InputMakerPhase2.h"
 
 OmtfEmulation::OmtfEmulation(const edm::ParameterSet& edmParameterSet, MuStubsInputTokens& muStubsInputTokens, edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2):
-OMTFReconstruction(edmParameterSet, muStubsInputTokens)
+OMTFReconstruction(edmParameterSet, muStubsInputTokens), inputTokenDTPhPhase2(inputTokenDTPhPhase2)
 {
-  inputMaker.reset(new InputMakerPhase2(edmParameterSet, muStubsInputTokens, inputTokenDTPhPhase2, omtfConfig.get(), new OmtfPhase2AngleConverter() )); //TODO add Phase2Dt token
+
 }
 
 OmtfEmulation::~OmtfEmulation() {
-	// TODO Auto-generated destructor stub
+
+}
+
+void OmtfEmulation::beginJob() {
+  inputMaker.reset(new InputMakerPhase2(edmParameterSet, muStubsInputTokens, inputTokenDTPhPhase2, omtfConfig.get(), new OmtfPhase2AngleConverter() ));
 }
 
 void OmtfEmulation::addObservers() {

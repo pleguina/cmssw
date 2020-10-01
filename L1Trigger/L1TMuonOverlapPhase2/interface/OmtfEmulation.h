@@ -17,9 +17,13 @@ class OmtfEmulation: public OMTFReconstruction {
 public:
 	OmtfEmulation(const edm::ParameterSet& edmParameterSet, MuStubsInputTokens& muStubsInputTokens, edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2);
 
+    void beginJob();
+
 	virtual ~OmtfEmulation();
 
 	void addObservers();
+private:
+	edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2;
 };
 
 #endif /* L1TMUONOVERLAPPHASE1_OMTFEMULATION_H_ */

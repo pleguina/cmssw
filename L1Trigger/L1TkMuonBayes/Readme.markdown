@@ -29,8 +29,5 @@ The emulator needs two files with the data for the LUTs:
 
 The HSCP triggering can be turned on or off with the paramater 'useStubsFromAdditionalBxs'. E.g. if it is set to 3, then the muon stubs (DT, CSC, RPC, iRPC) from the BX = 0, 1, 2, 3 are matched to the ttTrack, which allow to find the HSCP with beta down to ~0.2-0.3. If it is 0, then only the muon stubs from the BX=0 are used. 
 
-#### L1TMuonBayesOmtfTrackProducer
-**L1TMuonBayesOmtfTrackProducer** is the emulator of the OMTF (Overlap Muon Track Finder) trigger - at the moment it works exactly the same as the current OMTF emulator (L1Trigger/L1TMuonOverlap), but it is used to develop the new features for the phase 2. The corresponding classes are in L1TMuonBayes/interface/Omtf.  
-**The OMTF emulator in L1TMuonBayesOmtfTrackProducer is in development phase, and should be used only by the OMTF experts**.
 
 
