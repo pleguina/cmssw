@@ -29,7 +29,7 @@ DataROOTDumper2::DataROOTDumper2(const edm::ParameterSet& edmCfg, const OMTFConf
     const std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName):
 PatternOptimizerBase(edmCfg, omtfConfig), gps(gps), event(omtfConfig->nTestRefHits(), gps.size())
 {
-  edm::LogVerbatim("l1tMuBayesEventPrint")<<" gps.size() "<<gps.size()<<" omtfConfig->nTestRefHits() "<<omtfConfig->nTestRefHits()<<" event.omtfGpResultsPdfSum.num_elements() "<<event.omtfGpResultsPdfSum.num_elements()<<endl;
+  edm::LogVerbatim("l1tOmtfEventPrint")<<" gps.size() "<<gps.size()<<" omtfConfig->nTestRefHits() "<<omtfConfig->nTestRefHits()<<" event.omtfGpResultsPdfSum.num_elements() "<<event.omtfGpResultsPdfSum.num_elements()<<endl;
   initializeTTree(rootFileName);
 
   if(false) {//TODO!!!!!!!!!!!!
@@ -43,7 +43,7 @@ PatternOptimizerBase(edmCfg, omtfConfig), gps(gps), event(omtfConfig->nTestRefHi
 
     //const PdfModule* pdfModuleImpl = dynamic_cast<const PdfModule*>(pdfModule);
     // write class instance to archive
-    edm::LogImportant("l1tMuBayesEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" writing gpResultsToPt to file "<<fileName<<std::endl;
+    edm::LogImportant("l1tOmtfEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" writing gpResultsToPt to file "<<fileName<<std::endl;
     inArch >> *gpResultsToPt;
   }
 }
@@ -87,7 +87,7 @@ void DataROOTDumper2::initializeTTree(std::string rootFileName) {
     elementCnt = event.omtfGpResultsPdfSum.num_elements();
     rootTree->Branch("omtfGpResultsFiredLayers", event.omtfGpResultsFiredLayers.data(), ("omtfGpResultsFiredLayers[" + to_string(elementCnt) + "]/F").c_str());
 
-    edm::LogVerbatim("l1tMuBayesEventPrint")<<" dumpGpResults "<<" omtfGpResultsFiredLayers elementCnt "<<elementCnt<<std::endl;
+    edm::LogVerbatim("l1tOmtfEventPrint")<<" dumpGpResults "<<" omtfGpResultsFiredLayers elementCnt "<<elementCnt<<std::endl;
 
     //rootTree->GetUserInfo()->Add(new TParameter<unsigned int>("elementCnt", elementCnt));
     rootTree->GetUserInfo()->Add(new TObjString( ("elementCnt:" + to_string(elementCnt)).c_str()));
@@ -158,7 +158,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<
     //int pdfMiddle = 1<<(omtfConfig->nPdfAddrBits()-1);
 
 /*
-    edm::LogVerbatim("l1tMuBayesEventPrint")<<"DataROOTDumper2:;observeEventEnd muonPt "<<event.muonPt<<" muonCharge "<<event.muonCharge
+    edm::LogVerbatim("l1tOmtfEventPrint")<<"DataROOTDumper2:;observeEventEnd muonPt "<<event.muonPt<<" muonCharge "<<event.muonCharge
         <<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer<<" omtfPtCont "<<event.omtfPtCont
         <<std::endl;
 */
@@ -192,14 +192,14 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<
         //phiDist = hitPhi - phiRefHit;
         hit.phiDist = hitPhi - phiRefHit;
 
-       /* edm::LogVerbatim("l1tMuBayesEventPrint")<<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
+       /* edm::LogVerbatim("l1tOmtfEventPrint")<<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
             <<" layer "<<int(hit.layer)<<" PdfBin "<<stubResult.getPdfBin()<<" hit.phiDist "<<hit.phiDist<<" valid "<<stubResult.getValid()<<" " //<<" phiDist "<<phiDist
             <<" getDistPhiBitShift "<<omtfCand->getGoldenPatern()->getDistPhiBitShift(iLogicLayer, omtfCand->getRefLayer())
             <<" meanDistPhiValue   "<<omtfCand->getGoldenPatern()->meanDistPhiValue(iLogicLayer, omtfCand->getRefLayer())//<<(phiDist != hit.phiDist? "!!!!!!!<<<<<" : "")
             <<endl;*/
 
         if(hit.phiDist > 504 || hit.phiDist < -512 ) {
-          edm::LogVerbatim("l1tMuBayesEventPrint")<<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
+          edm::LogVerbatim("l1tOmtfEventPrint")<<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
               <<" layer "<<int(hit.layer)<<" hit.phiDist "<<hit.phiDist<<" valid "<<stubResult.getValid()<<" !!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
         }
 
@@ -216,7 +216,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<
     }
 
     /*if( (int)event.hits.size() != omtfCand->getQ()) {
-      edm::LogVerbatim("l1tMuBayesEventPrint")<<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
+      edm::LogVerbatim("l1tOmtfEventPrint")<<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
                     <<" hits.size "<<event.hits.size()<<" omtfCand->getQ "<<omtfCand->getQ()<<" !!!!!!!!!!!!!!!!!!aaa!!!!!!"<<endl;
     }*/
 
@@ -246,5 +246,5 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<
 }
 
 void DataROOTDumper2::endJob() {
-  edm::LogVerbatim("l1tMuBayesEventPrint")<<" evntCnt "<<evntCnt<<endl;
+  edm::LogVerbatim("l1tOmtfEventPrint")<<" evntCnt "<<evntCnt<<endl;
 }

@@ -5,8 +5,8 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#ifndef MUONBAYES_PROCCONFIGURATIONBASE_H_
-#define MUONBAYES_PROCCONFIGURATIONBASE_H_
+#ifndef MUONOVERLAP_PROCCONFIGURATIONBASE_H_
+#define MUONOVERLAP_PROCCONFIGURATIONBASE_H_
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 class ProcConfigurationBase {

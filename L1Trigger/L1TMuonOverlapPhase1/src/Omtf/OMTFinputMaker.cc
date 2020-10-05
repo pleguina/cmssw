@@ -23,7 +23,7 @@ void DtDigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
 {
   DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum()+1);
 
-  //LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" OMTFinputMaker "<<" detid "<<detid<<endl;
+  //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" OMTFinputMaker "<<" detid "<<detid<<endl;
   ///Check Trigger primitive quality
   ///Ts2Tag() == 0 - take only first track from DT Trigger Server
   ///BxCnt()  == 0 - ??
@@ -188,7 +188,7 @@ void RpcDigiToStubsConverterOmtf::addRPCstub(MuonStubPtrs2D& muonStubsInLayers, 
       //<<" out: " << outres
       <<std::endl;
 
-  LogTrace("l1tMuBayesEventPrint")<<str.str();
+  LogTrace("l1tOmtfEventPrint")<<str.str();
 }
 
 bool RpcDigiToStubsConverterOmtf::acceptDigi(const RPCDetId& rpcDetId, unsigned int iProcessor, l1t::tftype procType) {
@@ -383,7 +383,7 @@ int OMTFinputMaker::getProcessorPhiZero(const OMTFConfiguration* config, unsigne
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 void OMTFinputMaker::addStub(const OMTFConfiguration* config, MuonStubPtrs2D& muonStubsInLayers, unsigned int iLayer, unsigned int iInput, MuonStub& stub) {
-  LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iInput "<<iInput<<" "<<stub<<endl;
+  LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iInput "<<iInput<<" "<<stub<<endl;
   //in principle it is possible that in the DAQ data the digis are duplicated,
   //since the same link is connected to two OMTF boards
   //in principle this dupliactes should be already reoomved in the OMTF uncpacer, but just in case...

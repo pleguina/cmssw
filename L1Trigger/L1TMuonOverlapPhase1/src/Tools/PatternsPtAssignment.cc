@@ -57,7 +57,7 @@ void PatternsPtAssignment::endJob() {
 
   //const PdfModule* pdfModuleImpl = dynamic_cast<const PdfModule*>(pdfModule);
   // write class instance to archive
-  edm::LogImportant("l1tMuBayesEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" writing gpResultsToPt to file "<<fileName<<std::endl;
+  edm::LogImportant("l1tOmtfEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" writing gpResultsToPt to file "<<fileName<<std::endl;
   outArch << *gpResultsToPt;
   //outArch << gpResultsToPt->getGpResultsToPtLuts();
 

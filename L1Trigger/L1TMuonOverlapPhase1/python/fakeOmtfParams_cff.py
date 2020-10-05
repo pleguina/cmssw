@@ -9,7 +9,7 @@ omtfParamsSource = cms.ESSource(
 
 ###OMTF ESProducer. Fills CondFormats from XML files.
 omtfParams = cms.ESProducer(
-    "L1TMuonBayesOmtfParamsESProducer",
+    "L1TMuonOverlapPhase1ParamsESProducer",
     patternsXMLFiles = cms.VPSet(
         cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")),
     ),

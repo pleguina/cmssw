@@ -19,7 +19,7 @@ if verbose:
                                                #'cerr',
                                                'omtfEventPrint'
                     ),
-       categories        = cms.untracked.vstring('l1tMuBayesEventPrint', 'OMTFReconstruction'),
+       categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
                          filename  = cms.untracked.string('log_MuonOverlap_nn'),
                          extension = cms.untracked.string('.txt'),                
@@ -27,10 +27,10 @@ if verbose:
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
                          #INFO   =  cms.untracked.int32(0),
                          #DEBUG   = cms.untracked.int32(0),
-                         l1tMuBayesEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) ),
+                         l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) ),
                          OMTFReconstruction = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) )
                        ),
-       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'OmtfTTAnalyzer', 'simBayesOmtfDigis', 'omtfTTAnalyzer', 'simBayesMuCorrelatorTrackProducer') 
+       debugModules = cms.untracked.vstring('OmtfTTAnalyzer', 'simOmtfPhase1Digis') 
        #debugModules = cms.untracked.vstring('*')
     )
 
@@ -107,33 +107,33 @@ print "analysisType=" + analysisType
 process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v45' + analysisType + '.root'), closeFileFast = cms.untracked.bool(True) )
                                    
 ####OMTF Emulator
-process.load('L1Trigger.L1TMuonOverlapPhase1.simBayesOmtfDigis_cfi')
+process.load('L1Trigger.L1TMuonOverlapPhase1.simOmtfPhase1Digis_cfi')
 
-process.simBayesOmtfDigis.dumpResultToXML = cms.bool(False)
-process.simBayesOmtfDigis.dumpResultToROOT = cms.bool(False)
-process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(False)
+process.simOmtfPhase1Digis.dumpResultToXML = cms.bool(False)
+process.simOmtfPhase1Digis.dumpResultToROOT = cms.bool(False)
+process.simOmtfPhase1Digis.eventCaptureDebug = cms.bool(False)
 
-process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
+process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
 
-process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
-process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
-process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
+process.simOmtfPhase1Digis.rpcMaxClusterSize = cms.int32(3)
+process.simOmtfPhase1Digis.rpcMaxClusterCnt = cms.int32(2)
+process.simOmtfPhase1Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(0) #valid values are 0, 1, 2, 3, 5
+process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(0) #valid values are 0, 1, 2, 3, 5
 
-process.simBayesOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+process.simOmtfPhase1Digis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
 #nn_pThresholds = [0.36, 0.38, 0.40, 0.42, 0.44, 0.46, 0.48, 0.50, 0.52, 0.54 ]
 #nn_pThresholds = [0.40, 0.50] 
 nn_pThresholds = [0.35, 0.40, 0.45, 0.50, 0.55] 
  
-process.simBayesOmtfDigis.neuralNetworkFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/omtfClassifier_withPtBins_v34.txt")
-process.simBayesOmtfDigis.ptCalibrationFileName = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PtCalibration_v34.root")
+process.simOmtfPhase1Digis.neuralNetworkFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/omtfClassifier_withPtBins_v34.txt")
+process.simOmtfPhase1Digis.ptCalibrationFileName = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PtCalibration_v34.root")
 
-process.simBayesOmtfDigis.nn_pThresholds = cms.vdouble(nn_pThresholds)
+process.simOmtfPhase1Digis.nn_pThresholds = cms.vdouble(nn_pThresholds)
 
 
-#process.simBayesOmtfDigis.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+#process.simOmtfPhase1Digis.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
 
 #process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
@@ -144,7 +144,7 @@ process.simBayesOmtfDigis.nn_pThresholds = cms.vdouble(nn_pThresholds)
 process.L1MuonAnalyzerOmtf= cms.EDAnalyzer("L1MuonAnalyzerOmtf", 
                                  etaCutFrom = cms.double(0.82), #OMTF eta range
                                  etaCutTo = cms.double(1.24),
-                                 L1OMTFInputTag  = cms.InputTag("simBayesOmtfDigis","OMTF"),
+                                 L1OMTFInputTag  = cms.InputTag("simOmtfPhase1Digis","OMTF"),
                                  nn_pThresholds = cms.vdouble(nn_pThresholds), 
                                  analysisType = cms.string(analysisType)
                                         )
@@ -152,7 +152,7 @@ process.l1MuonAnalyzerOmtfPath = cms.Path(process.L1MuonAnalyzerOmtf)
 
 
 process.L1TMuonSeq = cms.Sequence( process.esProd          
-                                   + process.simBayesOmtfDigis 
+                                   + process.simOmtfPhase1Digis 
                                    #+ process.dumpED
                                    #+ process.dumpES
 )

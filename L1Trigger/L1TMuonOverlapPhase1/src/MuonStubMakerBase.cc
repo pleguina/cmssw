@@ -86,7 +86,7 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsig
  //    if(roll.region() != 0  &&  abs(roll.station()) >= 3 && roll.ring() == 1 ) {
  //      //iRPC
  //      for (auto pDigi=rollDigis.second.first; pDigi != rollDigis.second.second; pDigi++) {
- //        LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" roll "<<roll
+ //        LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" roll "<<roll
  //            <<" strip "<<pDigi->strip()
  //            <<" hasX "<<pDigi->hasX()<<" coordinateX "<<pDigi->coordinateX()<<" hasY "<<pDigi->hasY()<<" coordinateY "<<pDigi->coordinateY()
  //            <<" bx "<<pDigi->bx()<<" time "<<pDigi->time()<<" irpc"<<std::endl;
@@ -110,7 +110,7 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsig
      std::vector<RpcCluster> clusters = rpcClusterization->getClusters(roll, digisCopy);
 
      for (auto & cluster: clusters) {
-       //LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<155<<" roll "<<roll<<" cluster: firstStrip "<<cluster.firstStrip<<" lastStrip "<<cluster.lastStrip<<" halfStrip "<<cluster.halfStrip()<<std::endl;
+       //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<155<<" roll "<<roll<<" cluster: firstStrip "<<cluster.firstStrip<<" lastStrip "<<cluster.lastStrip<<" halfStrip "<<cluster.halfStrip()<<std::endl;
        addRPCstub(muonStubsInLayers, roll, cluster, iProcessor, procTyp);
      }
    }
@@ -145,7 +145,7 @@ void MuonStubMakerBase::loadAndFilterDigis(const edm::Event& event) {
 
 void MuonStubMakerBase::buildInputForProcessor(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor,
     l1t::tftype procTyp, int bxFrom, int bxTo) {
-  LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<" preocType "<<procTyp<<std::endl;
+  LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<" preocType "<<procTyp<<std::endl;
 
   for(auto& digiToStubsConverter: digiToStubsConverters)
     digiToStubsConverter->makeStubs(muonStubsInLayers, iProcessor, procTyp, bxFrom, bxTo);

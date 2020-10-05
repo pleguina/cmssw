@@ -1,5 +1,5 @@
-#ifndef L1TMUONBAYES_MUONSTUBMAKERBASE_H
-#define L1TMUONBAYES_MUONSTUBMAKERBASE_H
+#ifndef L1TMUONOVERLAP_MUONSTUBMAKERBASE_H
+#define L1TMUONOVERLAP_MUONSTUBMAKERBASE_H
 
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigiCollection.h"

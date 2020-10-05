@@ -192,7 +192,7 @@ void OMTFReconstruction::addObservers() {
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 std::unique_ptr<l1t::RegionalMuonCandBxCollection> OMTFReconstruction::reconstruct(const edm::Event& iEvent, const edm::EventSetup& evSetup) {
-  LogTrace("l1tMuBayesEventPrint")<<"\n"<<__FUNCTION__<<":"<<__LINE__<<" iEvent "<<iEvent.id().event()<<endl;
+  LogTrace("l1tOmtfEventPrint")<<"\n"<<__FUNCTION__<<":"<<__LINE__<<" iEvent "<<iEvent.id().event()<<endl;
   inputMaker->loadAndFilterDigis(iEvent);
   
   for(auto& obs : observers) {

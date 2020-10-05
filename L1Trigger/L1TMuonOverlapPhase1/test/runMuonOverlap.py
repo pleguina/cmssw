@@ -16,17 +16,17 @@ process.MessageLogger = cms.Service("MessageLogger",
                                                #'cerr',
                                                # 'omtfEventPrint'
                     ),
-        categories=cms.untracked.vstring('l1tMuBayesEventPrint', 'OMTFReconstruction'), #, 'FwkReport'
+        categories=cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'), #, 'FwkReport'
         cout=cms.untracked.PSet(
                          threshold=cms.untracked.string('INFO'),
                          default=cms.untracked.PSet(limit=cms.untracked.int32(0)),
                          # INFO   =  cms.untracked.int32(0),
                          # DEBUG   = cms.untracked.int32(0),
-                         l1tMuBayesEventPrint=cms.untracked.PSet(limit=cms.untracked.int32(1000000000)),
+                         l1tOmtfEventPrint=cms.untracked.PSet(limit=cms.untracked.int32(1000000000)),
                          OMTFReconstruction=cms.untracked.PSet(limit=cms.untracked.int32(1000000000)),
                          #FwkReport=cms.untracked.PSet(reportEvery = cms.untracked.int32(50) ),
                        ), 
-       debugModules=cms.untracked.vstring('simBayesOmtfDigis') 
+       debugModules=cms.untracked.vstring('simOmtfPhase1Digis') 
        # debugModules = cms.untracked.vstring('*')
     )
 
@@ -66,26 +66,26 @@ process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
 #process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis1.root'), closeFileFast = cms.untracked.bool(True) )
 								
 ####OMTF Emulator
-process.load('L1Trigger.L1TMuonOverlapPhase1.simBayesOmtfDigis_cfi')
+process.load('L1Trigger.L1TMuonOverlapPhase1.simOmtfPhase1Digis_cfi')
 
-process.simBayesOmtfDigis.dumpResultToXML = cms.bool(True)
-process.simBayesOmtfDigis.dumpResultToROOT = cms.bool(False)
-process.simBayesOmtfDigis.eventCaptureDebug = cms.bool(False)
+process.simOmtfPhase1Digis.dumpResultToXML = cms.bool(True)
+process.simOmtfPhase1Digis.dumpResultToROOT = cms.bool(False)
+process.simOmtfPhase1Digis.eventCaptureDebug = cms.bool(False)
 
-process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
-process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
-process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(False)
+process.simOmtfPhase1Digis.rpcMaxClusterSize = cms.int32(3)
+process.simOmtfPhase1Digis.rpcMaxClusterCnt = cms.int32(2)
+process.simOmtfPhase1Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(False)
 
-#process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(6) #valid values are 0, 1, 2, 3, 5, 6, but for other then 0 the candidates quality assignemnt must be updated
+#process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(6) #valid values are 0, 1, 2, 3, 5, 6, but for other then 0 the candidates quality assignemnt must be updated
 
-process.simBayesOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+process.simOmtfPhase1Digis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
 
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
 process.L1TMuonSeq = cms.Sequence( process.esProd          
-                                   + process.simBayesOmtfDigis 
+                                   + process.simOmtfPhase1Digis 
                                    #+ process.dumpED
                                    #+ process.dumpES
 )

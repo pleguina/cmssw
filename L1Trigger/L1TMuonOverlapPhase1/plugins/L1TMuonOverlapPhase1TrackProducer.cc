@@ -1,5 +1,4 @@
-#include "L1Trigger/L1TMuonOverlapPhase1/plugins/L1TMuonBayesOmtfTrackProducer.h"
-
+#include <L1Trigger/L1TMuonOverlapPhase1/plugins/L1TMuonOverlapPhase1TrackProducer.h>
 #include "FWCore/Framework/interface/EDConsumerBase.h"
 #include "FWCore/Framework/interface/ProductRegistryHelper.h"
 #include "FWCore/PluginManager/interface/PluginFactory.h"
@@ -10,7 +9,7 @@
 #include <iostream>
 #include <memory>
 
-L1TMuonBayesOmtfTrackProducer::L1TMuonBayesOmtfTrackProducer(const edm::ParameterSet& edmParameterSet) :
+L1TMuonOverlapPhase1TrackProducer::L1TMuonOverlapPhase1TrackProducer(const edm::ParameterSet& edmParameterSet) :
   muStubsInputTokens(
     {
       consumes<L1MuDTChambPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPh")),
@@ -26,31 +25,31 @@ L1TMuonBayesOmtfTrackProducer::L1TMuonBayesOmtfTrackProducer(const edm::Paramete
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-L1TMuonBayesOmtfTrackProducer::~L1TMuonBayesOmtfTrackProducer(){
+L1TMuonOverlapPhase1TrackProducer::~L1TMuonOverlapPhase1TrackProducer(){
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonBayesOmtfTrackProducer::beginJob(){
+void L1TMuonOverlapPhase1TrackProducer::beginJob(){
 
   m_Reconstruction.beginJob();
 
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonBayesOmtfTrackProducer::endJob(){
+void L1TMuonOverlapPhase1TrackProducer::endJob(){
 
   m_Reconstruction.endJob();
 
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonBayesOmtfTrackProducer::beginRun(edm::Run const& run, edm::EventSetup const& iSetup){
+void L1TMuonOverlapPhase1TrackProducer::beginRun(edm::Run const& run, edm::EventSetup const& iSetup){
 
   m_Reconstruction.beginRun(run, iSetup);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonBayesOmtfTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup){
+void L1TMuonOverlapPhase1TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup){
 
   std::ostringstream str;
   
@@ -61,4 +60,4 @@ void L1TMuonBayesOmtfTrackProducer::produce(edm::Event& iEvent, const edm::Event
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 #include "FWCore/Framework/interface/MakerMacros.h"
-DEFINE_FWK_MODULE(L1TMuonBayesOmtfTrackProducer);
+DEFINE_FWK_MODULE(L1TMuonOverlapPhase1TrackProducer);

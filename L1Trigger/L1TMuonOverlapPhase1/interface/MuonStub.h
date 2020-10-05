@@ -7,8 +7,8 @@
  *      MuonStub - data structure for algorithm input
  */
 
-#ifndef MUONBAYES_MUONSTUB_H_
-#define MUONBAYES_MUONSTUB_H_
+#ifndef MUONOVERLAP_MUONSTUB_H_
+#define MUONOVERLAP_MUONSTUB_H_
 
 #include <vector>
 #include <memory>
@@ -87,4 +87,4 @@ typedef std::shared_ptr<const MuonStub> MuonStubPtr;
 typedef std::vector<MuonStubPtr> MuonStubPtrs1D;
 typedef std::vector<MuonStubPtrs1D> MuonStubPtrs2D;
 
-#endif /* INTERFACE_MUONBAYES_MUONSTUB_H_ */
+#endif /* MUONOVERLAP_MUONSTUB_H_ */

@@ -12,10 +12,10 @@
 
 class L1TMuonOverlapParams;
 
-class L1MuonBayesOmtfParamsDBProducer : public edm::EDAnalyzer {
+class L1MuonOverlapPhase1ParamsDBProducer : public edm::EDAnalyzer {
 public:
-  L1MuonBayesOmtfParamsDBProducer(const edm::ParameterSet & cfg);
-  ~L1MuonBayesOmtfParamsDBProducer() override{}
+  L1MuonOverlapPhase1ParamsDBProducer(const edm::ParameterSet & cfg);
+  ~L1MuonOverlapPhase1ParamsDBProducer() override{}
   void beginJob() override{};
   void beginRun(const edm::Run&,  const edm::EventSetup& es) override;
   void analyze(const edm::Event&, const edm::EventSetup& es) override;

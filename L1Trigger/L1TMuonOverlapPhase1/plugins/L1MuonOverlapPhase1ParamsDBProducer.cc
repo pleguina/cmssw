@@ -1,5 +1,4 @@
-#include "L1Trigger/L1TMuonOverlapPhase1/plugins/L1MuonBayesOmtfParamsDBProducer.h"
-
+#include <L1Trigger/L1TMuonOverlapPhase1/plugins/L1MuonOverlapPhase1ParamsDBProducer.h>
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "CondFormats/DataRecord/interface/L1TMuonOverlapParamsRcd.h"
@@ -7,10 +6,10 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CondCore/DBOutputService/interface/PoolDBOutputService.h"
 
-L1MuonBayesOmtfParamsDBProducer::L1MuonBayesOmtfParamsDBProducer(const edm::ParameterSet & cfg){ }
+L1MuonOverlapPhase1ParamsDBProducer::L1MuonOverlapPhase1ParamsDBProducer(const edm::ParameterSet & cfg){ }
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
-void L1MuonBayesOmtfParamsDBProducer::beginRun(edm::Run const& run, edm::EventSetup const& iSetup){
+void L1MuonOverlapPhase1ParamsDBProducer::beginRun(edm::Run const& run, edm::EventSetup const& iSetup){
 
   const L1TMuonOverlapParamsRcd& omtfParamsRcd = iSetup.get<L1TMuonOverlapParamsRcd>();
   
@@ -25,7 +24,7 @@ void L1MuonBayesOmtfParamsDBProducer::beginRun(edm::Run const& run, edm::EventSe
 }
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
-void L1MuonBayesOmtfParamsDBProducer::analyze(const edm::Event& ev, const edm::EventSetup& es){
+void L1MuonOverlapPhase1ParamsDBProducer::analyze(const edm::Event& ev, const edm::EventSetup& es){
 
   std::string recordName = "L1TMuonOverlapParamsRcd";
   edm::Service<cond::service::PoolDBOutputService> poolDbService;
@@ -36,4 +35,4 @@ void L1MuonBayesOmtfParamsDBProducer::analyze(const edm::Event& ev, const edm::E
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 #include "FWCore/Framework/interface/MakerMacros.h"
-DEFINE_FWK_MODULE(L1MuonBayesOmtfParamsDBProducer);
+DEFINE_FWK_MODULE(L1MuonOverlapPhase1ParamsDBProducer);

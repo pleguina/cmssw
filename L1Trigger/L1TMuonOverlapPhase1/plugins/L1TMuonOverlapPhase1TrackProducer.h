@@ -22,11 +22,11 @@
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 
 
-class L1TMuonBayesOmtfTrackProducer : public edm::EDProducer {
+class L1TMuonOverlapPhase1TrackProducer : public edm::EDProducer {
  public:
-  L1TMuonBayesOmtfTrackProducer(const edm::ParameterSet&);
+  L1TMuonOverlapPhase1TrackProducer(const edm::ParameterSet&);
 
-  ~L1TMuonBayesOmtfTrackProducer() override;
+  ~L1TMuonOverlapPhase1TrackProducer() override;
 
   void beginJob() override;
 

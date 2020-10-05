@@ -1,4 +1,4 @@
-#include "L1Trigger/L1TMuonOverlapPhase1/plugins/L1TMuonBayesOmtfParamsESProducer.h"
+#include <L1Trigger/L1TMuonOverlapPhase1/plugins/L1TMuonOverlapPhase1ParamsESProducer.h>
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
 #include "CondFormats/DataRecord/interface/L1TMuonOverlapParamsRcd.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h"
@@ -13,10 +13,10 @@
 
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
-L1TMuonBayesOmtfParamsESProducer::L1TMuonBayesOmtfParamsESProducer(const edm::ParameterSet& theConfig){
+L1TMuonOverlapPhase1ParamsESProducer::L1TMuonOverlapPhase1ParamsESProducer(const edm::ParameterSet& theConfig){
    //the following line is needed to tell the framework what
    // data is being produced
-  setWhatProduced(this, &L1TMuonBayesOmtfParamsESProducer::produceParams);
+  setWhatProduced(this, &L1TMuonOverlapPhase1ParamsESProducer::produceParams);
   
   if (!theConfig.exists("configXMLFile") ) return;
   std::string fName = theConfig.getParameter<edm::FileInPath>("configXMLFile").fullPath();
@@ -42,10 +42,10 @@ L1TMuonBayesOmtfParamsESProducer::L1TMuonBayesOmtfParamsESProducer(const edm::Pa
 }
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
-L1TMuonBayesOmtfParamsESProducer::~L1TMuonBayesOmtfParamsESProducer() {}
+L1TMuonOverlapPhase1ParamsESProducer::~L1TMuonOverlapPhase1ParamsESProducer() {}
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
-bool L1TMuonBayesOmtfParamsESProducer::readConnectionsXML(const XMLConfigReader & aReader){
+bool L1TMuonOverlapPhase1ParamsESProducer::readConnectionsXML(const XMLConfigReader & aReader){
   
   aReader.readConfig(&params);
   
@@ -53,7 +53,7 @@ bool L1TMuonBayesOmtfParamsESProducer::readConnectionsXML(const XMLConfigReader 
 }
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
-bool L1TMuonBayesOmtfParamsESProducer::readPatternsXML(XMLConfigReader & aReader){
+bool L1TMuonOverlapPhase1ParamsESProducer::readPatternsXML(XMLConfigReader & aReader){
 
   l1t::LUT chargeLUT;
   l1t::LUT etaLUT;
@@ -75,8 +75,8 @@ bool L1TMuonBayesOmtfParamsESProducer::readPatternsXML(XMLConfigReader & aReader
 }
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
-L1TMuonBayesOmtfParamsESProducer::ReturnType
-L1TMuonBayesOmtfParamsESProducer::produceParams(const L1TMuonOverlapParamsRcd& iRecord)
+L1TMuonOverlapPhase1ParamsESProducer::ReturnType
+L1TMuonOverlapPhase1ParamsESProducer::produceParams(const L1TMuonOverlapParamsRcd& iRecord)
 {
    using namespace edm::es;
   
@@ -85,5 +85,5 @@ L1TMuonBayesOmtfParamsESProducer::produceParams(const L1TMuonOverlapParamsRcd& i
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 #include "FWCore/Framework/interface/MakerMacros.h"
-DEFINE_FWK_EVENTSETUP_MODULE(L1TMuonBayesOmtfParamsESProducer);
+DEFINE_FWK_EVENTSETUP_MODULE(L1TMuonOverlapPhase1ParamsESProducer);
 

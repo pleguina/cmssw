@@ -13,7 +13,7 @@
 PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps):
   PatternOptimizerBase(edmCfg, omtfConfig, gps), eventCntPerGp(gps.size(), 0)
 {
-  edm::LogImportant("l1tMuBayesEventPrint") << "constructing PatternGenerator " << std::endl;
+  edm::LogImportant("l1tOmtfEventPrint") << "constructing PatternGenerator " << std::endl;
 
 //TODO uncomment when needed
 /*  //adding new patterns!!!!!!!!!!!!
@@ -58,7 +58,7 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg, const OMTFCo
   }
 
   //GoldenPatternResult::setFinalizeFunction(3); TODO why it was this one????
- // edm::LogImportant("l1tMuBayesEventPrint") << "reseting golden pattern !!!!!" << std::endl;
+ // edm::LogImportant("l1tOmtfEventPrint") << "reseting golden pattern !!!!!" << std::endl;
 
   //setting all pdf to 1, this will cause that the when the OmtfProcessor process the input, the result will be based only on the number of fired layers,
   //and then the omtfCand will come from the processor that has the biggest number of fired layers
@@ -119,7 +119,7 @@ void PatternGenerator::updateStat() {
   //cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCand "<<*omtfCand<<std::endl;;
   AlgoMuon* algoMuon = omtfCand.get();
   if(!algoMuon) {
-    edm::LogImportant("l1tMuBayesEventPrint")<<":"<<__LINE__<<" algoMuon is null"<<std::endl;
+    edm::LogImportant("l1tOmtfEventPrint")<<":"<<__LINE__<<" algoMuon is null"<<std::endl;
     throw runtime_error("algoMuon is null");
   }
 
@@ -131,7 +131,7 @@ void PatternGenerator::updateStat() {
 
   eventCntPerGp[exptPatNum]++;
 
-  //edm::LogImportant("l1tMuBayesEventPrint")<<"\n" <<__FUNCTION__<<": "<<__LINE__<<" exptCandGp "<<exptCandGp->key()<<" candProcIndx "<<candProcIndx<<" ptSim "<<ptSim<<" chargeSim "<<chargeSim<<std::endl;
+  //edm::LogImportant("l1tOmtfEventPrint")<<"\n" <<__FUNCTION__<<": "<<__LINE__<<" exptCandGp "<<exptCandGp->key()<<" candProcIndx "<<candProcIndx<<" ptSim "<<ptSim<<" chargeSim "<<chargeSim<<std::endl;
 
   unsigned int iCharge = omtfCand->getCharge();
   if(iCharge != 1)
@@ -175,10 +175,10 @@ void PatternGenerator::updateStat() {
 
           phiDist += exptCandGp->getStatistics()[iLayer][refLayer].size()/2;
 
-          //edm::LogImportant("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" refLayer "<<refLayer<<" iLayer "<<iLayer<<" phiDist "<<phiDist<<" getPdfBin "<<gpResult.getStubResults()[iLayer].getPdfBin()<<std::endl;
+          //edm::LogImportant("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" refLayer "<<refLayer<<" iLayer "<<iLayer<<" phiDist "<<phiDist<<" getPdfBin "<<gpResult.getStubResults()[iLayer].getPdfBin()<<std::endl;
           if( phiDist > 0 && phiDist < (int)(exptCandGp->getStatistics()[iLayer][refLayer].size()) ) {
             //updating statistic for the gp which found the candidate
-            //edm::LogImportant("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" updating statistic "<<std::endl;
+            //edm::LogImportant("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" updating statistic "<<std::endl;
             exptCandGp->updateStat(iLayer, refLayer, phiDist, 0, 1);
           }
         }
@@ -252,7 +252,7 @@ void PatternGenerator::upadatePdfs() {
     if(gp->key().thePt == 0)
       continue;
 
-    edm::LogImportant("l1tMuBayesEventPrint") << "PatternGenerator::upadatePdfs() Calculating meanDistPhi "<<gp->key()<<" eventCnt "<<eventCntPerGp[gp->key().number()] << std::endl;
+    edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::upadatePdfs() Calculating meanDistPhi "<<gp->key()<<" eventCnt "<<eventCntPerGp[gp->key().number()] << std::endl;
     int minHitCnt = 0.001 * eventCntPerGp[gp->key().number()];// //TODO tune threshold <<<<<<<<<<<<<<<<<<
     for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
       for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
@@ -275,7 +275,7 @@ void PatternGenerator::upadatePdfs() {
             if(count < minHitCnt)
               meanDistPhi = 0;
             else
-              edm::LogImportant("l1tMuBayesEventPrint") <<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" count "<<count<<" meanDistPhi "<<meanDistPhi<<endl;
+              edm::LogImportant("l1tOmtfEventPrint") <<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" count "<<count<<" meanDistPhi "<<meanDistPhi<<endl;
           }
           gp->setMeanDistPhiValue(round(meanDistPhi), iLayer, iRefLayer);
         }
@@ -284,13 +284,13 @@ void PatternGenerator::upadatePdfs() {
   }
 
   OMTFConfiguration::vector2D patternGroups = omtfConfig->getPatternGroups(goldenPatterns);
-  edm::LogImportant("l1tMuBayesEventPrint") <<"patternGroups:"<<std::endl;
+  edm::LogImportant("l1tOmtfEventPrint") <<"patternGroups:"<<std::endl;
   for(unsigned int iGroup = 0; iGroup < patternGroups.size(); iGroup++) {
-    edm::LogImportant("l1tMuBayesEventPrint") <<"patternGroup "<<std::setw(2)<<iGroup<<" ";
+    edm::LogImportant("l1tOmtfEventPrint") <<"patternGroup "<<std::setw(2)<<iGroup<<" ";
     for(unsigned int i = 0; i < patternGroups[iGroup].size(); i++) {
-      edm::LogImportant("l1tMuBayesEventPrint")<<i<<" patNum "<<patternGroups[iGroup][i]<<" ";
+      edm::LogImportant("l1tOmtfEventPrint")<<i<<" patNum "<<patternGroups[iGroup][i]<<" ";
     }
-    edm::LogImportant("l1tMuBayesEventPrint")<<std::endl;
+    edm::LogImportant("l1tOmtfEventPrint")<<std::endl;
   }
 
 //averaging the meanDistPhi for the gp belonging to the same group
@@ -314,7 +314,7 @@ void PatternGenerator::upadatePdfs() {
             for(unsigned int i = 0; i < patternGroups[iGroup].size(); i++) {
               auto gp = goldenPatterns.at(patternGroups[iGroup][i]).get();
               gp->setMeanDistPhiValue(round(meanDistPhi), iLayer, iRefLayer);
-              edm::LogImportant("l1tMuBayesEventPrint") <<__FUNCTION__<<": "<<__LINE__<<" iGroup "<<iGroup<<" numInGroup "<<i<<" "<<gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" meanDistPhi after averaging "<<meanDistPhi<<endl;
+              edm::LogImportant("l1tOmtfEventPrint") <<__FUNCTION__<<": "<<__LINE__<<" iGroup "<<iGroup<<" numInGroup "<<i<<" "<<gp->key()<<" iLayer "<<iLayer<<" iRefLayer "<<iRefLayer<<" meanDistPhi after averaging "<<meanDistPhi<<endl;
             }
           }
         }
@@ -367,7 +367,7 @@ void PatternGenerator::upadatePdfs() {
               if(norm > 0) {
                 pdfVal = gp->getStatistics()[iLayer][iRefLayer][iBinStat][0] / norm;
               }
-              edm::LogImportant("l1tMuBayesEventPrint") <<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<"calculating pdf: iLayer "<<iLayer<<" iRefLayer "<<iRefLayer
+              edm::LogImportant("l1tOmtfEventPrint") <<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<"calculating pdf: iLayer "<<iLayer<<" iRefLayer "<<iRefLayer
                   <<" norm "<<std::setw(5)<<norm<<" no hits cnt "<<std::setw(5)<<gp->getStatistics()[iLayer][iRefLayer][iBinStat][0]<<" pdfVal "<<pdfVal<<endl;
 
             }

@@ -21,7 +21,7 @@
 EventCapture::EventCapture(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig): omtfConfig(omtfConfig),
 inputInProcs(omtfConfig->processorCnt()), algoMuonsInProcs(omtfConfig->processorCnt() ), gbCandidatesInProcs(omtfConfig->processorCnt() )
 {
-  //LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" omtfConfig->nProcessors() "<<omtfConfig->nProcessors()<<std::endl;
+  //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" omtfConfig->nProcessors() "<<omtfConfig->nProcessors()<<std::endl;
   if(edmCfg.exists("g4SimTrackSrc") )
     simTrackInputTag = edmCfg.getParameter<edm::InputTag>("g4SimTrackSrc");
   else
@@ -127,11 +127,11 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t
 
   ///printing
 
-  edm::LogVerbatim("l1tMuBayesEventPrint")<<"##################### EventCapture::observeEventEnd - dump of event "<<iEvent.id()<<" #####################################################"<<std::endl;
+  edm::LogVerbatim("l1tOmtfEventPrint")<<"##################### EventCapture::observeEventEnd - dump of event "<<iEvent.id()<<" #####################################################"<<std::endl;
 
-  edm::LogVerbatim("l1tMuBayesEventPrint")<<ostr.str()<<endl; //printing sim muons
+  edm::LogVerbatim("l1tOmtfEventPrint")<<ostr.str()<<endl; //printing sim muons
 
-  edm::LogVerbatim("l1tMuBayesEventPrint")<<"finalCandidates "<<std::endl;
+  edm::LogVerbatim("l1tOmtfEventPrint")<<"finalCandidates "<<std::endl;
   for(auto& finalCandidate : *finalCandidates) {
     int globHwPhi = (finalCandidate.processor()) * 96 + finalCandidate.hwPhi();
     // first processor starts at CMS phi = 15 degrees (24 in int)... Handle wrap-around with %. Add 576 to make sure the number is positive
@@ -144,7 +144,7 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t
     int layerHits = (int)finalCandidate.trackAddress().at(0);
     std::bitset<18> layerHitBits(layerHits);
 
-    edm::LogVerbatim("l1tMuBayesEventPrint")
+    edm::LogVerbatim("l1tOmtfEventPrint")
     <<" hwPt "<<finalCandidate.hwPt()<<" hwSign "<<finalCandidate.hwSign()<<" hwQual "<<finalCandidate.hwQual()<<" hwEta "<<std::setw(4)<<finalCandidate.hwEta()<<std::setw(4)<<" hwPhi "<<finalCandidate.hwPhi()
     <<"    eta "<<std::setw(9)<< (finalCandidate.hwEta()*0.010875)
     <<" phi "<<std::setw(9)<<globalPhi
@@ -152,10 +152,10 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t
 
     for(auto& trackAddr : finalCandidate.trackAddress()) {
       if(trackAddr.first >= 10)
-        edm::LogVerbatim("l1tMuBayesEventPrint")<<"trackAddr first "<<trackAddr.first<<" second "<<trackAddr.second<<" ptGeV "<<omtfConfig->hwPtToGev(trackAddr.second);
+        edm::LogVerbatim("l1tOmtfEventPrint")<<"trackAddr first "<<trackAddr.first<<" second "<<trackAddr.second<<" ptGeV "<<omtfConfig->hwPtToGev(trackAddr.second);
     }
   }
-  edm::LogVerbatim("l1tMuBayesEventPrint")<<std::endl;
+  edm::LogVerbatim("l1tOmtfEventPrint")<<std::endl;
 
   for(unsigned int iProc = 0; iProc < inputInProcs.size(); iProc++) {
     OmtfName board(iProc);
@@ -178,33 +178,33 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t
       }
 
       if(layersWithStubs != 0) {
-        edm::LogVerbatim("l1tMuBayesEventPrint")<<"\niProcessor "<<iProc<<" "<<board.name()<<" **************************************************"<<std::endl;
-        edm::LogVerbatim("l1tMuBayesEventPrint")<<ostrInput.str()<<std::endl;
+        edm::LogVerbatim("l1tOmtfEventPrint")<<"\niProcessor "<<iProc<<" "<<board.name()<<" **************************************************"<<std::endl;
+        edm::LogVerbatim("l1tOmtfEventPrint")<<ostrInput.str()<<std::endl;
       }
 
       if(layersWithStubs < 2)
         continue;
 
-      edm::LogVerbatim("l1tMuBayesEventPrint")<<*inputInProcs[iProc]<<std::endl;
+      edm::LogVerbatim("l1tOmtfEventPrint")<<*inputInProcs[iProc]<<std::endl;
 
-      edm::LogVerbatim("l1tMuBayesEventPrint")<<"algoMuons "<<std::endl;
+      edm::LogVerbatim("l1tOmtfEventPrint")<<"algoMuons "<<std::endl;
       for(auto& algoMuon : algoMuonsInProcs[iProc]) {
         if(algoMuon->isValid()) {
-          edm::LogVerbatim("l1tMuBayesEventPrint")<<board.name()<<" "<<*algoMuon<<std::endl;
-          edm::LogVerbatim("l1tMuBayesEventPrint")<<algoMuon->getGpResult()<<std::endl<<std::endl;
+          edm::LogVerbatim("l1tOmtfEventPrint")<<board.name()<<" "<<*algoMuon<<std::endl;
+          edm::LogVerbatim("l1tOmtfEventPrint")<<algoMuon->getGpResult()<<std::endl<<std::endl;
         }
       }
 
-      edm::LogVerbatim("l1tMuBayesEventPrint")<<"gbCandidates "<<std::endl;
+      edm::LogVerbatim("l1tOmtfEventPrint")<<"gbCandidates "<<std::endl;
       for(auto& gbCandidate: gbCandidatesInProcs[iProc])
         if(gbCandidate->isValid() )
-          edm::LogVerbatim("l1tMuBayesEventPrint")<<board.name()<<" "<<*gbCandidate<<std::endl;
+          edm::LogVerbatim("l1tOmtfEventPrint")<<board.name()<<" "<<*gbCandidate<<std::endl;
 
-      edm::LogVerbatim("l1tMuBayesEventPrint")<<std::endl;
+      edm::LogVerbatim("l1tOmtfEventPrint")<<std::endl;
     }
   }
 
-  edm::LogVerbatim("l1tMuBayesEventPrint")<<std::endl;
+  edm::LogVerbatim("l1tOmtfEventPrint")<<std::endl;
 }
 
 void EventCapture::endJob() {

@@ -11,11 +11,11 @@
 
 #include <memory>
 
-class L1TMuonBayesOmtfParamsESProducer : public edm::ESProducer {
+class L1TMuonOverlapPhase1ParamsESProducer : public edm::ESProducer {
    public:
   
-      L1TMuonBayesOmtfParamsESProducer(const edm::ParameterSet&);
-      ~L1TMuonBayesOmtfParamsESProducer() override;
+      L1TMuonOverlapPhase1ParamsESProducer(const edm::ParameterSet&);
+      ~L1TMuonOverlapPhase1ParamsESProducer() override;
 
       typedef std::shared_ptr<L1TMuonOverlapParams> ReturnType;
 

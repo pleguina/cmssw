@@ -55,7 +55,7 @@ bool ProcessorBase<GoldenPatternType>::configure(OMTFConfiguration* omtfConfig,
       continue;
     }
 
-    edm::LogInfo("OMTFReconstruction")<<"adding pattern "<<aKey<<" "<<std::endl; //<<myOmtfConfig->getPatternPtRange(iGP).ptFrom<<" - "<<myOmtfConfig->getPatternPtRange(iGP).ptTo<<" GeV"<<std::endl; PatternPtRange is not initialized here yet!!!!
+    LogTrace("OMTFReconstruction")<<"adding pattern "<<aKey<<" "<<std::endl; //<<myOmtfConfig->getPatternPtRange(iGP).ptFrom<<" - "<<myOmtfConfig->getPatternPtRange(iGP).ptTo<<" GeV"<<std::endl; PatternPtRange is not initialized here yet!!!!
 
     GoldenPatternType* aGP = new GoldenPatternType(aKey, myOmtfConfig);
 

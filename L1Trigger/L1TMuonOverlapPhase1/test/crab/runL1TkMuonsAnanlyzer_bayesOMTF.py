@@ -19,16 +19,16 @@ if verbose:
                                                #'cerr',
                                                'muCorrelatorEventPrint'
                     ),
-       categories        = cms.untracked.vstring('l1tMuBayesEventPrint'),
+       categories        = cms.untracked.vstring('l1tOmtfEventPrint'),
        muCorrelatorEventPrint = cms.untracked.PSet(    
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
                          #INFO   =  cms.untracked.int32(0),
                          #DEBUG   = cms.untracked.int32(0),
-                         l1tMuBayesEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(100000000) )
+                         l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(100000000) )
                        ),
-       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'OmtfTTAnalyzer', 'simBayesOmtfDigis', 'omtfTTAnalyzer', 'simBayesMuCorrelatorTrackProducer') 
+       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'OmtfTTAnalyzer', 'simOmtfPhase1Digis', 'omtfTTAnalyzer', 'simBayesMuCorrelatorTrackProducer') 
        #debugModules = cms.untracked.vstring('*')
     )
 
@@ -187,17 +187,17 @@ process.simBayesMuCorrelatorTrackProducer.useStubsFromAdditionalBxs = cms.int32(
 #process.simBayesMuCorrelatorTrackProducer.bxRangeMax = cms.int32(3)
 
 ####OMTF Emulator
-process.load('L1Trigger.L1TMuonBayes.simBayesOmtfDigis_cfi')
+process.load('L1Trigger.L1TMuonBayes.simOmtfPhase1Digis_cfi')
 
-process.simBayesOmtfDigis.dumpResultToXML = cms.bool(False)
-process.simBayesOmtfDigis.dumpResultToROOT = cms.bool(False)
+process.simOmtfPhase1Digis.dumpResultToXML = cms.bool(False)
+process.simOmtfPhase1Digis.dumpResultToROOT = cms.bool(False)
 
-process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
-process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
-process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
+process.simOmtfPhase1Digis.rpcMaxClusterSize = cms.int32(3)
+process.simOmtfPhase1Digis.rpcMaxClusterCnt = cms.int32(2)
+process.simOmtfPhase1Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
 from L1Trigger.L1TTrackMatch.L1TkMuonProducer_cfi import L1TkMuons
-process.L1TkMuons.L1OMTFInputTag  = cms.InputTag("simBayesOmtfDigis","OMTF")
+process.L1TkMuons.L1OMTFInputTag  = cms.InputTag("simOmtfPhase1Digis","OMTF")
 process.L1TkMuons.L1BMTFInputTag  = cms.InputTag("simBmtfDigis","BMTF")
 
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
@@ -205,7 +205,7 @@ process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
 process.L1TMuonSeq = cms.Sequence( #process.esProd +         
                                    #process.simBayesMuCorrelatorTrackProducer + 
-                                   process.simBayesOmtfDigis
+                                   process.simOmtfPhase1Digis
                                    + process.L1TkMuons
                                    #+ process.dumpED
                                    #+ process.dumpES
@@ -255,7 +255,7 @@ process.omtfTTAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer",
                                        MCTruthStubInputTag = cms.InputTag("TTStubAssociatorFromPixelDigis", "StubAccepted"),
                                        TrackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                        TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
-                                       L1OMTFInputTag  = cms.InputTag("simBayesOmtfDigis","OMTF"),
+                                       L1OMTFInputTag  = cms.InputTag("simOmtfPhase1Digis","OMTF"),
                                        muCandQualityCut = cms.int32(12),
                                        analysisType = cms.string(analysisType)
                                         )

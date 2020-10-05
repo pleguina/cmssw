@@ -57,7 +57,7 @@ higerGps(gps.size(), nullptr)
 
 
   for(unsigned int iGP = 0; iGP < gps.size(); iGP++) {
-    //LogTrace("l1tMuBayesEventPrint") << " "<<gps.at(iGP)->key()<<" lower "<<lowerGps[iGP]->key() <<" higher "<<higerGps[iGP]->key()<< std::endl;
+    //LogTrace("l1tOmtfEventPrint") << " "<<gps.at(iGP)->key()<<" lower "<<lowerGps[iGP]->key() <<" higher "<<higerGps[iGP]->key()<< std::endl;
   }
 }
 
@@ -89,7 +89,7 @@ higerGps(gps.size(), nullptr)
   }
 
   for(unsigned int iGP = 0; iGP < gps.size(); iGP++) {
-    LogTrace("l1tMuBayesEventPrint") << " "<<gps.at(iGP)->key()<<" lower "<<lowerGps[iGP]->key() <<" higher "<<higerGps[iGP]->key()<< std::endl;
+    LogTrace("l1tOmtfEventPrint") << " "<<gps.at(iGP)->key()<<" lower "<<lowerGps[iGP]->key() <<" higher "<<higerGps[iGP]->key()<< std::endl;
   }
 }
 
@@ -109,7 +109,7 @@ unsigned int GpResultsToPt::lutAddres(AlgoMuons::value_type& algoMuon, unsigned 
 
   unsigned int addressL = 0;
   unsigned int addressR = 0;
-  LogTrace("l1tMuBayesEventPrint") << " iGP "<<iGP<<" candProcIndx "<<candProcIndx<<" iRefHit " <<" "<<iRefHit
+  LogTrace("l1tOmtfEventPrint") << " iGP "<<iGP<<" candProcIndx "<<candProcIndx<<" iRefHit " <<" "<<iRefHit
       <<" - lowerGps pdfSum "<<lowerGps[iGP]->getResults()[candProcIndx][iRefHit].getPdfSum()<<" "<< lowerGps[iGP]->getResults()[candProcIndx][iRefHit].getFiredLayerCnt()
       <<" - algoMuon pdfSum "<<algoMuon->getGoldenPatern()->getResults()[candProcIndx][iRefHit].getPdfSum()<<" "<< algoMuon->getGoldenPatern()->getResults()[candProcIndx][iRefHit].getFiredLayerCnt()
       <<" - higerGps pdfSum "<<higerGps[iGP]->getResults()[candProcIndx][iRefHit].getPdfSum()<<" "<< higerGps[iGP]->getResults()[candProcIndx][iRefHit].getFiredLayerCnt();
@@ -129,7 +129,7 @@ unsigned int GpResultsToPt::lutAddres(AlgoMuons::value_type& algoMuon, unsigned 
   unsigned int lutSizeBits = log2(lutSize);
   unsigned int address = ((addressL<<lutSizeBits/2) | addressR);
 
-  LogTrace("l1tMuBayesEventPrint") << " addressL "<<addressL<<" addressR "<<addressR<<" address "<<address<<std::endl;
+  LogTrace("l1tOmtfEventPrint") << " addressL "<<addressL<<" addressR "<<addressR<<" address "<<address<<std::endl;
 
   return address;
 }
@@ -146,7 +146,7 @@ void GpResultsToPt::updateStat(AlgoMuons::value_type& algoMuon, unsigned int& ca
   auto gp = algoMuon->getGoldenPatern();
   unsigned int iGP = gp->key().number();
 
-  LogTrace("l1tMuBayesEventPrint") << " ptSim "<<ptSim<<" chargeSim "<<chargeSim<<" "
+  LogTrace("l1tOmtfEventPrint") << " ptSim "<<ptSim<<" chargeSim "<<chargeSim<<" "
       <<algoMuon->getGoldenPatern()->key()
       <<" ptFrom "<<omtfConfig->getPatternPtRange(lowerGps[iGP]->key().number()).ptFrom
       <<" ptTo "<<omtfConfig->getPatternPtRange(higerGps[iGP]->key().number()).ptTo;
@@ -156,10 +156,10 @@ void GpResultsToPt::updateStat(AlgoMuons::value_type& algoMuon, unsigned int& ca
     gpResultsStatLuts.at(algoMuon->getGoldenPatern()->key().number()).at(lutAdd) += ptSim;
               entries.at(algoMuon->getGoldenPatern()->key().number()).at(lutAdd) += 1; //TODO add weight if needed
 
-    LogTrace("l1tMuBayesEventPrint") <<" +++++ ";
+    LogTrace("l1tOmtfEventPrint") <<" +++++ ";
   }
 
-  LogTrace("l1tMuBayesEventPrint") <<"\n"<<std::endl;
+  LogTrace("l1tOmtfEventPrint") <<"\n"<<std::endl;
 
   ptGenInPats.at(iGP)->Fill(ptSim * chargeSim);
 }
