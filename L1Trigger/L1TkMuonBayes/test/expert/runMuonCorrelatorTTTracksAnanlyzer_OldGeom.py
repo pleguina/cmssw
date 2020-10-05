@@ -19,14 +19,14 @@ if verbose:
                                                #'cerr',
                                                'muCorrelatorEventPrint_oldGeom'
                     ),
-       categories        = cms.untracked.vstring('l1tMuBayesEventPrint'),
+       categories        = cms.untracked.vstring('l1tOmtfEventPrint'),
        muCorrelatorEventPrint_oldGeom = cms.untracked.PSet(    
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
                          #INFO   =  cms.untracked.int32(0),
                          #DEBUG   = cms.untracked.int32(0),
-                         l1tMuBayesEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(100000000) )
+                         l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(100000000) )
                        ),
        debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'OmtfTTAnalyzer', 'simOmtfDigis', 'omtfTTAnalyzer', 'simBayesMuCorrelatorTrackProducer') 
        #debugModules = cms.untracked.vstring('*')

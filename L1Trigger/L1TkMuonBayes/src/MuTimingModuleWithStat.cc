@@ -24,7 +24,7 @@ timigVs1_BetaHists(config->nLayers()) {
         }*/
         std::ostringstream name;
         name<<"timingHist_layer_"<<iLayer<<"_roll_"<<iRoll<<"_eta_"<<iEtaBin;
-        //LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" creating timigVs1_BetaHists "<<name.str()<<std::endl;
+        //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" creating timigVs1_BetaHists "<<name.str()<<std::endl;
         TH2I* hist = subDir.make<TH2I>(name.str(). c_str(), name.str(). c_str(), 50, -10, 90, betaBins, -0.5, betaBins -0.5);
         hist->GetXaxis()->SetTitle("hit timing [ns]");
         hist->GetYaxis()->SetTitle("(1/beta-1) * 4 + 1");
@@ -42,14 +42,14 @@ MuTimingModuleWithStat::~MuTimingModuleWithStat() {
 
 void MuTimingModuleWithStat::process(AlgoMuonBase* algoMuon) {
   if(algoMuon->getSimBeta() == 0) {
-    LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" algoMuon->getSimBeta() == 0 "<<std::endl;
+    LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" algoMuon->getSimBeta() == 0 "<<std::endl;
     return;
   }
 
   betaDist->Fill(algoMuon->getSimBeta());
 
   unsigned int one_beta = betaTo1_betaBin(algoMuon->getSimBeta() );
-  LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" algoMuon SimBeta "<<algoMuon->getSimBeta()<<" one_beta "<<one_beta<<std::endl;
+  LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" algoMuon SimBeta "<<algoMuon->getSimBeta()<<" one_beta "<<one_beta<<std::endl;
 
   for(auto& stubResult : algoMuon->getStubResults() ) {
     if(!stubResult.getValid())
@@ -61,7 +61,7 @@ void MuTimingModuleWithStat::process(AlgoMuonBase* algoMuon) {
 
     int hitTiming = stubResult.getMuonStub()->timing;
 
-    LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" layer "<<layer
+    LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" layer "<<layer
         <<" algoMuon eta "<<algoMuon->getEtaHw()<<" MuonStub eta "<<stubResult.getMuonStub()->etaHw<<"  etaSigma "<<stubResult.getMuonStub()->etaSigmaHw
         <<" etaBin "<<etaBin<<" hitTiming "<<stubResult.getMuonStub()->timing<<std::endl;
 
@@ -88,7 +88,7 @@ void MuTimingModuleWithStat::generateCoefficients() {
 
         //timigVs1_BetaHist->Sumw2();
         if(timigVs1_BetaHist->Integral() <= 0) {
-          //LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" iLayer "<<iLayer<<" iRoll "<<iRoll<<" iEtaBin "<<iEtaBin<<" - no entries, coefficients not calculated"<<std::endl;
+          //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" iLayer "<<iLayer<<" iRoll "<<iRoll<<" iEtaBin "<<iEtaBin<<" - no entries, coefficients not calculated"<<std::endl;
           continue;
         }
 
@@ -102,7 +102,7 @@ void MuTimingModuleWithStat::generateCoefficients() {
 
           //timingHistInBetaBin->Sumw2();
           if(timingHistInBetaBin->Integral() <= 0) {
-            edm::LogVerbatim("l1tMuBayesEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" iLayer "<<iLayer<<" iEtaBin "<<iEtaBin<<" iBetaBin "<<iBetaBin<<" - no entries, coefficients not calculated"<<std::endl;
+            edm::LogVerbatim("l1tOmtfEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" iLayer "<<iLayer<<" iEtaBin "<<iEtaBin<<" iBetaBin "<<iBetaBin<<" - no entries, coefficients not calculated"<<std::endl;
             continue;
           }
 
@@ -130,7 +130,7 @@ void MuTimingModuleWithStat::generateCoefficients() {
             if(timigTo1_Beta.at(iLayer).at(iRoll).at(iEtaBin).at(timingBin).at(iBetaBin) > pdfMaxLogVal)
               timigTo1_Beta.at(iLayer).at(iRoll).at(iEtaBin).at(timingBin).at(iBetaBin) = pdfMaxLogVal; //should be not needed if the above is corrected
 
-            edm::LogVerbatim("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" layer "<<iLayer<<" roll "<<iRoll<<" etaBin "<<iEtaBin<<" iBetaBin "<<iBetaBin
+            edm::LogVerbatim("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" layer "<<iLayer<<" roll "<<iRoll<<" etaBin "<<iEtaBin<<" iBetaBin "<<iBetaBin
                 <<" iTimingHistBin "<<iTimingHistBin<<" iTimingBin "<<timingBin<<" timing "<<timing<<" logPdf "<<logPdf<<std::endl;
           }
 
@@ -151,7 +151,7 @@ void MuTimingModuleWithStat::generateCoefficients() {
 
         timigVs1_BetaHist->Sumw2();
         if(timigVs1_BetaHist->Integral() <= 0) {
-          //LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" iLayer "<<iLayer<<" iRoll "<<iRoll<<" iEtaBin "<<iEtaBin<<" - no entries, coefficients not calculated"<<std::endl;
+          //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" iLayer "<<iLayer<<" iRoll "<<iRoll<<" iEtaBin "<<iEtaBin<<" - no entries, coefficients not calculated"<<std::endl;
           continue;
         }
 
@@ -173,7 +173,7 @@ void MuTimingModuleWithStat::generateCoefficients() {
           }
           unsigned int hitTimingBin = timingToTimingBin(timing);
           timigTo1_Beta.at(iLayer).at(iRoll).at(iEtaBin).at(hitTimingBin) = one_beta;
-          edm::LogVerbatim("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" layer "<<iLayer<<" roll "<<iRoll<<" etaBin "<<iEtaBin<<" timing "<<timing
+          edm::LogVerbatim("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" layer "<<iLayer<<" roll "<<iRoll<<" etaBin "<<iEtaBin<<" timing "<<timing
               <<" hitTimingBin "<<hitTimingBin<<" calculated one_beta "<<one_beta<<std::endl;
 
         }

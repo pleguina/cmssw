@@ -51,7 +51,7 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event &event, 
           addTTTrack(ttTracks, ttTrack, procConf);
           //if(ttTrack->getPt() > 20)
 
-          LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" bx "<<bx<<" adding ttTrack from simTrack: sim.type() "<<simTrackRef->type()<<" genpartIndex "<<simTrackRef->genpartIndex()
+          LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" bx "<<bx<<" adding ttTrack from simTrack: sim.type() "<<simTrackRef->type()<<" genpartIndex "<<simTrackRef->genpartIndex()
                     <<" Beta() "<<simTrackRef->momentum().Beta()<<" added track "<<*ttTrack<<std::endl;
         }
       }
@@ -74,7 +74,7 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event &event, 
           addTTTrack(ttTracks, ttTrack, procConf);
           //if(ttTrack->getPt() > 20)
 
-          //LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" bx "<<bx<<" adding ttTrack from TrackingParticle: pdgId "<<trackingParticlePtr->pdgId()<<" genParticles().size() "<<trackingParticlePtr->genParticles().size()
+          //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" bx "<<bx<<" adding ttTrack from TrackingParticle: pdgId "<<trackingParticlePtr->pdgId()<<" genParticles().size() "<<trackingParticlePtr->genParticles().size()
           //          <<" Beta() "<<trackingParticlePtr->p4().Beta()<<" added track "<<*ttTrack<<std::endl;
         }
       }
@@ -94,7 +94,7 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event &event, 
         addTTTrack(ttTracks, ttTrack, procConf);
 
       //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<*iterL1Track<<" Momentum "<<iterL1Track->getMomentum(l1Tk_nPar)<<" RInv "<<iterL1Track->getRInv(l1Tk_nPar)<<endl;
-      //LogTrace("l1tMuBayesEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" bx "<<bx<<" adding ttTrack from TTTrack: "<<" added track "<<*ttTrack<<std::endl;
+      //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" bx "<<bx<<" adding ttTrack from TTTrack: "<<" added track "<<*ttTrack<<std::endl;
     }
   }
   //cout<<__FUNCTION__<<":"<<__LINE__<<" ttTracks.size() "<<ttTracks.size()<<endl;

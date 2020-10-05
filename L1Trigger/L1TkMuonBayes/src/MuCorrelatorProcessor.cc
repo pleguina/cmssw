@@ -59,7 +59,7 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const MuonStubsInput& muonStubs
       algoTTMuon->setValid(true);
       algoTTMuons.emplace_back(algoTTMuon);
 
-/*      LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
+/*      LogTrace("l1tOmtfEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
           //<<" ttTrack Pt "<<ttTrack->getPt()<<" charge "<<ttTrack->getCharge()
           //<<" eta "<<ttTrack->getEta()<<" phi "<<ttTrack->getPhi()<<" index  "<<ttTrack->getIndex()<<"\n"
           <<*algoTTMuon<<endl;*/
@@ -80,14 +80,14 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const MuonStubsInput& muonStubs
 
   //only debug
 /*  for(auto& ghostBustedTTmuon : ghostBustedTTmuons) {
-    LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> ghostBustedTTmuon: \n "
+    LogTrace("l1tOmtfEventPrint")<<">>>>>>>>>>>>>>>>>>>>> ghostBustedTTmuon: \n "
         <<*ghostBustedTTmuon<<endl;
   }*/
 
   //only debug
   for(auto& algoTTMuon : algoTTMuons) {
     auto& ttTrack = algoTTMuon->getTTTrack();
-    LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
+    LogTrace("l1tOmtfEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
         <<" ttTrack Pt "<<ttTrack->getPt()<<" charge "<<ttTrack->getCharge()
         <<" eta "<<ttTrack->getEta()<<" phi "<<ttTrack->getPhi()<<" index  "<<ttTrack->getIndex()
         <<*algoTTMuon<<endl;
@@ -294,7 +294,7 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const StandaloneCandWithStubsVe
     if(algoTTMuon->getFiredLayerCnt() >= config->nMinFiredLayers()) {
       algoTTMuons.emplace_back(algoTTMuon);
 
-/*      LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
+/*      LogTrace("l1tOmtfEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
           <<" ttTrack Pt "<<ttTrack->getPt()<<" charge "<<ttTrack->getCharge()
           <<" eta "<<ttTrack->getEta()<<" phi "<<ttTrack->getPhi()<<" index  "<<ttTrack->getIndex()
           <<*algoTTMuon<<endl;*/
@@ -305,7 +305,7 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const StandaloneCandWithStubsVe
 
   for(auto& algoTTMuon : algoTTMuons) {
     auto& ttTrack = algoTTMuon->getTTTrack();
-    LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
+    LogTrace("l1tOmtfEventPrint")<<">>>>>>>>>>>>>>>>>>>>> algoTTMuon found for the ttTrack: \n "
         <<" ttTrack Pt "<<ttTrack->getPt()<<" charge "<<ttTrack->getCharge()
         <<" eta "<<ttTrack->getEta()<<" phi "<<ttTrack->getPhi()<<" index  "<<ttTrack->getIndex()
         <<*algoTTMuon<<endl;
@@ -313,7 +313,7 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const StandaloneCandWithStubsVe
 
   //only debug
 /*  for(auto& ghostBustedTTmuon : ghostBustedTTmuons) {
-    LogTrace("l1tMuBayesEventPrint")<<">>>>>>>>>>>>>>>>>>>>> ghostBustedTTmuon: \n "
+    LogTrace("l1tOmtfEventPrint")<<">>>>>>>>>>>>>>>>>>>>> ghostBustedTTmuon: \n "
         <<*ghostBustedTTmuon<<endl;
   }*/
 
@@ -433,7 +433,7 @@ bool MuCorrelatorProcessor::assignQuality(AlgoTTMuons& algoTTMuons) {
       algoTTMuon->setQuality(13); //Default quality
       if(firedLayers.second == algoTTMuon->getFiredLayerBits()) {
         algoTTMuon->setQuality(firedLayers.first);
-        //LogTrace("l1tMuBayesEventPrint")<<"demoting quality for "<<*algoTTMuon<<endl;
+        //LogTrace("l1tOmtfEventPrint")<<"demoting quality for "<<*algoTTMuon<<endl;
         break;
       }
     }
