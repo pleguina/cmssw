@@ -7,11 +7,11 @@
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/OmtfEmulation.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 
-class L1TMuonOmtfPhase2TrackProducer : public edm::EDProducer {
+class L1TMuonOverlapPhase2TrackProducer : public edm::EDProducer {
  public:
-  L1TMuonOmtfPhase2TrackProducer(const edm::ParameterSet&);
+  L1TMuonOverlapPhase2TrackProducer(const edm::ParameterSet&);
 
-  ~L1TMuonOmtfPhase2TrackProducer() override;
+  ~L1TMuonOverlapPhase2TrackProducer() override;
 
   void beginJob() override;
 

@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 
 ###OMTF emulator configuration
-simOmtfPhase2Digis = cms.EDProducer("L1TMuonOmtfPhase2TrackProducer",
+simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
                               
   srcDTPh = cms.InputTag('simDtTriggerPrimitiveDigis'),
   srcDTTh = cms.InputTag('simDtTriggerPrimitiveDigis'),

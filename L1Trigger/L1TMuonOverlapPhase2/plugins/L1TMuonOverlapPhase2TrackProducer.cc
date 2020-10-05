@@ -1,3 +1,4 @@
+#include <L1Trigger/L1TMuonOverlapPhase2/plugins/L1TMuonOverlapPhase2TrackProducer.h>
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigiCollection.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhContainer.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
@@ -10,13 +11,11 @@
 #include "FWCore/PluginManager/interface/PluginFactory.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
-#include "L1Trigger/L1TMuonOverlapPhase2/plugins/L1TMuonOmtfPhase2TrackProducer.h"
-
 #include <algorithm>
 #include <iostream>
 #include <memory>
 
-L1TMuonOmtfPhase2TrackProducer::L1TMuonOmtfPhase2TrackProducer(const edm::ParameterSet& edmParameterSet) :
+L1TMuonOverlapPhase2TrackProducer::L1TMuonOverlapPhase2TrackProducer(const edm::ParameterSet& edmParameterSet) :
   muStubsInputTokens(
     {
       consumes<L1MuDTChambPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPh")),
@@ -33,31 +32,31 @@ L1TMuonOmtfPhase2TrackProducer::L1TMuonOmtfPhase2TrackProducer(const edm::Parame
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-L1TMuonOmtfPhase2TrackProducer::~L1TMuonOmtfPhase2TrackProducer(){  
+L1TMuonOverlapPhase2TrackProducer::~L1TMuonOverlapPhase2TrackProducer(){  
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonOmtfPhase2TrackProducer::beginJob(){
+void L1TMuonOverlapPhase2TrackProducer::beginJob(){
 
   omtfEmulation.beginJob();
 
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonOmtfPhase2TrackProducer::endJob(){
+void L1TMuonOverlapPhase2TrackProducer::endJob(){
 
   omtfEmulation.endJob();
 
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonOmtfPhase2TrackProducer::beginRun(edm::Run const& run, edm::EventSetup const& iSetup){
+void L1TMuonOverlapPhase2TrackProducer::beginRun(edm::Run const& run, edm::EventSetup const& iSetup){
 
   omtfEmulation.beginRun(run, iSetup);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonOmtfPhase2TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup){
+void L1TMuonOverlapPhase2TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup){
 
   std::ostringstream str;
   
@@ -68,4 +67,4 @@ void L1TMuonOmtfPhase2TrackProducer::produce(edm::Event& iEvent, const edm::Even
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 #include "FWCore/Framework/interface/MakerMacros.h"
-DEFINE_FWK_MODULE(L1TMuonOmtfPhase2TrackProducer);
+DEFINE_FWK_MODULE(L1TMuonOverlapPhase2TrackProducer);
