@@ -107,7 +107,7 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet, MuS
   if(!edmParameterSet.getParameter<bool>("dropRPCPrimitives"))
     digiToStubsConverters.emplace_back(std::make_unique<RpcDigiToStubsConverterOmtf>(config, &angleConverter, &rpcClusterization, muStubsInputTokens.inputTokenRPC));*/
 
-	if(edmParameterSet.getParameter<bool>("usePhase2DTPrimitives")) {
+	if(edmParameterSet.exists("usePhase2DTPrimitives") && edmParameterSet.getParameter<bool>("usePhase2DTPrimitives")) {
 	  if(edmParameterSet.getParameter<bool>("dropDTPrimitives") != true)
 	    throw cms::Exception("L1TMuonOverlapPhase2 InputMakerPhase2::InputMakerPhase2 usePhase2DTPrimitives is true, but dropDTPrimitives is not true");
 	    //if the Phase2DTPrimitives are used, then the phase1 DT primitives should be dropped
