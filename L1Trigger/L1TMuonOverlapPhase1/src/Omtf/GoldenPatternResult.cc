@@ -1,6 +1,8 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
 
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
 #include <iostream>
 #include <ostream>
 #include <iomanip>
