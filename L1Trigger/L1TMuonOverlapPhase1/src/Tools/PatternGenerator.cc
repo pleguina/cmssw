@@ -193,7 +193,7 @@ void PatternGenerator::updateStat() {
 }
 
 void PatternGenerator::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
-  if(simMuon == 0 || omtfCand->getGoldenPatern() == 0)//no sim muon or empty candidate
+  if(simMuon == nullptr || omtfCand->getGoldenPatern() == nullptr)//no sim muon or empty candidate
     return;
 
   if(abs(simMuon->momentum().eta()) < 0.8 || abs(simMuon->momentum().eta()) > 1.24)

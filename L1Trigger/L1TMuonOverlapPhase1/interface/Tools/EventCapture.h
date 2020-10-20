@@ -18,18 +18,18 @@ class EventCapture: public IOMTFEmulationObserver {
 public:
   EventCapture(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig);
 
-  virtual ~EventCapture();
+  ~EventCapture() override;
 
-  virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>&,
+  void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>&,
       const AlgoMuons& algoCandidates,
       const AlgoMuons& gbCandidates,
-      const std::vector<l1t::RegionalMuonCand> & candMuons);
+      const std::vector<l1t::RegionalMuonCand> & candMuons) override;
 
-  virtual void observeEventBegin(const edm::Event& event);
+  void observeEventBegin(const edm::Event& event) override;
 
-  virtual void observeEventEnd(const edm::Event& event, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates);
+  void observeEventEnd(const edm::Event& event, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
-  virtual void endJob();
+  void endJob() override;
 
 private:
   edm::InputTag simTrackInputTag;

@@ -23,16 +23,16 @@ public:
   DtDigiToStubsConverterOmtf(const OMTFConfiguration* config, const OmtfAngleConverter* angleConverter, edm::EDGetTokenT<L1MuDTChambPhContainer> inputTokenDtPh, edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDtTh):
     DtDigiToStubsConverter(inputTokenDtPh, inputTokenDtTh), config(config), angleConverter(angleConverter) {};
 
-  virtual ~DtDigiToStubsConverterOmtf() {};
+  ~DtDigiToStubsConverterOmtf() override {};
 
   //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
-  virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambPhDigi& digi, const L1MuDTChambThContainer *dtThDigis,
-      unsigned int iProcessor, l1t::tftype procTyp);
+  void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambPhDigi& digi, const L1MuDTChambThContainer *dtThDigis,
+      unsigned int iProcessor, l1t::tftype procTyp) override;
 
-  virtual void addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambThDigi& thetaDigi,
-      unsigned int iProcessor, l1t::tftype procTyp);
+  void addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambThDigi& thetaDigi,
+      unsigned int iProcessor, l1t::tftype procTyp) override;
 
-  virtual bool acceptDigi(const DTChamberId& dTChamberId, unsigned int iProcessor, l1t::tftype procType);
+  bool acceptDigi(const DTChamberId& dTChamberId, unsigned int iProcessor, l1t::tftype procType) override;
 
 private:
   const OMTFConfiguration* config =  nullptr;
@@ -44,13 +44,13 @@ public:
   CscDigiToStubsConverterOmtf(const OMTFConfiguration* config, const OmtfAngleConverter* angleConverter, edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> inputTokenCsc):
     CscDigiToStubsConverter(config, inputTokenCsc), config(config), angleConverter(angleConverter) {};
 
-  virtual ~CscDigiToStubsConverterOmtf() {};
+  ~CscDigiToStubsConverterOmtf() override {};
 
   //can add both phi and eta stubs
-  virtual void addCSCstubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int rawid, const CSCCorrelatedLCTDigi& digi,
-      unsigned int iProcessor, l1t::tftype procTyp);
+  void addCSCstubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int rawid, const CSCCorrelatedLCTDigi& digi,
+      unsigned int iProcessor, l1t::tftype procTyp) override;
 
-  bool acceptDigi(const CSCDetId& cscDetId, unsigned int iProcessor, l1t::tftype procType);
+  bool acceptDigi(const CSCDetId& cscDetId, unsigned int iProcessor, l1t::tftype procType) override;
 
 private:
   const OMTFConfiguration* config =  nullptr;
@@ -63,12 +63,12 @@ public:
   RpcDigiToStubsConverterOmtf(const OMTFConfiguration* config, const OmtfAngleConverter* angleConverter, const RpcClusterization* rpcClusterization, edm::EDGetTokenT<RPCDigiCollection> inputTokenRpc):
     RpcDigiToStubsConverter(config, inputTokenRpc, rpcClusterization), config(config), angleConverter(angleConverter) {};
 
-  virtual ~RpcDigiToStubsConverterOmtf() {};
+  ~RpcDigiToStubsConverterOmtf() override {};
 
-  virtual void addRPCstub(MuonStubPtrs2D& muonStubsInLayers, const RPCDetId& roll, const RpcCluster& cluster,
-      unsigned int iProcessor, l1t::tftype procTyp);
+  void addRPCstub(MuonStubPtrs2D& muonStubsInLayers, const RPCDetId& roll, const RpcCluster& cluster,
+      unsigned int iProcessor, l1t::tftype procTyp) override;
 
-  virtual bool acceptDigi(const RPCDetId& rpcDetId, unsigned int iProcessor, l1t::tftype procType);
+  bool acceptDigi(const RPCDetId& rpcDetId, unsigned int iProcessor, l1t::tftype procType) override;
 
 private:
   const OMTFConfiguration* config =  nullptr;
@@ -80,9 +80,9 @@ public:
 
   OMTFinputMaker(const edm::ParameterSet& edmParameterSet, MuStubsInputTokens& muStubsInputTokens, const OMTFConfiguration* config, OmtfAngleConverter* angleConv);
 
-  virtual ~OMTFinputMaker();
+  ~OMTFinputMaker() override;
 
-  virtual void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es);
+  void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es) override;
 
   void setFlag(int aFlag) {flag = aFlag; }
   int getFlag() const { return flag;}

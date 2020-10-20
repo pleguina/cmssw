@@ -16,12 +16,12 @@ public:
   PatternsPtAssignment(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
       const std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName);
 
-  virtual ~PatternsPtAssignment();
+  ~PatternsPtAssignment() override;
 
 
-  virtual void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates);
+  void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
-  virtual void endJob();
+  void endJob() override;
 
 private:
   std::vector<std::shared_ptr<GoldenPattern> > gps;

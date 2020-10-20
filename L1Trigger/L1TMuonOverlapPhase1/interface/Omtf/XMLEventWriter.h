@@ -22,7 +22,7 @@ class XMLEventWriter: public IOMTFEmulationObserver {
 public:
   XMLEventWriter(const OMTFConfiguration* aOMTFConfig, std::string fName);
 
-  virtual ~XMLEventWriter();
+  ~XMLEventWriter() override;
 
   void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,
       const AlgoMuons& algoCandidates,

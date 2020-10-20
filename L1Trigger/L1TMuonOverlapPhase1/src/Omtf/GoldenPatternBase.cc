@@ -15,7 +15,7 @@ std::ostream & operator << (std::ostream &out, const Key & o) {
   return out;
 }
 
-GoldenPatternBase::GoldenPatternBase(const Key & aKey) : theKey(aKey), myOmtfConfig(0) {
+GoldenPatternBase::GoldenPatternBase(const Key & aKey) : theKey(aKey), myOmtfConfig(nullptr) {
   //std::cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;
 }
 

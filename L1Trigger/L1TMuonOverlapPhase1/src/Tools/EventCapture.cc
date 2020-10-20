@@ -35,7 +35,7 @@ EventCapture::~EventCapture() {
 void EventCapture::observeEventBegin(const edm::Event& event) {
   simMuons.clear();
 
-  if(simTrackInputTag.label().size()) {
+  if(!simTrackInputTag.label().empty()) {
     edm::Handle<edm::SimTrackContainer> simTraksHandle;
     event.getByLabel(simTrackInputTag, simTraksHandle);
 

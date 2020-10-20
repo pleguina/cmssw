@@ -19,7 +19,7 @@ AlgoMuons::value_type OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResu
 					  int charge) {
 
   //this sorting is needed for the bestGPByThresholdOnProbability2 due to sum of the probabilities of gp with >= pt ten the current onegetGpProbability2
-  if(gPatternsSortedByPt.size() == 0) {
+  if(gPatternsSortedByPt.empty()) {
     gPatternsSortedByPt = gPatterns;
 
     auto customLess = [&](const std::shared_ptr<GoldenPatternType> & a, const std::shared_ptr<GoldenPatternType> & b)->bool {
@@ -43,7 +43,7 @@ AlgoMuons::value_type OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResu
     }
   }
 
-  GoldenPatternWithThresh* bestGP = 0; //the GoldenPattern with the best result for this iRefHit
+  GoldenPatternWithThresh* bestGP = nullptr; //the GoldenPattern with the best result for this iRefHit
 //  std::cout <<" ====== sortRefHitResults: " << std::endl;
 
   double p_deltaPhis1 = 0;
@@ -125,7 +125,7 @@ AlgoMuons::value_type OMTFSorterWithThreshold<GoldenPatternType>::sortRefHitResu
 
     if(mode == bestGPByThresholdOnProbability2) {
       if(result.getGpProbability2() >= itGP->getThreshold(result.getRefLayer() ) ) {
-        if(bestGP == 0 ) //|| itGP->key().thePt > bestGP->key().thePt
+        if(bestGP == nullptr ) //|| itGP->key().thePt > bestGP->key().thePt
           bestGP = itGP.get();
         else if(itGP->key().thePt == bestGP->key().thePt) {
           if(result.getGpProbability1() > bestGP->getResults()[procIndx][iRefHit].getGpProbability1())

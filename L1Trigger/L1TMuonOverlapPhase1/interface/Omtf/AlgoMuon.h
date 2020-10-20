@@ -20,7 +20,7 @@ class AlgoMuon: public AlgoMuonBase {
     return goldenPatern;
   }
 
-  virtual ~AlgoMuon() {}
+  ~AlgoMuon() override {}
 
   const GoldenPatternResult& getGpResult() const {
     return gpResult;

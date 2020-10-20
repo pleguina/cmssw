@@ -150,7 +150,7 @@ void ProcessorBase<GoldenPatternType>::initPatternPtRange(bool firstPatFrom0) {
   for(unsigned int iPat = 0; iPat < theGPs.size(); iPat++) {
     OMTFConfiguration::PatternPt patternPt;
     int charge = theGPs[iPat]->key().theCharge;
-    if(theGPs[iPat] ==  0 || theGPs[iPat]->key().thePt == 0) {
+    if(theGPs[iPat] ==  nullptr || theGPs[iPat]->key().thePt == 0) {
       patternPts.push_back(patternPt);
       continue;
     }

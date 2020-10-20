@@ -364,7 +364,7 @@ int OMTFConfiguration::getProcScalePhi(unsigned int iProcessor, double phiRad) c
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 OMTFConfiguration::PatternPt OMTFConfiguration::getPatternPtRange(unsigned int patNum) const {
-  if(patternPts.size() == 0)
+  if(patternPts.empty())
     throw cms::Exception("OMTFConfiguration::getPatternPtRange: patternPts vector not initialized");
 
   if(patNum > patternPts.size() ) {

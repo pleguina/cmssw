@@ -43,7 +43,7 @@ public:
 
   void reset() {
     pdfVal = 0;
-    valid = 0;
+    valid = false;
     pdfBin = 0;
     layer = 0;
     stub.reset();
@@ -51,7 +51,7 @@ public:
 
 private:
   float pdfVal = 0;
-  bool valid = 0;
+  bool valid = false;
 
   //stub and pdfBin should be needed only for debug, testing, generating patterns, etc, but rather  not in the firmware
   int pdfBin = 0;

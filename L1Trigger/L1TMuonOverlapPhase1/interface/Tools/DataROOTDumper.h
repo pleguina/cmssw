@@ -43,16 +43,16 @@ class DataROOTDumper: public PatternOptimizerBase {
 public:
   DataROOTDumper(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig);
   
-  virtual ~DataROOTDumper();
+  ~DataROOTDumper() override;
 
-  virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,
+  void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,
 					const AlgoMuons& algoCandidates,
 					const AlgoMuons& gbCandidates,
-					const std::vector<l1t::RegionalMuonCand> & candMuons);
+					const std::vector<l1t::RegionalMuonCand> & candMuons) override;
 
-  virtual void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates);
+  void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
-  virtual void endJob();
+  void endJob() override;
 
 private:
 

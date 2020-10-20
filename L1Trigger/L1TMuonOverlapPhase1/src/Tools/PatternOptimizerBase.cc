@@ -35,7 +35,7 @@
 #include <vector>
 
 PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig):
-  edmCfg(edmCfg), omtfConfig(omtfConfig), simMuon(0) {
+  edmCfg(edmCfg), omtfConfig(omtfConfig), simMuon(nullptr) {
   // TODO Auto-generated constructor stub
 
   simMuPt =  new TH1I("simMuPt", "simMuPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
@@ -45,7 +45,7 @@ PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg, cons
 }
 
 PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps):
-  edmCfg(edmCfg), omtfConfig(omtfConfig), goldenPatterns(gps), simMuon(0) {
+  edmCfg(edmCfg), omtfConfig(omtfConfig), goldenPatterns(gps), simMuon(nullptr) {
   // TODO Auto-generated constructor stub
 
   simMuPt =  new TH1I("simMuPt", "simMuPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
@@ -93,7 +93,7 @@ void PatternOptimizerBase::observeProcesorEmulation(unsigned int iProcessor, l1t
   unsigned int i = 0;
   for(auto& gbCandidate : gbCandidates) {
     //int iRefHit = gbCandidate.getRefHitNumber();
-    if(gbCandidate->getGoldenPatern() != 0 &&  gbCandidate->getGpResult().getFiredLayerCnt() > omtfCand->getGpResult().getFiredLayerCnt() ) {
+    if(gbCandidate->getGoldenPatern() != nullptr &&  gbCandidate->getGpResult().getFiredLayerCnt() > omtfCand->getGpResult().getFiredLayerCnt() ) {
       //cout<<__FUNCTION__<<":"<<__LINE__<<" gbCandidate "<<gbCandidate<<" "<<std::endl;
       omtfCand = gbCandidate;
       //omtfResult = gbCandidate.getGoldenPatern()->getResults()[procIndx][iRefHit]; //TODO be carrefful, because in principle the results sored by the goldenPattern can be altered in one event. In phae I omtf this should not happened, but in OMTFProcessorTTMerger - yes
@@ -140,7 +140,7 @@ void PatternOptimizerBase::observeEventBegin(const edm::Event& iEvent) {
 }
 
 void PatternOptimizerBase::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
-  if(simMuon == 0 || omtfCand->getGoldenPatern() == 0)//no sim muon or empty candidate
+  if(simMuon == nullptr || omtfCand->getGoldenPatern() == nullptr)//no sim muon or empty candidate
     return;
 
   double ptSim = simMuon->momentum().pt();
@@ -164,7 +164,7 @@ void PatternOptimizerBase::endJob() {
 }
 
 const SimTrack* PatternOptimizerBase::findSimMuon(const edm::Event &event, const SimTrack * previous) {
-  const SimTrack* result = 0;
+  const SimTrack* result = nullptr;
   if(edmCfg.exists("g4SimTrackSrc") == false)
     return result;
 

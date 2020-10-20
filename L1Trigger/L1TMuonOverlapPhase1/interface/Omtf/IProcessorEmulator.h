@@ -25,7 +25,7 @@ public:
   ///Fill GP vec with patterns from CondFormats object
   //virtual bool configure(const OMTFConfiguration * omtfParams, const L1TMuonOverlapParams* omtfPatterns) = 0;
 
-  virtual const void processInput(unsigned int iProcessor, l1t::tftype mtfType,
+  virtual void processInput(unsigned int iProcessor, l1t::tftype mtfType,
                     const OMTFinput & aInput) = 0;
 
   ///allows to use other sorter implementation than the default one

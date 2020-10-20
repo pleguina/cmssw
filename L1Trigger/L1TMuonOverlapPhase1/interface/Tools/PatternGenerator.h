@@ -14,17 +14,17 @@ class PatternGenerator: public PatternOptimizerBase {
 public:
   PatternGenerator(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
 
-  virtual ~PatternGenerator();
+  ~PatternGenerator() override;
 
-  virtual void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates);
+  void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
-  void endJob();
+  void endJob() override;
 protected:
   void updateStat();
 
   void upadatePdfs();
 
-  virtual void saveHists(TFile& outfile);
+  void saveHists(TFile& outfile) override;
 
   //[charge][iLayer]
   std::vector<std::vector<TH2I*> > ptDeltaPhiHists;

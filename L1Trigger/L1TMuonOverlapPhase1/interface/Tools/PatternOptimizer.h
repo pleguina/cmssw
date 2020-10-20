@@ -25,7 +25,7 @@
 class PatternOptimizer: public PatternOptimizerBase {
 public:
   PatternOptimizer(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
-  virtual ~PatternOptimizer();
+  ~PatternOptimizer() override;
 
 /*  virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
       const std::vector<AlgoMuon>& algoCandidates,
@@ -34,11 +34,11 @@ public:
 
   virtual void observeEventBegin(const edm::Event& iEvent);*/
 
-  virtual void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates);
+  void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
-  virtual void endJob();
+  void endJob() override;
 
-  const SimTrack* findSimMuon(const edm::Event &event, const SimTrack* previous = 0);
+  const SimTrack* findSimMuon(const edm::Event &event, const SimTrack* previous = nullptr);
 
   static const unsigned int whatExptVal = 0;
   static const unsigned int whatExptNorm = 1;
@@ -46,7 +46,7 @@ public:
   static const unsigned int whatOmtfNorm = 3;
 private:
 
-  virtual void saveHists(TFile& outfile);
+  void saveHists(TFile& outfile) override;
 
   //candidate found by omtf in a given event
   //GoldenPatternResult omtfResult;
@@ -90,7 +90,7 @@ private:
 
   void initRateWeights();
 
-  virtual double getEventRateWeight(double pt);
+  double getEventRateWeight(double pt) override;
 
   std::function<void (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp)> updateStatFunc;
 

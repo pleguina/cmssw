@@ -26,20 +26,20 @@ public:
 
   PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
 
-  virtual ~PatternOptimizerBase();
+  ~PatternOptimizerBase() override;
 
-  virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,
+  void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,
       const AlgoMuons& algoCandidates,
       const AlgoMuons& gbCandidates,
-      const std::vector<l1t::RegionalMuonCand> & candMuons);
+      const std::vector<l1t::RegionalMuonCand> & candMuons) override;
 
-  virtual void observeEventBegin(const edm::Event& iEvent);
+  void observeEventBegin(const edm::Event& iEvent) override;
 
-  virtual void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates);
+  void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
-  virtual void endJob();
+  void endJob() override;
 
-  const SimTrack* findSimMuon(const edm::Event &event, const SimTrack* previous = 0);
+  const SimTrack* findSimMuon(const edm::Event &event, const SimTrack* previous = nullptr);
 
 protected:
   void savePatternsInRoot(std::string rootFileName);

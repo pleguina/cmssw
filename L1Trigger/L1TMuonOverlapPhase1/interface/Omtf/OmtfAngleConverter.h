@@ -15,7 +15,7 @@ public:
   OmtfAngleConverter():
     AngleConverterBase() {};
 
-  virtual ~OmtfAngleConverter();
+  ~OmtfAngleConverter() override;
 
   ///Convert local eta coordinate to global digital microGMT scale.
   ///theta is  returned only if in the dtThDigis is only one hit, otherwise eta = 95 or middle of the chamber

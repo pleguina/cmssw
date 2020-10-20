@@ -121,7 +121,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<
       ptGenNeg->Fill(simMuon->momentum().pt());
   }
 
-  if(simMuon == 0 || !omtfCand->isValid()) //no sim muon or empty candidate
+  if(simMuon == nullptr || !omtfCand->isValid()) //no sim muon or empty candidate
     return;
 
   //PatternOptimizerBase::observeEventEnd(iEvent, finalCandidates); not needed
@@ -202,8 +202,6 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<
           edm::LogVerbatim("l1tOmtfEventPrint")<<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
               <<" layer "<<int(hit.layer)<<" hit.phiDist "<<hit.phiDist<<" valid "<<stubResult.getValid()<<" !!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
         }
-
-        stubResult.getMuonStub()->detId;
 
         DetId detId(stubResult.getMuonStub()->detId);
         if(detId.subdetId() == MuonSubdetId::CSC) {

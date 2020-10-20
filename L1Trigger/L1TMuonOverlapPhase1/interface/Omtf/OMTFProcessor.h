@@ -44,7 +44,7 @@ class OMTFProcessor: public ProcessorBase<GoldenPatternType>, public IProcessorE
 
   OMTFProcessor(OMTFConfiguration* omtfConfig, const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup, const typename ProcessorBase<GoldenPatternType>::GoldenPatternVec& gps);
 
-  virtual ~OMTFProcessor();
+  ~OMTFProcessor() override;
 
   ///Fill GP vec with patterns from CondFormats object
 /*  virtual bool configure(const OMTFConfiguration* omtfParams, const L1TMuonOverlapParams* omtfPatterns) {
@@ -53,22 +53,19 @@ class OMTFProcessor: public ProcessorBase<GoldenPatternType>, public IProcessorE
 
    ///Process input data from a single event
   ///Input data is represented by hits in logic layers expressed in local coordinates
-  ///Vector index: number of the ref hit (from 0 to nTestRefHits i.e. 4)
-  ///Map key: GoldenPattern key
-  //const std::vector<OMTFProcessor::resultsMap> &
-  virtual const void processInput(unsigned int iProcessor, l1t::tftype mtfType,
-							      const OMTFinput & aInput);
+  void processInput(unsigned int iProcessor, l1t::tftype mtfType,
+							      const OMTFinput & aInput) override;
   
-  virtual AlgoMuons sortResults(unsigned int iProcessor, l1t::tftype mtfType, int charge=0);
+  AlgoMuons sortResults(unsigned int iProcessor, l1t::tftype mtfType, int charge=0) override;
 
-  virtual AlgoMuons ghostBust(AlgoMuons refHitCands, int charge=0) {
+  AlgoMuons ghostBust(AlgoMuons refHitCands, int charge=0) override {
     return ghostBuster->select(refHitCands, charge);
   }
 
   //convert algo muon to outgoing Candidates
-  virtual std::vector<l1t::RegionalMuonCand> getFinalcandidates(
+  std::vector<l1t::RegionalMuonCand> getFinalcandidates(
                  unsigned int iProcessor, l1t::tftype mtfType,
-                 const AlgoMuons& algoCands);
+                 const AlgoMuons& algoCands) override;
 
   ///allows to use other sorter implementation than the default one
   virtual void setSorter(SorterBase<GoldenPatternType>* sorter) {
@@ -76,7 +73,7 @@ class OMTFProcessor: public ProcessorBase<GoldenPatternType>, public IProcessorE
   }
 
   ///allows to use other IGhostBuster implementation than the default one
-  virtual void setGhostBuster(IGhostBuster* ghostBuster) {
+  void setGhostBuster(IGhostBuster* ghostBuster) override {
     this->ghostBuster.reset(ghostBuster);
   }
 
@@ -84,9 +81,9 @@ class OMTFProcessor: public ProcessorBase<GoldenPatternType>, public IProcessorE
     this->ptAssignment.reset(ptAssignment);
   }
 
-  virtual std::vector<l1t::RegionalMuonCand> run(unsigned int iProcessor, l1t::tftype mtfType, int bx, OMTFinputMaker* inputMaker, std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers);
+  std::vector<l1t::RegionalMuonCand> run(unsigned int iProcessor, l1t::tftype mtfType, int bx, OMTFinputMaker* inputMaker, std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
 
-  virtual void printInfo() const;
+  void printInfo() const override;
  private:
   virtual void init(const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup);
 
@@ -96,7 +93,7 @@ class OMTFProcessor: public ProcessorBase<GoldenPatternType>, public IProcessorE
   ///Candidate with invalid hit patterns is assigned quality=0.
   ///Currently the list of invalid patterns is hardcoded.
   ///This has to be read from configuration.
-  virtual bool checkHitPatternValidity(unsigned int hits);
+  bool checkHitPatternValidity(unsigned int hits) override;
 
   std::unique_ptr<SorterBase<GoldenPatternType> > sorter;
 

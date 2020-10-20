@@ -67,7 +67,7 @@ void OMTFTrainer::endJob(){
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFTrainer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup){
-  const SimTrack * simMuon = 0;
+  const SimTrack * simMuon = nullptr;
   edm::Handle<edm::SimTrackContainer> simTks;
   iEvent.getByToken(inputTokenSimHit,simTks);
 

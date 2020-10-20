@@ -446,7 +446,7 @@ void XMLConfigWriter::writeGPData(const GoldenPattern* aGP1,
   setAttributeInt(aGPElement, "iPt4", aGP4->key().thePt);
 
   if(writePdfThresholds) {
-    if(dynamic_cast<const GoldenPatternWithThresh*>(aGP1) != 0)
+    if(dynamic_cast<const GoldenPatternWithThresh*>(aGP1) != nullptr)
     {
       for(unsigned int iRefLayer=0;iRefLayer<myOMTFConfig->nRefLayers();++iRefLayer){
         //cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;

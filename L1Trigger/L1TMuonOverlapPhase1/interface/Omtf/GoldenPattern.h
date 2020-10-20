@@ -36,7 +36,7 @@ public:
     reset();
   }
 
-  virtual ~GoldenPattern() {};
+  ~GoldenPattern() override {};
 
   virtual void setMeanDistPhi(const meanDistPhiArrayType& aMeanDistPhi) { meanDistPhi = aMeanDistPhi; }
 
@@ -46,15 +46,15 @@ public:
 
   virtual void setPdf(pdfArrayType& aPdf){  pdfAllRef = aPdf; }
 
-  virtual int meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB = 0) const;
+  int meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB = 0) const override;
 
-  virtual PdfValueType pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) const {return pdfAllRef[iLayer][iRefLayer][iBin];}
+  PdfValueType pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) const override {return pdfAllRef[iLayer][iRefLayer][iBin];}
 
-  virtual void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, unsigned int paramIndex = 0) {
+  void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, unsigned int paramIndex = 0) override {
     meanDistPhi[iLayer][iRefLayer][paramIndex] = value;
   }
 
-  virtual void setPdfValue(PdfValueType value, unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) {
+  void setPdfValue(PdfValueType value, unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) override {
     pdfAllRef[iLayer][iRefLayer][iBin] = value;
   }
 
@@ -62,11 +62,11 @@ public:
     return distPhiBitShift;
   }*/
 
-  virtual int getDistPhiBitShift(unsigned int iLayer, unsigned int iRefLayer) const {
+  int getDistPhiBitShift(unsigned int iLayer, unsigned int iRefLayer) const override {
     return distPhiBitShift[iLayer][iRefLayer];
   }
 
-  virtual void setDistPhiBitShift(int value, unsigned int iLayer, unsigned int iRefLayer)  {
+  void setDistPhiBitShift(int value, unsigned int iLayer, unsigned int iRefLayer) override  {
     distPhiBitShift[iLayer][iRefLayer] = value;
   }
 
@@ -83,7 +83,7 @@ public:
   ///Propagate phi from given reference layer to MB2 or ME2
   ///ME2 is used if eta of reference hit is larger than 1.1
   ///expressed in ingerer MicroGMT scale: 1.1/2.61*240 = 101
-  virtual int propagateRefPhi(int phiRef, int etaRef, unsigned int iRefLayer);
+  int propagateRefPhi(int phiRef, int etaRef, unsigned int iRefLayer) override;
 
 protected:
   ///Distributions for all reference layers
@@ -124,7 +124,7 @@ public:
 
   }
 
-  virtual ~GoldenPatternWithThresh() {};
+  ~GoldenPatternWithThresh() override {};
 
   PdfValueType getThreshold(unsigned int iRefLayer) const {
     return thresholds.at(iRefLayer);

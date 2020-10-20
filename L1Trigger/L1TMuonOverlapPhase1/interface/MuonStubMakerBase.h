@@ -48,13 +48,13 @@ public:
   DtDigiToStubsConverter(edm::EDGetTokenT<L1MuDTChambPhContainer> inputTokenDtPh, edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDtTh):
     inputTokenDtPh(inputTokenDtPh), inputTokenDtTh(inputTokenDtTh) {};
 
-  virtual ~DtDigiToStubsConverter() {};
+  ~DtDigiToStubsConverter() override {};
 
   //virtual void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es, const ProcConfigurationBase* procConf) {} //TODO is it needed at all?
 
-  virtual void loadDigis(const edm::Event& event);
+  void loadDigis(const edm::Event& event) override;
 
-  virtual void makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor, l1t::tftype procTyp, int bxFrom, int bxTo);
+  void makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor, l1t::tftype procTyp, int bxFrom, int bxTo) override;
 
   //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
   virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambPhDigi& digi, const L1MuDTChambThContainer *dtThDigis,
@@ -82,15 +82,15 @@ public:
   CscDigiToStubsConverter(const ProcConfigurationBase* config, edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> inputTokenCsc):
     config(config), inputTokenCsc(inputTokenCsc) {};
 
-  virtual ~CscDigiToStubsConverter() {};
+  ~CscDigiToStubsConverter() override {};
 
   //virtual void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es, const ProcConfigurationBase* procConf) {} //TODO is it needed at all?
 
-  virtual void loadDigis(const edm::Event& event) {
+  void loadDigis(const edm::Event& event) override {
     event.getByToken(inputTokenCsc, cscDigis);
   }
 
-  virtual void makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor, l1t::tftype procTyp, int bxFrom, int bxTo);
+  void makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor, l1t::tftype procTyp, int bxFrom, int bxTo) override;
 
   //can add both phi and eta stubs
   virtual void addCSCstubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int rawid, const CSCCorrelatedLCTDigi& digi,
@@ -112,15 +112,15 @@ public:
   RpcDigiToStubsConverter(const ProcConfigurationBase* config, edm::EDGetTokenT<RPCDigiCollection> inputTokenRpc, const RpcClusterization* rpcClusterization):
     config(config), inputTokenRpc(inputTokenRpc), rpcClusterization(rpcClusterization) {};
 
-  virtual ~RpcDigiToStubsConverter() {};
+  ~RpcDigiToStubsConverter() override {};
 
   //virtual void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es, const ProcConfigurationBase* procConf) {} //TODO is it needed at all?
 
-  virtual void loadDigis(const edm::Event& event) {
+  void loadDigis(const edm::Event& event) override {
     event.getByToken(inputTokenRpc, rpcDigis);
   }
 
-  virtual void makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor, l1t::tftype procTyp, int bxFrom, int bxTo);
+  void makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor, l1t::tftype procTyp, int bxFrom, int bxTo) override;
 
   virtual void addRPCstub(MuonStubPtrs2D& muonStubsInLayers, const RPCDetId& roll, const RpcCluster& cluster,
      unsigned int iProcessor, l1t::tftype procTyp) = 0;

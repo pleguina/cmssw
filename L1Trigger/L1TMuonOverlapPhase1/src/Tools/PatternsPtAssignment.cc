@@ -35,7 +35,7 @@ void PatternsPtAssignment::observeEventEnd(const edm::Event& iEvent, std::unique
     muonCharge = (abs(simMuon->type()) == 13) ? simMuon->type()/-13 : 0;
   }
 
-  if(simMuon == 0 || !omtfCand->isValid()) //no sim muon or empty candidate
+  if(simMuon == nullptr || !omtfCand->isValid()) //no sim muon or empty candidate
     return;
 
 /*  for(auto algoCandidate: algoCandidates) {

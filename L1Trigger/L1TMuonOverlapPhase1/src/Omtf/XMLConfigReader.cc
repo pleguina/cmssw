@@ -151,7 +151,7 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT*> luts,const L1TMuonOverlapP
 //////////////////////////////////////////////////
 unsigned int XMLConfigReader::getPatternsVersion() const{
 
-  if(!patternsFiles.size()) return 0;
+  if(patternsFiles.empty()) return 0;
   std::string patternsFile = patternsFiles[0];
   if(patternsFile.empty()) return 0;
   
@@ -330,7 +330,7 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
     stringStr<<"tresh"<<index;
   else
     stringStr.str("tresh");
-  XMLCh *xmlTresh=_toDOMS(stringStr.str().c_str());
+  XMLCh *xmlTresh=_toDOMS(stringStr.str());
   stringStr.str("");
 
   std::vector<PdfValueType> thresholds(aConfig.nRefLayers(), 0);
@@ -341,7 +341,7 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
   for(unsigned int iItem=0; iItem<nItems; ++iItem) {
     aNode = aGPElement->getElementsByTagName(xmlRefLayerThresh)->item(iItem);
     aItemElement = dynamic_cast<DOMElement*>(aNode);
-    if(aItemElement == 0)
+    if(aItemElement == nullptr)
       throw cms::Exception("OMTF::XMLConfigReader: aItemElement is 0");
     std::string strVal = _toString(aItemElement->getAttribute(xmlTresh));
     thresholds[iItem] = std::stof(strVal);
@@ -366,19 +366,19 @@ std::unique_ptr<GoldenPatternType> XMLConfigReader::buildGP(DOMElement* aGPEleme
       aNode = aLayerElement->getElementsByTagName(xmlRefLayer)->item(iItem);
       aItemElement = static_cast<DOMElement *>(aNode); 
 
-      std::string strVal = _toString(aItemElement->getAttribute(xmlmeanDistPhi)).c_str();
-      if(strVal.size() > 0) {
+      std::string strVal = _toString(aItemElement->getAttribute(xmlmeanDistPhi));
+      if(!strVal.empty()) {
         aGP->setMeanDistPhiValue(std::stoi(strVal), iLayer, iItem, 0);
       }
       else {
-        strVal = _toString(aItemElement->getAttribute(xmlmeanDistPhi0)).c_str();
+        strVal = _toString(aItemElement->getAttribute(xmlmeanDistPhi0));
         aGP->setMeanDistPhiValue(std::stoi(strVal), iLayer, iItem, 0);
-        strVal = _toString(aItemElement->getAttribute(xmlmeanDistPhi1)).c_str();
+        strVal = _toString(aItemElement->getAttribute(xmlmeanDistPhi1));
         aGP->setMeanDistPhiValue(std::stoi(strVal), iLayer, iItem, 1);
       }
 
-      strVal = _toString(aItemElement->getAttribute(xmlSelDistPhiShift)).c_str();
-      if(strVal.size() > 0) {
+      strVal = _toString(aItemElement->getAttribute(xmlSelDistPhiShift));
+      if(!strVal.empty()) {
         aGP->setDistPhiBitShift(std::stoi(strVal), iLayer, iItem);
       }
 

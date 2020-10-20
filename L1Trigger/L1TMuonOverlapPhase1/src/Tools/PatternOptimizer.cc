@@ -88,8 +88,8 @@ PatternOptimizer::PatternOptimizer(const edm::ParameterSet& edmCfg, const OMTFCo
   selRefL = 0;
   selL1 = 1;
   selL2 = 2;
-  deltaPhi1_deltaPhi2_hits.assign(goldenPatterns.size(), 0);
-  deltaPhi1_deltaPhi2_omtf.assign(goldenPatterns.size(), 0);
+  deltaPhi1_deltaPhi2_hits.assign(goldenPatterns.size(), nullptr);
+  deltaPhi1_deltaPhi2_omtf.assign(goldenPatterns.size(), nullptr);
 
 
   ostringstream ostrName, ostrTtle;
@@ -153,7 +153,7 @@ PatternOptimizer::~PatternOptimizer() {
 }
 
 void PatternOptimizer::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
-  if(simMuon == 0 || omtfCand->getGoldenPatern() == 0)//no sim muon or empty candidate
+  if(simMuon == nullptr || omtfCand->getGoldenPatern() == nullptr)//no sim muon or empty candidate
     return;
 
   //cout<<__FUNCTION__<<":"<<__LINE__<<" event "<<iEvent.id().event()<<endl;
@@ -575,7 +575,7 @@ void PatternOptimizer::updateStatCloseResults(GoldenPatternWithStat* omtfCandGp,
   int omtfCandPtCode = patternPtCodes[omtfCandGp->key().theNumber];
   int exptCandPtCode = patternPtCodes[exptCandGp->key().theNumber];
 
-  GoldenPatternWithStat* secondBestGp = 0;
+  GoldenPatternWithStat* secondBestGp = nullptr;
   for(auto& itGP: goldenPatterns) {
     if(itGP->key().thePt == 0 || omtfCandGp->key().theCharge != itGP->key().theCharge)
       continue;
@@ -595,7 +595,7 @@ void PatternOptimizer::updateStatCloseResults(GoldenPatternWithStat* omtfCandGp,
 
         int thisGpPtCode = patternPtCodes[itGP->key().theNumber];
         if(omtfCand->getGpResult().getPdfSum() - result.getPdfSum() == delta) {
-          if(secondBestGp != 0) {
+          if(secondBestGp != nullptr) {
             if(abs(patternPtCodes[secondBestGp->key().theNumber] - exptCandPtCode) > abs(thisGpPtCode - exptCandPtCode) ) {
               /*cout<<__FUNCTION__<<":"<<__LINE__<<" changing secondBestGp from "
                   <<secondBestGp->key()<<"\n"<<secondBestGp->getResults()[candProcIndx][iRefHit]<<"\nto "

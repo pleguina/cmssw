@@ -25,7 +25,7 @@ public:
 
   GoldenPatternWithStat(const Key & aKey, const OMTFConfiguration* omtfConfig);
 
-  virtual ~GoldenPatternWithStat() {};
+  ~GoldenPatternWithStat() override {};
 
   virtual void updateStat(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, unsigned int what, double value);
 

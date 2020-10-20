@@ -233,7 +233,7 @@ AlgoMuons OMTFProcessor<GoldenPatternType>::sortResults(unsigned int iProcessor,
 ///////////////////////////////////////////////
 //const std::vector<OMTFProcessor::resultsMap> &
 template<class GoldenPatternType>
-const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor, l1t::tftype mtfType, const OMTFinput & aInput) {
+void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor, l1t::tftype mtfType, const OMTFinput & aInput) {
   unsigned int procIndx = this->myOmtfConfig->getProcIndx(iProcessor, mtfType);
   for(auto& itGP: this->theGPs) {
     for(auto& result : itGP->getResults()[procIndx]) {

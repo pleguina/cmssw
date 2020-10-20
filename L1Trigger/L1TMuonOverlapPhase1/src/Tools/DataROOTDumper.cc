@@ -117,7 +117,7 @@ void DataROOTDumper::observeProcesorEmulation(unsigned int iProcessor, l1t::tfty
 void DataROOTDumper::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
 
   //no sim muon or empty candidate
-  if(simMuon == 0){
+  if(simMuon == nullptr){
     myEvent.muonPt = -999.0;
     myTree->Fill();
     return;

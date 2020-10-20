@@ -20,7 +20,7 @@ class OMTFinput: public MuonStubsInput {
 
   OMTFinput(const OMTFConfiguration*);
 
-  virtual ~OMTFinput() {}
+  ~OMTFinput() override {}
 
   ///Add hit to given layer.
   ///iInput marks input number (max 14 per layer)
@@ -50,7 +50,7 @@ class OMTFinput: public MuonStubsInput {
   }
 
   //if the layer is banding layer, the phiB from the iLayer -1 is returned
-  virtual int getPhiHw(unsigned int iLayer, unsigned int iInput) const;
+  int getPhiHw(unsigned int iLayer, unsigned int iInput) const override;
 
   //if the layer is banding layer, the eta from the iLayer -1 is returned
   const int getHitEta(unsigned int iLayer, unsigned int iInput) const;

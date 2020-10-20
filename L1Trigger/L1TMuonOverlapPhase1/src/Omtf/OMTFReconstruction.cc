@@ -58,7 +58,7 @@ void OMTFReconstruction::endJob(){
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& eventSetup) {
-  const L1TMuonOverlapParams* omtfParams = 0;
+  const L1TMuonOverlapParams* omtfParams = nullptr;
 
   std::string processorType = "OMTFProcessor"; //GoldenPatternWithStat GoldenPattern
   if(edmParameterSet.exists("processorType") ){
@@ -67,13 +67,13 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
 
   bool buildPatternsFromXml = (edmParameterSet.exists("patternsXMLFile") || edmParameterSet.exists("patternsXMLFiles"));
 
-  bool firstRun = (omtfProc == 0);
+  bool firstRun = (omtfProc == nullptr);
 
   //if the buildPatternsFromXml == false - we are making the omtfConfig and omtfProc for every run,
   //as the configuration my change between the runs,
   //if buildPatternsFromXml == true - we assume the the entire configuration comes from phyton,
   //so we do it only for the first run
-  if(omtfProc == 0 || buildPatternsFromXml == false) {
+  if(omtfProc == nullptr || buildPatternsFromXml == false) {
     edm::LogImportant("OMTFReconstruction") << "retrieving omtfParams from EventSetup" << std::endl;
 
     const L1TMuonOverlapParamsRcd& omtfRcd = eventSetup.get<L1TMuonOverlapParamsRcd>();
@@ -98,7 +98,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
     }
   }
 
-  if(omtfProc == 0 && buildPatternsFromXml) {//if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
+  if(omtfProc == nullptr && buildPatternsFromXml) {//if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
     std::vector<std::string> patternsXMLFiles;
 
     if(edmParameterSet.exists("patternsXMLFile")) {

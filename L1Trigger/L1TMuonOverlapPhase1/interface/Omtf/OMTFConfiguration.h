@@ -103,7 +103,7 @@ class OMTFConfiguration: public ProcConfigurationBase {
   const L1TMuonOverlapParams* getRawParams() const {return &rawParams;};
   
   float minPdfVal() const {return 0.001;};
-  unsigned int nLayers() const {return rawParams.nLayers();};
+  unsigned int nLayers() const override {return rawParams.nLayers();};
   unsigned int nHitsPerLayer() const {return rawParams.nHitsPerLayer();};
   unsigned int nRefLayers() const {return rawParams.nRefLayers();};
   unsigned int nPhiBits() const {return rawParams.nPhiBits();};
@@ -111,7 +111,7 @@ class OMTFConfiguration: public ProcConfigurationBase {
   unsigned int nPdfBins() const {return pdfBins;};
   unsigned int nPdfValBits() const {return rawParams.nPdfValBits();};
   int pdfMaxValue() const {return pdfMaxVal; };
-  virtual unsigned int nPhiBins() const {return rawParams.nPhiBins();};
+  unsigned int nPhiBins() const override {return rawParams.nPhiBins();};
   unsigned int nRefHits() const {return rawParams.nRefHits();};
   unsigned int nTestRefHits() const {return rawParams.nTestRefHits();};
   //processors number per detector side
@@ -150,12 +150,12 @@ class OMTFConfiguration: public ProcConfigurationBase {
 
   double ptUnit = 0.5; // GeV/unit
   ///uGMT pt scale conversion
-  virtual double hwPtToGev(int hwPt) const {
+  double hwPtToGev(int hwPt) const override {
     return (hwPt - 1.) * ptUnit;
   }
 
   ///uGMT pt scale conversion: [0GeV, 0.5GeV) = 1 [0.5GeV, 1 Gev) = 2
-  virtual int ptGevToHw(double ptGev) const {
+  int ptGevToHw(double ptGev) const override {
     return (ptGev / ptUnit + 1);
   }
 
@@ -165,7 +165,7 @@ class OMTFConfiguration: public ProcConfigurationBase {
     return (hwEta * etaUnit);
   }
 
-  virtual int etaToHwEta(double eta) const {
+  int etaToHwEta(double eta) const override {
     return (eta / etaUnit);
   }
 
@@ -185,7 +185,7 @@ class OMTFConfiguration: public ProcConfigurationBase {
   ///return phi inside the processor
   int getProcScalePhi(unsigned int iProcessor, double phiRad) const;
 
-  virtual int getProcScalePhi(double phiRad, double procPhiZeroRad = 0) const {
+  int getProcScalePhi(double phiRad, double procPhiZeroRad = 0) const override {
     return 0;// TODO replace getProcScalePhi(unsigned int iProcessor, double phiRad) with this function
   }
 
@@ -199,7 +199,7 @@ class OMTFConfiguration: public ProcConfigurationBase {
   };
 
   //TODO implement more efficient
-  bool isBendingLayer(unsigned int iLayer) const {
+  bool isBendingLayer(unsigned int iLayer) const override {
     return getBendingLayers().count(iLayer);
   }
 
@@ -259,7 +259,7 @@ class OMTFConfiguration: public ProcConfigurationBase {
   /**configuration from the edm::ParameterSet
    * the parameters are set (i.e. overwritten) only if their exist in the edmParameterSet
    */
-  virtual void configureFromEdmParameterSet(const edm::ParameterSet& edmParameterSet);
+  void configureFromEdmParameterSet(const edm::ParameterSet& edmParameterSet) override;
 
   int getGoldenPatternResultFinalizeFunction() const {
     return goldenPatternResultFinalizeFunction;

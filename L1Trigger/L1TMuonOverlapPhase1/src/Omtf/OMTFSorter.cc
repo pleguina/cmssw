@@ -18,7 +18,7 @@
 template <class GoldenPatternType>
 AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(unsigned int procIndx, unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPatternType> >& gPatterns,
 					  int charge){
-  GoldenPatternType* bestGP = 0; //the GoldenPattern with the best result for this iRefHit
+  GoldenPatternType* bestGP = nullptr; //the GoldenPattern with the best result for this iRefHit
   //std::cout <<" ====== sortRefHitResults: " << std::endl;
 
   for(auto& itGP: gPatterns) {
@@ -32,7 +32,7 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(unsigned 
     if(itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() < 3) //TODO - move 3 to the configuration??
       continue;
 
-    if(bestGP == 0) {
+    if(bestGP == nullptr) {
       bestGP = itGP.get();
     }     
     else if(myType==0 && itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() > bestGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() ){

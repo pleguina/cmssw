@@ -40,18 +40,19 @@ public:
 
   struct Hit {
     union {
-      unsigned long rawData;
+      unsigned long rawData = 0;
 
       struct {
-        char layer = 0;
-        char quality = 0;
-        char z = 0;
-        char valid = 0;
-        short eta = 0;
-        short phiDist = 0;
+        char layer;
+        char quality;
+        char z;
+        char valid;
+        short eta;
+        short phiDist;
       };
     };
 
+    ~Hit() {}
   };
 
   std::vector<unsigned long> hits;
@@ -69,11 +70,11 @@ public:
   DataROOTDumper2(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
          const std::vector<std::shared_ptr<GoldenPattern> >& gps, std::string rootFileName);
 
-  virtual ~DataROOTDumper2();
+  ~DataROOTDumper2() override;
 
-  virtual void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates);
+  void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
-  virtual void endJob();
+  void endJob() override;
 
 private:
   std::vector<std::shared_ptr<GoldenPattern> > gps;
