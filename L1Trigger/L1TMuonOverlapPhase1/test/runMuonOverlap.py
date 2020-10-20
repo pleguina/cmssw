@@ -72,13 +72,27 @@ process.simOmtfPhase1Digis.dumpResultToXML = cms.bool(True)
 process.simOmtfPhase1Digis.dumpResultToROOT = cms.bool(False)
 process.simOmtfPhase1Digis.eventCaptureDebug = cms.bool(False)
 
+
+#!!!!!!!!!!!!!!!!!!!!! all possible algorithm configuration parameters, if it is commented, then a defoult value is used
+#below is the configuration used for runnig from the autumn of the 2018
+
+#process.simOmtfPhase1Digis.sorterType = cms.string("byLLH")
+process.simOmtfPhase1Digis.ghostBusterType = cms.string("GhostBusterPreferRefDt")
+
+process.simOmtfPhase1Digis.minDtPhiQuality = cms.int32(2)
+process.simOmtfPhase1Digis.minDtPhiBQuality = cms.int32(2)
+  
 process.simOmtfPhase1Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase1Digis.rpcMaxClusterCnt = cms.int32(2)
 process.simOmtfPhase1Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(False)
 
-#process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(6) #valid values are 0, 1, 2, 3, 5, 6, but for other then 0 the candidates quality assignemnt must be updated
+process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(0) #valid values are 0, 1, 2, 3, 5, 6, but for other then 0 the candidates quality assignemnt must be updated
+
+process.simOmtfPhase1Digis.noHitValueInPdf = cms.bool(False)
 
 process.simOmtfPhase1Digis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+
+
 
 
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
