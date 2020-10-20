@@ -6,10 +6,10 @@
 class OmtfPhase2AngleConverter : public OmtfAngleConverter {
  public:
   OmtfPhase2AngleConverter() {};
-  virtual ~OmtfPhase2AngleConverter() {};
+  ~OmtfPhase2AngleConverter() override {};
   
   // Convert DT phi to OMTF coordinate system.  
-  int getProcessorPhi(int phiZero, l1t::tftype part, int dtScNum, int dtPhi) const;
+  int getProcessorPhi(int phiZero, l1t::tftype part, int dtScNum, int dtPhi) const override;
   
 }; 
 

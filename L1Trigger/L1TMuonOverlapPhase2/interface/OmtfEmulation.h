@@ -19,9 +19,9 @@ public:
 
     void beginJob();
 
-	virtual ~OmtfEmulation();
+	~OmtfEmulation() override;
 
-	void addObservers();
+	void addObservers() override;
 private:
 	edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2;
 };

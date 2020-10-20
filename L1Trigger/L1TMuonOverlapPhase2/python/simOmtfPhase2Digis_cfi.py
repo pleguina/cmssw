@@ -22,7 +22,7 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   dropCSCPrimitives = cms.bool(False),
   
   dropDTPrimitives = cms.bool(True),  
-  usePhase2DTPrimitives = cms.bool(True),
+  usePhase2DTPrimitives = cms.bool(True), #if usePhase2DTPrimitives is True,  dropDTPrimitives must be True as well
   
   processorType = cms.string("OMTFProcessor"),
   ghostBusterType = cms.string("GhostBusterPreferRefDt"),
