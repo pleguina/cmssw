@@ -21,7 +21,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_MuonOverlap_newPats_64_1'),
+                         filename  = cms.untracked.string('log_MuonOverlap_newPats_71'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -115,7 +115,7 @@ for a in sys.argv :
     
 print "analysisType=" + analysisType
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v64_1_nuGun_PU250_' + analysisType + '.root'), closeFileFast = cms.untracked.bool(True) )
+process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_71_nuGun_PU250_' + analysisType + '.root'), closeFileFast = cms.untracked.bool(True) )
                                    
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonOverlapPhase2.simOmtfPhase2Digis_cfi')
@@ -123,8 +123,6 @@ process.load('L1Trigger.L1TMuonOverlapPhase2.simOmtfPhase2Digis_cfi')
 process.simOmtfPhase2Digis.dumpResultToXML = cms.bool(False)
 process.simOmtfPhase2Digis.dumpResultToROOT = cms.bool(False)
 process.simOmtfPhase2Digis.eventCaptureDebug = cms.bool(True)
-process.simOmtfPhase2Digis.sorterType = cms.string("byLLH")
-
 
 #process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files.xml")
 process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
@@ -133,8 +131,14 @@ process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/d
 #                                                       cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_minus_v1.xml"))
 #)
 
+process.simOmtfPhase2Digis.sorterType = cms.string("byLLH")
+
+
 process.simOmtfPhase2Digis.dropDTPrimitives = cms.bool(False)  
 process.simOmtfPhase2Digis.usePhase2DTPrimitives = cms.bool(False) #if here is true, dropDTPrimitives should also be true
+
+process.simOmtfPhase2Digis.minDtPhiQuality = cms.int32(2)
+process.simOmtfPhase2Digis.minDtPhiBQuality = cms.int32(4)
   
 process.simOmtfPhase2Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase2Digis.rpcMaxClusterCnt = cms.int32(2)
