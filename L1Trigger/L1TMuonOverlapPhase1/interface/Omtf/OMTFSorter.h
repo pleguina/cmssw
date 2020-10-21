@@ -5,22 +5,22 @@
 #include <vector>
 
 template <class GoldenPatternType>
-class OMTFSorter: public SorterBase<GoldenPatternType> {
+class OMTFSorter : public SorterBase<GoldenPatternType> {
 public:
+  OMTFSorter(int sorterTypeFlag) : myType(sorterTypeFlag) {}
 
-  OMTFSorter(int sorterTypeFlag): myType(sorterTypeFlag) {}
-
-  ~OMTFSorter() override{}
+  ~OMTFSorter() override {}
 
   ///Sort results from a single reference hit.
   ///Select candidate with highest number of hit layers
   ///Then select a candidate with largest likelihood value and given charge
   ///as we allow two candidates with opposite charge from single 10deg region
-  AlgoMuons::value_type sortRefHitResults(unsigned int procIndx, unsigned int iRefHit, const std::vector< std::shared_ptr<GoldenPatternType> >& gPatterns,
-				int charge=0) override;
+  AlgoMuons::value_type sortRefHitResults(unsigned int procIndx,
+                                          unsigned int iRefHit,
+                                          const std::vector<std::shared_ptr<GoldenPatternType> >& gPatterns,
+                                          int charge = 0) override;
 
 private:
-  
   int myType;
 };
 

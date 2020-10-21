@@ -22,30 +22,33 @@
 
 #include <functional>
 
-class PatternOptimizer: public PatternOptimizerBase {
+class PatternOptimizer : public PatternOptimizerBase {
 public:
-  PatternOptimizer(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
+  PatternOptimizer(const edm::ParameterSet& edmCfg,
+                   const OMTFConfiguration* omtfConfig,
+                   std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
   ~PatternOptimizer() override;
 
-/*  virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
+  /*  virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,
       const std::vector<AlgoMuon>& algoCandidates,
       std::vector<AlgoMuon>& gbCandidates,
       const std::vector<l1t::RegionalMuonCand> & candMuons);
 
   virtual void observeEventBegin(const edm::Event& iEvent);*/
 
-  void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
+  void observeEventEnd(const edm::Event& iEvent,
+                       std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
   void endJob() override;
 
-  const SimTrack* findSimMuon(const edm::Event &event, const SimTrack* previous = nullptr);
+  const SimTrack* findSimMuon(const edm::Event& event, const SimTrack* previous = nullptr);
 
   static const unsigned int whatExptVal = 0;
   static const unsigned int whatExptNorm = 1;
   static const unsigned int whatOmtfVal = 2;
   static const unsigned int whatOmtfNorm = 3;
-private:
 
+private:
   void saveHists(TFile& outfile) override;
 
   //candidate found by omtf in a given event
@@ -63,7 +66,7 @@ private:
 
   unsigned int selectedPatNum;
 
-  unsigned int currnetPtBatchPatNum; //for threshold finding
+  unsigned int currnetPtBatchPatNum;  //for threshold finding
 
   double deltaPdf = 0.01;
 
@@ -76,7 +79,6 @@ private:
   //std::vector<TH2I*> gpExpt_gpOmtf;
   //std::vector<TH1F*> gpEff;
 
-
   //double ptRangeFrom = 0;
   //double ptRangeTo = 0;
 
@@ -84,7 +86,7 @@ private:
 
   std::vector<double> rateWeights;
 
-  std::vector<int> patternPtCodes; //continous ptCode 1...31 (liek in the old PAC)
+  std::vector<int> patternPtCodes;  //continous ptCode 1...31 (liek in the old PAC)
 
   std::vector<double> eventRateWeights;
 
@@ -92,30 +94,24 @@ private:
 
   double getEventRateWeight(double pt) override;
 
-  std::function<void (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp)> updateStatFunc;
+  std::function<void(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp)> updateStatFunc;
 
-  std::function<void (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) > updatePdfsFunc;
+  std::function<void(GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate)>
+      updatePdfsFunc;
 
   void updateStatForAllGps(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
 
   void updateStat(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp, double delta, double norm);
 
-  enum SecondCloserStatIndx {
-    goodBigger,
-    goodSmaller,
-    badBigger,
-    badSmaller
-  };
+  enum SecondCloserStatIndx { goodBigger, goodSmaller, badBigger, badSmaller };
   void updateStatCloseResults(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
   void updatePdfCloseResults();
 
   void updateStatCollectProb(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
   void calulateProb();
 
-
   void calculateThresholds(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
   void calculateThresholds(double targetEff);
-
 
   void tuneClassProb(GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp);
   void tuneClassProb(double targetEff);

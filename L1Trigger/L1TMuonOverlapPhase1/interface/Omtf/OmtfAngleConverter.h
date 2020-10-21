@@ -10,10 +10,9 @@
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/AngleConverterBase.h"
 
-class OmtfAngleConverter: public AngleConverterBase {
+class OmtfAngleConverter : public AngleConverterBase {
 public:
-  OmtfAngleConverter():
-    AngleConverterBase() {};
+  OmtfAngleConverter() : AngleConverterBase(){};
 
   ~OmtfAngleConverter() override;
 

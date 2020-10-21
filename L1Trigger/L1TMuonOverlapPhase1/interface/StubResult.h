@@ -13,33 +13,22 @@
 
 class StubResult {
 public:
-  StubResult() {} //emty result
+  StubResult() {}  //emty result
 
-  StubResult(float pdfVal, bool valid, int pdfBin, int layer, MuonStubPtr stub): pdfVal(pdfVal), valid(valid), pdfBin(pdfBin), layer(layer), stub(stub) {}
+  StubResult(float pdfVal, bool valid, int pdfBin, int layer, MuonStubPtr stub)
+      : pdfVal(pdfVal), valid(valid), pdfBin(pdfBin), layer(layer), stub(stub) {}
 
-  const MuonStubPtr& getMuonStub() const {
-    return stub;
-  }
+  const MuonStubPtr& getMuonStub() const { return stub; }
 
-  int getPdfBin() const {
-    return pdfBin;
-  }
+  int getPdfBin() const { return pdfBin; }
 
-  float getPdfVal() const {
-    return pdfVal;
-  }
+  float getPdfVal() const { return pdfVal; }
 
-  bool getValid() const {
-    return valid;
-  }
+  bool getValid() const { return valid; }
 
-  void setValid(bool valid) {
-    this->valid =  valid;
-  }
+  void setValid(bool valid) { this->valid = valid; }
 
-  int getLayer() const {
-    return layer;
-  }
+  int getLayer() const { return layer; }
 
   void reset() {
     pdfVal = 0;
@@ -65,7 +54,5 @@ private:
 //typedef std::shared_ptr<StubResult> StubResultPtr;
 
 typedef std::vector<StubResult> StubResults;
-
-
 
 #endif /* INTERFACE_STUBRESULT_H_ */

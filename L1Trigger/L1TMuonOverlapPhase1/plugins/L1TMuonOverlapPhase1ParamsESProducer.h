@@ -12,28 +12,25 @@
 #include <memory>
 
 class L1TMuonOverlapPhase1ParamsESProducer : public edm::ESProducer {
-   public:
-  
-      L1TMuonOverlapPhase1ParamsESProducer(const edm::ParameterSet&);
-      ~L1TMuonOverlapPhase1ParamsESProducer() override;
+public:
+  L1TMuonOverlapPhase1ParamsESProducer(const edm::ParameterSet&);
+  ~L1TMuonOverlapPhase1ParamsESProducer() override;
 
-      typedef std::shared_ptr<L1TMuonOverlapParams> ReturnType;
+  typedef std::shared_ptr<L1TMuonOverlapParams> ReturnType;
 
-      ReturnType produceParams(const L1TMuonOverlapParamsRcd&);
+  ReturnType produceParams(const L1TMuonOverlapParamsRcd&);
 
-      ReturnType producePatterns(const L1TMuonOverlapParamsRcd&);
+  ReturnType producePatterns(const L1TMuonOverlapParamsRcd&);
 
-   private:
+private:
+  ///Read Golden Patters from single XML file.
+  ///XMLConfigReader  state is modified, as it hold
+  ///cache of the Golden Patters read from XML file.
+  bool readPatternsXML(XMLConfigReader& aReader);
 
-      ///Read Golden Patters from single XML file.
-      ///XMLConfigReader  state is modified, as it hold
-      ///cache of the Golden Patters read from XML file.
-      bool readPatternsXML(XMLConfigReader  & aReader);
+  ///Read Connections from single XML file.
+  bool readConnectionsXML(const XMLConfigReader& aReader);
 
-      ///Read Connections from single XML file.
-      bool readConnectionsXML(const XMLConfigReader & aReader);
-
-      L1TMuonOverlapParams params;
-      L1TMuonOverlapParams patterns;
+  L1TMuonOverlapParams params;
+  L1TMuonOverlapParams patterns;
 };
-

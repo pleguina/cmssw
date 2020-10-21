@@ -14,17 +14,15 @@ class L1TMuonOverlapParams;
 
 class L1MuonOverlapPhase1ParamsDBProducer : public edm::EDAnalyzer {
 public:
-  L1MuonOverlapPhase1ParamsDBProducer(const edm::ParameterSet & cfg);
-  ~L1MuonOverlapPhase1ParamsDBProducer() override{}
+  L1MuonOverlapPhase1ParamsDBProducer(const edm::ParameterSet& cfg);
+  ~L1MuonOverlapPhase1ParamsDBProducer() override {}
   void beginJob() override{};
-  void beginRun(const edm::Run&,  const edm::EventSetup& es) override;
+  void beginRun(const edm::Run&, const edm::EventSetup& es) override;
   void analyze(const edm::Event&, const edm::EventSetup& es) override;
   void endJob() override{};
 
 private:
-
   std::unique_ptr<L1TMuonOverlapParams> omtfParams, omtfPatterns;
-
-}; 
+};
 
 #endif

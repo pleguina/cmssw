@@ -11,20 +11,18 @@
 class XMLConfigReader;
 class OMTFConfiguration;
 
-class OMTFinput: public MuonStubsInput {
-
- public:
-
+class OMTFinput : public MuonStubsInput {
+public:
   //typedef std::vector<int> vector1D;
   //typedef std::vector<vector1D> vector2D;
 
-  OMTFinput(const OMTFConfiguration*);
+  OMTFinput(const OMTFConfiguration *);
 
   ~OMTFinput() override {}
 
   ///Add hit to given layer.
   ///iInput marks input number (max 14 per layer)
-/*
+  /*
   bool addLayerHit(unsigned int iLayer,
 		   unsigned int iInput,
 		   int iPhi, int iEta, bool allowOverwrite=true);
@@ -34,9 +32,7 @@ class OMTFinput: public MuonStubsInput {
   //void clear();
 
   ///Read data from a XML file
-  void readData(XMLConfigReader *aReader, 
-		unsigned int iEvent=0,
-		unsigned int iProcessor=0);
+  void readData(XMLConfigReader *aReader, unsigned int iEvent = 0, unsigned int iProcessor = 0);
 
   ///Apply shift to all data
   void shiftMyPhi(int phiShift);
@@ -57,11 +53,11 @@ class OMTFinput: public MuonStubsInput {
 
   std::bitset<128> getRefHits(unsigned int iProcessor) const;
 
-  friend std::ostream & operator << (std::ostream &out, const OMTFinput & aInput);
+  friend std::ostream &operator<<(std::ostream &out, const OMTFinput &aInput);
 
   //OMTFinput & operator += (const OMTFinput & iInput) { mergeData(&iInput); return *this; }
 
- private:
+private:
   //friend class OMTFinputMaker; //to allow the OMTFinputMaker see and modify the muonStubsInLayers, which for other classes should be const
 
   ///Phi measurements in logic layers
@@ -77,8 +73,7 @@ class OMTFinput: public MuonStubsInput {
   ///RefHitsEta
   //mutable vector1D refHitsEta;
 
-  const OMTFConfiguration* myOmtfConfig = nullptr;
+  const OMTFConfiguration *myOmtfConfig = nullptr;
 };
-
 
 #endif

@@ -27,26 +27,21 @@ public:
   //void clear();
 
   ///Read data from a XML file
-/*  void readData(XMLConfigReader *aReader,
+  /*  void readData(XMLConfigReader *aReader,
       unsigned int iEvent=0,
       unsigned int iProcessor=0);*/
 
-
   //MuonStub getMuonStub(unsigned int iLayer, unsigned int iInput) const;
 
-  virtual MuonStubPtrs2D& getMuonStubs() {
-    return muonStubsInLayers;
-  }
+  virtual MuonStubPtrs2D& getMuonStubs() { return muonStubsInLayers; }
 
-  virtual const MuonStubPtrs2D& getMuonStubs() const {
-    return muonStubsInLayers;
-  }
+  virtual const MuonStubPtrs2D& getMuonStubs() const { return muonStubsInLayers; }
 
   //gives stub phiHw or phiBHw - depending which layer is requested
   //if there is no stun at input iInput - return MuonStub::EMTPY_PHI
   virtual int getPhiHw(unsigned int iLayer, unsigned int iInput) const;
 
-  friend std::ostream & operator << (std::ostream &out, const MuonStubsInput& stubsInput);
+  friend std::ostream& operator<<(std::ostream& out, const MuonStubsInput& stubsInput);
 
 protected:
   const ProcConfigurationBase* config = nullptr;
@@ -54,6 +49,5 @@ protected:
   //[iLayer][iStub]
   MuonStubPtrs2D muonStubsInLayers;
 };
-
 
 #endif /* INTERFACE_MUCORRELATOR_MUONSTUBSINPUT_H_ */

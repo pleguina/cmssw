@@ -12,11 +12,9 @@
 
 #include <memory>
 
-
-class GhostBuster: public IGhostBuster {
+class GhostBuster : public IGhostBuster {
 public:
-  ~GhostBuster() override {};
-  AlgoMuons select(AlgoMuons refHitCands, int charge=0) override;
-
+  ~GhostBuster() override{};
+  AlgoMuons select(AlgoMuons refHitCands, int charge = 0) override;
 };
 #endif

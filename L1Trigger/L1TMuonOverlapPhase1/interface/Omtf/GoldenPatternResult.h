@@ -10,7 +10,6 @@
 //result for one refHit of one GoldenPattern
 class GoldenPatternResult {
 public:
-
 private:
   bool valid = false;
 
@@ -43,18 +42,15 @@ private:
   double gpProbability2 = 0;
 
   StubResults stubResults;
+
 public:
   void init(const OMTFConfiguration* omtfConfig);
 
   void reset();
 
-  bool isValid() const {
-    return valid;
-  }
+  bool isValid() const { return valid; }
 
-  void setValid(bool valid) {
-    this->valid = valid;
-  }
+  void setValid(bool valid) { this->valid = valid; }
 
   void set(int refLayer, int phi, int eta, int refHitPhi);
 
@@ -62,80 +58,48 @@ public:
 
   void setStubResult(int layer, StubResult& stubResult);
 
-  int getRefLayer() const {
-    return this->refLayer;
-  }
+  int getRefLayer() const { return this->refLayer; }
 
-  void setRefLayer(int refLayer) {
-    this->refLayer = refLayer;
-  }
+  void setRefLayer(int refLayer) { this->refLayer = refLayer; }
 
-  int getEta() const {
-    return eta;
-  }
+  int getEta() const { return eta; }
 
-  void setEta(int eta) {
-    this->eta = eta;
-  }
+  void setEta(int eta) { this->eta = eta; }
 
-  unsigned int getFiredLayerBits() const {
-    return firedLayerBits;
-  }
+  unsigned int getFiredLayerBits() const { return firedLayerBits; }
 
-  void setFiredLayerBits(unsigned int firedLayerBits) {
-    this->firedLayerBits = firedLayerBits;
-  }
+  void setFiredLayerBits(unsigned int firedLayerBits) { this->firedLayerBits = firedLayerBits; }
 
-  unsigned int getFiredLayerCnt() const {
-    return firedLayerCnt;
-  }
+  unsigned int getFiredLayerCnt() const { return firedLayerCnt; }
 
-  void setFiredLayerCnt(unsigned int firedLayerCnt) {
-    this->firedLayerCnt = firedLayerCnt;
-  }
-
+  void setFiredLayerCnt(unsigned int firedLayerCnt) { this->firedLayerCnt = firedLayerCnt; }
 
   /*
    * sum of the pdfValues in layers
    * if finalise2() it is product of the pdfValues
    */
-  PdfValueType getPdfSum() const {
-    return pdfSum;
-  }
+  PdfValueType getPdfSum() const { return pdfSum; }
 
-  const StubResults& getStubResults() const {
-    return stubResults;
-  }
+  const StubResults& getStubResults() const { return stubResults; }
 
-  int getPhi() const {
-    return phi;
-  }
+  int getPhi() const { return phi; }
 
-  void setPhi(int phi) {
-    this->phi = phi;
-  }
+  void setPhi(int phi) { this->phi = phi; }
 
-  int getRefHitPhi() const {
-    return refHitPhi;
-  }
+  int getRefHitPhi() const { return refHitPhi; }
 
-  void setRefHitPhi(int refHitPhi) {
-    this->refHitPhi = refHitPhi;
-  }
+  void setRefHitPhi(int refHitPhi) { this->refHitPhi = refHitPhi; }
 
-  bool isLayerFired(unsigned int iLayer) const {
-    return firedLayerBits & (1<<iLayer);
-  }
+  bool isLayerFired(unsigned int iLayer) const { return firedLayerBits & (1 << iLayer); }
 
-  GoldenPatternResult() {
-  };
+  GoldenPatternResult(){};
 
   //dont use this in the pattern construction, since the myOmtfConfig is null then
   GoldenPatternResult(const OMTFConfiguration* omtfConfig);
 
-  std::function<void ()> finalise;
+  std::function<void()> finalise;
 
-   //version for the "normal" patterns, i.e. without pdfSum threshold
+  //version for the "normal" patterns, i.e. without pdfSum threshold
   void finalise0();
 
   //version for the patterns with pdfSum threshold
@@ -158,29 +122,18 @@ public:
   void finalise9();
   //bool empty() const;
 
-  friend std::ostream & operator << (std::ostream &out, const GoldenPatternResult & aResult);
+  friend std::ostream& operator<<(std::ostream& out, const GoldenPatternResult& aResult);
 
-  double getGpProbability1() const {
-    return gpProbability1;
-  }
+  double getGpProbability1() const { return gpProbability1; }
 
-  void setGpProbability1(double probability1 = 0) {
-    this->gpProbability1 = probability1;
-  }
+  void setGpProbability1(double probability1 = 0) { this->gpProbability1 = probability1; }
 
-  double getGpProbability2() const {
-    return gpProbability2;
-  }
+  double getGpProbability2() const { return gpProbability2; }
 
-  void setGpProbability2(double probability2 = 0) {
-    this->gpProbability2 = probability2;
-  }
+  void setGpProbability2(double probability2 = 0) { this->gpProbability2 = probability2; }
 
 private:
-
-  const OMTFConfiguration* omtfConfig =  nullptr;
-
+  const OMTFConfiguration* omtfConfig = nullptr;
 };
 
-
-#endif //OMTF_GOLDENPATTERNRESULTS_H
+#endif  //OMTF_GOLDENPATTERNRESULTS_H

@@ -20,37 +20,40 @@
 #include "TH1I.h"
 #include "TH2I.h"
 
-class PatternOptimizerBase: public IOMTFEmulationObserver {
+class PatternOptimizerBase : public IOMTFEmulationObserver {
 public:
   PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig);
 
-  PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
+  PatternOptimizerBase(const edm::ParameterSet& edmCfg,
+                       const OMTFConfiguration* omtfConfig,
+                       std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
 
   ~PatternOptimizerBase() override;
 
-  void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,
-      const AlgoMuons& algoCandidates,
-      const AlgoMuons& gbCandidates,
-      const std::vector<l1t::RegionalMuonCand> & candMuons) override;
+  void observeProcesorEmulation(unsigned int iProcessor,
+                                l1t::tftype mtfType,
+                                const std::shared_ptr<OMTFinput>& input,
+                                const AlgoMuons& algoCandidates,
+                                const AlgoMuons& gbCandidates,
+                                const std::vector<l1t::RegionalMuonCand>& candMuons) override;
 
   void observeEventBegin(const edm::Event& iEvent) override;
 
-  void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
+  void observeEventEnd(const edm::Event& iEvent,
+                       std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
   void endJob() override;
 
-  const SimTrack* findSimMuon(const edm::Event &event, const SimTrack* previous = nullptr);
+  const SimTrack* findSimMuon(const edm::Event& event, const SimTrack* previous = nullptr);
 
 protected:
   void savePatternsInRoot(std::string rootFileName);
 
   void printPatterns();
 
-  virtual double getEventRateWeight(double pt) {
-    return 1;
-  }
+  virtual double getEventRateWeight(double pt) { return 1; }
 
-  virtual void saveHists(TFile& outfile) {};
+  virtual void saveHists(TFile& outfile){};
 
   edm::ParameterSet edmCfg;
   const OMTFConfiguration* omtfConfig;

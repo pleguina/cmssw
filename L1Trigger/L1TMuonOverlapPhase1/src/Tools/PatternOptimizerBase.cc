@@ -34,22 +34,26 @@
 #include <string>
 #include <vector>
 
-PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig):
-  edmCfg(edmCfg), omtfConfig(omtfConfig), simMuon(nullptr) {
+PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig)
+    : edmCfg(edmCfg), omtfConfig(omtfConfig), simMuon(nullptr) {
   // TODO Auto-generated constructor stub
 
-  simMuPt =  new TH1I("simMuPt", "simMuPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
-  simMuFoundByOmtfPt =  new TH1I("simMuFoundByOmtfPt", "simMuFoundByOmtfPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
+  simMuPt = new TH1I("simMuPt", "simMuPt", goldenPatterns.size(), -0.5, goldenPatterns.size() - 0.5);
+  simMuFoundByOmtfPt =
+      new TH1I("simMuFoundByOmtfPt", "simMuFoundByOmtfPt", goldenPatterns.size(), -0.5, goldenPatterns.size() - 0.5);
 
   simMuPtSpectrum = new TH1F("simMuPtSpectrum", "simMuPtSpectrum", 400, 0, 400);
 }
 
-PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps):
-  edmCfg(edmCfg), omtfConfig(omtfConfig), goldenPatterns(gps), simMuon(nullptr) {
+PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg,
+                                           const OMTFConfiguration* omtfConfig,
+                                           std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps)
+    : edmCfg(edmCfg), omtfConfig(omtfConfig), goldenPatterns(gps), simMuon(nullptr) {
   // TODO Auto-generated constructor stub
 
-  simMuPt =  new TH1I("simMuPt", "simMuPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
-  simMuFoundByOmtfPt =  new TH1I("simMuFoundByOmtfPt", "simMuFoundByOmtfPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
+  simMuPt = new TH1I("simMuPt", "simMuPt", goldenPatterns.size(), -0.5, goldenPatterns.size() - 0.5);
+  simMuFoundByOmtfPt =
+      new TH1I("simMuFoundByOmtfPt", "simMuFoundByOmtfPt", goldenPatterns.size(), -0.5, goldenPatterns.size() - 0.5);
 
   simMuPtSpectrum = new TH1F("simMuPtSpectrum", "simMuPtSpectrum", 400, 0, 400);
 }
@@ -59,29 +63,30 @@ PatternOptimizerBase::~PatternOptimizerBase() {
 }
 
 void PatternOptimizerBase::printPatterns() {
-  cout<<__FUNCTION__<<": "<<__LINE__<<" called!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! "<<std::endl;
-  for(int patNum = goldenPatterns.size() -1; patNum >= 0; patNum--  ) {
+  cout << __FUNCTION__ << ": " << __LINE__ << " called!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl;
+  for (int patNum = goldenPatterns.size() - 1; patNum >= 0; patNum--) {
     double pt = omtfConfig->getPatternPtRange(patNum).ptFrom;
-    if(pt > 0) {
-      cout<<"cmsRun runThresholdCalc.py "<<patNum<<" "<<(patNum+1)<<" _"<<RPCConst::iptFromPt(pt)<<"_";
-      if(goldenPatterns[patNum]->key().theCharge == -1)
-        cout<<"m_";
+    if (pt > 0) {
+      cout << "cmsRun runThresholdCalc.py " << patNum << " " << (patNum + 1) << " _" << RPCConst::iptFromPt(pt) << "_";
+      if (goldenPatterns[patNum]->key().theCharge == -1)
+        cout << "m_";
       else
-        cout<<"p_";
+        cout << "p_";
 
-      cout<<" > out"<<patNum<<".txt"<<std::endl;
+      cout << " > out" << patNum << ".txt" << std::endl;
     }
   }
 }
 
-void PatternOptimizerBase::observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>& input,
-    const AlgoMuons& algoCandidates,
-    const AlgoMuons& gbCandidates,
-    const std::vector<l1t::RegionalMuonCand> & candMuons) {
-
+void PatternOptimizerBase::observeProcesorEmulation(unsigned int iProcessor,
+                                                    l1t::tftype mtfType,
+                                                    const std::shared_ptr<OMTFinput>& input,
+                                                    const AlgoMuons& algoCandidates,
+                                                    const AlgoMuons& gbCandidates,
+                                                    const std::vector<l1t::RegionalMuonCand>& candMuons) {
   unsigned int procIndx = omtfConfig->getProcIndx(iProcessor, mtfType);
 
-/*
+  /*
   double ptSim = simMuon->momentum().pt();
   int chargeSim = (abs(simMuon->type()) == 13) ? simMuon->type()/-13 : 0;
   int patNum = omtfConfig->getPatternNum(ptSim, chargeSim);
@@ -89,18 +94,20 @@ void PatternOptimizerBase::observeProcesorEmulation(unsigned int iProcessor, l1t
 */
 
   //bool found = false;
-  
+
   unsigned int i = 0;
-  for(auto& gbCandidate : gbCandidates) {
+  for (auto& gbCandidate : gbCandidates) {
     //int iRefHit = gbCandidate.getRefHitNumber();
-    if(gbCandidate->getGoldenPatern() != nullptr &&  gbCandidate->getGpResult().getFiredLayerCnt() > omtfCand->getGpResult().getFiredLayerCnt() ) {
+    if (gbCandidate->getGoldenPatern() != nullptr &&
+        gbCandidate->getGpResult().getFiredLayerCnt() > omtfCand->getGpResult().getFiredLayerCnt()) {
       //cout<<__FUNCTION__<<":"<<__LINE__<<" gbCandidate "<<gbCandidate<<" "<<std::endl;
       omtfCand = gbCandidate;
       //omtfResult = gbCandidate.getGoldenPatern()->getResults()[procIndx][iRefHit]; //TODO be carrefful, because in principle the results sored by the goldenPattern can be altered in one event. In phae I omtf this should not happened, but in OMTFProcessorTTMerger - yes
       //exptResult = exptCandGp->getResults()[procIndx][iRefHit];
       candProcIndx = procIndx;
 
-      regionalMuonCand = candMuons.at(i); //should be good, as the regionalMuonCand is created for every  gbCandidate in OMTFProcessor<GoldenPatternType>::getFinalcandidates
+      regionalMuonCand = candMuons.at(
+          i);  //should be good, as the regionalMuonCand is created for every  gbCandidate in OMTFProcessor<GoldenPatternType>::getFinalcandidates
       //found = true;
 
       this->algoCandidates = algoCandidates;
@@ -131,7 +138,7 @@ void PatternOptimizerBase::observeProcesorEmulation(unsigned int iProcessor, l1t
 }
 
 void PatternOptimizerBase::observeEventBegin(const edm::Event& iEvent) {
-  omtfCand.reset(new AlgoMuon() );
+  omtfCand.reset(new AlgoMuon());
   candProcIndx = 0xffff;
   //exptResult =  GoldenPatternResult();
 
@@ -139,23 +146,24 @@ void PatternOptimizerBase::observeEventBegin(const edm::Event& iEvent) {
   //cout<<__FUNCTION__<<":"<<__LINE__<<" evevt "<<iEvent.id().event()<<" simMuon pt "<<simMuon->momentum().pt()<<" GeV "<<std::endl;
 }
 
-void PatternOptimizerBase::observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
-  if(simMuon == nullptr || omtfCand->getGoldenPatern() == nullptr)//no sim muon or empty candidate
+void PatternOptimizerBase::observeEventEnd(const edm::Event& iEvent,
+                                           std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
+  if (simMuon == nullptr || omtfCand->getGoldenPatern() == nullptr)  //no sim muon or empty candidate
     return;
 
   double ptSim = simMuon->momentum().pt();
-  int chargeSim = (abs(simMuon->type()) == 13) ? simMuon->type()/-13 : 0;
+  int chargeSim = (abs(simMuon->type()) == 13) ? simMuon->type() / -13 : 0;
 
   unsigned int exptPatNum = omtfConfig->getPatternNum(ptSim, chargeSim);
-  GoldenPatternWithStat* exptCandGp = goldenPatterns.at(exptPatNum).get(); // expected pattern
-  simMuFoundByOmtfPt->Fill(exptCandGp->key().theNumber); //TODO add weight of the muons pt spectrum
+  GoldenPatternWithStat* exptCandGp = goldenPatterns.at(exptPatNum).get();  // expected pattern
+  simMuFoundByOmtfPt->Fill(exptCandGp->key().theNumber);                    //TODO add weight of the muons pt spectrum
 
   simMuPtSpectrum->Fill(ptSim, getEventRateWeight(ptSim));
 }
 
 void PatternOptimizerBase::endJob() {
   std::string fName = edmCfg.getParameter<std::string>("optimisedPatsXmlFile");
-  edm::LogImportant("PatternOptimizer") << " Writing optimized patterns to "<<fName << std::endl;
+  edm::LogImportant("PatternOptimizer") << " Writing optimized patterns to " << fName << std::endl;
   XMLConfigWriter xmlWriter(omtfConfig, true, false);
   xmlWriter.writeGPs(goldenPatterns, fName);
 
@@ -163,21 +171,21 @@ void PatternOptimizerBase::endJob() {
   savePatternsInRoot(fName);
 }
 
-const SimTrack* PatternOptimizerBase::findSimMuon(const edm::Event &event, const SimTrack * previous) {
+const SimTrack* PatternOptimizerBase::findSimMuon(const edm::Event& event, const SimTrack* previous) {
   const SimTrack* result = nullptr;
-  if(edmCfg.exists("g4SimTrackSrc") == false)
+  if (edmCfg.exists("g4SimTrackSrc") == false)
     return result;
 
   edm::Handle<edm::SimTrackContainer> simTks;
   event.getByLabel(edmCfg.getParameter<edm::InputTag>("g4SimTrackSrc"), simTks);
 
-  for (std::vector<SimTrack>::const_iterator it=simTks->begin(); it< simTks->end(); it++) {
+  for (std::vector<SimTrack>::const_iterator it = simTks->begin(); it < simTks->end(); it++) {
     const SimTrack& aTrack = *it;
-    if ( !(aTrack.type() == 13 || aTrack.type() == -13) )
+    if (!(aTrack.type() == 13 || aTrack.type() == -13))
       continue;
-    if(previous && ROOT::Math::VectorUtil::DeltaR(aTrack.momentum(), previous->momentum()) < 0.07)
+    if (previous && ROOT::Math::VectorUtil::DeltaR(aTrack.momentum(), previous->momentum()) < 0.07)
       continue;
-    if ( !result || aTrack.momentum().pt() > result->momentum().pt())
+    if (!result || aTrack.momentum().pt() > result->momentum().pt())
       result = &aTrack;
   }
   return result;
@@ -186,7 +194,8 @@ const SimTrack* PatternOptimizerBase::findSimMuon(const edm::Event &event, const
 void PatternOptimizerBase::savePatternsInRoot(std::string rootFileName) {
   gStyle->SetOptStat(111111);
   TFile outfile(rootFileName.c_str(), "RECREATE");
-  cout<<__FUNCTION__<<": "<<__LINE__<<" out fileName "<<rootFileName<<" outfile->GetName() "<<outfile.GetName()<<endl;
+  cout << __FUNCTION__ << ": " << __LINE__ << " out fileName " << rootFileName << " outfile->GetName() "
+       << outfile.GetName() << endl;
 
   outfile.cd();
   simMuFoundByOmtfPt->Write();
@@ -198,50 +207,56 @@ void PatternOptimizerBase::savePatternsInRoot(std::string rootFileName) {
   ostringstream ostrName;
   ostringstream ostrTtle;
   vector<TH1F*> classProbHists;
-  for(unsigned int iRefLayer = 0; iRefLayer < goldenPatterns[0]->getPdf()[0].size(); ++iRefLayer) {
+  for (unsigned int iRefLayer = 0; iRefLayer < goldenPatterns[0]->getPdf()[0].size(); ++iRefLayer) {
     ostrName.str("");
-    ostrName<<"Neg_RefLayer_"<<iRefLayer;
+    ostrName << "Neg_RefLayer_" << iRefLayer;
     ostrTtle.str("");
-    ostrTtle<<"Neg_RefLayer_"<<iRefLayer;
-    classProbHists.push_back(new TH1F(ostrName.str().c_str(), ostrTtle.str().c_str(), goldenPatterns.size(), -0.5, goldenPatterns.size() - 0.5) );
+    ostrTtle << "Neg_RefLayer_" << iRefLayer;
+    classProbHists.push_back(new TH1F(
+        ostrName.str().c_str(), ostrTtle.str().c_str(), goldenPatterns.size(), -0.5, goldenPatterns.size() - 0.5));
 
     ostrName.str("");
-    ostrName<<"Pos_RefLayer_"<<iRefLayer;
+    ostrName << "Pos_RefLayer_" << iRefLayer;
     ostrTtle.str("");
-    ostrTtle<<"Pos_RefLayer_"<<iRefLayer;
-    classProbHists.push_back(new TH1F(ostrName.str().c_str(), ostrTtle.str().c_str(), goldenPatterns.size(), -0.5, goldenPatterns.size() - 0.5) );
+    ostrTtle << "Pos_RefLayer_" << iRefLayer;
+    classProbHists.push_back(new TH1F(
+        ostrName.str().c_str(), ostrTtle.str().c_str(), goldenPatterns.size(), -0.5, goldenPatterns.size() - 0.5));
   }
 
-  for(auto& gp : goldenPatterns) {
+  for (auto& gp : goldenPatterns) {
     OMTFConfiguration::PatternPt patternPt = omtfConfig->getPatternPtRange(gp->key().theNumber);
-    if(gp->key().thePt == 0)
+    if (gp->key().thePt == 0)
       continue;
     //cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<std::endl;
     ostrName.str("");
-    ostrName<<"PatNum_"<<gp->key().theNumber;
+    ostrName << "PatNum_" << gp->key().theNumber;
     ostrTtle.str("");
-    ostrTtle<<"PatNum_"<<gp->key().theNumber<<"_ptCode_"<<gp->key().thePt<<"_Pt_"<<patternPt.ptFrom<<"_"<<patternPt.ptTo<<"_GeV";
+    ostrTtle << "PatNum_" << gp->key().theNumber << "_ptCode_" << gp->key().thePt << "_Pt_" << patternPt.ptFrom << "_"
+             << patternPt.ptTo << "_GeV";
     TCanvas* canvas = new TCanvas(ostrName.str().c_str(), ostrTtle.str().c_str(), 1200, 1000);
     canvas->Divide(gp->getPdf().size(), gp->getPdf()[0].size(), 0, 0);
     outfile.cd("patternsPdfs");
-    for(unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
-      for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
+    for (unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
+      for (unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
         canvas->cd(1 + iLayer + iRefLayer * gp->getPdf().size());
         //unsigned int refLayerLogicNumber = omtfConfig->getRefToLogicNumber()[iRefLayer];
         ostrName.str("");
-        ostrName<<"PatNum_"<<gp->key().theNumber<<"_refLayer_"<<iRefLayer<<"_Layer_"<<iLayer;
+        ostrName << "PatNum_" << gp->key().theNumber << "_refLayer_" << iRefLayer << "_Layer_" << iLayer;
         ostrTtle.str("");
-        ostrTtle<<"PatNum "<<gp->key().theNumber<<" ptCode "<<gp->key().thePt<<" refLayer "<<iRefLayer<<" Layer "<<iLayer
-            <<" meanDistPhi "<<gp->meanDistPhi[iLayer][iRefLayer][0]<<" distPhiBitShift "<<gp->getDistPhiBitShift(iLayer, iRefLayer); //"_Pt_"<<patternPt.ptFrom<<"_"<<patternPt.ptTo<<"_GeV
+        ostrTtle << "PatNum " << gp->key().theNumber << " ptCode " << gp->key().thePt << " refLayer " << iRefLayer
+                 << " Layer " << iLayer << " meanDistPhi " << gp->meanDistPhi[iLayer][iRefLayer][0]
+                 << " distPhiBitShift "
+                 << gp->getDistPhiBitShift(iLayer, iRefLayer);  //"_Pt_"<<patternPt.ptFrom<<"_"<<patternPt.ptTo<<"_GeV
         //cout<<__FUNCTION__<<": "<<__LINE__<<" creating hist "<<ostrTtle.str()<<std::endl;
-        TH1F* hist = new TH1F(ostrName.str().c_str(), ostrTtle.str().c_str(), omtfConfig->nPdfBins(), -0.5, omtfConfig->nPdfBins()-0.5);
-        for(unsigned int iPdf = 0; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
+        TH1F* hist = new TH1F(
+            ostrName.str().c_str(), ostrTtle.str().c_str(), omtfConfig->nPdfBins(), -0.5, omtfConfig->nPdfBins() - 0.5);
+        for (unsigned int iPdf = 0; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {
           hist->Fill(iPdf, gp->pdfAllRef[iLayer][iRefLayer][iPdf]);
         }
-        if((int)iLayer == (omtfConfig->getRefToLogicNumber()[iRefLayer]))
+        if ((int)iLayer == (omtfConfig->getRefToLogicNumber()[iRefLayer]))
           hist->SetLineColor(kGreen);
 
-        hist->GetYaxis()->SetRangeUser(0,  omtfConfig->pdfMaxValue() + 1 );
+        hist->GetYaxis()->SetRangeUser(0, omtfConfig->pdfMaxValue() + 1);
         hist->Write();
         hist->Draw("hist");
       }
@@ -250,26 +265,26 @@ void PatternOptimizerBase::savePatternsInRoot(std::string rootFileName) {
     canvas->Write();
     delete canvas;
 
-    unsigned int iPdf = omtfConfig->nPdfBins()/2;
-    for(unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[0].size(); ++iRefLayer) {
+    unsigned int iPdf = omtfConfig->nPdfBins() / 2;
+    for (unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[0].size(); ++iRefLayer) {
       unsigned int refLayerLogicNumber = omtfConfig->getRefToLogicNumber()[iRefLayer];
-      if(gp->key().theCharge == -1) {
+      if (gp->key().theCharge == -1) {
         classProbHists[2 * iRefLayer]->Fill(gp->key().theNumber, gp->pdfAllRef[refLayerLogicNumber][iRefLayer][iPdf]);
-      }
-      else
-        classProbHists[2 * iRefLayer +1]->Fill(gp->key().theNumber, gp->pdfAllRef[refLayerLogicNumber][iRefLayer][iPdf]);
+      } else
+        classProbHists[2 * iRefLayer + 1]->Fill(gp->key().theNumber,
+                                                gp->pdfAllRef[refLayerLogicNumber][iRefLayer][iPdf]);
     }
   }
 
   outfile.mkdir("patternsPdfSumStat")->cd();
-  for(auto& gp : goldenPatterns) {
-    for(unsigned int iRefLayer = 0; iRefLayer < gp->gpProbabilityStat.size(); ++iRefLayer) {
+  for (auto& gp : goldenPatterns) {
+    for (unsigned int iRefLayer = 0; iRefLayer < gp->gpProbabilityStat.size(); ++iRefLayer) {
       gp->gpProbabilityStat[iRefLayer]->Write();
     }
   }
 
   outfile.cd();
-  for(auto& classProbHist : classProbHists) {
+  for (auto& classProbHist : classProbHists) {
     classProbHist->Write();
   }
 

@@ -6,11 +6,13 @@
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
 const int inputsPerLayer = 14;
-OMTFinput::OMTFinput(const OMTFConfiguration* omtfConfig): MuonStubsInput(omtfConfig) {
-
+OMTFinput::OMTFinput(const OMTFConfiguration* omtfConfig) : MuonStubsInput(omtfConfig) {
   myOmtfConfig = omtfConfig;
   //muonStubsInLayers.assign(omtfConfig->nLayers(), std::vector<MuonStub>(inputsPerLayer, MuonStub(myOmtfConfig->nPhiBins(), myOmtfConfig->nPhiBins())) );
-  muonStubsInLayers.assign(omtfConfig->nLayers(), std::vector<MuonStubPtr>(inputsPerLayer ) ); //, MuonStub(myOmtfConfig->nPhiBins(), myOmtfConfig->nPhiBins()) TODO do we want to create the MuonStubs for every input???
+  muonStubsInLayers.assign(
+      omtfConfig->nLayers(),
+      std::vector<MuonStubPtr>(
+          inputsPerLayer));  //, MuonStub(myOmtfConfig->nPhiBins(), myOmtfConfig->nPhiBins()) TODO do we want to create the MuonStubs for every input???
   //clear();
 }
 ///////////////////////////////////////////////////
@@ -20,14 +22,14 @@ OMTFinput::OMTFinput(const OMTFConfiguration* omtfConfig): MuonStubsInput(omtfCo
 int OMTFinput::getPhiHw(unsigned int iLayer, unsigned int iInput) const {
   /*  assert(iLayer < muonStubsInLayers.size());
   assert(iInput < muonStubsInLayers[iLayer].size());*/
-  if(this->myOmtfConfig->isBendingLayer(iLayer) ) {
-    MuonStubPtr stub = getMuonStub(iLayer-1, iInput);
-    if(stub)
+  if (this->myOmtfConfig->isBendingLayer(iLayer)) {
+    MuonStubPtr stub = getMuonStub(iLayer - 1, iInput);
+    if (stub)
       return stub->phiBHw;
   }
 
   MuonStubPtr stub = getMuonStub(iLayer, iInput);
-  if(stub)
+  if (stub)
     return stub->phiHw;
 
   return myOmtfConfig->nPhiBins();
@@ -36,14 +38,14 @@ int OMTFinput::getPhiHw(unsigned int iLayer, unsigned int iInput) const {
 const int OMTFinput::getHitEta(unsigned int iLayer, unsigned int iInput) const {
   /*  assert(iLayer < muonStubsInLayers.size());
   assert(iInput < muonStubsInLayers[iLayer].size());*/
-  if(this->myOmtfConfig->isBendingLayer(iLayer) ) {
-    MuonStubPtr stub = getMuonStub(iLayer-1, iInput);
-    if(stub)
+  if (this->myOmtfConfig->isBendingLayer(iLayer)) {
+    MuonStubPtr stub = getMuonStub(iLayer - 1, iInput);
+    if (stub)
       return stub->etaHw;
   }
 
   MuonStubPtr stub = getMuonStub(iLayer, iInput);
-  if(stub)
+  if (stub)
     return stub->etaHw;
 
   return myOmtfConfig->nPhiBins();
@@ -51,15 +53,14 @@ const int OMTFinput::getHitEta(unsigned int iLayer, unsigned int iInput) const {
 
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
-std::bitset<128> OMTFinput::getRefHits(unsigned int iProcessor) const{
- 
+std::bitset<128> OMTFinput::getRefHits(unsigned int iProcessor) const {
   std::bitset<128> refHits;
 
   unsigned int iRefHit = 0;
-  for(auto iRefHitDef:myOmtfConfig->getRefHitsDefs()[iProcessor]){
+  for (auto iRefHitDef : myOmtfConfig->getRefHitsDefs()[iProcessor]) {
     int iPhi = getPhiHw(myOmtfConfig->getRefToLogicNumber()[iRefHitDef.iRefLayer], iRefHitDef.iInput);
-    if(iPhi<(int)myOmtfConfig->nPhiBins()){
-      refHits.set(iRefHit, iRefHitDef.fitsRange(iPhi));    
+    if (iPhi < (int)myOmtfConfig->nPhiBins()) {
+      refHits.set(iRefHit, iRefHitDef.fitsRange(iPhi));
     }
     iRefHit++;
   }
@@ -153,20 +154,20 @@ for(unsigned int iLogicLayer=0;iLogicLayer<measurementsPhi.size();++iLogicLayer)
 }*/
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
-std::ostream & operator << (std::ostream &out, const OMTFinput & aInput){
-  
-for(unsigned int iLogicLayer=0;iLogicLayer<aInput.muonStubsInLayers.size();++iLogicLayer){
-    out<<"Logic layer: "<<std::setw(2)<<iLogicLayer<<" Hits: ";
-    for(unsigned int iHit=0;iHit<aInput.muonStubsInLayers[iLogicLayer].size();++iHit){
+std::ostream& operator<<(std::ostream& out, const OMTFinput& aInput) {
+  for (unsigned int iLogicLayer = 0; iLogicLayer < aInput.muonStubsInLayers.size(); ++iLogicLayer) {
+    out << "Logic layer: " << std::setw(2) << iLogicLayer << " Hits: ";
+    for (unsigned int iHit = 0; iHit < aInput.muonStubsInLayers[iLogicLayer].size(); ++iHit) {
       //out<<aInput.muonStubsInLayers[iLogicLayer][iHit]<<"\t";
       int phi = aInput.getPhiHw(iLogicLayer, iHit);
-      if(phi == 5400)
-        out<<std::setw(4)<<"...."<<" ";
+      if (phi == 5400)
+        out << std::setw(4) << "...."
+            << " ";
       else
-        out<<std::setw(4)<<phi<<" ";
+        out << std::setw(4) << phi << " ";
       //TODO print other value?
     }
-    out<<std::endl;
+    out << std::endl;
   }
   return out;
 }

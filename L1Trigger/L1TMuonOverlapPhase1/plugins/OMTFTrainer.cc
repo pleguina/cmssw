@@ -24,30 +24,30 @@
 #include "TH2F.h"
 #include "TFile.h"
 
+OMTFTrainer::OMTFTrainer(const edm::ParameterSet& cfg)
+    : theConfig(cfg),
+      g4SimTrackSrc(cfg.getParameter<edm::InputTag>("g4SimTrackSrc")),
+      m_Reconstruction(cfg, muStubsInputTokens) {
+  produces<l1t::RegionalMuonCandBxCollection>("OMTF");
 
-OMTFTrainer::OMTFTrainer(const edm::ParameterSet& cfg):
-theConfig(cfg),
-g4SimTrackSrc(cfg.getParameter<edm::InputTag>("g4SimTrackSrc")), m_Reconstruction(cfg, muStubsInputTokens) {
-
-  produces<l1t::RegionalMuonCandBxCollection >("OMTF");
-
-  muStubsInputTokens.inputTokenDtPh = consumes<L1MuDTChambPhContainer>(theConfig.getParameter<edm::InputTag>("srcDTPh"));
-  muStubsInputTokens.inputTokenDtTh = consumes<L1MuDTChambThContainer>(theConfig.getParameter<edm::InputTag>("srcDTTh"));
-  muStubsInputTokens.inputTokenCSC = consumes<CSCCorrelatedLCTDigiCollection>(theConfig.getParameter<edm::InputTag>("srcCSC"));
+  muStubsInputTokens.inputTokenDtPh =
+      consumes<L1MuDTChambPhContainer>(theConfig.getParameter<edm::InputTag>("srcDTPh"));
+  muStubsInputTokens.inputTokenDtTh =
+      consumes<L1MuDTChambThContainer>(theConfig.getParameter<edm::InputTag>("srcDTTh"));
+  muStubsInputTokens.inputTokenCSC =
+      consumes<CSCCorrelatedLCTDigiCollection>(theConfig.getParameter<edm::InputTag>("srcCSC"));
   muStubsInputTokens.inputTokenRPC = consumes<RPCDigiCollection>(theConfig.getParameter<edm::InputTag>("srcRPC"));
 
   inputTokenSimHit = consumes<edm::SimTrackContainer>(theConfig.getParameter<edm::InputTag>("g4SimTrackSrc"));
 
-  ptDist = new TH1I("ptDist", "ptDist", 200, -0.5, 200-0.5);
+  ptDist = new TH1I("ptDist", "ptDist", 200, -0.5, 200 - 0.5);
 
   etaCutFrom = theConfig.getParameter<double>("etaCutFrom");
   etaCutTo = theConfig.getParameter<double>("etaCutTo");
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-OMTFTrainer::~OMTFTrainer(){
-
-}
+OMTFTrainer::~OMTFTrainer() {}
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void OMTFTrainer::beginRun(edm::Run const& run, edm::EventSetup const& iSetup) {
@@ -55,29 +55,25 @@ void OMTFTrainer::beginRun(edm::Run const& run, edm::EventSetup const& iSetup) {
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void OMTFTrainer::beginJob(){
-  m_Reconstruction.beginJob();
-}
+void OMTFTrainer::beginJob() { m_Reconstruction.beginJob(); }
 /////////////////////////////////////////////////////
-/////////////////////////////////////////////////////  
-void OMTFTrainer::endJob(){
-  m_Reconstruction.endJob();
-}
+/////////////////////////////////////////////////////
+void OMTFTrainer::endJob() { m_Reconstruction.endJob(); }
 
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void OMTFTrainer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup){
-  const SimTrack * simMuon = nullptr;
+void OMTFTrainer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup) {
+  const SimTrack* simMuon = nullptr;
   edm::Handle<edm::SimTrackContainer> simTks;
-  iEvent.getByToken(inputTokenSimHit,simTks);
+  iEvent.getByToken(inputTokenSimHit, simTks);
 
   int muCnt = 0;
-  for (std::vector<SimTrack>::const_iterator it=simTks->begin(); it< simTks->end(); it++) {
-    const SimTrack & aTrack = *it;
-    if ( !(aTrack.type() == 13 || aTrack.type() == -13) )
+  for (std::vector<SimTrack>::const_iterator it = simTks->begin(); it < simTks->end(); it++) {
+    const SimTrack& aTrack = *it;
+    if (!(aTrack.type() == 13 || aTrack.type() == -13))
       continue;
     muCnt++;
-    if ( !simMuon || aTrack.momentum().pt() > simMuon->momentum().pt())
+    if (!simMuon || aTrack.momentum().pt() > simMuon->momentum().pt())
       simMuon = &aTrack;
   }
 
@@ -86,21 +82,21 @@ void OMTFTrainer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup){
     cout<<" simMuon pt "<<simMuon->momentum().pt()<<" eta "<<simMuon->momentum().eta()<<std::endl;
   }*/
 
-  if(muCnt != 1 || ( abs(simMuon->momentum().eta() ) < etaCutFrom || abs(simMuon->momentum().eta() ) > etaCutTo ) ) {
+  if (muCnt != 1 || (abs(simMuon->momentum().eta()) < etaCutFrom || abs(simMuon->momentum().eta()) > etaCutTo)) {
     std::unique_ptr<l1t::RegionalMuonCandBxCollection> candidates(new l1t::RegionalMuonCandBxCollection);
     iEvent.put(std::move(candidates), "OMTF");
     return;
   }
 
   std::ostringstream str;
-  std::unique_ptr<l1t::RegionalMuonCandBxCollection > candidates = m_Reconstruction.reconstruct(iEvent, evSetup);
+  std::unique_ptr<l1t::RegionalMuonCandBxCollection> candidates = m_Reconstruction.reconstruct(iEvent, evSetup);
 
   int bx = 0;
-  edm::LogInfo("OMTFOMTFTrainer")<<" Number of candidates: "<<candidates->size(bx);
+  edm::LogInfo("OMTFOMTFTrainer") << " Number of candidates: " << candidates->size(bx);
 
   iEvent.put(std::move(candidates), "OMTF");
 }
 /////////////////////////////////////////////////////
-/////////////////////////////////////////////////////  
+/////////////////////////////////////////////////////
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(OMTFTrainer);

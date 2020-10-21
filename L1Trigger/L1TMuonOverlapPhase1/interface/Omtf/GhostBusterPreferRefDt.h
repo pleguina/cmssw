@@ -12,16 +12,15 @@
 
 #include <memory>
 
-
-class GhostBusterPreferRefDt: public IGhostBuster {
+class GhostBusterPreferRefDt : public IGhostBuster {
 private:
   const OMTFConfiguration* omtfConfig;
+
 public:
-  GhostBusterPreferRefDt(const OMTFConfiguration* omtfConfig):omtfConfig(omtfConfig) {};
+  GhostBusterPreferRefDt(const OMTFConfiguration* omtfConfig) : omtfConfig(omtfConfig){};
 
-  ~GhostBusterPreferRefDt() override {};
+  ~GhostBusterPreferRefDt() override{};
 
-  AlgoMuons select(AlgoMuons refHitCands, int charge=0) override;
-
+  AlgoMuons select(AlgoMuons refHitCands, int charge = 0) override;
 };
 #endif

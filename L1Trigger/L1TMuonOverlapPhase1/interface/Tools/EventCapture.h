@@ -14,20 +14,23 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-class EventCapture: public IOMTFEmulationObserver {
+class EventCapture : public IOMTFEmulationObserver {
 public:
   EventCapture(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig);
 
   ~EventCapture() override;
 
-  void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const std::shared_ptr<OMTFinput>&,
-      const AlgoMuons& algoCandidates,
-      const AlgoMuons& gbCandidates,
-      const std::vector<l1t::RegionalMuonCand> & candMuons) override;
+  void observeProcesorEmulation(unsigned int iProcessor,
+                                l1t::tftype mtfType,
+                                const std::shared_ptr<OMTFinput>&,
+                                const AlgoMuons& algoCandidates,
+                                const AlgoMuons& gbCandidates,
+                                const std::vector<l1t::RegionalMuonCand>& candMuons) override;
 
   void observeEventBegin(const edm::Event& event) override;
 
-  void observeEventEnd(const edm::Event& event, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
+  void observeEventEnd(const edm::Event& event,
+                       std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
   void endJob() override;
 
@@ -35,7 +38,7 @@ private:
   edm::InputTag simTrackInputTag;
   const OMTFConfiguration* omtfConfig;
 
-  std::vector<edm::Ptr< SimTrack > > simMuons;
+  std::vector<edm::Ptr<SimTrack> > simMuons;
 
   std::vector<std::shared_ptr<OMTFinput> > inputInProcs;
   std::vector<AlgoMuons> algoMuonsInProcs;

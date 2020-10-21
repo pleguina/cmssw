@@ -10,15 +10,19 @@
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h"
 
-class PatternGenerator: public PatternOptimizerBase {
+class PatternGenerator : public PatternOptimizerBase {
 public:
-  PatternGenerator(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
+  PatternGenerator(const edm::ParameterSet& edmCfg,
+                   const OMTFConfiguration* omtfConfig,
+                   std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
 
   ~PatternGenerator() override;
 
-  void observeEventEnd(const edm::Event& iEvent, std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
+  void observeEventEnd(const edm::Event& iEvent,
+                       std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
   void endJob() override;
+
 protected:
   void updateStat();
 

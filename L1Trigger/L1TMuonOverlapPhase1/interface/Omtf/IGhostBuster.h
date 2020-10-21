@@ -14,8 +14,7 @@ class IGhostBuster {
 public:
   virtual ~IGhostBuster() {}
 
-  virtual AlgoMuons select(AlgoMuons refHitCands, int charge=0) = 0;
-
+  virtual AlgoMuons select(AlgoMuons refHitCands, int charge = 0) = 0;
 };
 
 #endif /* OMTF_IGHOSTBUSTER_H_ */

@@ -8,7 +8,6 @@
 #ifndef INTERFACE_RPCCLUSTERIZATION_H_
 #define INTERFACE_RPCCLUSTERIZATION_H_
 
-
 #include "DataFormats/MuonDetId/interface/RPCDetId.h"
 #include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 
@@ -20,22 +19,18 @@ public:
   int lastStrip = -1;
 
   int bx = 0;
-  int timing = 0; //sub-bx timing, should be already in scale common for all muon subsystems
+  int timing = 0;  //sub-bx timing, should be already in scale common for all muon subsystems
 
-  RpcCluster(unsigned int firstStrip, unsigned int lastStrip): firstStrip(firstStrip), lastStrip(lastStrip) {};
+  RpcCluster(unsigned int firstStrip, unsigned int lastStrip) : firstStrip(firstStrip), lastStrip(lastStrip){};
 
-  float halfStrip() {
-    return (lastStrip + firstStrip)/2. ;
-  }
+  float halfStrip() { return (lastStrip + firstStrip) / 2.; }
 
-  unsigned int size() const {
-    return abs(firstStrip - lastStrip)+1;
-  }
+  unsigned int size() const { return abs(firstStrip - lastStrip) + 1; }
 };
 
 class RpcClusterization {
 public:
-  RpcClusterization() {};
+  RpcClusterization(){};
 
   virtual ~RpcClusterization();
 
@@ -50,11 +45,13 @@ public:
 
   //converts float timing to the int timing in the scale common for the muon detectors
   virtual int convertTiming(double timing) const;
+
 private:
   unsigned int maxClusterSize = 3;
   unsigned int maxClusterCnt = 2;
 
-  bool dropAllClustersIfMoreThanMax = true; // if true no  cluster is return if there is more clusters then maxClusterCnt (counted regardless of the size)
+  bool dropAllClustersIfMoreThanMax =
+      true;  // if true no  cluster is return if there is more clusters then maxClusterCnt (counted regardless of the size)
 };
 
 #endif /* INTERFACE_RPCCLUSTERIZATION_H_ */

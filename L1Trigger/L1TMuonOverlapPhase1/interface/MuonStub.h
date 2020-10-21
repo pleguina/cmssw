@@ -26,10 +26,10 @@ public:
     CSC_ETA,
     CSC_PHI_ETA,
     BARREL_SUPER_SEG,
-    TTTRACK_REF //for ttTrack correlation algorithm with the reference stub
+    TTTRACK_REF  //for ttTrack correlation algorithm with the reference stub
   };
 
-/*  enum EtaType {
+  /*  enum EtaType {
     NO_ETA,
     CORSE,
     FINE,
@@ -38,7 +38,7 @@ public:
 
   MuonStub();
 
-  MuonStub(int phiHw, int phiBHw): phiHw(phiHw), phiBHw(phiBHw) {};
+  MuonStub(int phiHw, int phiBHw) : phiHw(phiHw), phiBHw(phiBHw){};
 
   virtual ~MuonStub();
 
@@ -50,7 +50,7 @@ public:
   static const int EMTPY_PHI = 0xffffff;
 
   int etaHw = 0;
-  int etaSigmaHw = 0; ///error of the eta measurement
+  int etaSigmaHw = 0;  ///error of the eta measurement
   int qualityHw = 0;
 
   int bx = 0;
@@ -77,7 +77,7 @@ public:
   //float phi = 0; //radians
   //float eta = 0;
 
-  friend std::ostream & operator<< (std::ostream &out, const MuonStub& stub);
+  friend std::ostream& operator<<(std::ostream& out, const MuonStub& stub);
 };
 
 typedef std::vector<MuonStub> MuonStubs1D;

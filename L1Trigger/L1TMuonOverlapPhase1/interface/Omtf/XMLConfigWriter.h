@@ -8,65 +8,60 @@
 
 #include "xercesc/util/XercesDefs.hpp"
 
-
-
 class GoldenPattern;
 class OMTFConfiguration;
 class OMTFinput;
 class GoldenPatternResult;
 class AlgoMuon;
-namespace l1t {class RegionalMuonCand; }
+namespace l1t {
+  class RegionalMuonCand;
+}
 struct Key;
 
-namespace XERCES_CPP_NAMESPACE{
+namespace XERCES_CPP_NAMESPACE {
   class DOMElement;
   class DOMDocument;
   class DOMImplementation;
-}
+}  // namespace XERCES_CPP_NAMESPACE
 
-class XMLConfigWriter{
+class XMLConfigWriter {
+public:
+  XMLConfigWriter(const OMTFConfiguration* aOMTFConfig,
+                  bool writePdfThresholds = false,
+                  bool writeMeanDistPhi1 = false);
 
- public:
+  void initialiseXMLDocument(const std::string& docName);
 
-  XMLConfigWriter(const OMTFConfiguration* aOMTFConfig, bool writePdfThresholds = false, bool writeMeanDistPhi1 = false);
+  void finaliseXMLDocument(const std::string& fName);
 
-  void initialiseXMLDocument(const std::string & docName);
+  xercesc::DOMElement* writeEventHeader(unsigned int eventId, unsigned int mixedEventId = 0);
 
-  void finaliseXMLDocument(const std::string & fName);
+  xercesc::DOMElement* writeEventData(xercesc::DOMElement* aTopElement, const OmtfName& board, const OMTFinput& aInput);
 
-  xercesc::DOMElement * writeEventHeader(unsigned int eventId,
-					 unsigned int mixedEventId = 0);
+  void writeAlgoMuon(xercesc::DOMElement* aTopElement, const AlgoMuon& aMuon);
 
-  xercesc::DOMElement * writeEventData(xercesc::DOMElement *aTopElement,
-                               const OmtfName & board,
-				       const OMTFinput & aInput);
+  void writeCandMuon(xercesc::DOMElement* aTopElement, const l1t::RegionalMuonCand& aCand);
 
-  void writeAlgoMuon(xercesc::DOMElement *aTopElement, const AlgoMuon & aMuon);
+  void writeResultsData(xercesc::DOMElement* aTopElement,
+                        unsigned int iRegion,
+                        const Key& aKey,
+                        const GoldenPatternResult& aResult);
 
-  void writeCandMuon(xercesc::DOMElement *aTopElement,
-                    const l1t::RegionalMuonCand& aCand);
-
-  void writeResultsData(xercesc::DOMElement *aTopElement,
-			unsigned int iRegion,
-			const Key& aKey,
-			const GoldenPatternResult & aResult);
-
-  void writeGPData(const GoldenPattern & aGP);
+  void writeGPData(const GoldenPattern& aGP);
 
   void writeGPData(const GoldenPattern* aGP1,
-		   const GoldenPattern* aGP2,
-		   const GoldenPattern* aGP3,
-		   const GoldenPattern* aGP4);
+                   const GoldenPattern* aGP2,
+                   const GoldenPattern* aGP3,
+                   const GoldenPattern* aGP4);
 
   template <class GoldenPatternType>
-  void writeGPs(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats, std::string fName );
+  void writeGPs(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats, std::string fName);
 
-  void writeConnectionsData(const std::vector<std::vector <OMTFConfiguration::vector2D> > & measurements4D);
+  void writeConnectionsData(const std::vector<std::vector<OMTFConfiguration::vector2D> >& measurements4D);
 
-  unsigned int findMaxInput(const OMTFConfiguration::vector1D & myCounts);
+  unsigned int findMaxInput(const OMTFConfiguration::vector1D& myCounts);
 
- private:
-
+private:
   xercesc::DOMImplementation* domImpl;
   xercesc::DOMElement* theTopElement;
   xercesc::DOMDocument* theDoc;
@@ -75,9 +70,7 @@ class XMLConfigWriter{
 
   bool writePdfThresholds = false;
   bool writeMeanDistPhi1 = false;
-
 };
-
 
 //////////////////////////////////
 //////////////////////////////////

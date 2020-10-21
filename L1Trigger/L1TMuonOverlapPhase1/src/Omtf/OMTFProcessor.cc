@@ -28,94 +28,97 @@
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 template <class GoldenPatternType>
-OMTFProcessor<GoldenPatternType>::OMTFProcessor(OMTFConfiguration* omtfConfig, const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup, const L1TMuonOverlapParams* omtfPatterns): ProcessorBase<GoldenPatternType>(omtfConfig, omtfPatterns)  {
-  init(edmCfg, evSetup);
-};
-
-
-template <class GoldenPatternType>
-OMTFProcessor<GoldenPatternType>::OMTFProcessor(OMTFConfiguration* omtfConfig, const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup, const typename ProcessorBase<GoldenPatternType>::GoldenPatternVec& gps):
-    ProcessorBase<GoldenPatternType>(omtfConfig, gps)
-{
+OMTFProcessor<GoldenPatternType>::OMTFProcessor(OMTFConfiguration* omtfConfig,
+                                                const edm::ParameterSet& edmCfg,
+                                                edm::EventSetup const& evSetup,
+                                                const L1TMuonOverlapParams* omtfPatterns)
+    : ProcessorBase<GoldenPatternType>(omtfConfig, omtfPatterns) {
   init(edmCfg, evSetup);
 };
 
 template <class GoldenPatternType>
-OMTFProcessor<GoldenPatternType>::~OMTFProcessor() {
+OMTFProcessor<GoldenPatternType>::OMTFProcessor(OMTFConfiguration* omtfConfig,
+                                                const edm::ParameterSet& edmCfg,
+                                                edm::EventSetup const& evSetup,
+                                                const typename ProcessorBase<GoldenPatternType>::GoldenPatternVec& gps)
+    : ProcessorBase<GoldenPatternType>(omtfConfig, gps) {
+  init(edmCfg, evSetup);
+};
 
-}
+template <class GoldenPatternType>
+OMTFProcessor<GoldenPatternType>::~OMTFProcessor() {}
 
 template <class GoldenPatternType>
 void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup) {
-  setSorter(new OMTFSorter<GoldenPatternType>(this->myOmtfConfig->getSorterType())); //initialize with the default sorter
-  
-  if (this->myOmtfConfig->getGhostBusterType() == "GhostBusterPreferRefDt" ) {
-    setGhostBuster(new GhostBusterPreferRefDt(this->myOmtfConfig) );
-    edm::LogVerbatim("OMTFReconstruction")<<"setting GhostBusterPreferRefDt" <<std::endl;
-  }
-  else {
-    setGhostBuster(new GhostBuster()); //initialize with the default sorter
-    edm::LogVerbatim("OMTFReconstruction")<<"setting GhostBuster" <<std::endl;
+  setSorter(
+      new OMTFSorter<GoldenPatternType>(this->myOmtfConfig->getSorterType()));  //initialize with the default sorter
+
+  if (this->myOmtfConfig->getGhostBusterType() == "GhostBusterPreferRefDt") {
+    setGhostBuster(new GhostBusterPreferRefDt(this->myOmtfConfig));
+    edm::LogVerbatim("OMTFReconstruction") << "setting GhostBusterPreferRefDt" << std::endl;
+  } else {
+    setGhostBuster(new GhostBuster());  //initialize with the default sorter
+    edm::LogVerbatim("OMTFReconstruction") << "setting GhostBuster" << std::endl;
   }
 }
 
 template <class GoldenPatternType>
-std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcandidates(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& algoCands) {
-
+std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcandidates(unsigned int iProcessor,
+                                                                                        l1t::tftype mtfType,
+                                                                                        const AlgoMuons& algoCands) {
   std::vector<l1t::RegionalMuonCand> result;
 
-  for(auto& myCand: algoCands) {
+  for (auto& myCand : algoCands) {
     l1t::RegionalMuonCand candidate;
     candidate.setHwPt(myCand->getPt());
     candidate.setHwEta(myCand->getEtaHw());
 
     int phiValue = myCand->getPhi();
-    if(phiValue>= int(this->myOmtfConfig->nPhiBins()) )
+    if (phiValue >= int(this->myOmtfConfig->nPhiBins()))
       phiValue -= this->myOmtfConfig->nPhiBins();
     ///conversion factor from OMTF to uGMT scale is  5400/576 i.e. phiValue/=9.375;
-    phiValue = floor(phiValue*437./pow(2,12));    // ie. use as in hw: 9.3729977
+    phiValue = floor(phiValue * 437. / pow(2, 12));  // ie. use as in hw: 9.3729977
     candidate.setHwPhi(phiValue);
 
-    candidate.setHwSign(myCand->getCharge()<0 ? 1:0  );
+    candidate.setHwSign(myCand->getCharge() < 0 ? 1 : 0);
     candidate.setHwSignValid(1);
 
     //unsigned int quality = 12;
-    unsigned int quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3)
-                                                                     : 0 | (1 << 2);
-    if (    abs(myCand->getEtaHw()) == 115
-        && (    static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001110000000").to_ulong()
-             || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000001110000000").to_ulong()
-             || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000110000000").to_ulong()
-             || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001100000000").to_ulong()
-             || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001010000000").to_ulong()
-           )
-       ) quality =4;
-    if( this->myOmtfConfig->fwVersion() >= 5 ) {
-      if (    static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000010000000011").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000100000000011").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001000000000011").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000010000000000011").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000100000000000011").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("001000000000000011").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000000000000011").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000000000011").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000010000001100").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000100000001100").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001000000001100").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000010000000001100").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000100000000001100").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("001000000000001100").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000000000001100").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000000001100").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000010000110000").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000100000110000").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001000000110000").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000010000000110000").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000100000000110000").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("001000000000110000").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000000000110000").to_ulong()
-           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000000110000").to_ulong()
-         ) quality = 1;
+    unsigned int quality =
+        checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3) : 0 | (1 << 2);
+    if (abs(myCand->getEtaHw()) == 115 &&
+        (static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001110000000").to_ulong() ||
+         static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000001110000000").to_ulong() ||
+         static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000110000000").to_ulong() ||
+         static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001100000000").to_ulong() ||
+         static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001010000000").to_ulong()))
+      quality = 4;
+    if (this->myOmtfConfig->fwVersion() >= 5) {
+      if (static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000010000000011").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000100000000011").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001000000000011").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000010000000000011").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000100000000000011").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("001000000000000011").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000000000000011").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000000000011").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000010000001100").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000100000001100").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001000000001100").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000010000000001100").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000100000000001100").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("001000000000001100").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000000000001100").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000000001100").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000010000110000").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000100000110000").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001000000110000").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000010000000110000").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000100000000110000").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("001000000000110000").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000000000110000").to_ulong() ||
+          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000000110000").to_ulong())
+        quality = 1;
     }
     /*if( this->myOmtfConfig->fwVersion() >= 6 ) { //TODO fix the fwVersion
       if (   static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000110000000001").to_ulong()
@@ -164,25 +167,27 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
          )
          quality = 4;
     }*/
-//  if (abs(myCand->getEta()) == 121) quality = 4;
-    if (abs(myCand->getEtaHw()) == 121) quality = 0; // changed on request from HI
+    //  if (abs(myCand->getEta()) == 121) quality = 4;
+    if (abs(myCand->getEtaHw()) == 121)
+      quality = 0;  // changed on request from HI
 
-    candidate.setHwQual (quality);
+    candidate.setHwQual(quality);
 
     std::map<int, int> trackAddr;
     trackAddr[0] = myCand->getFiredLayerBits();
     trackAddr[1] = myCand->getRefLayer();
     trackAddr[2] = myCand->getDisc();
-    if (candidate.hwPt() > 0)  {
-      if(ptAssignment) {
+    if (candidate.hwPt() > 0) {
+      if (ptAssignment) {
         auto pts = ptAssignment->getPts(myCand);
-        for(unsigned int i = 0; i < pts.size(); i++) {
-          trackAddr[10 + i] = this->myOmtfConfig->ptGevToHw(pts[i]);//std::copysign(this->myOmtfConfig->ptGevToHw( abs(pts[i]) ) , pts[i]) ;
+        for (unsigned int i = 0; i < pts.size(); i++) {
+          trackAddr[10 + i] = this->myOmtfConfig->ptGevToHw(
+              pts[i]);  //std::copysign(this->myOmtfConfig->ptGevToHw( abs(pts[i]) ) , pts[i]) ;
         }
       }
 
       candidate.setTrackAddress(trackAddr);
-      candidate.setTFIdentifiers(iProcessor,mtfType);
+      candidate.setTFIdentifiers(iProcessor, mtfType);
       result.push_back(candidate);
     }
   }
@@ -193,10 +198,11 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
 
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-template<class GoldenPatternType>
+template <class GoldenPatternType>
 bool OMTFProcessor<GoldenPatternType>::checkHitPatternValidity(unsigned int hits) {
   ///FIXME: read the list from configuration so this can be controlled at runtime.
-  std::vector<unsigned int> badPatterns = {99840, 34304, 3075, 36928, 12300, 98816, 98944, 33408, 66688, 66176, 7171, 20528, 33856, 35840, 4156, 34880};
+  std::vector<unsigned int> badPatterns = {
+      99840, 34304, 3075, 36928, 12300, 98816, 98944, 33408, 66688, 66176, 7171, 20528, 33856, 35840, 4156, 34880};
 
   /*
 99840 01100001 1000 000000      011000011000000000
@@ -216,15 +222,16 @@ bool OMTFProcessor<GoldenPatternType>::checkHitPatternValidity(unsigned int hits
  4156 00000100 0000 111100      000001000000111100
 34880 00100010 0001 000000      001000100001000000
    */
-  for(auto aHitPattern: badPatterns){
-    if(hits==aHitPattern) return false;
+  for (auto aHitPattern : badPatterns) {
+    if (hits == aHitPattern)
+      return false;
   }
 
   return true;
 }
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-template<class GoldenPatternType>
+template <class GoldenPatternType>
 AlgoMuons OMTFProcessor<GoldenPatternType>::sortResults(unsigned int iProcessor, l1t::tftype mtfType, int charge) {
   unsigned int procIndx = this->myOmtfConfig->getProcIndx(iProcessor, mtfType);
   return sorter->sortResults(procIndx, this->getPatterns(), charge);
@@ -232,11 +239,13 @@ AlgoMuons OMTFProcessor<GoldenPatternType>::sortResults(unsigned int iProcessor,
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 //const std::vector<OMTFProcessor::resultsMap> &
-template<class GoldenPatternType>
-void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor, l1t::tftype mtfType, const OMTFinput & aInput) {
+template <class GoldenPatternType>
+void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
+                                                    l1t::tftype mtfType,
+                                                    const OMTFinput& aInput) {
   unsigned int procIndx = this->myOmtfConfig->getProcIndx(iProcessor, mtfType);
-  for(auto& itGP: this->theGPs) {
-    for(auto& result : itGP->getResults()[procIndx]) {
+  for (auto& itGP : this->theGPs) {
+    for (auto& result : itGP->getResults()[procIndx]) {
       result.reset();
     }
   }
@@ -244,22 +253,24 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor, l1t
   //////////////////////////////////////
   //////////////////////////////////////
   std::bitset<128> refHitsBits = aInput.getRefHits(iProcessor);
-  if(refHitsBits.none())
-    return; // myResults;
+  if (refHitsBits.none())
+    return;  // myResults;
 
-  for(unsigned int iLayer=0; iLayer < this->myOmtfConfig->nLayers(); ++iLayer) {
+  for (unsigned int iLayer = 0; iLayer < this->myOmtfConfig->nLayers(); ++iLayer) {
     /*for(auto& h : layerHits) {
       if(h != 5400)
         std::cout<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" layerHit "<<h<<std::endl;
     }*/
     ///Number of reference hits to be checked.
     unsigned int nTestedRefHits = this->myOmtfConfig->nTestRefHits();
-    for(unsigned int iRefHit = 0; iRefHit < this->myOmtfConfig->nRefHits(); ++iRefHit) { //loop over all possible refHits, i.e. 128
-      if(!refHitsBits[iRefHit]) continue;
-      if(nTestedRefHits-- == 0) break;
+    for (unsigned int iRefHit = 0; iRefHit < this->myOmtfConfig->nRefHits();
+         ++iRefHit) {  //loop over all possible refHits, i.e. 128
+      if (!refHitsBits[iRefHit])
+        continue;
+      if (nTestedRefHits-- == 0)
+        break;
 
       const RefHitDef& aRefHitDef = this->myOmtfConfig->getRefHitsDefs()[iProcessor][iRefHit];
-
 
       unsigned int refLayerLogicNum = this->myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer];
       const MuonStubPtr refStub = aInput.getMuonStub(refLayerLogicNum, aRefHitDef.iInput);
@@ -268,7 +279,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor, l1t
 
       unsigned int iRegion = aRefHitDef.iRegion;
 
-      if(this->myOmtfConfig->getBendingLayers().count(iLayer)) //this iLayer is a banding layer
+      if (this->myOmtfConfig->getBendingLayers().count(iLayer))  //this iLayer is a banding layer
         phiRef = 0;  //then in the delta_phi in process1Layer1RefLayer one obtains simply the iLayer phi
 
       MuonStubPtrs1D restrictedLayerStubs = this->restrictInput(iProcessor, iRegion, iLayer, aInput);
@@ -279,27 +290,28 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor, l1t
 
       //int refLayerLogicNumber = this->myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer];
 
-      unsigned int refHitNumber = this->myOmtfConfig->nTestRefHits()-nTestedRefHits-1;
-      for(auto& itGP: this->theGPs) {
-        if(itGP->key().thePt == 0) //empty pattern
+      unsigned int refHitNumber = this->myOmtfConfig->nTestRefHits() - nTestedRefHits - 1;
+      for (auto& itGP : this->theGPs) {
+        if (itGP->key().thePt == 0)  //empty pattern
           continue;
 
-        StubResult stubResult = itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer,
-            restrictedLayerStubs,
-            refStub);
+        StubResult stubResult =
+            itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer, restrictedLayerStubs, refStub);
 
-        int phiRefSt2 = itGP->propagateRefPhi(phiRef, etaRef, aRefHitDef.iRefLayer); //fixme this unnecessary repeated  for every layer
+        int phiRefSt2 = itGP->propagateRefPhi(
+            phiRef, etaRef, aRefHitDef.iRefLayer);  //fixme this unnecessary repeated  for every layer
 
         //std::cout<<__FUNCTION__<<":"<<__LINE__<<" layerResult: valid"<<layerResult.valid<<" pdfVal "<<layerResult.pdfVal<<std::endl;
         itGP->getResults()[procIndx][refHitNumber].setStubResult(iLayer, stubResult);
-        itGP->getResults()[procIndx][refHitNumber].set(aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef); //fixme this unnecessary repeated  for every layer
+        itGP->getResults()[procIndx][refHitNumber].set(
+            aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef);  //fixme this unnecessary repeated  for every layer
       }
     }
   }
   //////////////////////////////////////
   //////////////////////////////////////
   {
-    for(auto& itGP: this->theGPs) {
+    for (auto& itGP : this->theGPs) {
       itGP->finalise(procIndx);
       //debug
       /*for(unsigned int iRefHit = 0; iRefHit < itGP->getResults()[procIndx].size(); ++iRefHit) {
@@ -310,7 +322,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor, l1t
     }
   }
 
-/*  std::ostringstream myStr;
+  /*  std::ostringstream myStr;
   myStr<<"iProcessor: "<<iProcessor<<std::endl;
   myStr<<"Input: ------------"<<std::endl;
   myStr<<aInput<<std::endl;
@@ -321,26 +333,29 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor, l1t
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
 
-template<class GoldenPatternType>
-std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::
-run(unsigned int iProcessor, l1t::tftype mtfType, int bx, OMTFinputMaker* inputMaker, std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+template <class GoldenPatternType>
+std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::run(
+    unsigned int iProcessor,
+    l1t::tftype mtfType,
+    int bx,
+    OMTFinputMaker* inputMaker,
+    std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
   //boost::timer::auto_cpu_timer t("%ws wall, %us user in getProcessorCandidates\n");
   inputMaker->setFlag(0);
 
   std::shared_ptr<OMTFinput> input = std::make_shared<OMTFinput>(this->myOmtfConfig);
-  inputMaker->buildInputForProcessor(input->getMuonStubs(),
-                iProcessor, mtfType, bx, bx);
+  inputMaker->buildInputForProcessor(input->getMuonStubs(), iProcessor, mtfType, bx, bx);
   int flag = inputMaker->getFlag();
 
   //cout<<"buildInputForProce "; t.report();
   processInput(iProcessor, mtfType, *(input.get()));
 
   //cout<<"processInput       "; t.report();
-  AlgoMuons algoCandidates =  sortResults(iProcessor, mtfType);
+  AlgoMuons algoCandidates = sortResults(iProcessor, mtfType);
 
   //cout<<"sortResults        "; t.report();
   // perform GB
-  AlgoMuons gbCandidates =  ghostBust(algoCandidates);
+  AlgoMuons gbCandidates = ghostBust(algoCandidates);
 
   //cout<<"ghostBust"; t.report();
   // fill RegionalMuonCand colleciton
@@ -348,20 +363,20 @@ run(unsigned int iProcessor, l1t::tftype mtfType, int bx, OMTFinputMaker* inputM
 
   //cout<<"getFinalcandidates "; t.report();
   //fill outgoing collection
-  for (auto & candMuon :  candMuons) {
-     candMuon.setHwQual( candMuon.hwQual() | flag);         //FIXME temporary debug fix
+  for (auto& candMuon : candMuons) {
+    candMuon.setHwQual(candMuon.hwQual() | flag);  //FIXME temporary debug fix
   }
 
-  for(auto& obs : observers) {
-    obs->observeProcesorEmulation(iProcessor, mtfType,  input, algoCandidates, gbCandidates, candMuons);
+  for (auto& obs : observers) {
+    obs->observeProcesorEmulation(iProcessor, mtfType, input, algoCandidates, gbCandidates, candMuons);
   }
 
   return candMuons;
 }
 
-template<class GoldenPatternType>
+template <class GoldenPatternType>
 void OMTFProcessor<GoldenPatternType>::printInfo() const {
-  edm::LogVerbatim("OMTFReconstruction")<<__PRETTY_FUNCTION__<<std::endl;
+  edm::LogVerbatim("OMTFReconstruction") << __PRETTY_FUNCTION__ << std::endl;
 
   ProcessorBase<GoldenPatternType>::printInfo();
 }

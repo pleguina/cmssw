@@ -21,9 +21,8 @@
 
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 
-
 class L1TMuonOverlapPhase1TrackProducer : public edm::EDProducer {
- public:
+public:
   L1TMuonOverlapPhase1TrackProducer(const edm::ParameterSet&);
 
   ~L1TMuonOverlapPhase1TrackProducer() override;
@@ -33,17 +32,15 @@ class L1TMuonOverlapPhase1TrackProducer : public edm::EDProducer {
   void endJob() override;
 
   void beginRun(edm::Run const& run, edm::EventSetup const& iSetup) override;
-  
+
   void produce(edm::Event&, const edm::EventSetup&) override;
 
- private:
-  
-  edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimHit; //TODO remove
+private:
+  edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimHit;  //TODO remove
 
   MuStubsInputTokens muStubsInputTokens;
 
   OMTFReconstruction m_Reconstruction;
-
 };
 
 #endif

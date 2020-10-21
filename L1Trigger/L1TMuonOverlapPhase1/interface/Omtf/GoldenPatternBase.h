@@ -8,35 +8,41 @@
 #include <ostream>
 #include <vector>
 
-
 //////////////////////////////////
 // Key
 //////////////////////////////////
 struct Key {
-  Key(int iEta=99, unsigned int iPt=0, int iCharge= 0, unsigned int iNumber=999):
-    theEtaCode(iEta), thePt(iPt), theCharge(iCharge), theNumber(iNumber) {}
+  Key(int iEta = 99, unsigned int iPt = 0, int iCharge = 0, unsigned int iNumber = 999)
+      : theEtaCode(iEta), thePt(iPt), theCharge(iCharge), theNumber(iNumber) {}
 
-  Key(int iEta, unsigned int iPt, int iCharge, unsigned int iNumber, unsigned int group, unsigned int indexInGroup):
-    theEtaCode(iEta), thePt(iPt), theCharge(iCharge), theNumber(iNumber), theGroup(group), theIndexInGroup(indexInGroup) {}
+  Key(int iEta, unsigned int iPt, int iCharge, unsigned int iNumber, unsigned int group, unsigned int indexInGroup)
+      : theEtaCode(iEta),
+        thePt(iPt),
+        theCharge(iCharge),
+        theNumber(iNumber),
+        theGroup(group),
+        theIndexInGroup(indexInGroup) {}
 
-  inline bool operator< (const Key & o) const {return (theNumber < o.theNumber);}
+  inline bool operator<(const Key& o) const { return (theNumber < o.theNumber); }
 
   bool operator==(const Key& o) const {
     //return theNumber==o.theNumber;
-    return theEtaCode==o.theEtaCode && thePt==o.thePt && theCharge==o.theCharge && theNumber==o.theNumber;
+    return theEtaCode == o.theEtaCode && thePt == o.thePt && theCharge == o.theCharge && theNumber == o.theNumber;
   }
 
-  friend std::ostream & operator << (std::ostream &out, const Key & o);
+  friend std::ostream& operator<<(std::ostream& out, const Key& o);
 
-  unsigned int number() const {return theNumber;}
+  unsigned int number() const { return theNumber; }
 
   int theEtaCode;
-  unsigned int thePt; //hardware pt, ptInGeV = (thePt-1) * 0.5GeV, where ptInGeV denotes the lover edge of the pt range cover by this pattern
-  int          theCharge;
+  unsigned int
+      thePt;  //hardware pt, ptInGeV = (thePt-1) * 0.5GeV, where ptInGeV denotes the lover edge of the pt range cover by this pattern
+  int theCharge;
   unsigned int theNumber;
 
-  unsigned int theGroup = 0; //the index of the patterns group, up to 4 patterns can be grouped together, they have then the same MeanDistPhi and DistPhiBitShift
-  unsigned int theIndexInGroup = 0; //starts from 1, as in xml
+  unsigned int theGroup =
+      0;  //the index of the patterns group, up to 4 patterns can be grouped together, they have then the same MeanDistPhi and DistPhiBitShift
+  unsigned int theIndexInGroup = 0;  //starts from 1, as in xml
 
   ///in GeV
   double ptRangeFrom() const;
@@ -48,30 +54,28 @@ struct Key {
 //////////////////////////////////
 
 class GoldenPatternBase {
- public:
+public:
   typedef std::vector<int> vector1D;
-//  typedef std::vector<vector1D> vector2D;
-//  typedef std::vector<vector2D> vector3D;
-//  typedef std::vector<vector3D> vector4D;
+  //  typedef std::vector<vector1D> vector2D;
+  //  typedef std::vector<vector2D> vector3D;
+  //  typedef std::vector<vector3D> vector4D;
 
   //typedef std::vector<std::vector <unique_ptr<GoldenPatternResult> > > resultsArrayType;
   typedef boost::multi_array<GoldenPatternResult, 2> resultsArrayType;
   //
   // IGoldenPatterns methods
   //
-  GoldenPatternBase(const Key & aKey);
+  GoldenPatternBase(const Key& aKey);
 
-  GoldenPatternBase(const Key& aKey, const OMTFConfiguration * omtfConfig);
+  GoldenPatternBase(const Key& aKey, const OMTFConfiguration* omtfConfig);
 
   virtual ~GoldenPatternBase() {}
-  
-  virtual void setConfig(const OMTFConfiguration * omtfConfig);
 
-  const OMTFConfiguration* getConfig() const {
-    return myOmtfConfig;
-  }
+  virtual void setConfig(const OMTFConfiguration* omtfConfig);
 
-  virtual Key key() const {return theKey;}
+  const OMTFConfiguration* getConfig() const { return myOmtfConfig; }
+
+  virtual Key key() const { return theKey; }
 
   //void setMeanDistPhi(const vector2D & aMeanDistPhi) { meanDistPhi = aMeanDistPhi; }
 
@@ -85,25 +89,30 @@ class GoldenPatternBase {
 
   virtual int meanDistPhiValue(unsigned int iLayer, unsigned int iRefLayer, int refLayerPhiB = 0) const = 0;
 
-  virtual PdfValueType pdfValue(unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) const = 0;
+  virtual PdfValueType pdfValue(unsigned int iLayer,
+                                unsigned int iRefLayer,
+                                unsigned int iBin,
+                                int refLayerPhiB = 0) const = 0;
 
-  virtual void setMeanDistPhiValue(int value, unsigned int iLayer, unsigned int iRefLayer, unsigned int paramIndex = 0) = 0;
+  virtual void setMeanDistPhiValue(int value,
+                                   unsigned int iLayer,
+                                   unsigned int iRefLayer,
+                                   unsigned int paramIndex = 0) = 0;
 
-  virtual void setPdfValue(PdfValueType value, unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) = 0;
+  virtual void setPdfValue(
+      PdfValueType value, unsigned int iLayer, unsigned int iRefLayer, unsigned int iBin, int refLayerPhiB = 0) = 0;
 
-  virtual int getDistPhiBitShift(unsigned int iLayer, unsigned int iRefLayer) const  = 0;
+  virtual int getDistPhiBitShift(unsigned int iLayer, unsigned int iRefLayer) const = 0;
 
-  virtual void setDistPhiBitShift(int value, unsigned int iLayer, unsigned int iRefLayer)  = 0;
+  virtual void setDistPhiBitShift(int value, unsigned int iLayer, unsigned int iRefLayer) = 0;
 
   ///Process single measurement layer with a single ref layer
   ///Method should be thread safe
   virtual StubResult process1Layer1RefLayer(unsigned int iRefLayer,
-      unsigned int iLayer,
-      //const std::vector<int>& layerHits,
-      MuonStubPtrs1D layerStubs,
-      const MuonStubPtr refStub);
-
-
+                                            unsigned int iLayer,
+                                            //const std::vector<int>& layerHits,
+                                            MuonStubPtrs1D layerStubs,
+                                            const MuonStubPtr refStub);
 
   ///Propagate phi from given reference layer to MB2 or ME2
   ///ME2 is used if eta of reference hit is larger than 1.1
@@ -136,14 +145,12 @@ class GoldenPatternBase {
   virtual void finalise() = 0;
   */
 
-  resultsArrayType& getResults() {
-    return results;
-  }
+  resultsArrayType& getResults() { return results; }
 
   ///last step of the event processing, before sorting and ghost busting
   virtual void finalise(unsigned int procIndx);
- protected:
 
+protected:
   ///Pattern kinematical identification (iEta,iPt,iCharge)
   Key theKey;
 
@@ -157,4 +164,4 @@ class GoldenPatternBase {
 };
 //////////////////////////////////
 //////////////////////////////////
-#endif 
+#endif

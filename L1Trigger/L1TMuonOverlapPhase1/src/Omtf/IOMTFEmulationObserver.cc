@@ -9,10 +9,8 @@
 
 IOMTFEmulationObserver::IOMTFEmulationObserver() {
   // TODO Auto-generated constructor stub
-
 }
 
 IOMTFEmulationObserver::~IOMTFEmulationObserver() {
   // TODO Auto-generated destructor stub
 }
-

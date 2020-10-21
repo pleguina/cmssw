@@ -32,18 +32,12 @@ public:
   virtual int etaToHwEta(double eta) const = 0;
 
   //returns address for the  pdf LUTs
-  virtual unsigned int ptHwToPtBin(int ptHw) const {
-    return 0;
-  }
+  virtual unsigned int ptHwToPtBin(int ptHw) const { return 0; }
 
-  virtual unsigned int ptGeVToPtBin(float ptGeV) const {
-    return 0;
-  }
+  virtual unsigned int ptGeVToPtBin(float ptGeV) const { return 0; }
 
   //returns address for the  pdf LUTs
-  virtual unsigned int etaHwToEtaBin(int etaHw) const {
-    return 0;
-  }
+  virtual unsigned int etaHwToEtaBin(int etaHw) const { return 0; }
 
   virtual int foldPhi(int phi) const;
 
@@ -51,71 +45,47 @@ public:
 
   virtual bool isBendingLayer(unsigned int iLayer) const = 0;
 
-  virtual unsigned int getBxToProcess() const {
-    return 1;
-  }
+  virtual unsigned int getBxToProcess() const { return 1; }
 
-  virtual int cscLctCentralBx() const {
-    return cscLctCentralBx_;
-  }
+  virtual int cscLctCentralBx() const { return cscLctCentralBx_; }
 
-  virtual void setCscLctCentralBx(int lctCentralBx) {
-    this->cscLctCentralBx_ = lctCentralBx;
-  }
+  virtual void setCscLctCentralBx(int lctCentralBx) { this->cscLctCentralBx_ = lctCentralBx; }
 
-  virtual bool getRpcDropAllClustersIfMoreThanMax() const {
-    return rpcDropAllClustersIfMoreThanMax;
-  }
+  virtual bool getRpcDropAllClustersIfMoreThanMax() const { return rpcDropAllClustersIfMoreThanMax; }
 
-  virtual void setRpcDropAllClustersIfMoreThanMax(bool rpcDropAllClustersIfMoreThanMax =
-      true) {
+  virtual void setRpcDropAllClustersIfMoreThanMax(bool rpcDropAllClustersIfMoreThanMax = true) {
     this->rpcDropAllClustersIfMoreThanMax = rpcDropAllClustersIfMoreThanMax;
   }
 
-  virtual unsigned int getRpcMaxClusterCnt() const {
-    return rpcMaxClusterCnt;
-  }
+  virtual unsigned int getRpcMaxClusterCnt() const { return rpcMaxClusterCnt; }
 
-  virtual void setRpcMaxClusterCnt(unsigned int rpcMaxClusterCnt = 2) {
-    this->rpcMaxClusterCnt = rpcMaxClusterCnt;
-  }
+  virtual void setRpcMaxClusterCnt(unsigned int rpcMaxClusterCnt = 2) { this->rpcMaxClusterCnt = rpcMaxClusterCnt; }
 
-  virtual unsigned int getRpcMaxClusterSize() const {
-    return rpcMaxClusterSize;
-  }
+  virtual unsigned int getRpcMaxClusterSize() const { return rpcMaxClusterSize; }
 
-  virtual void setRpcMaxClusterSize(unsigned int rpcMaxClusterSize = 4) {
-    this->rpcMaxClusterSize = rpcMaxClusterSize;
-  }
+  virtual void setRpcMaxClusterSize(unsigned int rpcMaxClusterSize = 4) { this->rpcMaxClusterSize = rpcMaxClusterSize; }
 
-  virtual int getMinDtPhiQuality() const {
-    return minDtPhiQuality;
-  }
+  virtual int getMinDtPhiQuality() const { return minDtPhiQuality; }
 
-  virtual void setMinDtPhiQuality(int minDtPhiQuality = 2) {
-    this->minDtPhiQuality = minDtPhiQuality;
-  }
+  virtual void setMinDtPhiQuality(int minDtPhiQuality = 2) { this->minDtPhiQuality = minDtPhiQuality; }
 
-  virtual int getMinDtPhiBQuality() const {
-      return minDtPhiBQuality;
-  }
+  virtual int getMinDtPhiBQuality() const { return minDtPhiBQuality; }
 
-  virtual void setMinDtPhiBQuality(int minDtPhiBQuality = 2) {
-      this->minDtPhiBQuality = minDtPhiBQuality;
-  }
+  virtual void setMinDtPhiBQuality(int minDtPhiBQuality = 2) { this->minDtPhiBQuality = minDtPhiBQuality; }
 
 private:
-  int cscLctCentralBx_ = 8; //CSCConstants::LCT_CENTRAL_BX;
-  
-    //parameters of the RpcClusterization
+  int cscLctCentralBx_ = 8;  //CSCConstants::LCT_CENTRAL_BX;
+
+  //parameters of the RpcClusterization
   unsigned int rpcMaxClusterSize = 3;
   unsigned int rpcMaxClusterCnt = 2;
 
-  bool rpcDropAllClustersIfMoreThanMax = false; // if true no  cluster is return if there is more clusters then maxClusterCnt (counted regardless of the size)
-  
+  bool rpcDropAllClustersIfMoreThanMax =
+      false;  // if true no  cluster is return if there is more clusters then maxClusterCnt (counted regardless of the size)
+
   int minDtPhiQuality = 2;
 
-  int minDtPhiBQuality = 2; //used on the top of the minDtPhiQuality
+  int minDtPhiBQuality = 2;  //used on the top of the minDtPhiQuality
 };
 
 #endif /* INTERFACE_PROCCONFIGURATIONBASE_H_ */

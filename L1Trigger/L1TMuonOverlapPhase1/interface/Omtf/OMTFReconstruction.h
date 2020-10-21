@@ -25,45 +25,41 @@ class OMTFConfiguration;
 class OMTFConfigMaker;
 
 class OMTFReconstruction {
-  public:
+public:
+  OMTFReconstruction(const edm::ParameterSet&, MuStubsInputTokens& muStubsInputTokens);
 
-    OMTFReconstruction(const edm::ParameterSet&, MuStubsInputTokens& muStubsInputTokens);
+  virtual ~OMTFReconstruction();
 
-    virtual ~OMTFReconstruction();
+  void beginJob();
 
-    void beginJob();
+  void endJob();
 
-    void endJob();
+  void beginRun(edm::Run const& run, edm::EventSetup const& iSetup);
 
-    void beginRun(edm::Run const& run, edm::EventSetup const& iSetup);  
+  std::unique_ptr<l1t::RegionalMuonCandBxCollection> reconstruct(const edm::Event&, const edm::EventSetup&);
 
-    std::unique_ptr<l1t::RegionalMuonCandBxCollection> reconstruct(const edm::Event&, const edm::EventSetup&);
+  //takes the ownership of the inputMaker
+  void setInputMaker(OMTFinputMaker* inputMaker) { this->inputMaker.reset(inputMaker); }
 
-    //takes the ownership of the inputMaker
-    void setInputMaker(OMTFinputMaker* inputMaker) {
-      this->inputMaker.reset(inputMaker);
-    }
+  void virtual addObservers();
 
-    void virtual addObservers();
-  protected:
+protected:
+  edm::ParameterSet edmParameterSet;
 
-    edm::ParameterSet edmParameterSet;
+  MuStubsInputTokens& muStubsInputTokens;
 
-    MuStubsInputTokens& muStubsInputTokens;
-
-
-    int bxMin, bxMax;
+  int bxMin, bxMax;
 
   ///OMTF objects
-    unique_ptr<OMTFConfiguration> omtfConfig;
+  unique_ptr<OMTFConfiguration> omtfConfig;
 
-    unique_ptr<OMTFinputMaker> inputMaker;
+  unique_ptr<OMTFinputMaker> inputMaker;
 
-    unique_ptr<IProcessorEmulator> omtfProc;
+  unique_ptr<IProcessorEmulator> omtfProc;
 
-    OMTFConfigMaker* m_OMTFConfigMaker;
+  OMTFConfigMaker* m_OMTFConfigMaker;
 
-    std::vector<std::unique_ptr<IOMTFEmulationObserver> > observers;
+  std::vector<std::unique_ptr<IOMTFEmulationObserver> > observers;
 };
 
 #endif
