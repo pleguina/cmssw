@@ -13,17 +13,20 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFReconstruction.h"
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/OmtfPhase2AngleConverter.h"
 
-class OmtfEmulation: public OMTFReconstruction {
+class OmtfEmulation : public OMTFReconstruction {
 public:
-	OmtfEmulation(const edm::ParameterSet& edmParameterSet, MuStubsInputTokens& muStubsInputTokens, edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2);
+  OmtfEmulation(const edm::ParameterSet& edmParameterSet,
+                MuStubsInputTokens& muStubsInputTokens,
+                edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2);
 
-    void beginJob();
+  void beginJob();
 
-	~OmtfEmulation() override;
+  ~OmtfEmulation() override;
 
-	void addObservers() override;
+  void addObservers() override;
+
 private:
-	edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2;
+  edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2;
 };
 
 #endif /* L1TMUONOVERLAPPHASE1_OMTFEMULATION_H_ */
