@@ -7,7 +7,7 @@
 
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/OmtfEmulation.h"
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/InputMakerPhase2.h"
-#include "L1Trigger/L1TMuonOverlapPhase2/interface/PtAssignmentNN.h"
+//#include "L1Trigger/L1TMuonOverlapPhase2/interface/PtAssignmentNN.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -33,12 +33,12 @@ void OmtfEmulation::addObservers() {
 
   auto omtfProcGoldenPat = dynamic_cast<OMTFProcessor<GoldenPattern>*>(omtfProc.get());
   if (omtfProcGoldenPat) {
-    if (edmParameterSet.exists("neuralNetworkFile")) {
+    /*if (edmParameterSet.exists("neuralNetworkFile")) {
       edm::LogImportant("OMTFReconstruction") << "constructing PtAssignmentNN" << std::endl;
       std::string neuralNetworkFile = edmParameterSet.getParameter<edm::FileInPath>("neuralNetworkFile").fullPath();
       omtfProcGoldenPat->setPtAssignment(new PtAssignmentNN(
           edmParameterSet, omtfConfig.get(), neuralNetworkFile));  //TODO change to dynamic_cast and check the type
-    }
+    }*/
 
     /*    if(edmParameterSet.exists("patternsPtAssignment") && edmParameterSet.getParameter<bool>("patternsPtAssignment")) {
       //std::string rootFileName = edmParameterSet.getParameter<std::string>("dumpHitsFileName");
