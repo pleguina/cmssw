@@ -107,13 +107,13 @@ process.simOmtfPhase2Digis.dumpResultToROOT = cms.bool(False)
 process.simOmtfPhase2Digis.eventCaptureDebug = cms.bool(False)
 
 #process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files.xml")
-#process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
-process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
+process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
+#process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
 #process.simOmtfPhase2Digis.patternsXMLFiles = cms.VPSet(cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_plus_v1.xml")),
 #                                                       cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_minus_v1.xml"))
 #)
 
-#process.simOmtfPhase2Digis.sorterType = cms.string("byLLH")
+process.simOmtfPhase2Digis.sorterType = cms.string("byLLH")
 #process.simOmtfPhase2Digis.ghostBusterType = cms.string("GhostBusterPreferRefDt")
 
 process.simOmtfPhase2Digis.dropDTPrimitives = cms.bool(False)  
@@ -128,7 +128,7 @@ process.simOmtfPhase2Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
 process.simOmtfPhase2Digis.goldenPatternResultFinalizeFunction = cms.int32(9) #valid values are 0, 1, 2, 3, 5
 
-process.simOmtfPhase2Digis.noHitValueInPdf = cms.bool(False)
+process.simOmtfPhase2Digis.noHitValueInPdf = cms.bool(True)
 
 process.simOmtfPhase2Digis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
@@ -173,6 +173,7 @@ process.L1MuonAnalyzerOmtf= cms.EDAnalyzer("L1MuonAnalyzerOmtf",
                                  trackingParticleToken = cms.InputTag("mix", "MergedTrackTruth"),
                                  #TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                  
+                                 matchUsingPropagation = cms.bool(True),
                                  muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev_withOvf.root") #if you want to make this file, remove this entry
 
                                  
