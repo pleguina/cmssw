@@ -119,7 +119,7 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
 
   bool dump = false;
   for (auto& finalCandidate : *finalCandidates) {
-    if (finalCandidate.hwQual() >= 1 && finalCandidate.hwPt() >= 41) {  //41
+    if (finalCandidate.hwPt() < 41) {  //  finalCandidate.hwQual() >= 1  41
       dump = true;
     }
   }
