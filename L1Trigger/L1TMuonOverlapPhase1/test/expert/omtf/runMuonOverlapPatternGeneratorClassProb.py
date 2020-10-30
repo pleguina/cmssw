@@ -8,11 +8,9 @@ import re
 from os import listdir
 from os.path import isfile, join
 
-
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-version = '76'
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -26,7 +24,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_MuonOverlap_newPats_t' + version),
+                         filename  = cms.untracked.string('log_Patterns_0x0009_oldSample_3_10Files_classProb1'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -35,13 +33,13 @@ if verbose:
                          l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) ),
                          OMTFReconstruction = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) )
                        ),
-       debugModules = cms.untracked.vstring('L1MuonAnalyzerOmtf', 'simOmtfPhase1Digis') 
+       debugModules = cms.untracked.vstring('simOmtfPhase1Digis') 
        #debugModules = cms.untracked.vstring('*')
     )
 
     #process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
 if not verbose:
-    process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1000)
+    process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(-1)
     process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False), 
                                          #SkipEvent = cms.untracked.vstring('ProductNotFound') 
                                      )
@@ -61,9 +59,8 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 process.GlobalTag = GlobalTag(process.GlobalTag, '103X_upgrade2023_realistic_v2', '') 
 
-
-#path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
-path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/' #new sample, but small and more noisy
+path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
+#path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/' #new sample, but small and more noisy
 #path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v1/'
 
 #path = '/afs/cern.ch/work/a/akalinow/public/MuCorrelator/Data/SingleMu/9_3_14_FullEta_v1/'
@@ -82,23 +79,23 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
-filesPerPtBin = 100 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
+filesPerPtBin = 1 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
 
 if filesNameLike == 'allPt' :
-    for ptCode in range(31, 2, -1) :
-#         if ptCode <= 7 :
-#             filesPerPtBin = 10
-#         elif ptCode <= 12 :
-#             filesPerPtBin = 5
-#         else :    
-#             filesPerPtBin = 3
+    for ptCode in range(31, 3, -1) :
+        if ptCode <= 7 :
+            filesPerPtBin = 10
+        elif ptCode <= 12 :
+            filesPerPtBin = 5
+        else :    
+            filesPerPtBin = 3
             
         for sign in ['_m', '_p'] : #, m
             selFilesPerPtBin = 0
             for i in range(1, 201, 1): #TODO
                 for f in onlyfiles:
-                   #if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): #TODO for 721_FullEta_v4/
-                   if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f):  #TODO for 9_3_14_FullEta_v2
+                   if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): #TODO for 721_FullEta_v4/
+                   #if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f):  #TODO for 9_3_14_FullEta_v2
                         #print f
                         chosenFiles.append('file://' + path + f) 
                         selFilesPerPtBin += 1
@@ -106,10 +103,10 @@ if filesNameLike == 'allPt' :
                     break
                         
 else :
-    for i in range(1, 100, 1):
+    for i in range(1, 2, 1):
         for f in onlyfiles:
-            #if (( filesNameLike + '_' + str(i) + '_') in f):  #TODO for 721_FullEta_v4/
-            if (( filesNameLike + '_' + str(i) + '.') in f): #TODO for 9_3_14_FullEta_v2
+            if (( filesNameLike + '_' + str(i) + '_') in f):  #TODO for 721_FullEta_v4/
+            #if (( filesNameLike + '_' + str(i) + '.') in f): #TODO for 9_3_14_FullEta_v2
                 print f
                 chosenFiles.append('file://' + path + f) 
          
@@ -141,12 +138,12 @@ fileNames = cms.untracked.vstring(
         'drop l1tEMTFTrack2016s_simEmtfDigis__HLT')
 )
 	                    
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1))
 
 
 ####Event Setup Producer
 process.load('L1Trigger.L1TMuonOverlapPhase1.fakeOmtfParams_cff')
-process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008.xml")
+#process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen.xml"),
 
 process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
    toGet = cms.VPSet(
@@ -156,16 +153,7 @@ process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
    verbose = cms.untracked.bool(False)
 )
 
-analysisType = "efficiency" # or rate
-  
-for a in sys.argv :
-    if a == "efficiency" or a ==  "rate" or a == "withTrackPart" :
-        analysisType = a
-        break;
-    
-print "analysisType=" + analysisType
-
-process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_eff_SingleMu_t' + version + '.root'), closeFileFast = cms.untracked.bool(True) )
+#process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis1_1.root'), closeFileFast = cms.untracked.bool(True) )
                                    
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonOverlapPhase1.simOmtfPhase1Digis_cfi')
@@ -174,68 +162,28 @@ process.simOmtfPhase1Digis.dumpResultToXML = cms.bool(False)
 process.simOmtfPhase1Digis.dumpResultToROOT = cms.bool(False)
 process.simOmtfPhase1Digis.eventCaptureDebug = cms.bool(False)
 
-process.simOmtfPhase1Digis.sorterType = cms.string("byLLH")
-process.simOmtfPhase1Digis.ghostBusterType = cms.string("GhostBusterPreferRefDt") #GhostBusterPreferRefDt
-
-#process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files.xml")
+#process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_template.xml")
 process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
-#process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files_classProb1.xml")
-#process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
 #process.simOmtfPhase1Digis.patternsXMLFiles = cms.VPSet(cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_plus_v1.xml")),
 #                                                       cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_minus_v1.xml"))
 #)
 
-process.simOmtfPhase1Digis.minDtPhiQuality = cms.int32(2)
-process.simOmtfPhase1Digis.minDtPhiBQuality = cms.int32(4)
-  
+process.simOmtfPhase1Digis.patternGenerator = cms.string("modifyClassProb")
+
+process.simOmtfPhase1Digis.patternType = cms.string("GoldenPatternWithStat")
+process.simOmtfPhase1Digis.generatePatterns = cms.bool(True)
+process.simOmtfPhase1Digis.optimisedPatsXmlFile = cms.string("Patterns_0x0009_oldSample_3_10Files_classProb1.xml")
+
 process.simOmtfPhase1Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase1Digis.rpcMaxClusterCnt = cms.int32(2)
 process.simOmtfPhase1Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(8) #valid values are 0, 1, 2, 3, 5
-
-process.simOmtfPhase1Digis.noHitValueInPdf = cms.bool(True)
-
+process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(3) #valid values are 0, 1, 2, 3, 5
 process.simOmtfPhase1Digis.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
-
-#nn_pThresholds = [0.36, 0.38, 0.40, 0.42, 0.44, 0.46, 0.48, 0.50, 0.52, 0.54 ]
-#nn_pThresholds = [0.40, 0.50] 
-#nn_pThresholds = [0.35, 0.40, 0.45, 0.50, 0.55] 
- 
-#process.simOmtfPhase1Digis.neuralNetworkFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/omtfClassifier_withPtBins_v34.txt")
-#process.simOmtfPhase1Digis.ptCalibrationFileName = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PtCalibration_v34.root")
-
-#process.simOmtfPhase1Digis.nn_pThresholds = cms.vdouble(nn_pThresholds)
 
 
 #process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 #process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
-
-#process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
-#process.load("Configuration.StandardSequences.MagneticField_38T_cff")
-
-process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAlong_cfi")
-#process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorOpposite_cfi")
-#process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
-
-
-process.L1MuonAnalyzerOmtf= cms.EDAnalyzer("L1MuonAnalyzerOmtf", 
-                                 etaCutFrom = cms.double(0.82), #OMTF eta range
-                                 etaCutTo = cms.double(1.24),
-                                 L1OMTFInputTag  = cms.InputTag("simOmtfPhase1Digis","OMTF"),
-                                 #nn_pThresholds = cms.vdouble(nn_pThresholds), 
-                                 analysisType = cms.string(analysisType),
-                                 
-                                 simTracksTag = cms.InputTag('g4SimHits'),
-                                 simVertexesTag = cms.InputTag('g4SimHits'),
-                                 
-                                 matchUsingPropagation = cms.bool(True),
-                                 muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev_withOvf.root") #if you want to make this file, remove this entry#if you want to make this file, remove this entry
-                                 #muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_noPropagation_t74.root")
-                                        )
-
-process.l1MuonAnalyzerOmtfPath = cms.Path(process.L1MuonAnalyzerOmtf)
-
 
 process.L1TMuonSeq = cms.Sequence( process.esProd          
                                    + process.simOmtfPhase1Digis 
@@ -244,8 +192,6 @@ process.L1TMuonSeq = cms.Sequence( process.esProd
 )
 
 process.L1TMuonPath = cms.Path(process.L1TMuonSeq)
-
-process.schedule = cms.Schedule(process.L1TMuonPath, process.l1MuonAnalyzerOmtfPath)
 
 #process.out = cms.OutputModule("PoolOutputModule", 
 #   fileName = cms.untracked.string("l1tomtf_superprimitives1.root")

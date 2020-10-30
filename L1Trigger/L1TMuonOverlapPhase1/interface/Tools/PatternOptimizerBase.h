@@ -22,6 +22,9 @@
 
 class PatternOptimizerBase : public IOMTFEmulationObserver {
 public:
+  static double vxMuRate(double pt_GeV);
+  static double vxIntegMuRate(double pt_GeV, double dpt, double etaFrom, double etaTo);
+
   PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig);
 
   PatternOptimizerBase(const edm::ParameterSet& edmCfg,

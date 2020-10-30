@@ -24,11 +24,15 @@ public:
   void endJob() override;
 
 protected:
+  void initPatternGen();
+
   void updateStat();
 
   void upadatePdfs();
 
   void saveHists(TFile& outfile) override;
+
+  void modifyClassProb(double step);
 
   //[charge][iLayer]
   std::vector<std::vector<TH2I*> > ptDeltaPhiHists;

@@ -205,7 +205,7 @@ void OMTFConfiguration::configureFromEdmParameterSet(const edm::ParameterSet &ed
   if (edmParameterSet.exists("ghostBusterType")) {
     setGhostBusterType(edmParameterSet.getParameter<std::string>("ghostBusterType"));
 
-    edm::LogVerbatim("OMTFReconstruction") << "setting " <<getGhostBusterType()<< std::endl;
+    edm::LogVerbatim("OMTFReconstruction") << "ghostBusterType: " <<getGhostBusterType()<< std::endl;
   }
 }
 

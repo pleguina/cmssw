@@ -8,14 +8,26 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternGenerator.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
+#include <boost/range/adaptor/reversed.hpp>
+
 #include "TFile.h"
 
 PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg,
                                    const OMTFConfiguration* omtfConfig,
                                    std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps)
-    : PatternOptimizerBase(edmCfg, omtfConfig, gps), eventCntPerGp(gps.size(), 0) {
+    : PatternOptimizerBase(edmCfg, omtfConfig, gps), eventCntPerGp(gps.size(), 0)
+{
   edm::LogImportant("l1tOmtfEventPrint") << "constructing PatternGenerator " << std::endl;
 
+  goldenPatterns = gps;
+
+  if(edmCfg.getParameter< string >("patternGenerator") == "patternGen")
+    initPatternGen();
+}
+
+PatternGenerator::~PatternGenerator() {}
+
+void PatternGenerator::initPatternGen() {
   //TODO uncomment when needed
   /*  //adding new patterns!!!!!!!!!!!!
   edm::LogImportant("PatternGeneratorTT") << "PatternGeneratorTT: adding new patterns and modifying existing!!!!!" << std::endl;
@@ -41,8 +53,6 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg,
   gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, 1, 0), omtfConfig)); pos = gps.begin();
   gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 8, 1, 0), omtfConfig)); pos = gps.begin();
   gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 7, 1, 0), omtfConfig)); pos = gps.begin(); */
-
-  goldenPatterns = gps;
 
   //reseting the golden patterns
   unsigned int i = 0;
@@ -111,8 +121,6 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg,
         <<" - "<<omtfConfig->getPatternPtRange(gp->key().theNumber).ptTo<<" GeV"<<std::endl;
   }*/
 }
-
-PatternGenerator::~PatternGenerator() {}
 
 void PatternGenerator::updateStat() {
   //cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCand "<<*omtfCand<<std::endl;;
@@ -202,7 +210,10 @@ void PatternGenerator::observeEventEnd(const edm::Event& iEvent,
 }
 
 void PatternGenerator::endJob() {
-  upadatePdfs();
+  if(edmCfg.getParameter< string >("patternGenerator") == "modifyClassProb")
+    modifyClassProb(1);
+  else if(edmCfg.getParameter< string >("patternGenerator") == "patternGen")
+    upadatePdfs();
 
   PatternOptimizerBase::endJob();
 }
@@ -405,4 +416,69 @@ void PatternGenerator::saveHists(TFile& outfile) {
   }*/
 
   //TODO rather store the gp->getStatistics(), so the pdf calcualtion can be done without runnign on the data every time
+}
+
+
+void PatternGenerator::modifyClassProb(double step) {
+  edm::LogImportant("l1tOmtfEventPrint") << __FUNCTION__ << ": " << __LINE__ << " Correcting P(C_k) " << std::endl;
+  unsigned int iPdf = omtfConfig->nPdfBins() / 2;  // <<(omtfConfig->nPdfAddrBits()-1);
+  for (unsigned int iRefLayer = 0; iRefLayer < goldenPatterns[0]->getPdf()[0].size(); ++iRefLayer) {
+    unsigned int refLayerLogicNumber = omtfConfig->getRefToLogicNumber()[iRefLayer];
+    if (iRefLayer == 0 || iRefLayer == 2)  //DT
+      step = 1.5;
+    else if (iRefLayer == 5)  //DT
+      step = 1.5;
+    else if (iRefLayer == 1)  //CSC
+      step = 1.5;
+    else if (iRefLayer == 3)  //CSC
+      step = 1.5;
+    else if (iRefLayer == 5)  //RE2/3
+      step = 1.5;
+    else if (iRefLayer == 6 || iRefLayer == 7)  //bRPC
+      step = 1.5;
+
+    edm::LogImportant("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " RefLayer " << iRefLayer << " step " << step << std::endl;
+    for (int sign = -1; sign <= 1; sign++) {
+      for (auto& gp : boost::adaptors::reverse(goldenPatterns)) {
+        if (gp->key().thePt == 0 || gp->key().theCharge != sign)
+          continue;
+
+        double ptFrom = omtfConfig->getPatternPtRange(gp->key().theNumber).ptFrom;
+        double ptTo = omtfConfig->getPatternPtRange(gp->key().theNumber).ptTo ;
+
+        double ptRange = ptTo - ptFrom;
+
+        double minPdfValFactor = 0.1;
+        double minPlog = log(omtfConfig->minPdfVal() * minPdfValFactor);
+        double pdfMaxVal = omtfConfig->pdfMaxValue();
+
+        pdfMaxVal /= 3.;
+        minPlog *= 2;
+
+        //last bin of th eptRange goes to 10000, so here we change it to 1000
+        if(ptRange > 800)
+          ptRange = 800;
+
+        double norm =  0.001;
+        double classProb = vxIntegMuRate(ptFrom, ptRange, 0.82, 1.24) * norm;
+
+        int digitisedVal = rint(pdfMaxVal - log(classProb) / minPlog * pdfMaxVal);
+
+        int newPdfVal =  digitisedVal; //gp->getPdf()[refLayerLogicNumber][iRefLayer][iPdf]
+        if(ptFrom == 0)
+          newPdfVal = 20;
+        if(ptFrom == 200)
+          newPdfVal = 15;
+
+        gp->setPdfValue(newPdfVal, refLayerLogicNumber, iRefLayer, iPdf);
+
+
+        edm::LogImportant("l1tOmtfEventPrint")<< gp->key() << " "
+            << omtfConfig->getPatternPtRange(gp->key().theNumber).ptFrom << " - "
+            << omtfConfig->getPatternPtRange(gp->key().theNumber).ptTo << " GeV"
+            <<" ptRange "<<ptRange << " RefLayer " << iRefLayer << " newPdfVal " << newPdfVal << std::endl;
+
+      }
+    }
+  }
 }

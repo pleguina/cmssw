@@ -1444,35 +1444,6 @@ void PatternOptimizer::saveHists(TFile& outfile) {
   }
 }
 
-double vxMuRate(double pt_GeV) {
-  if (pt_GeV == 0)
-    return 0.0;
-  const double lum = 2.0e34;  //defoult is 1.0e34;
-  const double dabseta = 1.0;
-  const double dpt = 1.0;
-  const double afactor = 1.0e-34 * lum * dabseta * dpt;
-  const double a = 2 * 1.3084E6;
-  const double mu = -0.725;
-  const double sigma = 0.4333;
-  const double s2 = 2 * sigma * sigma;
-
-  double ptlog10;
-  ptlog10 = log10(pt_GeV);
-  double ex = (ptlog10 - mu) * (ptlog10 - mu) / s2;
-  double rate = (a * exp(-ex) * afactor);
-  //edm::LogError("RPCTrigger")<<ptCode<<" "<<rate;//<<<<<<<<<<<<<<<<<<<<<<<<
-  return rate;
-}
-
-double vxIntegMuRate(double pt_GeV, double dpt, double etaFrom, double etaTo) {
-  //calkowanie metoda trapezow - nie do konca dobre
-  double rate = 0.5 * (vxMuRate(pt_GeV) + vxMuRate(pt_GeV + dpt)) * dpt;
-
-  rate = rate * (etaTo - etaFrom);
-  //edm::LogError("RPCTrigger")<<ptCode<<" "<<rate;//<<<<<<<<<<<<<<<<<<<<<<<<
-  return rate;
-}
-
 void PatternOptimizer::initRateWeights() {
   rateWeights.assign(goldenPatterns.size(), 0);
   patternPtCodes.assign(goldenPatterns.size(), 0);
