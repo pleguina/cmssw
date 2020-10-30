@@ -50,12 +50,12 @@ OMTFProcessor<GoldenPatternType>::~OMTFProcessor() {}
 
 template <class GoldenPatternType>
 void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm::EventSetup const& evSetup) {
-  setSorter(
-      new OMTFSorter<GoldenPatternType>(this->myOmtfConfig->getSorterType()));  //initialize with the default sorter
+  setSorter(new OMTFSorter<GoldenPatternType>(this->myOmtfConfig->getSorterType()));
+  //initialize with the default sorter
 
-  if (this->myOmtfConfig->getGhostBusterType() == "GhostBusterPreferRefDt") {
+  if (this->myOmtfConfig->getGhostBusterType() == "GhostBusterPreferRefDt" || this->myOmtfConfig->getGhostBusterType() == "byLLH") {
     setGhostBuster(new GhostBusterPreferRefDt(this->myOmtfConfig));
-    edm::LogVerbatim("OMTFReconstruction") << "setting GhostBusterPreferRefDt" << std::endl;
+    edm::LogVerbatim("OMTFReconstruction") << "setting "<< this->myOmtfConfig->getGhostBusterType() << std::endl;
   } else {
     setGhostBuster(new GhostBuster());  //initialize with the default sorter
     edm::LogVerbatim("OMTFReconstruction") << "setting GhostBuster" << std::endl;
@@ -83,8 +83,11 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     candidate.setHwSign(myCand->getCharge() < 0 ? 1 : 0);
     candidate.setHwSignValid(1);
 
-    unsigned int quality = 12; //checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3)
-                              //                                       : 0 | (1 << 2);
+    unsigned int quality = 12; 
+    if( this->myOmtfConfig->fwVersion() <= 6 )
+    	quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3)
+                                                                     : 0 | (1 << 2);
+                                                                     
     if (    abs(myCand->getEtaHw()) == 115
         && (    static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001110000000").to_ulong()
              || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000001110000000").to_ulong()
@@ -92,8 +95,14 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
              || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001100000000").to_ulong()
              || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001010000000").to_ulong()
            )
-       ) quality = 1;
-    /*if( this->myOmtfConfig->fwVersion() >= 5 ) {
+       ) {
+      if( this->myOmtfConfig->fwVersion() <= 6 )
+        quality = 4;
+      else
+        quality = 1;
+    }
+
+    if( this->myOmtfConfig->fwVersion() >= 5 && this->myOmtfConfig->fwVersion() <= 6) {
       if (    static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000010000000011").to_ulong()
            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000100000000011").to_ulong()
            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000001000000000011").to_ulong()
@@ -119,8 +128,8 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000000000110000").to_ulong()
            || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000000110000").to_ulong()
          ) quality = 1;
-    }*/
-    else if( this->myOmtfConfig->fwVersion() >= 6 ) { //TODO fix the fwVersion
+    }
+    else if( this->myOmtfConfig->fwVersion() >= 8 ) { //TODO fix the fwVersion
       if (
              static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000110000000011").to_ulong()
           || static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000100000000011").to_ulong()

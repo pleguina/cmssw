@@ -44,6 +44,50 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
       return true;
   };
 
+
+  auto customLessByFPLLH = [&](const AlgoMuons::value_type& a, const AlgoMuons::value_type& b) -> bool {
+    if (!a->isValid()) {
+      return true;
+    }
+    if (!b->isValid()) {
+      return false;
+    }
+
+    if (a->getQ() > b->getQ())
+      return false;
+    else if (a->getQ() == b->getQ() ) {
+      return false;
+    } else if (a->getQ() == b->getQ()  && a->getDisc() > b->getDisc())
+      return false;
+    else if (a->getQ() == b->getQ()  && a->getDisc() == b->getDisc() &&
+             a->getPatternNumber() > b->getPatternNumber())
+      return false;
+    else if (a->getQ() == b->getQ()  && a->getDisc() == b->getDisc() &&
+             a->getPatternNumber() == b->getPatternNumber() && a->getRefHitNumber() < b->getRefHitNumber())
+      return false;
+    else
+      return true;
+  };
+
+  auto customLessByLLH = [&](const AlgoMuons::value_type& a, const AlgoMuons::value_type& b) -> bool {
+    if (!a->isValid()) {
+      return true;
+    }
+    if (!b->isValid()) {
+      return false;
+    }
+
+    if (a->getDisc() > b->getDisc())
+      return false;
+    else if (a->getDisc() == b->getDisc() && a->getPatternNumber() > b->getPatternNumber())
+      return false;
+    else if (a->getDisc() == b->getDisc() && a->getPatternNumber() == b->getPatternNumber()
+        && a->getRefHitNumber() < b->getRefHitNumber())
+      return false;
+    else
+      return true;
+  };
+
   /*
   auto customLess = [&](const AlgoMuons::value_type& a, const AlgoMuons::value_type& b)->bool {
     if(!a->isValid()) {
@@ -70,7 +114,12 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
       return true;
   };*/
 
-  std::sort(muonsIN.rbegin(), muonsIN.rend(), customLess);
+  if(omtfConfig->getGhostBusterType() == "byLLH")
+    std::sort(muonsIN.rbegin(), muonsIN.rend(), customLessByLLH);
+  else if(omtfConfig->getGhostBusterType() == "byFPLLH")
+    std::sort(muonsIN.rbegin(), muonsIN.rend(), customLessByFPLLH);
+  else
+    std::sort(muonsIN.rbegin(), muonsIN.rend(), customLess);
 
   // actual GhostBusting. Overwrite eta in case of no DT info.
   std::vector<AlgoMuonEtaFix> refHitCleanCandsFixedEta;
