@@ -106,15 +106,16 @@ process.simOmtfPhase2Digis.dumpResultToXML = cms.bool(False)
 process.simOmtfPhase2Digis.dumpResultToROOT = cms.bool(False)
 process.simOmtfPhase2Digis.eventCaptureDebug = cms.bool(False)
 
-#process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files.xml")
-process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
+#process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
+process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files_classProb1.xml")
+
 #process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
 #process.simOmtfPhase2Digis.patternsXMLFiles = cms.VPSet(cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_plus_v1.xml")),
 #                                                       cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_minus_v1.xml"))
 #)
 
 process.simOmtfPhase2Digis.sorterType = cms.string("byLLH")
-#process.simOmtfPhase2Digis.ghostBusterType = cms.string("GhostBusterPreferRefDt")
+process.simOmtfPhase2Digis.ghostBusterType = cms.string("byLLH") #GhostBusterPreferRefDt
 
 process.simOmtfPhase2Digis.dropDTPrimitives = cms.bool(False)  
 process.simOmtfPhase2Digis.usePhase2DTPrimitives = cms.bool(False) #if here is true, dropDTPrimitives should also be true
@@ -126,7 +127,7 @@ process.simOmtfPhase2Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase2Digis.rpcMaxClusterCnt = cms.int32(2)
 process.simOmtfPhase2Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simOmtfPhase2Digis.goldenPatternResultFinalizeFunction = cms.int32(9) #valid values are 0, 1, 2, 3, 5
+process.simOmtfPhase2Digis.goldenPatternResultFinalizeFunction = cms.int32(8) #valid values are 0, 1, 2, 3, 5
 
 process.simOmtfPhase2Digis.noHitValueInPdf = cms.bool(True)
 

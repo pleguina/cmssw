@@ -12,7 +12,7 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-version = '76'
+version = '78'
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -175,11 +175,11 @@ process.simOmtfPhase1Digis.dumpResultToROOT = cms.bool(False)
 process.simOmtfPhase1Digis.eventCaptureDebug = cms.bool(False)
 
 process.simOmtfPhase1Digis.sorterType = cms.string("byLLH")
-process.simOmtfPhase1Digis.ghostBusterType = cms.string("GhostBusterPreferRefDt") #GhostBusterPreferRefDt
+process.simOmtfPhase1Digis.ghostBusterType = cms.string("byLLH") #GhostBusterPreferRefDt
 
-#process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files.xml")
-process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
-#process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files_classProb1.xml")
+#process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
+process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files_classProb1.xml")
+
 #process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
 #process.simOmtfPhase1Digis.patternsXMLFiles = cms.VPSet(cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_plus_v1.xml")),
 #                                                       cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_minus_v1.xml"))
