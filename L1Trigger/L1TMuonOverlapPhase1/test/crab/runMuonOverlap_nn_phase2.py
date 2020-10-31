@@ -7,7 +7,7 @@ import commands
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
-verbose = False
+verbose = True
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -87,7 +87,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 
 ####Event Setup Producer
 process.load('L1Trigger.L1TMuonOverlapPhase1.fakeOmtfParams_cff')
-process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008.xml")
+#process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008.xml") #looks that for some reason this is not include when runnig the crab
 
 process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
    toGet = cms.VPSet(
