@@ -305,7 +305,7 @@ void GoldenPatternResult::finalise9() {
         }
       } else {
         if (stubResults[iLogicLayer].getPdfVal() == 0)  //banding layer fired, but not fits to the pdf
-          pdfSum -= 64;
+          pdfSum -= 32;
         else
           pdfSum += stubResults[iLogicLayer].getPdfVal();  //banding layer not fired at all
       }

@@ -15,7 +15,7 @@ if verbose:
        destinations   = cms.untracked.vstring(
                                                #'detailedInfo',
                                                #'critical',
-                                               #'cout',
+                                               'cout',
                                                #'cerr',
                                                'omtfEventPrint'
                     ),
@@ -27,8 +27,16 @@ if verbose:
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
                          #INFO   =  cms.untracked.int32(0),
                          #DEBUG   = cms.untracked.int32(0),
-                         l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) ),
-                         OMTFReconstruction = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) )
+                         l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(10000000) ),
+                         OMTFReconstruction = cms.untracked.PSet( limit = cms.untracked.int32(10000000) )
+                       ),
+       cout = cms.untracked.PSet(    
+                         threshold = cms.untracked.string('INFO'),
+                         default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
+                         #INFO   =  cms.untracked.int32(0),
+                         #DEBUG   = cms.untracked.int32(0),
+                         l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(10000000) ),
+                         OMTFReconstruction = cms.untracked.PSet( limit = cms.untracked.int32(10000000) )
                        ),
        debugModules = cms.untracked.vstring('L1MuonAnalyzerOmtf', 'simOmtfPhase2Digis') 
        #debugModules = cms.untracked.vstring('*')
@@ -115,7 +123,7 @@ process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/d
 #)
 
 process.simOmtfPhase2Digis.sorterType = cms.string("byLLH")
-process.simOmtfPhase2Digis.ghostBusterType = cms.string("byLLH") #GhostBusterPreferRefDt
+process.simOmtfPhase2Digis.ghostBusterType = cms.string("GhostBusterPreferRefDt") # byLLH
 
 process.simOmtfPhase2Digis.dropDTPrimitives = cms.bool(False)  
 process.simOmtfPhase2Digis.usePhase2DTPrimitives = cms.bool(False) #if here is true, dropDTPrimitives should also be true
@@ -127,7 +135,7 @@ process.simOmtfPhase2Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase2Digis.rpcMaxClusterCnt = cms.int32(2)
 process.simOmtfPhase2Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simOmtfPhase2Digis.goldenPatternResultFinalizeFunction = cms.int32(8) #valid values are 0, 1, 2, 3, 5
+process.simOmtfPhase2Digis.goldenPatternResultFinalizeFunction = cms.int32(9) #valid values are 0, 1, 2, 3, 5
 
 process.simOmtfPhase2Digis.noHitValueInPdf = cms.bool(True)
 

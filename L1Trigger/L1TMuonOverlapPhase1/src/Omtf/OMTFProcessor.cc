@@ -60,6 +60,9 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
     setGhostBuster(new GhostBuster());  //initialize with the default sorter
     edm::LogVerbatim("OMTFReconstruction") << "setting GhostBuster" << std::endl;
   }
+
+  edm::LogVerbatim("OMTFReconstruction") << "fwVersion 0x"<<hex <<this->myOmtfConfig->fwVersion()<< std::endl;
+
 }
 
 template <class GoldenPatternType>

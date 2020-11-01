@@ -12,7 +12,7 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-version = '78'
+version = '80'
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -28,7 +28,7 @@ if verbose:
        omtfEventPrint = cms.untracked.PSet(    
                          filename  = cms.untracked.string('log_MuonOverlap_newPats_t' + version),
                          extension = cms.untracked.string('.txt'),                
-                         threshold = cms.untracked.string('DEBUG'),
+                         threshold = cms.untracked.string('INFO'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
                          #INFO   =  cms.untracked.int32(0),
                          #DEBUG   = cms.untracked.int32(0),
@@ -175,7 +175,7 @@ process.simOmtfPhase1Digis.dumpResultToROOT = cms.bool(False)
 process.simOmtfPhase1Digis.eventCaptureDebug = cms.bool(False)
 
 process.simOmtfPhase1Digis.sorterType = cms.string("byLLH")
-process.simOmtfPhase1Digis.ghostBusterType = cms.string("byLLH") #GhostBusterPreferRefDt
+process.simOmtfPhase1Digis.ghostBusterType = cms.string("GhostBusterPreferRefDt") # byLLH
 
 #process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
 process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files_classProb1.xml")
@@ -192,7 +192,7 @@ process.simOmtfPhase1Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase1Digis.rpcMaxClusterCnt = cms.int32(2)
 process.simOmtfPhase1Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(8) #valid values are 0, 1, 2, 3, 5
+process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(9) #valid values are 0, 1, 2, 3, 5
 
 process.simOmtfPhase1Digis.noHitValueInPdf = cms.bool(True)
 
