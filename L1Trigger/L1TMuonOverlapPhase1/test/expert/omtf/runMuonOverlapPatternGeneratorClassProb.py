@@ -24,7 +24,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_Patterns_0x0009_oldSample_3_10Files_classProb1'),
+                         filename  = cms.untracked.string('log_Patterns_0x0009_oldSample_3_10Files_classProb2'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -172,7 +172,7 @@ process.simOmtfPhase1Digis.patternGenerator = cms.string("modifyClassProb")
 
 process.simOmtfPhase1Digis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfPhase1Digis.generatePatterns = cms.bool(True)
-process.simOmtfPhase1Digis.optimisedPatsXmlFile = cms.string("Patterns_0x0009_oldSample_3_10Files_classProb1.xml")
+process.simOmtfPhase1Digis.optimisedPatsXmlFile = cms.string("Patterns_0x0009_oldSample_3_10Files_classProb2.xml")
 
 process.simOmtfPhase1Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase1Digis.rpcMaxClusterCnt = cms.int32(2)
