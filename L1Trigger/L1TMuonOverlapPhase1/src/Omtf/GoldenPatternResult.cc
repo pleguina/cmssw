@@ -305,13 +305,13 @@ void GoldenPatternResult::finalise9() {
         }
       } else {
         if (stubResults[iLogicLayer].getPdfVal() == 0)  //banding layer fired, but not fits to the pdf
-          pdfSum -= 32;
+          pdfSum -= 16;
         else
           pdfSum += stubResults[iLogicLayer].getPdfVal();  //banding layer not fired at all
       }
     } else {
       if (iLogicLayer < 10 && stubResults[iLogicLayer].getPdfVal() == 0)
-        pdfSum -= 64;
+        pdfSum -= 16;
       else
         pdfSum += stubResults[iLogicLayer].getPdfVal();
       if (firedLayerBits & (1 << iLogicLayer)) {  //pdfSum is counted always
