@@ -82,7 +82,7 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
-filesPerPtBin = 100 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
+filesPerPtBin = 10 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
 
 if filesNameLike == 'allPt' :
     for ptCode in range(31, 2, -1) :

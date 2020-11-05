@@ -1,7 +1,7 @@
 from CRABClient.UserUtilities import config #, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'omtf_nn_MC_analysis_MuFlatPt_PU200_v3_t82'
+config.General.requestName = 'omtf_nn_MC_analysis_ZprimeToMuMu_PU140_v3_t82'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
@@ -11,7 +11,8 @@ config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'runMuonOverlap_nn_phase2.py'
 config.JobType.pyCfgParams = ['efficiency']
 
-config.Data.inputDataset = '/Mu_FlatPt2to100-pythia8-gun/PhaseIITDRSpring19DR-PU200_106X_upgrade2023_realistic_v3-v2/GEN-SIM-DIGI-RAW' 
+config.Data.inputDataset = '/ZprimeToMuMu_M-6000_TuneCP5_14TeV-pythia8/PhaseIITDRSpring19DR-PU140_106X_upgrade2023_realistic_v3-v1/GEN-SIM-DIGI-RAW' 
+#'/ZprimeToMuMu_M-6000_TuneCP5_14TeV-pythia8/Run3Winter20DRMiniAOD-FlatPU0to80_110X_mcRun3_2021_realistic_v6-v3/GEN-SIM-RAW'  <-- no DIGI here
 #'/SingleMu_FlatPt-2to100/PhaseIIFall17D-L1TPU200_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
 #config.Data.inputDataset = '/SingleMu_FlatPt-2to100/PhaseIIFall17D-L1TnoPU_93X_upgrade2023_realistic_v5-v1/GEN-SIM-DIGI-RAW'
 
@@ -20,8 +21,8 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 5
 #config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'CRAB3_omtf_nn_MC_analysis_MuFlatPt_PU200_v3_t82'
-config.Data.totalUnits = 321
+config.Data.outputDatasetTag = 'CRAB_omtf_nn_MC_analysis_ZprimeToMuMu_PU140_v3_t82'
+config.Data.totalUnits = 252
 config.Data.ignoreLocality = False
 
 config.section_("Debug")

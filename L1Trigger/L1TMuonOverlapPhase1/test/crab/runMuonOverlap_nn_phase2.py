@@ -115,7 +115,7 @@ process.simOmtfPhase2Digis.dumpResultToROOT = cms.bool(False)
 process.simOmtfPhase2Digis.eventCaptureDebug = cms.bool(False)
 
 #process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
-process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files_classProb1.xml")
+process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files_classProb2.xml")
 
 #process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
 #process.simOmtfPhase2Digis.patternsXMLFiles = cms.VPSet(cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_plus_v1.xml")),
@@ -123,7 +123,7 @@ process.simOmtfPhase2Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/d
 #)
 
 process.simOmtfPhase2Digis.sorterType = cms.string("byLLH")
-process.simOmtfPhase2Digis.ghostBusterType = cms.string("byLLH") #GhostBusterPreferRefDt
+process.simOmtfPhase2Digis.ghostBusterType = cms.string("GhostBusterPreferRefDt") #GhostBusterPreferRefDt byLLH
 
 process.simOmtfPhase2Digis.dropDTPrimitives = cms.bool(False)  
 process.simOmtfPhase2Digis.usePhase2DTPrimitives = cms.bool(False) #if here is true, dropDTPrimitives should also be true
@@ -135,7 +135,7 @@ process.simOmtfPhase2Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase2Digis.rpcMaxClusterCnt = cms.int32(2)
 process.simOmtfPhase2Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simOmtfPhase2Digis.goldenPatternResultFinalizeFunction = cms.int32(8) #valid values are 0, 1, 2, 3, 5
+process.simOmtfPhase2Digis.goldenPatternResultFinalizeFunction = cms.int32(9) #valid values are 0, 1, 2, 3, 5
 
 process.simOmtfPhase2Digis.noHitValueInPdf = cms.bool(True)
 
@@ -143,12 +143,12 @@ process.simOmtfPhase2Digis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!
 
 #nn_pThresholds = [0.36, 0.38, 0.40, 0.42, 0.44, 0.46, 0.48, 0.50, 0.52, 0.54 ]
 #nn_pThresholds = [0.40, 0.50] 
-nn_pThresholds = [0.35, 0.40, 0.45, 0.50, 0.55] 
+#nn_pThresholds = [0.35, 0.40, 0.45, 0.50, 0.55] 
  
-process.simOmtfPhase2Digis.neuralNetworkFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/omtfClassifier_withPtBins_v34.txt")
-process.simOmtfPhase2Digis.ptCalibrationFileName = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PtCalibration_v34.root")
+#process.simOmtfPhase2Digis.neuralNetworkFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/omtfClassifier_withPtBins_v34.txt")
+#process.simOmtfPhase2Digis.ptCalibrationFileName = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PtCalibration_v34.root")
 
-process.simOmtfPhase2Digis.nn_pThresholds = cms.vdouble(nn_pThresholds)
+#process.simOmtfPhase2Digis.nn_pThresholds = cms.vdouble(nn_pThresholds)
 
 
 #process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
@@ -174,7 +174,7 @@ process.L1MuonAnalyzerOmtf= cms.EDAnalyzer("L1MuonAnalyzerOmtf",
                                  etaCutFrom = cms.double(0.82), #OMTF eta range
                                  etaCutTo = cms.double(1.24),
                                  L1OMTFInputTag  = cms.InputTag("simOmtfPhase2Digis","OMTF"),
-                                 nn_pThresholds = cms.vdouble(nn_pThresholds), 
+                                 #nn_pThresholds = cms.vdouble(nn_pThresholds), 
                                  analysisType = cms.string(analysisType),
                                  
                                  simTracksTag = cms.InputTag('g4SimHits'),
