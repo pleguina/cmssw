@@ -1,14 +1,22 @@
 from CRABClient.UserUtilities import config #, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'omtf_nn_MC_analysis_ZprimeToMuMu_PU140_v3_t82'
+#type = 'omtf_nn'
+type = 'omtf_0x0006'
+
+config.General.requestName = type + '_MC_analysis_ZprimeToMuMu_PU140_v3_t84'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
 
 config.JobType.pluginName = 'Analysis'
 #config.JobType.psetName = 'runMuonOverlapTTMergerAnalyzerCrab.py'
-config.JobType.psetName = 'runMuonOverlap_nn_phase2.py'
+
+if type == 'omtf_nn' :
+    config.JobType.psetName = 'runMuonOverlap_nn_phase2.py'
+else :
+    config.JobType.psetName = 'runMuonOverlap_0x0006.py'
+
 config.JobType.pyCfgParams = ['efficiency']
 
 config.Data.inputDataset = '/ZprimeToMuMu_M-6000_TuneCP5_14TeV-pythia8/PhaseIITDRSpring19DR-PU140_106X_upgrade2023_realistic_v3-v1/GEN-SIM-DIGI-RAW' 
@@ -21,7 +29,7 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 5
 #config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'CRAB_omtf_nn_MC_analysis_ZprimeToMuMu_PU140_v3_t82'
+config.Data.outputDatasetTag = 'CRAB_' + type + '_MC_analysis_ZprimeToMuMu_PU140_v3_t84'
 config.Data.totalUnits = 252
 config.Data.ignoreLocality = False
 
