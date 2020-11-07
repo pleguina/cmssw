@@ -304,7 +304,7 @@ void GoldenPatternResult::finalise9() {
           //pdfSum += 0;
         }
       } else {
-        if (stubResults[iLogicLayer].getPdfVal() == 0)  //banding layer fired, but not fits to the pdf
+        if (stubResults[iLogicLayer].getPdfVal() == 0)  //banding layer fired, but not fits to the pdf, N>B works only with the patterns having "no hit value" and with noHitValueInPdf = True
           pdfSum -= 16;
         else
           pdfSum += stubResults[iLogicLayer].getPdfVal();  //banding layer not fired at all
