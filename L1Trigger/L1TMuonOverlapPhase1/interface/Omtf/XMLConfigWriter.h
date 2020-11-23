@@ -47,12 +47,12 @@ public:
                         const Key& aKey,
                         const GoldenPatternResult& aResult);
 
-  void writeGPData(const GoldenPattern& aGP);
+  void writeGPData(GoldenPattern& aGP);
 
-  void writeGPData(const GoldenPattern* aGP1,
-                   const GoldenPattern* aGP2,
-                   const GoldenPattern* aGP3,
-                   const GoldenPattern* aGP4);
+  void writeGPData(GoldenPattern* aGP1,
+                   GoldenPattern* aGP2,
+                   GoldenPattern* aGP3,
+                   GoldenPattern* aGP4);
 
   template <class GoldenPatternType>
   void writeGPs(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats, std::string fName);

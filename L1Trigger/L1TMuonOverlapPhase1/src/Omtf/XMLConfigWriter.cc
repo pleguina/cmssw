@@ -354,7 +354,7 @@ void XMLConfigWriter::writeResultsData(xercesc::DOMElement* aTopElement,
 }
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-void XMLConfigWriter::writeGPData(const GoldenPattern& aGP) {
+void XMLConfigWriter::writeGPData(GoldenPattern& aGP) {
   std::ostringstream stringStr;
   xercesc::DOMElement *aLayer = nullptr, *aRefLayer = nullptr, *aPdf = nullptr;
 
@@ -428,10 +428,10 @@ void XMLConfigWriter::writeGPData(const GoldenPattern& aGP) {
 }
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-void XMLConfigWriter::writeGPData(const GoldenPattern* aGP1,
-                                  const GoldenPattern* aGP2,
-                                  const GoldenPattern* aGP3,
-                                  const GoldenPattern* aGP4) {
+void XMLConfigWriter::writeGPData(GoldenPattern* aGP1,
+                                  GoldenPattern* aGP2,
+                                  GoldenPattern* aGP3,
+                                  GoldenPattern* aGP4) {
   std::ostringstream stringStr;
   auto setAttributeInt = [&](xercesc::DOMElement* domElement, std::string name, int value) -> void {
     stringStr << value;

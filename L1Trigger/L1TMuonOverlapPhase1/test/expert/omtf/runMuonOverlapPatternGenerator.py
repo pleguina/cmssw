@@ -24,7 +24,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_Patterns_0x00010_oldSample_3_10Files'),
+                         filename  = cms.untracked.string('log_Patterns_0x00011_oldSample_3_30Files'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -48,8 +48,8 @@ process.load('Configuration.StandardSequences.Services_cff')
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
-process.load('Configuration.Geometry.GeometryExtended2023D41Reco_cff')
-process.load('Configuration.Geometry.GeometryExtended2023D41_cff')
+process.load('Configuration.Geometry.GeometryExtended2026D41Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2026D41_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 #process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
@@ -82,8 +82,12 @@ chosenFiles = []
 filesPerPtBin = 10 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
 
 if filesNameLike == 'allPt' :
-    for ptCode in range(31, 3, -1) :
-        if ptCode <= 7 :
+    for ptCode in range(31, 4, -1) : #the rigt bound of range is not included 
+        if ptCode == 5 : #5 is 3-4 GeV (maybe 3-3.5 GeV). 4 is 2-3GeV (maybe 2.5-3 GeV), very small fraction makes candidates, and even less reaches the second station
+            filesPerPtBin = 30
+        elif ptCode == 6 : #5 is 3-4 GeV (maybe 3-3.5 GeV). 4 is 2-3GeV (maybe 2.5-3 GeV), very small fraction makes candidates, and even less reaches the second station
+            filesPerPtBin = 20    
+        elif ptCode <= 7 : 
             filesPerPtBin = 10
         elif ptCode <= 12 :
             filesPerPtBin = 5
@@ -168,9 +172,11 @@ process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOv
 #                                                       cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_minus_v1.xml"))
 #)
 
+process.simOmtfPhase1Digis.patternGenerator = cms.string("patternGen")
+
 process.simOmtfPhase1Digis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfPhase1Digis.generatePatterns = cms.bool(True)
-process.simOmtfPhase1Digis.optimisedPatsXmlFile = cms.string("Patterns_0x00010_oldSample_3_10Files.xml")
+process.simOmtfPhase1Digis.optimisedPatsXmlFile = cms.string("Patterns_0x00011_oldSample_3_30Files_layerStat.xml")
 
 process.simOmtfPhase1Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase1Digis.rpcMaxClusterCnt = cms.int32(2)

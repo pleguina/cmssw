@@ -35,19 +35,28 @@ struct Key {
   unsigned int number() const { return theNumber; }
 
   int theEtaCode;
-  unsigned int
-      thePt;  //hardware pt, ptInGeV = (thePt-1) * 0.5GeV, where ptInGeV denotes the lover edge of the pt range cover by this pattern
+  unsigned int thePt;
+  //hardware pt, ptInGeV = (thePt-1) * 0.5GeV, where ptInGeV denotes the lover edge of the pt range cover by this pattern
+
   int theCharge;
   unsigned int theNumber;
 
-  unsigned int theGroup =
-      0;  //the index of the patterns group, up to 4 patterns can be grouped together, they have then the same MeanDistPhi and DistPhiBitShift
+  unsigned int theGroup = 0;
+  //the index of the patterns group, up to 4 patterns can be grouped together, they have then the same MeanDistPhi and DistPhiBitShift
+
   unsigned int theIndexInGroup = 0;  //starts from 1, as in xml
 
-  ///in GeV
-  double ptRangeFrom() const;
-  ///in GeV
-  double ptRangeTo() const;
+  void setPt(int pt) {
+    thePt = pt;
+  }
+
+  void setGroup(int group) {
+    theGroup = group;
+  }
+
+  void setIndexInGroup(unsigned int indexInGroup) {
+    theIndexInGroup = indexInGroup;
+  }
 };
 //////////////////////////////////
 // Golden Pattern
@@ -75,7 +84,7 @@ public:
 
   const OMTFConfiguration* getConfig() const { return myOmtfConfig; }
 
-  virtual Key key() const { return theKey; }
+  virtual Key& key() { return theKey; }
 
   //void setMeanDistPhi(const vector2D & aMeanDistPhi) { meanDistPhi = aMeanDistPhi; }
 

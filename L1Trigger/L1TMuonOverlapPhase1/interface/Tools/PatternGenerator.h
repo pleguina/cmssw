@@ -34,6 +34,10 @@ protected:
 
   void modifyClassProb(double step);
 
+  void reCalibratePt();
+
+  void groupPatterns();
+
   //[charge][iLayer]
   std::vector<std::vector<TH2I*> > ptDeltaPhiHists;
 

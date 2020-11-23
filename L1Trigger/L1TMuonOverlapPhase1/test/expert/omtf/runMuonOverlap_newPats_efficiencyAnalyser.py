@@ -12,7 +12,7 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-version = '85'
+version = '82'
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -178,8 +178,8 @@ process.simOmtfPhase1Digis.sorterType = cms.string("byLLH")
 process.simOmtfPhase1Digis.ghostBusterType = cms.string("GhostBusterPreferRefDt") # byLLH
 
 #process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
-#process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files_classProb3.xml")
-process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/GPs_parametrised_v1_classProb3.xml")
+process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files_classProb2.xml")
+#process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/GPs_parametrised_v1_classProb3.xml")
 
 #process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
 #process.simOmtfPhase1Digis.patternsXMLFiles = cms.VPSet(cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_plus_v1.xml")),
@@ -193,9 +193,9 @@ process.simOmtfPhase1Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase1Digis.rpcMaxClusterCnt = cms.int32(2)
 process.simOmtfPhase1Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(8) #valid values are 0, 1, 2, 3, 5
+process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(9) #valid values are 0, 1, 2, 3, 5
 
-process.simOmtfPhase1Digis.noHitValueInPdf = cms.bool(False)
+process.simOmtfPhase1Digis.noHitValueInPdf = cms.bool(True)
 
 process.simOmtfPhase1Digis.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
