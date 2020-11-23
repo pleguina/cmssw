@@ -24,7 +24,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_Patterns_0x00011_oldSample_3_30Files'),
+                         filename  = cms.untracked.string('log_Patterns_0x00011_oldSample_3_30Files_test'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -176,13 +176,13 @@ process.simOmtfPhase1Digis.patternGenerator = cms.string("patternGen")
 
 process.simOmtfPhase1Digis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfPhase1Digis.generatePatterns = cms.bool(True)
-process.simOmtfPhase1Digis.optimisedPatsXmlFile = cms.string("Patterns_0x00011_oldSample_3_30Files_layerStat.xml")
+process.simOmtfPhase1Digis.optimisedPatsXmlFile = cms.string("Patterns_0x00011_oldSample_3_30Files_layerStat_test.xml")
 
 process.simOmtfPhase1Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase1Digis.rpcMaxClusterCnt = cms.int32(2)
 process.simOmtfPhase1Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(3) #valid values are 0, 1, 2, 3, 5
+process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(3) ## is needed here , becasue it just counts the number of layers with a stub
 process.simOmtfPhase1Digis.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
 

@@ -50,6 +50,8 @@ void PatternGenerator::initPatternGen() {
 
   //setting all pdf to 1, this will cause that the when the OmtfProcessor process the input, the result will be based only on the number of fired layers,
   //and then the omtfCand will come from the processor that has the biggest number of fired layers
+  //however, if the GoldenPatternResult::finalise3() is used - which just count the number of muonStubs (but do not check if it is valid, i.e. fired the pdf)
+  // - the below doed not matter
   for (auto& gp : goldenPatterns) {
     for (unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
       for (unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
@@ -147,8 +149,8 @@ void PatternGenerator::updateStat() {
 
         if (fired) {  //the result is not empty
           int phiDist = gpResult.getStubResults()[iLayer].getPdfBin();
-          phiDist += exptCandGp->meanDistPhiValue(iLayer, refLayer) -
-                     pdfMiddle;  //removing the shift applied in the GoldenPatternBase::process1Layer1RefLayer
+          phiDist += exptCandGp->meanDistPhiValue(iLayer, refLayer) - pdfMiddle;
+          //removing the shift applied in the GoldenPatternBase::process1Layer1RefLayer
 
           /*
           if(ptDeltaPhiHists[iCharge][iLayer] != nullptr &&
@@ -223,13 +225,43 @@ void PatternGenerator::endJob() {
             }
           }
           else {
-            edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::endJob() - reading histLayerStat: histogrma not found "<<ostrName.str()<<std::endl;
+            edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::endJob() - reading histLayerStat: histogram not found "<<ostrName.str()<<std::endl;
           }
         }
       }
     }
 
+    TH1* simMuFoundByOmtfPt_fromFile = (TH1*)inFile.Get("simMuFoundByOmtfPt");
+    for(unsigned int iGp = 0; iGp < eventCntPerGp.size(); iGp++) {
+      eventCntPerGp[iGp] = simMuFoundByOmtfPt_fromFile->GetBinContent(simMuFoundByOmtfPt_fromFile->FindBin(iGp));
+      edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::endJob() - eventCntPerGp: iGp" <<iGp<<" - "<<eventCntPerGp[iGp]<<std::endl;
+    }
+
+    //TODO chose the desired grouping ///////////////
+    int group = 0;
+    int indexInGroup = 0;
+    for (auto& gp : goldenPatterns) {
+      indexInGroup++;
+      gp->key().setGroup(group);
+      gp->key().setIndexInGroup(indexInGroup);
+      //indexInGroup is counted from 1
+
+      edm::LogImportant("l1tOmtfEventPrint") << "setGroup(group): group "<<group <<" indexInGroup "<<indexInGroup<< std::endl;
+
+      if(gp->key().thePt <= 10 && indexInGroup == 2) { //TODO
+        indexInGroup = 0;
+        group++;
+      }
+
+      if(gp->key().thePt > 10 && indexInGroup == 4) { //TODO
+        indexInGroup = 0;
+        group++;
+      }
+    } /////////////////////////////////////////////
+
     upadatePdfs();
+
+    modifyClassProb(1);
     this->writeLayerStat = true;
   }
 
@@ -250,7 +282,7 @@ void PatternGenerator::upadatePdfs() {
         }
 
         if ((gp->key().thePt <= 10) && (iLayer == 1 || iLayer == 3 || iLayer == 5)) {
-          gp->setDistPhiBitShift(1, iLayer, iRefLayer);
+          gp->setDistPhiBitShift(2, iLayer, iRefLayer);
         } else
           gp->setDistPhiBitShift(0, iLayer, iRefLayer);
 
@@ -272,14 +304,16 @@ void PatternGenerator::upadatePdfs() {
     }
   }
 
+  double minHitCntThresh = 0.0015;
   //Calculating meanDistPhi
   for (auto& gp : goldenPatterns) {
     if (gp->key().thePt == 0)
       continue;
 
+    int minHitCnt = minHitCntThresh * eventCntPerGp[gp->key().number()];  // //TODO tune threshold <<<<<<<<<<<<<<<<<<
     edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::upadatePdfs() Calculating meanDistPhi " << gp->key()
-                                           << " eventCnt " << eventCntPerGp[gp->key().number()] << std::endl;
-    int minHitCnt = 0.001 * eventCntPerGp[gp->key().number()];  // //TODO tune threshold <<<<<<<<<<<<<<<<<<
+                                           << " eventCnt " << eventCntPerGp[gp->key().number()]<<" minHitCnt " <<minHitCnt<< std::endl;
+
     for (unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
       for (unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
         //unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
@@ -359,7 +393,7 @@ void PatternGenerator::upadatePdfs() {
   for (auto& gp : goldenPatterns) {
     if (gp->key().thePt == 0)
       continue;
-    int minHitCnt = 0.001 * eventCntPerGp[gp->key().number()];  // //TODO tune threshold <<<<<<<<<<<<<<<<<<
+    int minHitCnt = minHitCntThresh * eventCntPerGp[gp->key().number()];  // //TODO tune threshold <<<<<<<<<<<<<<<<<<
 
     for (unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
       for (unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
@@ -394,6 +428,10 @@ void PatternGenerator::upadatePdfs() {
                 pdfVal /= (norm * statBinGroupSize);
               } else
                 pdfVal = 0;
+              /*edm::LogImportant("l1tOmtfEventPrint")
+                                << __FUNCTION__ << ": " << __LINE__ << " " << gp->key() << "calculating pdf: iLayer " << iLayer
+                                << " iRefLayer " << iRefLayer //<< " norm " << std::setw(5) << norm
+                                << " pdfVal " << pdfVal << endl;*/
             } else {  //iBinPdf == 0 i.e. no hit
               int iBinStat = 0;
               if (norm > 0) {
@@ -405,7 +443,7 @@ void PatternGenerator::upadatePdfs() {
                   << gp->getStatistics()[iLayer][iRefLayer][iBinStat][0] << " pdfVal " << pdfVal << endl;
             }
 
-            double minPdfValFactor = 1.;
+            double minPdfValFactor = 0.5;
             const double minPlog = log(omtfConfig->minPdfVal() * minPdfValFactor);
             const double pdfMaxVal = omtfConfig->pdfMaxValue();
 
@@ -487,11 +525,11 @@ void PatternGenerator::modifyClassProb(double step) {
           newPdfVal += 1;
 
         if(ptFrom == 0)
-          newPdfVal = 27;
-        if(ptFrom == 200)
           newPdfVal = 20;
-        if(ptFrom == 100)
+        if(ptFrom == 200)
           newPdfVal = 18;
+        if(ptFrom == 100)
+          newPdfVal = 16;
 
         gp->setPdfValue(newPdfVal, refLayerLogicNumber, iRefLayer, iPdf);
 
@@ -573,7 +611,6 @@ void PatternGenerator::groupPatterns() {
       indexInGroup = 0;
       group++;
     }
-
   }
 
   OMTFConfiguration::vector2D patternGroups = omtfConfig->getPatternGroups(goldenPatterns);
