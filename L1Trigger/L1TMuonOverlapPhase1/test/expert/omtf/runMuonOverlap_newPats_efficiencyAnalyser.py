@@ -12,7 +12,7 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-version = '91'
+version = '92'
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
