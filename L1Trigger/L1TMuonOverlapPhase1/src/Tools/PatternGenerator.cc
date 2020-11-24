@@ -508,7 +508,7 @@ void PatternGenerator::modifyClassProb(double step) {
         double minPlog = log(omtfConfig->minPdfVal() * minPdfValFactor);
         double pdfMaxVal = omtfConfig->pdfMaxValue();
 
-        pdfMaxVal /= 2.5;
+        pdfMaxVal /= 3.;
         minPlog *= 2;
 
         //last bin of th eptRange goes to 10000, so here we change it to 1000
@@ -521,15 +521,13 @@ void PatternGenerator::modifyClassProb(double step) {
         int digitisedVal = rint(pdfMaxVal - log(classProb) / minPlog * pdfMaxVal);
 
         int newPdfVal =  digitisedVal; //gp->getPdf()[refLayerLogicNumber][iRefLayer][iPdf]
-        if(ptFrom > 60)
-          newPdfVal += 1;
+        //if(ptFrom > 60)
+        //  newPdfVal += 1;
 
         if(ptFrom == 0)
           newPdfVal = 20;
         if(ptFrom == 200)
-          newPdfVal = 21;
-        if(ptFrom == 100)
-          newPdfVal = 19;
+          newPdfVal = 15;
 
         gp->setPdfValue(newPdfVal, refLayerLogicNumber, iRefLayer, iPdf);
 
