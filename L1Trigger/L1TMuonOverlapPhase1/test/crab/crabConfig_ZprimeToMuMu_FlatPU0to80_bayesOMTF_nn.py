@@ -1,8 +1,8 @@
 from CRABClient.UserUtilities import config #, getUsernameFromSiteDB
 config = config()
 
-#type = 'omtf_nn'
-type = 'omtf_0x0006'
+type = 'omtf_nn'
+#type = 'omtf_0x0006'
 
 config.General.requestName = type + '_MC_analysis_ZprimeToMuMu_PU140_v3_t98'
 #config.General.workArea = 'crab_projects'
