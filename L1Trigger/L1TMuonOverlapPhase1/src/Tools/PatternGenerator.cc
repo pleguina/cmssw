@@ -238,7 +238,7 @@ void PatternGenerator::endJob() {
     }
 
     //TODO chose the desired grouping ///////////////
-    int group = 0;
+    /*int group = 0;
     int indexInGroup = 0;
     for (auto& gp : goldenPatterns) {
       indexInGroup++;
@@ -257,7 +257,7 @@ void PatternGenerator::endJob() {
         indexInGroup = 0;
         group++;
       }
-    } /////////////////////////////////////////////
+    }*/ /////////////////////////////////////////////
 
     upadatePdfs();
 
