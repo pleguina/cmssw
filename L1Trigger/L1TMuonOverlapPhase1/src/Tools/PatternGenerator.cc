@@ -257,13 +257,13 @@ void PatternGenerator::endJob() {
         indexInGroup = 0;
         group++;
       }
-    }*/ /////////////////////////////////////////////
+    } *//////////////////////////////////////////////
 
     upadatePdfs();
 
     modifyClassProb(1);
 
-    reCalibratePt();
+    //reCalibratePt();
     this->writeLayerStat = true;
   }
 

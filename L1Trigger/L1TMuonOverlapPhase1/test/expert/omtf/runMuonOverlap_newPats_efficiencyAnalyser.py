@@ -12,7 +12,7 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-version = '98'
+version = '100'
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -85,7 +85,7 @@ chosenFiles = []
 filesPerPtBin = 100 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
 
 if filesNameLike == 'allPt' :
-    for ptCode in range(31, 2, -1) :
+    for ptCode in range(31, 30, -1) :
 #         if ptCode <= 7 :
 #             filesPerPtBin = 10
 #         elif ptCode <= 12 :
@@ -106,7 +106,7 @@ if filesNameLike == 'allPt' :
                     break
                         
 else :
-    for i in range(1, 2, 1):
+    for i in range(1, 201, 1):
         for f in onlyfiles:
             #if (( filesNameLike + '_' + str(i) + '_') in f):  #TODO for 721_FullEta_v4/
             if (( filesNameLike + '_' + str(i) + '.') in f): #TODO for 9_3_14_FullEta_v2
@@ -178,9 +178,9 @@ process.simOmtfPhase1Digis.sorterType = cms.string("byLLH")
 process.simOmtfPhase1Digis.ghostBusterType = cms.string("GhostBusterPreferRefDt") # byLLH
 
 #process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
-#process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files_classProb2.xml")
+#process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files_classProb1.xml")
 #process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/GPs_parametrised_v1_classProb3.xml")
-process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x00011_oldSample_3_30Files_grouped1_classProb7.xml")
+process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x00012_oldSample_3_30Files_grouped1_classProb1_recalib.xml")
 
 #process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
 #process.simOmtfPhase1Digis.patternsXMLFiles = cms.VPSet(cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_plus_v1.xml")),
@@ -194,7 +194,7 @@ process.simOmtfPhase1Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase1Digis.rpcMaxClusterCnt = cms.int32(2)
 process.simOmtfPhase1Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(8) #valid values are 0, 1, 2, 3, 5
+process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(9) #valid values are 0, 1, 2, 3, 5
 
 process.simOmtfPhase1Digis.noHitValueInPdf = cms.bool(True)
 

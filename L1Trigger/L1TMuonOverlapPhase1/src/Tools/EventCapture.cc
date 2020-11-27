@@ -76,11 +76,11 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
                                    std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
   std::ostringstream ostr;
   //filtering
-  /*
+
   bool wasSimMuInOmtfPos = false;
   bool wasSimMuInOmtfNeg = false;
   for(auto& simMuon : simMuons) {
-    if( simMuon->eventId().event() == 0 && abs(simMuon->momentum().eta() ) > 0.82 && abs(simMuon->momentum().eta() ) < 1.24 && simMuon->momentum().pt() > 2.5) {
+    if( simMuon->eventId().event() == 0 && abs(simMuon->momentum().eta() ) > 0.82 && abs(simMuon->momentum().eta() ) < 1.24 && simMuon->momentum().pt() > 600) {
       ostr<<"SimMuon: eventId "<<simMuon->eventId().event()<<" pdgId "<<std::setw(3)<<simMuon->type()
                   <<" pt "<<std::setw(9)<<simMuon->momentum().pt() //<<" Beta "<<simMuon->momentum().Beta()
                   <<" eta "<<std::setw(9)<<simMuon->momentum().eta()<<" phi "<<std::setw(9)<<simMuon->momentum().phi()
@@ -99,10 +99,10 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
 
 
   for(auto& finalCandidate : *finalCandidates) {
-    if(finalCandidate.trackFinderType() == l1t::tftype::omtf_neg && finalCandidate.hwQual() >= 12)
+    if(finalCandidate.trackFinderType() == l1t::tftype::omtf_neg && finalCandidate.hwQual() >= 12 && finalCandidate.hwPt() > 41)
       wasCandInNeg = true;
 
-    if(finalCandidate.trackFinderType() == l1t::tftype::omtf_pos && finalCandidate.hwQual() >= 12)
+    if(finalCandidate.trackFinderType() == l1t::tftype::omtf_pos && finalCandidate.hwQual() >= 12 && finalCandidate.hwPt() > 41)
       wasCandInPos = true;
   }
 
@@ -113,16 +113,16 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
   if( (wasSimMuInOmtfPos && !wasCandInPos) )
     dump = true;
 
-  dump = true; ///TODO if presetn then dumps all events!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/*  dump = true; ///TODO if presetn then dumps all events!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   if(!dump)
-    return;*/
+    return;
 
   bool dump = false;
   for (auto& finalCandidate : *finalCandidates) {
     if (finalCandidate.hwPt() < 41) {  //  finalCandidate.hwQual() >= 1  41
       dump = true;
     }
-  }
+  }*/
 
   if (!dump)
     return;
