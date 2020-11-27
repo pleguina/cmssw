@@ -304,14 +304,14 @@ void GoldenPatternResult::finalise9() {
           //pdfSum += 0;
         }
       } else {
-        if (stubResults[iLogicLayer].getPdfVal() == 0)  //banding layer fired, but not fits to the pdf, N>B works only with the patterns having "no hit value" and with noHitValueInPdf = True
-          pdfSum -= 16;
+        if (stubResults[iLogicLayer].getPdfVal() == 0)  //banding layer fired, but not fits to the pdf, N.B works only with the patterns having "no hit value" and with noHitValueInPdf = True
+          pdfSum -= 32;
         else
           pdfSum += stubResults[iLogicLayer].getPdfVal();  //banding layer not fired at all
       }
     } else {
       if (iLogicLayer < 10 && stubResults[iLogicLayer].getPdfVal() == 0)
-        pdfSum -= 16;
+        pdfSum -= 64;
       else
         pdfSum += stubResults[iLogicLayer].getPdfVal();
       if (firedLayerBits & (1 << iLogicLayer)) {  //pdfSum is counted always

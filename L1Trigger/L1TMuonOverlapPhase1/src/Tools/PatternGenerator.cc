@@ -262,6 +262,8 @@ void PatternGenerator::endJob() {
     upadatePdfs();
 
     modifyClassProb(1);
+
+    reCalibratePt();
     this->writeLayerStat = true;
   }
 
@@ -282,7 +284,7 @@ void PatternGenerator::upadatePdfs() {
         }
 
         if ((gp->key().thePt <= 10) && (iLayer == 1 || iLayer == 3 || iLayer == 5)) {
-          gp->setDistPhiBitShift(2, iLayer, iRefLayer);
+          gp->setDistPhiBitShift(1, iLayer, iRefLayer);
         } else
           gp->setDistPhiBitShift(0, iLayer, iRefLayer);
 
@@ -304,7 +306,7 @@ void PatternGenerator::upadatePdfs() {
     }
   }
 
-  double minHitCntThresh = 0.0015;
+  double minHitCntThresh = 0.001;
   //Calculating meanDistPhi
   for (auto& gp : goldenPatterns) {
     if (gp->key().thePt == 0)
@@ -393,7 +395,7 @@ void PatternGenerator::upadatePdfs() {
   for (auto& gp : goldenPatterns) {
     if (gp->key().thePt == 0)
       continue;
-    int minHitCnt = minHitCntThresh * eventCntPerGp[gp->key().number()];  // //TODO tune threshold <<<<<<<<<<<<<<<<<<
+    int minHitCnt = 2 * minHitCntThresh * eventCntPerGp[gp->key().number()];  // //TODO tune threshold <<<<<<<<<<<<<<<<<<
 
     for (unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
       for (unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
@@ -443,7 +445,7 @@ void PatternGenerator::upadatePdfs() {
                   << gp->getStatistics()[iLayer][iRefLayer][iBinStat][0] << " pdfVal " << pdfVal << endl;
             }
 
-            double minPdfValFactor = 0.5;
+            double minPdfValFactor = 1;
             const double minPlog = log(omtfConfig->minPdfVal() * minPdfValFactor);
             const double pdfMaxVal = omtfConfig->pdfMaxValue();
 
@@ -524,7 +526,7 @@ void PatternGenerator::modifyClassProb(double step) {
         //if(ptFrom > 60)
         //  newPdfVal += 1;
 
-        if(ptFrom == 0)
+        /*if(ptFrom == 0)
           newPdfVal = 24;
         if(ptFrom == 3.5)
           newPdfVal += 4;
@@ -537,7 +539,12 @@ void PatternGenerator::modifyClassProb(double step) {
         if(ptFrom == 100)
           newPdfVal = 11;  
         if(ptFrom == 200)
-          newPdfVal = 13;
+          newPdfVal = 13; */
+
+        if(ptFrom == 0)
+          newPdfVal = 20;
+        if(ptFrom == 200)
+          newPdfVal = 15;          
 
         gp->setPdfValue(newPdfVal, refLayerLogicNumber, iRefLayer, iPdf);
 
