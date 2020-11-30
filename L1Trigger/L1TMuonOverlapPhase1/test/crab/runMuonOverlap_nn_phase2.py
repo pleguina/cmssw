@@ -137,7 +137,7 @@ process.simOmtfPhase2Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase2Digis.rpcMaxClusterCnt = cms.int32(2)
 process.simOmtfPhase2Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simOmtfPhase2Digis.goldenPatternResultFinalizeFunction = cms.int32(9) #valid values are 0, 1, 2, 3, 5
+process.simOmtfPhase2Digis.goldenPatternResultFinalizeFunction = cms.int32(8) #valid values are 0, 1, 2, 3, 5
 
 process.simOmtfPhase2Digis.noHitValueInPdf = cms.bool(True)
 
