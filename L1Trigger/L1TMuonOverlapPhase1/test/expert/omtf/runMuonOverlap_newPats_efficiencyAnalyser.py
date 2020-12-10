@@ -85,7 +85,7 @@ chosenFiles = []
 filesPerPtBin = 100 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
 
 if filesNameLike == 'allPt' :
-    for ptCode in range(31, 30, -1) :
+    for ptCode in range(31, 4, -1) :
 #         if ptCode <= 7 :
 #             filesPerPtBin = 10
 #         elif ptCode <= 12 :

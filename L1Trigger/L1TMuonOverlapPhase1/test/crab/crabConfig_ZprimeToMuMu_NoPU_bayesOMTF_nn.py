@@ -4,7 +4,7 @@ config = config()
 type = 'omtf_nn'
 #type = 'omtf_0x0006'
 
-config.General.requestName = type + '_MC_analysis_ZprimeToMuMu_NoPU_v3_t100'
+config.General.requestName = type + '_MC_analysis_ZprimeToMuMu_NoPU_v3_t100_1'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
@@ -29,7 +29,7 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 5
 #config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'CRAB_' + type + '_MC_analysis_ZprimeToMuMu_NoPu_v3_t100'
+config.Data.outputDatasetTag = 'CRAB_' + type + '_MC_analysis_ZprimeToMuMu_NoPu_v3_t100_1'
 config.Data.totalUnits = 50
 config.Data.ignoreLocality = False
 
