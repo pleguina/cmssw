@@ -133,7 +133,7 @@ process.simOmtfPhase1Digis.minDtPhiBQuality = cms.int32(2)
   
 process.simOmtfPhase1Digis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfPhase1Digis.rpcMaxClusterCnt = cms.int32(2)
-process.simOmtfPhase1Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
+process.simOmtfPhase1Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(False)
 
 process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(0) #valid values are 0, 1, 2, 3, 5
 
