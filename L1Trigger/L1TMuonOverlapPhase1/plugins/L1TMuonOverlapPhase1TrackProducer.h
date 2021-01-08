@@ -19,8 +19,6 @@
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigiCollection.h"
 #include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 
-#include "SimDataFormats/Track/interface/SimTrackContainer.h"
-
 class L1TMuonOverlapPhase1TrackProducer : public edm::EDProducer {
 public:
   L1TMuonOverlapPhase1TrackProducer(const edm::ParameterSet&);
@@ -36,7 +34,7 @@ public:
   void produce(edm::Event&, const edm::EventSetup&) override;
 
 private:
-  edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimHit;  //TODO remove
+  //edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimHit;  //TODO remove
 
   MuStubsInputTokens muStubsInputTokens;
 

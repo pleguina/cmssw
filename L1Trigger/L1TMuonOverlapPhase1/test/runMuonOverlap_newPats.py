@@ -145,8 +145,9 @@ process.simOmtfPhase1Digis.minDtPhiQuality = cms.int32(2)
 process.simOmtfPhase1Digis.minDtPhiBQuality = cms.int32(4)
 
 
-process.simOmtfPhase1Digis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+process.simOmtfPhase1Digis.lctCentralBx = cms.int32(8)#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
+#process.simOmtfPhase1Digis.rpcSimHitsInputTag = cms.InputTag("g4SimHits", "MuonRPCHits")
 
 #process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 #process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")

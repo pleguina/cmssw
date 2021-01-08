@@ -5,6 +5,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLEventWriter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/CandidateSimMuonMatcher.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper2.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/EventCapture.h"
@@ -168,6 +169,10 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
     addObservers();
     omtfProc->printInfo();
   }
+
+  for (auto& obs : observers) {
+    obs->beginRun(eventSetup);
+  }
 }
 
 void OMTFReconstruction::addObservers() {
@@ -177,9 +182,19 @@ void OMTFReconstruction::addObservers() {
           omtfConfig.get(), edmParameterSet.getParameter<std::string>("XMLDumpFileName")));
   }
 
+  CandidateSimMuonMatcher* candidateSimMuonMatcher = nullptr;
+
+  if (edmParameterSet.exists("candidateSimMuonMatcher")) {
+    if (edmParameterSet.getParameter<bool>("candidateSimMuonMatcher")) {
+      observers.emplace_back(std::make_unique<CandidateSimMuonMatcher>(edmParameterSet, omtfConfig.get()));
+      candidateSimMuonMatcher = static_cast<CandidateSimMuonMatcher*>(observers.back().get());
+    }
+  }
+
   if (edmParameterSet.exists("eventCaptureDebug"))
-    if (edmParameterSet.getParameter<bool>("eventCaptureDebug"))
-      observers.emplace_back(std::make_unique<EventCapture>(edmParameterSet, omtfConfig.get()));
+    if (edmParameterSet.getParameter<bool>("eventCaptureDebug")) {
+      observers.emplace_back(std::make_unique<EventCapture>(edmParameterSet, omtfConfig.get(), candidateSimMuonMatcher));
+    }
 
   if (edmParameterSet.exists("dumpResultToROOT"))
     if (edmParameterSet.getParameter<bool>("dumpResultToROOT"))

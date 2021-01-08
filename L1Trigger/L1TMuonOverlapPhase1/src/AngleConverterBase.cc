@@ -144,6 +144,10 @@ int AngleConverterBase::getProcessorPhi(int phiZero,
   //the phi conversion is done like above - and not simply converting the layer->centerOfStrip(halfStrip/2 +1).phi() - to mimic this what is done by the firmware,
   //where phi of the stub is calculated with use of the offset and scale provided by an register
 
+  auto localPoint = layer->toLocal(layer->centerOfStrip(halfStrip));
+  LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << 147 << " csc: " <<csc.rawId()<<" "<< csc<<" layer "<<layer->id()<<" "<<layer->id().rawId()
+      << " halfStrip "<<halfStrip<<" phiGlobal " << layer->centerOfStrip(halfStrip).phi()<<" local phi "<<localPoint.phi()<<" x "<<localPoint.x()<<" y "<<localPoint.y() <<std::endl;
+
   /*//debug
   auto radToDeg = [](double rad) { return (180. / M_PI * rad); };
   LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" "<<std::setw(16)<<csc<<" phiZero "<<phiZero<<" hs: "<<std::setw(3)<< halfStrip <<" phiHalfStrip0 "<<std::setw(10)<<radToDeg(phiHalfStrip0)<<" offset: " << offsetLoc
@@ -168,6 +172,7 @@ int AngleConverterBase::getProcessorPhi(
   if (!roll)
     return dummy;
 
+
   double stripPhi1 = (roll->toGlobal(roll->centreOfStrip((int)digi1))).phi();  // note [-pi,pi]
   double stripPhi2 = (roll->toGlobal(roll->centreOfStrip((int)digi2))).phi();  // note [-pi,pi]
   // stripPhi from geometry is given in [-pi,pi] range.
@@ -182,8 +187,9 @@ int AngleConverterBase::getProcessorPhi(
   int halfStrip = lround(((stripPhi1 + stripPhi2) / 2.) / hsPhiPitch);
   halfStrip = config->foldPhi(halfStrip);  //only for the case when the two strips are on different sides of phi = pi
 
-  LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << 175 << " roll " << rollId << " cluster: firstStrip " << digi1
-                                << " stripPhi1 " << stripPhi1 << " lastStrip " << digi2 << " stripPhi2 " << stripPhi2
+  LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << 185 << " roll " <<rollId.rawId()<<" "<< rollId << " cluster: firstStrip " << digi1
+                                << " stripPhi1Global " << stripPhi1 <<" stripPhi1LocalPhi "<<roll->centreOfStrip((int)digi1).x()<<" y "<<roll->centreOfStrip((int)digi1).y()
+                                << " lastStrip " << digi2 << " stripPhi2Global " << stripPhi2 <<" stripPhi2LocalPhi x "<<roll->centreOfStrip((int)digi2).x()<<" y "<<roll->centreOfStrip((int)digi2).y()
                                 << " halfStrip " << halfStrip << std::endl;
 
   return config->foldPhi(halfStrip - phiZero);

@@ -7,7 +7,7 @@
 #include <ostream>
 #include <memory>
 
-//#undef BOOST_DISABLE_ASSERTS //TODO remove for production version
+#undef BOOST_DISABLE_ASSERTS //TODO remove for production version
 #include "boost/multi_array.hpp"
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
@@ -167,6 +167,8 @@ public:
     return 0;  // TODO replace getProcScalePhi(unsigned int iProcessor, double phiRad) with this function
   }
 
+  double procHwPhiToGlobalPhi(int procHwPhi, int procHwPhi0) const;
+
   ///input phi should be in the hardware scale (nPhiBins units for 2pi), can be in range  -nPhiBins ... nPhiBins,
   //is converted to range -nPhiBins/2 +1 ... nPhiBins/2, pi = nPhiBins/2
   //virtual int foldPhi(int phi) const;
@@ -217,8 +219,8 @@ public:
       }
 
       if (group < mergedPatterns.size()) {
-        if (mergedPatterns[group].size() ==
-            (goldenPats.at(iPat)->key().theIndexInGroup - 1))  //theIndexInGroup starts from 1, as in xml
+        //theIndexInGroup starts from 1, as in xml
+        if (mergedPatterns[group].size() == (goldenPats.at(iPat)->key().theIndexInGroup - 1))
           mergedPatterns[group].push_back(iPat);
         else
           return mergedPatterns;  //TODO should throw error

@@ -333,6 +333,11 @@ int OMTFConfiguration::getProcScalePhi(unsigned int iProcessor, double phiRad) c
   return lround((phiRad - phi15deg) / phiUnit);  //FIXME lround or floor ???
 }
 
+double OMTFConfiguration::procHwPhiToGlobalPhi(int procHwPhi, int procHwPhi0) const {
+  int globalHwPhi = foldPhi(procHwPhi + procHwPhi0);
+  const double phiUnit = 2 * M_PI / nPhiBins();  //rad/unit
+  return globalHwPhi * phiUnit;
+}
 /*int OMTFConfiguration::foldPhi(int phi) const {
   int phiBins = nPhiBins();
   if(phi > phiBins/2)

@@ -8,10 +8,12 @@
 #ifndef OMTF_IOMTFRECONSTRUCTIONOBSERVER_H_
 #define OMTF_IOMTFRECONSTRUCTIONOBSERVER_H_
 
-#include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
-#include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
+
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
+#include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 #include <memory>
 #include <vector>
 
@@ -23,6 +25,8 @@ class IOMTFEmulationObserver {
 public:
   IOMTFEmulationObserver();
   virtual ~IOMTFEmulationObserver();
+
+  virtual void beginRun(edm::EventSetup const& eventSetup) {}
 
   virtual void observeProcesorEmulation(unsigned int iProcessor,
                                         l1t::tftype mtfType,

@@ -181,7 +181,7 @@ process.L1MuonAnalyzerOmtf= cms.EDAnalyzer("L1MuonAnalyzerOmtf",
                                  
                                  simTracksTag = cms.InputTag('g4SimHits'),
                                  simVertexesTag = cms.InputTag('g4SimHits'),
-                                 trackingParticleToken = cms.InputTag("mix", "MergedTrackTruth"),
+                                 trackingParticleTag = cms.InputTag("mix", "MergedTrackTruth"),
                                  #TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                  
                                  matchUsingPropagation = cms.bool(True),

@@ -21,7 +21,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_MuonOverlap_newPats_64_1'),
+                         filename  = cms.untracked.string('log_MuonOverlap_newPats_100'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -68,16 +68,17 @@ process.source = cms.Source('PoolSource',
  
  #fileNames = cms.untracked.vstring('file:///eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/SingleMu_31_p_101_2_DzU.root')
  #fileNames = cms.untracked.vstring('file:///eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/SingleMu_6_p_1.root'),
- fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root"),
+ 
+ #fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root"),
+ 
  #fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/JPsiToMuMu_Pt0to100_NoPU_FDA71CB6-4C3B-4540-99EB-803077C6EC2D_dump4000Ev.root"),
  #fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/HSCPppstau_M_871_PU200_v3-v2_1ADE9D9E-8C0C-1948-A405-5DFDA1AF5172_dump100Ev.root"),
  #fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root"),
  #fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/Nu_E10-pythia8-gun_PU250_v3_ext2-v1_FFE07316-3810-6E44-97A1-5753A3070D12_dump100Ev.root"),
  #fileNames = cms.untracked.vstring("file:///afs/cern.ch/work/k/kbunkow/public/CMSSW/cmssw_10_x_x_l1tOfflinePhase2/CMSSW_10_6_1_patch2/src/L1Trigger/L1TMuonBayes/test/expert/Nu_E10-pythia8-gun_PU250_v3_ext2-v1_FFE07316-3810-6E44-97A1-5753A3070D12_dump100Ev.root"),
 
- 
- 
- 
+fileNames = cms.untracked.vstring("file:///afs/cern.ch/work/k/kbunkow/public/CMSSW/cmssw_11_x_x_l1tOfflinePhase2/CMSSW_11_1_3/src/L1Trigger/L1TMuonOverlapPhase1/test/crab/l1tomtf_filteredEvents.root"),
+
  #fileNames = cms.untracked.vstring('file:///eos/home-k/konec/FFCFF986-ED0B-B74F-B253-C511D19B8249.root'),
  #fileNames = cms.untracked.vstring('file:///afs/cern.ch/user/k/konec/work/CMSSW_10_6_1_patch2.displaced/src/UserCode/OmtfAnalysis/jobs/FFCFF986-ED0B-B74F-B253-C511D19B8249.root'),
  
@@ -113,7 +114,7 @@ for a in sys.argv :
     
 print "analysisType=" + analysisType
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v64_1_nuGun_PU250_' + analysisType + '.root'), closeFileFast = cms.untracked.bool(True) )
+process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v100_Mu_FlatPt2to100_noPU_' + analysisType + '.root'), closeFileFast = cms.untracked.bool(True) )
                                    
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonOverlapPhase1.simOmtfPhase1Digis_cfi')
@@ -122,11 +123,21 @@ process.simOmtfPhase1Digis.dumpResultToXML = cms.bool(False)
 process.simOmtfPhase1Digis.dumpResultToROOT = cms.bool(False)
 process.simOmtfPhase1Digis.eventCaptureDebug = cms.bool(True)
 
+process.simOmtfPhase1Digis.candidateSimMuonMatcher = cms.bool(True)
+process.simOmtfPhase1Digis.simTracksTag = cms.InputTag('g4SimHits')
+process.simOmtfPhase1Digis.simVertexesTag = cms.InputTag('g4SimHits')
+#process.simOmtfPhase1Digis.trackingParticleTag = cms.InputTag("mix", "MergedTrackTruth")
+process.simOmtfPhase1Digis.muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev_withOvf.root")
+                                
+
+
 process.simOmtfPhase1Digis.sorterType = cms.string("byLLH")
 process.simOmtfPhase1Digis.ghostBusterType = cms.string("GhostBusterPreferRefDt")
 
 #process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files.xml")
-process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
+#process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
+process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x00012_oldSample_3_30Files_grouped1_classProb1_recalib.xml")
+
 #process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")
 #process.simOmtfPhase1Digis.patternsXMLFiles = cms.VPSet(cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_plus_v1.xml")),
 #                                                       cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_minus_v1.xml"))
@@ -143,16 +154,20 @@ process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(9) #v
 
 process.simOmtfPhase1Digis.noHitValueInPdf = cms.bool(True)
 
-process.simOmtfPhase1Digis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+process.simOmtfPhase1Digis.lctCentralBx = cms.int32(8)#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
+process.simOmtfPhase1Digis.rpcSimHitsInputTag = cms.InputTag("g4SimHits", "MuonRPCHits")
+process.simOmtfPhase1Digis.cscSimHitsInputTag = cms.InputTag("g4SimHits", "MuonCSCHits")
+process.simOmtfPhase1Digis.dtSimHitsInputTag = cms.InputTag("g4SimHits", "MuonDTHits")
+  
 #nn_pThresholds = [0.36, 0.38, 0.40, 0.42, 0.44, 0.46, 0.48, 0.50, 0.52, 0.54 ]
 #nn_pThresholds = [0.40, 0.50] 
-nn_pThresholds = [0.35, 0.40, 0.45, 0.50, 0.55] 
+#nn_pThresholds = [0.35, 0.40, 0.45, 0.50, 0.55] 
  
-process.simOmtfPhase1Digis.neuralNetworkFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/omtfClassifier_withPtBins_v34.txt")
-process.simOmtfPhase1Digis.ptCalibrationFileName = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PtCalibration_v34.root")
+#process.simOmtfPhase1Digis.neuralNetworkFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/omtfClassifier_withPtBins_v34.txt")
+#process.simOmtfPhase1Digis.ptCalibrationFileName = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PtCalibration_v34.root")
 
-process.simOmtfPhase1Digis.nn_pThresholds = cms.vdouble(nn_pThresholds)
+#process.simOmtfPhase1Digis.nn_pThresholds = cms.vdouble(nn_pThresholds)
 
 
 #process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
@@ -170,18 +185,19 @@ process.L1MuonAnalyzerOmtf= cms.EDAnalyzer("L1MuonAnalyzerOmtf",
                                  etaCutFrom = cms.double(0.82), #OMTF eta range
                                  etaCutTo = cms.double(1.24),
                                  L1OMTFInputTag  = cms.InputTag("simOmtfPhase1Digis","OMTF"),
-                                 nn_pThresholds = cms.vdouble(nn_pThresholds), 
+                                 #nn_pThresholds = cms.vdouble(nn_pThresholds), 
                                  analysisType = cms.string(analysisType),
                                  
                                  simTracksTag = cms.InputTag('g4SimHits'),
                                  simVertexesTag = cms.InputTag('g4SimHits'),
-                                 trackingParticleToken = cms.InputTag("mix", "MergedTrackTruth"),
+                                 trackingParticleTag = cms.InputTag("mix", "MergedTrackTruth"),
                                  #TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                  
-                                 muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev_withOvf.root") #if you want to make this file, remove this entry
-
-                                 
+                                 matchUsingPropagation = cms.bool(True),
+                                 muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev_withOvf.root") #if you want to make this file, remove this entry#if you want to make this file, remove this entry
+                                 #muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_noPropagation_t74.root")
                                         )
+
 process.l1MuonAnalyzerOmtfPath = cms.Path(process.L1MuonAnalyzerOmtf)
 
 

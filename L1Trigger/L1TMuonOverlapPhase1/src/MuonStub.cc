@@ -26,7 +26,8 @@ std::ostream &operator<<(std::ostream &out, const MuonStub &stub) {
       << stub.etaHw  //<<" ("<<std::setw(8)<<stub.eta<<")"
       << " etaSigmaHw: " << std::setw(3) << stub.etaSigmaHw << " qualityHw: " << std::setw(2) << stub.qualityHw << " "
       << " bx: " << std::setw(1) << stub.bx << " "
-      << " timing: " << std::setw(2) << stub.timing << " ";
+      << " timing: " << std::setw(2) << stub.timing << " "
+      << " detId: " << std::setw(9) << stub.detId << " ";
 
   DetId detId(stub.detId);
   if (detId.det() != DetId::Muon) {

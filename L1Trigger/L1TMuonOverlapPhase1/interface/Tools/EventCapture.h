@@ -12,13 +12,25 @@
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/CandidateSimMuonMatcher.h"
+
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+
+#include "TH1I.h"
+#include "TH2I.h"
+
+class RPCGeometry;
+class CSCGeometry;
+class DTGeometry;
 
 class EventCapture : public IOMTFEmulationObserver {
 public:
-  EventCapture(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig);
+  EventCapture(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
+               CandidateSimMuonMatcher* candidateSimMuonMatcher);
 
   ~EventCapture() override;
+
+  void beginRun(edm::EventSetup const& eventSetup) override;
 
   void observeProcesorEmulation(unsigned int iProcessor,
                                 l1t::tftype mtfType,
@@ -32,17 +44,35 @@ public:
   void observeEventEnd(const edm::Event& event,
                        std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
+  void stubsSimHitsMatching(const edm::Event& iEvent);
+
   void endJob() override;
 
 private:
   edm::InputTag simTrackInputTag;
   const OMTFConfiguration* omtfConfig;
 
+  CandidateSimMuonMatcher* candidateSimMuonMatcher;
+
   std::vector<edm::Ptr<SimTrack> > simMuons;
 
   std::vector<std::shared_ptr<OMTFinput> > inputInProcs;
   std::vector<AlgoMuons> algoMuonsInProcs;
   std::vector<AlgoMuons> gbCandidatesInProcs;
+
+  edm::InputTag rpcSimHitsInputTag;
+  edm::InputTag cscSimHitsInputTag;
+  edm::InputTag  dtSimHitsInputTag;
+
+  // pointers to the current geometry records
+  unsigned long long _geom_cache_id = 0;
+  edm::ESHandle<RPCGeometry> _georpc;
+  edm::ESHandle<CSCGeometry> _geocsc;
+  edm::ESHandle<DTGeometry> _geodt;
+
+  TH2I* muonVsNotMuonStubs = nullptr;
+  TH1I* muonStubsInLayers = nullptr;
+  TH1I* notMuonStubsInLayers = nullptr;
 };
 
 #endif /* OMTF_EVENTCAPTURE_H_ */
