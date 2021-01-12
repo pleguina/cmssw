@@ -135,17 +135,19 @@ bool trackingParticleIsMuonInOmtfBx0(const TrackingParticle& trackingParticle) {
   else
     return false;
 
-  if(trackingParticle.pt() < 2.5) //in the overlap, the propagation of muons with pt less then ~3.2 fails - the actual threshold depends slightly on eta,
-    return false;
 
   if(trackingParticle.parentVertex().isNonnull() )
-    LogTrace("l1tOmtfEventPrint") <<"trackingParticleIsMuonInOmtfBx0, pdgId "<<std::setw(3)<<trackingParticle.pdgId()<<" pt "<<std::setw(9)<<trackingParticle.pt()
+    edm::LogVerbatim("l1tOmtfEventPrint") <<"trackingParticleIsMuonInOmtfBx0, pdgId "<<std::setw(3)<<trackingParticle.pdgId()<<" pt "<<std::setw(9)<<trackingParticle.pt()
           <<" eta "<<std::setw(9)<<trackingParticle.momentum().eta()<<" phi "<<std::setw(9)<<trackingParticle.momentum().phi()<<" event "<<trackingParticle.eventId().event()
+          <<" trackId "<<trackingParticle.g4Tracks().at(0).trackId()
           <<" parentVertex Rho "<<trackingParticle.parentVertex()->position().Rho()<<" eta "<<trackingParticle.parentVertex()->position().eta()<<" phi "<<trackingParticle.parentVertex()->position().phi()<<std::endl;
   else
-    LogTrace("l1tOmtfEventPrint") <<"trackingParticleIsMuonInOmtfBx0, pdgId "<<std::setw(3)<<trackingParticle.pdgId()<<" pt "<<std::setw(9)<<trackingParticle.pt()
-        <<" eta "<<std::setw(9)<<trackingParticle.momentum().eta()<<" phi "<<std::setw(9)<<trackingParticle.momentum().phi();
+    edm::LogVerbatim("l1tOmtfEventPrint") <<"trackingParticleIsMuonInOmtfBx0, pdgId "<<std::setw(3)<<trackingParticle.pdgId()<<" pt "<<std::setw(9)<<trackingParticle.pt()
+        <<" eta "<<std::setw(9)<<trackingParticle.momentum().eta()<<" phi "<<std::setw(9)<<trackingParticle.momentum().phi()
+        <<" trackId "<<trackingParticle.g4Tracks().at(0).trackId();
 
+  if(trackingParticle.pt() < 2.5) //in the overlap, the propagation of muons with pt less then ~3.2 fails - the actual threshold depends slightly on eta,
+    return false;
 
   //if( (fabs(simTrack.momentum().eta()) >= 0.82 ) && (fabs(trackingParticle.momentum().eta()) <= 1.24) ) {
   if( (fabs(trackingParticle.momentum().eta()) >= 0.72 ) && (fabs(trackingParticle.momentum().eta()) <= 1.3) ) { //higher margin for matching, otherwise many candidates re marked as ghosts
@@ -196,7 +198,7 @@ void CandidateSimMuonMatcher::observeEventEnd(const edm::Event& event,
     event.getByLabel(edmCfg.getParameter<edm::InputTag>("trackingParticleTag"), trackingParticleHandle);
     LogTrace("l1tOmtfEventPrint")<<"trackingParticleHandle size "<<trackingParticleHandle.product()->size()<<std::endl;;
 
-    std::function<bool(const TrackingParticle& )> trackParticleFilter = trackingParticleIsMuonInOmtfEvent0; //TODO!!!!!!!!!!!!!!!!!!!!!!!!!!
+    std::function<bool(const TrackingParticle& )> trackParticleFilter = trackingParticleIsMuonInOmtfBx0; //TODO!!!!!!!!!!!!!!!!!!!!!!!!!!
     matchingResults = match(ghostBustedCands, trackingParticleHandle.product(), trackParticleFilter);
   }
 

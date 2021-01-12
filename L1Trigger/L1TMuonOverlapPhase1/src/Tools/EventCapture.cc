@@ -24,6 +24,13 @@
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 #include "DataFormats/Common/interface/Ptr.h"
 
+#include "DataFormats/Common/interface/DetSetVector.h"
+#include "SimDataFormats/RPCDigiSimLink/interface/RPCDigiSimLink.h"
+#include "SimDataFormats/TrackerDigiSimLink/interface/StripDigiSimLink.h"
+#include "DataFormats/MuonData/interface/MuonDigiCollection.h"
+#include "SimDataFormats/DigiSimLinks/interface/DTDigiSimLink.h"
+
+
 #include <sstream>
 
 EventCapture::EventCapture(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
@@ -34,17 +41,22 @@ EventCapture::EventCapture(const edm::ParameterSet& edmCfg, const OMTFConfigurat
       algoMuonsInProcs(omtfConfig->processorCnt()),
       gbCandidatesInProcs(omtfConfig->processorCnt()) {
   //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" omtfConfig->nProcessors() "<<omtfConfig->nProcessors()<<std::endl;
-  if (edmCfg.exists("g4SimTrackSrc"))
-    simTrackInputTag = edmCfg.getParameter<edm::InputTag>("g4SimTrackSrc");
+  if (edmCfg.exists("simTrackInputTag"))
+    simTrackInputTag = edmCfg.getParameter<edm::InputTag>("simTrackInputTag");
   else
     edm::LogImportant("OMTFReconstruction")
-        << "EventCapture::EventCapture: no InputTag g4SimTrackSrc found" << std::endl;
+        << "EventCapture::EventCapture: no InputTag simTrackInputTag found" << std::endl;
 
   //rpcSimHitsInputTag = edmCfg.getParameter<edm::InputTag>("MuonRPCHits");
   //rpcSimHitsInputTag = edm::InputTag("g4SimHits", "MuonRPCHits");
   rpcSimHitsInputTag = edmCfg.getParameter<edm::InputTag>("rpcSimHitsInputTag");
   cscSimHitsInputTag = edmCfg.getParameter<edm::InputTag>("cscSimHitsInputTag");
    dtSimHitsInputTag = edmCfg.getParameter<edm::InputTag>("dtSimHitsInputTag");
+
+
+   rpcDigiSimLinkInputTag = edmCfg.getParameter<edm::InputTag>("rpcDigiSimLinkInputTag");
+   cscStripDigiSimLinksInputTag = edmCfg.getParameter<edm::InputTag>("cscStripDigiSimLinksInputTag");
+   dtDigiSimLinksInputTag = edmCfg.getParameter<edm::InputTag>("dtDigiSimLinksInputTag");
 }
 
 EventCapture::~EventCapture() {
@@ -112,15 +124,17 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
     std::vector<MatchingResult>  matchingResults = candidateSimMuonMatcher->getMatchingResults();
     edm::LogVerbatim("l1tOmtfEventPrint")<<"matchingResults.size() "<<matchingResults.size()<<std::endl;
 
+    //candidateSimMuonMatcher should use the  trackingParticles, because the simTracks are not stored for the pile-up events
     for(auto& matchingResult : matchingResults) {
-      if(matchingResult.muonCand && matchingResult.muonCand->hwQual() >= 12 && matchingResult.muonCand->hwPt() > 41 && matchingResult.genPt < 20) {
+      if(matchingResult.muonCand && matchingResult.muonCand->hwQual() >= 8 && matchingResult.muonCand->hwPt() > 38 ) {//&& matchingResult.genPt < 20
         dump = true;
 
-        if(matchingResult.simTrack) {
-          auto simMuon = matchingResult.simTrack;
-          ostr<<"simMuon: eventId "<<simMuon->eventId().event()<<" pdgId "<<std::setw(3)<<simMuon->type()
-                          <<" pt "<<std::setw(9)<<simMuon->momentum().pt() //<<" Beta "<<simMuon->momentum().Beta()
-                          <<" eta "<<std::setw(9)<<simMuon->momentum().eta()<<" phi "<<std::setw(9)<<simMuon->momentum().phi()
+        if(matchingResult.trackingParticle) {
+          auto trackingParticle = matchingResult.trackingParticle;
+          ostr<<"trackingParticle: eventId "<<trackingParticle->eventId().event()<<" pdgId "<<std::setw(3)<<trackingParticle->pdgId()
+                          <<" trackId "<<trackingParticle->g4Tracks().at(0).trackId()
+                          <<" pt "<<std::setw(9)<<trackingParticle->pt() //<<" Beta "<<simMuon->momentum().Beta()
+                          <<" eta "<<std::setw(9)<<trackingParticle->momentum().eta()<<" phi "<<std::setw(9)<<trackingParticle->momentum().phi()
                           <<std::endl;
         }
         else {
@@ -295,6 +309,20 @@ void EventCapture::stubsSimHitsMatching(const edm::Event& iEvent) {
   iEvent.getByLabel(cscSimHitsInputTag, cscSimHitsHandle);
   edm::LogVerbatim("l1tOmtfEventPrint")<<std::endl<<"cscSimHitsHandle: size: " << cscSimHitsHandle->size()<<std::endl;
 
+
+  edm::Handle<edm::DetSetVector<RPCDigiSimLink> > rpcDigiSimLinkHandle;
+  iEvent.getByLabel(rpcDigiSimLinkInputTag, rpcDigiSimLinkHandle);
+  edm::LogVerbatim("l1tOmtfEventPrint")<<"rpcDigiSimLinkHandle: size: " << rpcDigiSimLinkHandle->size()<<std::endl;
+
+  edm::Handle<edm::DetSetVector<StripDigiSimLink> > cscStripDigiSimLinkHandle;
+  iEvent.getByLabel(cscStripDigiSimLinksInputTag, cscStripDigiSimLinkHandle);
+  edm::LogVerbatim("l1tOmtfEventPrint")<<"cscStripDigiSimLinkHandle: size: " << cscStripDigiSimLinkHandle->size()<<std::endl;
+
+  edm::Handle<MuonDigiCollection<DTLayerId, DTDigiSimLink> > dtDigiSimLinkHandle;
+  iEvent.getByLabel(dtDigiSimLinksInputTag, dtDigiSimLinkHandle);
+  //edm::LogVerbatim("l1tOmtfEventPrint")<<"dtDigiSimLinkHandle: size: " << dtDigiSimLinkHandle->size()<<std::endl;
+
+////edm::DetSetVector<StripDigiSimLink>    "simMuonCSCDigis"           "MuonCSCStripDigiSimLinks"   "HLT"
   for (unsigned int iProc = 0; iProc < gbCandidatesInProcs.size(); iProc++) {
     OmtfName board(iProc);
 
@@ -330,7 +358,6 @@ void EventCapture::stubsSimHitsMatching(const edm::Event& iEvent) {
                 case MuonSubdetId::RPC: {
                   RPCDetId rpcDetId(stubDetId);
 
-
                   for(auto& simHit : *(rpcSimHitsHandle.product()) ) {
                     if(stubDetId.rawId() == simHit.detUnitId()) {
                       const RPCRoll* roll = _georpc->roll(rpcDetId);
@@ -356,11 +383,49 @@ void EventCapture::stubsSimHitsMatching(const edm::Event& iEvent) {
                                 //<<" phiAtEntry "<<simHit.phiAtEntry()
                                 //<<" thetaAtEntry "<<simHit.thetaAtEntry()
                                 //<<" localPosition: phi "<<simHit.localPosition().phi()<<" eta "<<simHit.localPosition().eta()
-                                <<" localPosition: x "<<std::setw(10)<<simHit.localPosition().x()<<" y "<<std::setw(10)<<simHit.localPosition().y()
+                                <<" entryPoint: x "<<std::setw(10)<<simHit.entryPoint().x()<<" y "<<std::setw(10)<<simHit.entryPoint().y()
                                 <<" timeOfFlight "<<simHit.timeOfFlight()
                                 <<std::endl;
                     }
                   }
+
+
+                  auto rpcDigiSimLinkDetSet = rpcDigiSimLinkHandle.product()->find(stub->detId);
+
+                  if(rpcDigiSimLinkDetSet != rpcDigiSimLinkHandle.product()->end() ) {
+                    edm::LogVerbatim("l1tOmtfEventPrint")<<"rpcDigiSimLinkDetSet: detId "<<rpcDigiSimLinkDetSet->detId()<<" size "<<rpcDigiSimLinkDetSet->size();
+                    for(auto& rpcDigiSimLink : *rpcDigiSimLinkDetSet) {
+                      const RPCRoll* roll = _georpc->roll(rpcDetId);
+                      auto strip = rpcDigiSimLink.getStrip();
+                      double simHitStripGlobalPhi = (roll->toGlobal(roll->centreOfStrip((int)strip))).phi();
+
+                      if( abs(stubGlobalPhi - simHitStripGlobalPhi) < 0.02) {
+                        if(abs(rpcDigiSimLink.getParticleType()) == 13)
+                          matchedMuonHits++;
+                        else {
+                          matchedNotMuonHits++;
+                        }
+                      }
+
+                      edm::LogVerbatim("l1tOmtfEventPrint")
+                      <<" simHitStripGlobalPhi "<<std::setw(10)<<simHitStripGlobalPhi
+                      <<" strip "<<strip
+                      <<" particleType: "<<rpcDigiSimLink.getParticleType()
+                      <<" event: "<<rpcDigiSimLink.getEventId().event()
+                      <<" trackId "<<rpcDigiSimLink.getTrackId()
+                      <<" processType "<<rpcDigiSimLink.getProcessType()
+                      <<" detUnitId "<<rpcDigiSimLink.getDetUnitId()<<" "<<rpcDetId
+                      //<<" phiAtEntry "<<simHit.phiAtEntry()
+                      //<<" thetaAtEntry "<<simHit.thetaAtEntry()
+                      //<<" localPosition: phi "<<simHit.localPosition().phi()<<" eta "<<simHit.localPosition().eta()
+                      <<" entryPoint: x "<<std::setw(10)<<rpcDigiSimLink.getEntryPoint().x()<<" y "<<std::setw(10)<<rpcDigiSimLink.getEntryPoint().y()
+                      <<" timeOfFlight "<<rpcDigiSimLink.getTimeOfFlight()
+                      <<std::endl;
+                    }
+                  }
+
+
+
                   break;
                 }//----------------------------------------------------------------------
                 case MuonSubdetId::DT: {
@@ -388,6 +453,55 @@ void EventCapture::stubsSimHitsMatching(const edm::Event& iEvent) {
                                         <<std::endl;
                     }
                   }
+
+
+                  auto chamber = _geodt->chamber(DTLayerId(stub->detId));
+                  for(auto superlayer : chamber->superLayers()) {
+                    for(auto layer :  superlayer->layers()) {
+                      auto dtDigiSimLinks = dtDigiSimLinkHandle.product()->get(layer->id());
+                      edm::LogVerbatim("l1tOmtfEventPrint")<<"dt layer "<<layer->id();
+                      auto dtDigiSimLink = dtDigiSimLinks.first;
+
+                      for(; dtDigiSimLink != dtDigiSimLinks.second; dtDigiSimLink++) {
+                        //const RPCRoll* roll = _georpc->roll(rpcDetId);
+                        auto wire = dtDigiSimLink->wire();
+
+                        auto wireX = layer->specificTopology().wirePosition(wire);
+                        //MeasurementPoint measurementPoint(wireX, 100);
+                        //auto digiWireGlobal = layer->toGlobal(layer->specificTopology().localPosition(measurementPoint));
+
+                        LocalPoint point(wireX, 0, 0);
+                        auto digiWireGlobal = layer->toGlobal(point);
+
+                        /*if( abs(stubGlobalPhi - simHitStripGlobalPhi) < 0.02) {
+                                          if(abs(cscDigiSimLink.getParticleType()) == 13)
+                                            matchedMuonHits++;
+                                          else {
+                                            matchedNotMuonHits++;
+                                          }
+                                        }*/
+
+                        edm::LogVerbatim("l1tOmtfEventPrint")
+                        <<" digiWireGlobalPhi "<<std::setw(10)<<digiWireGlobal.phi()
+                        <<" wire "<<wire
+                        //<<" particleType: "<<cscDigiSimLink.getParticleType()
+                        <<" event: "<<dtDigiSimLink->eventId().event()
+                        <<" trackId "<<dtDigiSimLink->SimTrackId()
+                        //<<" CFposition "<<cscDigiSimLink.CFposition() is 0
+                        //the rest is not available in the StripDigiSimLink, maybe the SimHit must be found in the  CrossingFrame vector(???) with CFposition()
+                        //<<" processType "<<cscDigiSimLink.getProcessType()
+                        //<<" detUnitId "<<cscDigiSimLink.getDetUnitId()<<" "<<rpcDetId
+                        //<<" phiAtEntry "<<simHit.phiAtEntry()
+                        //<<" thetaAtEntry "<<simHit.thetaAtEntry()
+                        //<<" localPosition: phi "<<simHit.localPosition().phi()<<" eta "<<simHit.localPosition().eta()
+                        //<<" entryPoint: x "<<std::setw(10)<<rpcDigiSimLink.getEntryPoint().x()<<" y "<<std::setw(10)<<rpcDigiSimLink.getEntryPoint().y()
+                        //<<" timeOfFlight "<<rpcDigiSimLink.getTimeOfFlight()
+                        <<std::endl;
+                      }
+
+                    }
+                  }
+
                   break;
                 }//----------------------------------------------------------------------
                 case MuonSubdetId::CSC: {
@@ -401,15 +515,15 @@ void EventCapture::stubsSimHitsMatching(const edm::Event& iEvent) {
                       auto simHitStripGlobalPhi = layer->centerOfStrip(round(simHitStrip)).phi();
 
                       edm::LogVerbatim("l1tOmtfEventPrint")
-                                <<" simHit: gloablPoint phi "<<simHitGlobalPoint.phi()
-                                <<" stripGlobalPhi "<<simHitStripGlobalPhi.phi()
-                                <<" strip "<<simHitStrip
-                                <<" particleType: "<<simHit.particleType()
-                                <<" event: "<<simHit.eventId().event()
-                                <<" trackId "<<simHit.trackId()
-                                <<" processType "<<simHit.processType()
-                                <<" detUnitId "<<simHit.detUnitId()<<" "<<layer->id()
-                                //<<" phiAtEntry "<<simHit.phiAtEntry()
+                      <<" simHit: gloablPoint phi "<<simHitGlobalPoint.phi()
+                      <<" stripGlobalPhi "<<simHitStripGlobalPhi.phi()
+                      <<" strip "<<simHitStrip
+                      <<" particleType: "<<simHit.particleType()
+                      <<" event: "<<simHit.eventId().event()
+                      <<" trackId "<<simHit.trackId()
+                      <<" processType "<<simHit.processType()
+                      <<" detUnitId "<<simHit.detUnitId()<<" "<<layer->id()
+                      //<<" phiAtEntry "<<simHit.phiAtEntry()
                                 //<<" thetaAtEntry "<<simHit.thetaAtEntry()
                                 <<" timeOfFlight "<<simHit.timeOfFlight()
                                 //<<" localPosition: phi "<<simHit.localPosition().phi()<<" eta "<<simHit.localPosition().eta()
@@ -418,6 +532,49 @@ void EventCapture::stubsSimHitsMatching(const edm::Event& iEvent) {
                                 <<std::endl;
                     }
                   }
+
+                  auto chamber = _geocsc->chamber(CSCDetId(stub->detId));
+                  for(auto* layer : chamber->layers()) {
+                    auto cscDigiSimLinkDetSet = cscStripDigiSimLinkHandle.product()->find(layer->id());
+                    if(cscDigiSimLinkDetSet != cscStripDigiSimLinkHandle.product()->end() ) {
+                      edm::LogVerbatim("l1tOmtfEventPrint")<<"cscDigiSimLinkDetSet: detId "<<cscDigiSimLinkDetSet->detId()<<" "<<layer->id()<<" size "<<cscDigiSimLinkDetSet->size();
+                      for(auto& cscDigiSimLink : *cscDigiSimLinkDetSet) {
+                        //const RPCRoll* roll = _georpc->roll(rpcDetId);
+                        auto strip = cscDigiSimLink.channel();
+                        auto digiStripGlobalPhi = layer->centerOfStrip(strip).phi();
+
+
+                        /*if( abs(stubGlobalPhi - simHitStripGlobalPhi) < 0.02) {
+                        if(abs(cscDigiSimLink.getParticleType()) == 13)
+                          matchedMuonHits++;
+                        else {
+                          matchedNotMuonHits++;
+                        }
+                      }*/
+
+                        edm::LogVerbatim("l1tOmtfEventPrint")
+                        <<" digiStripGlobalPhi "<<std::setw(10)<<digiStripGlobalPhi
+                        <<" strip "<<strip
+                        //<<" particleType: "<<cscDigiSimLink.getParticleType()
+                        <<" event: "<<cscDigiSimLink.eventId().event()
+                        <<" trackId "<<cscDigiSimLink.SimTrackId()
+                        //<<" CFposition "<<cscDigiSimLink.CFposition() is 0
+                        //the rest is not available in the StripDigiSimLink, maybe the SimHit must be found in the  CrossingFrame vector(???) with CFposition()
+                        //<<" processType "<<cscDigiSimLink.getProcessType()
+                        //<<" detUnitId "<<cscDigiSimLink.getDetUnitId()<<" "<<rpcDetId
+                        //<<" phiAtEntry "<<simHit.phiAtEntry()
+                        //<<" thetaAtEntry "<<simHit.thetaAtEntry()
+                        //<<" localPosition: phi "<<simHit.localPosition().phi()<<" eta "<<simHit.localPosition().eta()
+                        //<<" entryPoint: x "<<std::setw(10)<<rpcDigiSimLink.getEntryPoint().x()<<" y "<<std::setw(10)<<rpcDigiSimLink.getEntryPoint().y()
+                        //<<" timeOfFlight "<<rpcDigiSimLink.getTimeOfFlight()
+                        <<std::endl;
+                      }
+                    }
+                    else {
+                      edm::LogVerbatim("l1tOmtfEventPrint")<<"cscDigiSimLinkDetSet not found for detId "<<layer->id();
+                    }
+                  }
+
 
                   break;
                 }

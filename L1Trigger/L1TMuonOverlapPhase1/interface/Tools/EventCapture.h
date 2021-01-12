@@ -64,6 +64,10 @@ private:
   edm::InputTag cscSimHitsInputTag;
   edm::InputTag  dtSimHitsInputTag;
 
+  edm::InputTag rpcDigiSimLinkInputTag;
+  edm::InputTag cscStripDigiSimLinksInputTag;
+  edm::InputTag dtDigiSimLinksInputTag;
+
   // pointers to the current geometry records
   unsigned long long _geom_cache_id = 0;
   edm::ESHandle<RPCGeometry> _georpc;

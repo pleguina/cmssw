@@ -10,6 +10,13 @@
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticleFwd.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 
+#include "DataFormats/Common/interface/DetSetVector.h"
+#include "SimDataFormats/RPCDigiSimLink/interface/RPCDigiSimLink.h"
+#include "SimDataFormats/TrackerDigiSimLink/interface/StripDigiSimLink.h"
+#include "DataFormats/MuonData/interface/MuonDigiCollection.h"
+#include "SimDataFormats/DigiSimLinks/interface/DTDigiSimLink.h"
+#include "DataFormats/MuonDetId/interface/DTLayerId.h"
+
 #include <algorithm>
 #include <iostream>
 #include <memory>
@@ -22,9 +29,6 @@ L1TMuonOverlapPhase1TrackProducer::L1TMuonOverlapPhase1TrackProducer(const edm::
            consumes<RPCDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcRPC"))}),
       m_Reconstruction(edmParameterSet, muStubsInputTokens) {
   produces<l1t::RegionalMuonCandBxCollection>("OMTF");
-
-  /*inputTokenSimHit =
-      consumes<edm::SimTrackContainer>(edmParameterSet.getParameter<edm::InputTag>("g4SimTrackSrc"));  //TODO remove*/
 
   if(edmParameterSet.exists("simTracksTag"))
     mayConsume<edm::SimTrackContainer>(edmParameterSet.getParameter<edm::InputTag>("simTracksTag") );
@@ -39,6 +43,14 @@ L1TMuonOverlapPhase1TrackProducer::L1TMuonOverlapPhase1TrackProducer(const edm::
     mayConsume<edm::PSimHitContainer >(edmParameterSet.getParameter<edm::InputTag>("cscSimHitsInputTag") );
   if(edmParameterSet.exists("dtSimHitsInputTag"))
     mayConsume<edm::PSimHitContainer >(edmParameterSet.getParameter<edm::InputTag>("dtSimHitsInputTag") );
+
+  if(edmParameterSet.exists("rpcDigiSimLinkInputTag"))
+    mayConsume<edm::DetSetVector<RPCDigiSimLink> >(edmParameterSet.getParameter<edm::InputTag>("rpcDigiSimLinkInputTag") );
+  if(edmParameterSet.exists("cscStripDigiSimLinksInputTag"))
+    mayConsume<edm::DetSetVector<StripDigiSimLink> >(edmParameterSet.getParameter<edm::InputTag>("cscStripDigiSimLinksInputTag") );
+  if(edmParameterSet.exists("dtDigiSimLinksInputTag"))
+    mayConsume<MuonDigiCollection<DTLayerId, DTDigiSimLink> >(edmParameterSet.getParameter<edm::InputTag>("dtDigiSimLinksInputTag") );
+
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////

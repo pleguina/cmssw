@@ -28,6 +28,8 @@
 <use name="Geometry/CSCGeometry"/>
 <use name="Geometry/RPCGeometry"/>  
 
+<use name="SimDataFormats/DigiSimLinks"/>  
+
 <use name="L1Trigger/CSCCommonTrigger"/>
 <use name="L1Trigger/DTUtilities"/>
 <use name="L1Trigger/L1TMuon" />

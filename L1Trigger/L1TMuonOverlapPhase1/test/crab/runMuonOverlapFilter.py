@@ -7,7 +7,7 @@ import commands
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
-verbose = False
+verbose = True
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -23,7 +23,7 @@ if verbose:
        omtfEventPrint = cms.untracked.PSet(    
                          filename  = cms.untracked.string('log_MuonOverlapFilter'),
                          extension = cms.untracked.string('.txt'),                
-                         threshold = cms.untracked.string('DEBUG'),
+                         threshold = cms.untracked.string('INFO'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
                          #INFO   =  cms.untracked.int32(0),
                          #DEBUG   = cms.untracked.int32(0),
@@ -88,27 +88,7 @@ process.source = cms.Source('PoolSource',
         'drop l1tEMTFHit2016Extras_simEmtfDigis_RPC_HLT',
         'drop l1tEMTFHit2016s_simEmtfDigis__HLT',
         'drop l1tEMTFTrack2016Extras_simEmtfDigis__HLT',
-        'drop l1tEMTFTrack2016s_simEmtfDigis__HLT',
-        
-          'drop l1tHGCalClusterBXVector_hgcalTriggerPrimitiveDigiProducer_cluster2D_HLT',
-          'drop *HGCal*_*_*_*',
-          'drop *hgcal*_*_*_*',
-          'drop *Ecal*_*_*_*',
-          'drop *Hcal*_*_*_*',
-          'drop *Calo*_*_*_*',
-          
-          'drop *_*HGCal*_*_*',
-          'drop *_*hgcal*_*_*',
-          'drop *_*Ecal*_*_*',
-          'drop *_*Hcal*_*_*',
-          'drop *_*Calo*_*_*',
-          
-          'drop *_*_*HGCal*_*',
-          'drop *_*_*hgcal*_*',
-          'drop *_*_*Ecal*_*',
-          'drop *_*_*Hcal*_*',
-          'drop *_*_*Calo*_*',
-        )
+        'drop l1tEMTFTrack2016s_simEmtfDigis__HLT')
 )
 	                    
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100))
@@ -133,6 +113,17 @@ process.load('L1Trigger.L1TMuonOverlapPhase1.simOmtfPhase1Digis_cfi')
 
 process.simOmtfPhase1Digis.dumpResultToXML = cms.bool(False)
 process.simOmtfPhase1Digis.dumpResultToROOT = cms.bool(False)
+process.simOmtfPhase1Digis.eventCaptureDebug = cms.bool(False)
+
+process.simOmtfPhase1Digis.candidateSimMuonMatcher = cms.bool(False)
+#process.simOmtfPhase1Digis.simTracksTag = cms.InputTag('g4SimHits')
+#process.simOmtfPhase1Digis.simVertexesTag = cms.InputTag('g4SimHits')
+#process.simOmtfPhase1Digis.trackingParticleTag = cms.InputTag("mix", "MergedTrackTruth")
+process.simOmtfPhase1Digis.muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev_withOvf.root")
+
+#process.simOmtfPhase1Digis.rpcSimHitsInputTag = cms.InputTag("g4SimHits", "MuonRPCHits")
+#process.simOmtfPhase1Digis.cscSimHitsInputTag = cms.InputTag("g4SimHits", "MuonCSCHits")
+#process.simOmtfPhase1Digis.dtSimHitsInputTag = cms.InputTag("g4SimHits", "MuonDTHits")
 
 #process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
 #process.simOmtfPhase1Digis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files_classProb1.xml")
@@ -161,10 +152,19 @@ process.simOmtfPhase1Digis.goldenPatternResultFinalizeFunction = cms.int32(9) #v
 
 process.simOmtfPhase1Digis.noHitValueInPdf = cms.bool(True)
 
-process.simOmtfPhase1Digis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+process.simOmtfPhase1Digis.lctCentralBx = cms.int32(8)#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+
 
 #process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 #process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
+
+#process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
+#process.load("Configuration.StandardSequences.MagneticField_38T_cff")
+
+process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAlong_cfi")
+#process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorOpposite_cfi")
+#process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
+
 
 process.L1MuonOmtfCandsFilter= cms.EDFilter("L1MuonOmtfCandsFilter", 
                                  #etaCutFrom = cms.double(0.82), #OMTF eta range
@@ -194,38 +194,52 @@ process.out = cms.OutputModule("PoolOutputModule",
    
    #if this filterfing is in the inpout than it also works - are you sure???
    outputCommands=cms.untracked.vstring(
-        'keep *',
-        'drop l1tEMTFHit2016Extras_simEmtfDigis_CSC_HLT',
-        'drop l1tEMTFHit2016Extras_simEmtfDigis_RPC_HLT',
-        'drop l1tEMTFHit2016s_simEmtfDigis__HLT',
-        'drop l1tEMTFTrack2016Extras_simEmtfDigis__HLT',
-        'drop l1tEMTFTrack2016s_simEmtfDigis__HLT',
-        
-          'drop l1tHGCalClusterBXVector_hgcalTriggerPrimitiveDigiProducer_cluster2D_HLT',
-          'drop *HGCal*_*_*_*',
-          'drop *hgcal*_*_*_*',
-          'drop *Ecal*_*_*_*',
-          'drop *Hcal*_*_*_*',
-          'drop *Calo*_*_*_*',
+#         'keep *',
+#         'drop l1tEMTFHit2016Extras_simEmtfDigis_CSC_HLT',
+#         'drop l1tEMTFHit2016Extras_simEmtfDigis_RPC_HLT',
+#         'drop l1tEMTFHit2016s_simEmtfDigis__HLT',
+#         'drop l1tEMTFTrack2016Extras_simEmtfDigis__HLT',
+#         'drop l1tEMTFTrack2016s_simEmtfDigis__HLT',
+#         
+#           'drop l1tHGCalClusterBXVector_hgcalTriggerPrimitiveDigiProducer_cluster2D_HLT',
+#           'drop *HGCal*_*_*_*',
+#           'drop *hgcal*_*_*_*',
+#           'drop *Ecal*_*_*_*',
+#           'drop *Hcal*_*_*_*',
+#           'drop *Calo*_*_*_*',
+#           
+#           'drop *_*HGCal*_*_*',
+#           'drop *_*hgcal*_*_*',
+#           'drop *_*Ecal*_*_*',
+#           'drop *_*Hcal*_*_*',
+#           'drop *_*Calo*_*_*',
+#           
+#           'drop *_*_*HGCal*_*',
+#           'drop *_*_*hgcal*_*',
+#           'drop *_*_*Ecal*_*',
+#           'drop *_*_*Hcal*_*',
+#           'drop *_*_*Calo*_*',
+#           
+#           #'drop *_*_*Tracker*_*',
+#           'drop *_*_*Totem*_*',
+#           'drop *_*_*EGamma*_*',
+#           
+#           'drop *_*TrackerDigis*_*_*',
+#           'drop *_*PixelDigis*_*_*',
+          'keep *_g4SimHits_MuonRPCHits_SIM',
+          'keep *_g4SimHits_MuonCPCHits_SIM',
+          'keep *_g4SimHits_MuonDTHits_SIM',
+          'keep SimTracks_g4SimHits__SIM',
+          'keep SimVertexs_g4SimHits__SIM',
           
-          'drop *_*HGCal*_*_*',
-          'drop *_*hgcal*_*_*',
-          'drop *_*Ecal*_*_*',
-          'drop *_*Hcal*_*_*',
-          'drop *_*Calo*_*_*',
-          
-          'drop *_*_*HGCal*_*',
-          'drop *_*_*hgcal*_*',
-          'drop *_*_*Ecal*_*',
-          'drop *_*_*Hcal*_*',
-          'drop *_*_*Calo*_*',
-          
-          'drop *_*_*Tracker*_*',
-          'drop *_*_*Totem*_*',
-          'drop *_*_*EGamma*_*',
-          
-          'drop *_*TrackerDigis*_*_*',
-          'drop *_*PixelDigis*_*_*',
+          'keep *_*_*Muon*_*',
+          'keep *_*Muon*_*_*',
+          'keep *Mu*_*_*_*',
+          'keep *_*mix*_*_*',
+          'keep *_genParticles_*_*',
+          'keep *_generatorSmeared_*_*',
+          'keep *_randomEngineStateProducer_*_*',
+          'keep *_TriggerResults_*_*',
           
         )
 )

@@ -21,7 +21,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_MuonOverlap_newPats_100'),
+                         filename  = cms.untracked.string('log_MuonOverlap_newPats_NeutrinoGunSkim'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -77,11 +77,12 @@ process.source = cms.Source('PoolSource',
  #fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/Nu_E10-pythia8-gun_PU250_v3_ext2-v1_FFE07316-3810-6E44-97A1-5753A3070D12_dump100Ev.root"),
  #fileNames = cms.untracked.vstring("file:///afs/cern.ch/work/k/kbunkow/public/CMSSW/cmssw_10_x_x_l1tOfflinePhase2/CMSSW_10_6_1_patch2/src/L1Trigger/L1TMuonBayes/test/expert/Nu_E10-pythia8-gun_PU250_v3_ext2-v1_FFE07316-3810-6E44-97A1-5753A3070D12_dump100Ev.root"),
 
-fileNames = cms.untracked.vstring("file:///afs/cern.ch/work/k/kbunkow/public/CMSSW/cmssw_11_x_x_l1tOfflinePhase2/CMSSW_11_1_3/src/L1Trigger/L1TMuonOverlapPhase1/test/crab/l1tomtf_filteredEvents.root"),
+ #fileNames = cms.untracked.vstring("file:///afs/cern.ch/work/k/kbunkow/public/CMSSW/cmssw_11_x_x_l1tOfflinePhase2/CMSSW_11_1_3/src/L1Trigger/L1TMuonOverlapPhase1/test/crab/l1tomtf_filteredEvents.root"),
 
  #fileNames = cms.untracked.vstring('file:///eos/home-k/konec/FFCFF986-ED0B-B74F-B253-C511D19B8249.root'),
  #fileNames = cms.untracked.vstring('file:///afs/cern.ch/user/k/konec/work/CMSSW_10_6_1_patch2.displaced/src/UserCode/OmtfAnalysis/jobs/FFCFF986-ED0B-B74F-B253-C511D19B8249.root'),
  
+ fileNames = cms.untracked.vstring("file:///afs/cern.ch/work/k/kbunkow/public/CMSSW/cmssw_11_x_x_l1tOfflinePhase2/CMSSW_11_1_3/src/L1Trigger/L1TMuonOverlapPhase1/test/crab/crab_omtf_nn_MC_analysis_SingleNeutrino_PU200_v3_t109_test3/results/l1tomtf_filteredEvents_2.root"),
  
         inputCommands=cms.untracked.vstring(
         'keep *',
@@ -92,11 +93,13 @@ fileNames = cms.untracked.vstring("file:///afs/cern.ch/work/k/kbunkow/public/CMS
         'drop l1tEMTFTrack2016s_simEmtfDigis__HLT')
 )
 	                    
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100))
 
 
 ####Event Setup Producer
 process.load('L1Trigger.L1TMuonOverlapPhase1.fakeOmtfParams_cff')
+process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008.xml")
+
 process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
    toGet = cms.VPSet(
       cms.PSet(record = cms.string('L1TMuonOverlapParamsRcd'),
@@ -124,9 +127,10 @@ process.simOmtfPhase1Digis.dumpResultToROOT = cms.bool(False)
 process.simOmtfPhase1Digis.eventCaptureDebug = cms.bool(True)
 
 process.simOmtfPhase1Digis.candidateSimMuonMatcher = cms.bool(True)
-process.simOmtfPhase1Digis.simTracksTag = cms.InputTag('g4SimHits')
-process.simOmtfPhase1Digis.simVertexesTag = cms.InputTag('g4SimHits')
-#process.simOmtfPhase1Digis.trackingParticleTag = cms.InputTag("mix", "MergedTrackTruth")
+#process.simOmtfPhase1Digis.simTracksTag = cms.InputTag('g4SimHits')
+#process.simOmtfPhase1Digis.simVertexesTag = cms.InputTag('g4SimHits')
+#candidateSimMuonMatcher should use the  trackingParticles, because the simTracks are not stored for the pile-up events
+process.simOmtfPhase1Digis.trackingParticleTag = cms.InputTag("mix", "MergedTrackTruth")
 process.simOmtfPhase1Digis.muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev_withOvf.root")
                                 
 
@@ -159,6 +163,12 @@ process.simOmtfPhase1Digis.lctCentralBx = cms.int32(8)#<<<<<<<<<<<<<<<<!!!!!!!!!
 process.simOmtfPhase1Digis.rpcSimHitsInputTag = cms.InputTag("g4SimHits", "MuonRPCHits")
 process.simOmtfPhase1Digis.cscSimHitsInputTag = cms.InputTag("g4SimHits", "MuonCSCHits")
 process.simOmtfPhase1Digis.dtSimHitsInputTag = cms.InputTag("g4SimHits", "MuonDTHits")
+
+
+process.simOmtfPhase1Digis.rpcDigiSimLinkInputTag = cms.InputTag("simMuonRPCDigis", "RPCDigiSimLink")
+process.simOmtfPhase1Digis.cscStripDigiSimLinksInputTag = cms.InputTag("simMuonCSCDigis", "MuonCSCStripDigiSimLinks")
+process.simOmtfPhase1Digis.dtDigiSimLinksInputTag = cms.InputTag("simMuonDTDigis")
+
   
 #nn_pThresholds = [0.36, 0.38, 0.40, 0.42, 0.44, 0.46, 0.48, 0.50, 0.52, 0.54 ]
 #nn_pThresholds = [0.40, 0.50] 
@@ -188,8 +198,8 @@ process.L1MuonAnalyzerOmtf= cms.EDAnalyzer("L1MuonAnalyzerOmtf",
                                  #nn_pThresholds = cms.vdouble(nn_pThresholds), 
                                  analysisType = cms.string(analysisType),
                                  
-                                 simTracksTag = cms.InputTag('g4SimHits'),
-                                 simVertexesTag = cms.InputTag('g4SimHits'),
+                                 #simTracksTag = cms.InputTag('g4SimHits'),
+                                 #simVertexesTag = cms.InputTag('g4SimHits'),
                                  trackingParticleTag = cms.InputTag("mix", "MergedTrackTruth"),
                                  #TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                  
