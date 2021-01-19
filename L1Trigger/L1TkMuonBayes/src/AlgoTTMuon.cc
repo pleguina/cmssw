@@ -8,9 +8,8 @@
 #include "L1Trigger/L1TkMuonBayes/interface/AlgoTTMuon.h"
 #include <iomanip>
 
-
 void AlgoTTMuon::addStubResult(float pdfVal, bool valid, int pdfBin, int layer, MuonStubPtr stub) {
-  if(valid) {
+  if (valid) {
     //stubResults.emplace_back(pdfVal, valid, pdfBin, layer, stub);
     pdfSum += pdfVal;
     firedLayerBitsInBx.at(stub->bx).set(layer);
@@ -22,7 +21,7 @@ void AlgoTTMuon::addStubResult(float pdfVal, bool valid, int pdfBin, int layer, 
 
 void AlgoTTMuon::invalidateStubResult(int layer) {
   auto& stubResult = stubResults[layer];
-  if(stubResult.getValid()) {
+  if (stubResult.getValid()) {
     pdfSum -= stubResult.getPdfVal();
     firedLayerBitsInBx.at(stubResult.getMuonStub()->bx).reset(layer);
     stubResult.setValid(false);
@@ -31,23 +30,26 @@ void AlgoTTMuon::invalidateStubResult(int layer) {
   //stub result is added even thought it is not valid since this might be needed for debugging or optimization
 }
 
-std::ostream & operator << (std::ostream &out, const AlgoTTMuon& algoTTMuon) {
-  out <<"algoTTMuon: "<<std::endl;
-  out<<(*algoTTMuon.ttTrack)<<std::endl;
-  out <<"firedLayerBits: "<<algoTTMuon.getFiredLayerBits()<<" pdfSum "<<algoTTMuon.pdfSum<<" quality "<<algoTTMuon.quality<<std::endl;
-  out <<"beta "<<algoTTMuon.getBeta()<<" betaLikelihood "<<algoTTMuon.getBetaLikelihood()<<std::endl;
-  if(algoTTMuon.isKilled() ) out <<"KILLED !!!!!!!!!!!!!!!!!!! "<<std::endl;
-  out <<"stubResults: "<<std::endl;
-  for(auto& stubResult : algoTTMuon.stubResults) {
-    if(stubResult.getMuonStub() ) {
-      out <<"layer "<<std::setw(2)<<stubResult.getLayer()<<" valid "<<stubResult.getValid()<<" pdfBin "<<std::setw(5)<<stubResult.getPdfBin()
-        <<" pdfVal "<<std::setw(8)<<stubResult.getPdfVal()<<" "<<(*stubResult.getMuonStub())<<std::endl;
+std::ostream& operator<<(std::ostream& out, const AlgoTTMuon& algoTTMuon) {
+  out << "algoTTMuon: " << std::endl;
+  out << (*algoTTMuon.ttTrack) << std::endl;
+  out << "firedLayerBits: " << algoTTMuon.getFiredLayerBits() << " pdfSum " << algoTTMuon.pdfSum << " quality "
+      << algoTTMuon.quality << std::endl;
+  out << "beta " << algoTTMuon.getBeta() << " betaLikelihood " << algoTTMuon.getBetaLikelihood() << std::endl;
+  if (algoTTMuon.isKilled())
+    out << "KILLED !!!!!!!!!!!!!!!!!!! " << std::endl;
+  out << "stubResults: " << std::endl;
+  for (auto& stubResult : algoTTMuon.stubResults) {
+    if (stubResult.getMuonStub()) {
+      out << "layer " << std::setw(2) << stubResult.getLayer() << " valid " << stubResult.getValid() << " pdfBin "
+          << std::setw(5) << stubResult.getPdfBin() << " pdfVal " << std::setw(8) << stubResult.getPdfVal() << " "
+          << (*stubResult.getMuonStub()) << std::endl;
     }
   }
 
-  if(algoTTMuon.refStub)
-    out <<"refStub: "<<algoTTMuon.refStub<<std::endl;
+  if (algoTTMuon.refStub)
+    out << "refStub: " << algoTTMuon.refStub << std::endl;
 
-  out<<std::endl;
+  out << std::endl;
   return out;
 }

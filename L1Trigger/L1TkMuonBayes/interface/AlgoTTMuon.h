@@ -8,7 +8,6 @@
 #ifndef MUCORRELATOR_ALGOTTMUON_H_
 #define MUCORRELATOR_ALGOTTMUON_H_
 
-
 #include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h"
 #include "L1Trigger/L1TkMuonBayes/interface/TrackingTriggerTrack.h"
 
@@ -20,15 +19,15 @@
 #include <memory>
 #include "boost/dynamic_bitset.hpp"
 
-class AlgoTTMuon: public AlgoMuonBase {
+class AlgoTTMuon : public AlgoMuonBase {
 public:
-  AlgoTTMuon(const TrackingTriggerTrackPtr& ttTrack, MuCorrelatorConfigPtr& config): AlgoMuonBase(config.get() ),
-    ttTrack(ttTrack), stubResults(config->nLayers()) {};
+  AlgoTTMuon(const TrackingTriggerTrackPtr& ttTrack, MuCorrelatorConfigPtr& config)
+      : AlgoMuonBase(config.get()), ttTrack(ttTrack), stubResults(config->nLayers()){};
 
-  AlgoTTMuon(const TrackingTriggerTrackPtr& ttTrack, MuCorrelatorConfigPtr& config, const MuonStubPtr& refStub): AlgoMuonBase(config.get() ),
-    ttTrack(ttTrack), stubResults(config->nLayers()), refStub(refStub) {};
+  AlgoTTMuon(const TrackingTriggerTrackPtr& ttTrack, MuCorrelatorConfigPtr& config, const MuonStubPtr& refStub)
+      : AlgoMuonBase(config.get()), ttTrack(ttTrack), stubResults(config->nLayers()), refStub(refStub){};
 
-  virtual ~AlgoTTMuon() {};
+  ~AlgoTTMuon() override{};
 
   virtual void addStubResult(float pdfVal, bool valid, int pdfBin, int layer, MuonStubPtr stub);
 
@@ -36,52 +35,32 @@ public:
 
   int getEtaHw() const override { return ttTrack->getEtaHw(); }
 
-  bool isValid() const override {
-    return valid;
-  }
+  bool isValid() const override { return valid; }
 
-  void setValid(bool valid) {
-    this->valid = valid;
-  }
+  void setValid(bool valid) { this->valid = valid; }
 
-  double getPdfSum() const override {
-    return pdfSum;
-  }
+  double getPdfSum() const override { return pdfSum; }
 
-  const bool isKilled() const {
-    return killed;
-  }
+  const bool isKilled() const { return killed; }
 
   void kill() {
     killed = true;
     //FIXME maybe also valid = false???
   }
 
-  const TrackingTriggerTrackPtr& getTTTrack() const {
-    return ttTrack;
-  }
+  const TrackingTriggerTrackPtr& getTTTrack() const { return ttTrack; }
 
-  const StubResult& getStubResult(unsigned int iLayer) const  override{
-    return stubResults.at(iLayer);
-  }
+  const StubResult& getStubResult(unsigned int iLayer) const override { return stubResults.at(iLayer); }
 
-  const StubResults& getStubResults() const override {
-    return stubResults;
-  }
+  const StubResults& getStubResults() const override { return stubResults; }
 
-  friend std::ostream & operator << (std::ostream &out, const AlgoTTMuon& algoTTMuon);
+  friend std::ostream& operator<<(std::ostream& out, const AlgoTTMuon& algoTTMuon);
 
-  int getQuality() const {
-    return quality;
-  }
+  int getQuality() const { return quality; }
 
-  void setQuality(int quality = 0) {
-    this->quality = quality;
-  }
+  void setQuality(int quality = 0) { this->quality = quality; }
 
-  double getSimBeta() const {
-    return ttTrack->getSimBeta();
-  }
+  double getSimBeta() const override { return ttTrack->getSimBeta(); }
 
 private:
   bool valid = false;
@@ -106,6 +85,5 @@ private:
 
 typedef std::shared_ptr<AlgoTTMuon> AlgoTTMuonPtr;
 typedef std::vector<AlgoTTMuonPtr> AlgoTTMuons;
-
 
 #endif /* MUCORRELATOR_ALGOTTMUON_H_ */

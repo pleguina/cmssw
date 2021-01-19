@@ -27,75 +27,85 @@
 #include "L1Trigger/L1TkMuonBayes/interface/MuTimingModuleWithStat.h"
 
 L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(const edm::ParameterSet& cfg)
-  :edmParameterSet(cfg), muCorrelatorConfig(std::make_shared<MuCorrelatorConfig>()) {
+    : edmParameterSet(cfg), muCorrelatorConfig(std::make_shared<MuCorrelatorConfig>()) {
+  produces<l1t::BayesMuCorrTrackBxCollection>(allTracksProductName);  //all tracks
 
-  produces<l1t::BayesMuCorrTrackBxCollection >(allTracksProductName); //all tracks
+  produces<l1t::BayesMuCorrTrackBxCollection>(muonTracksProductName);
+  //"fast" tracks, i.e. with at least two muon stubs in the same bx as ttRack (i.e. not HSCPs) and passing some cuts
 
-  produces<l1t::BayesMuCorrTrackBxCollection >(muonTracksProductName); //"fast" tracks, i.e. with at least two muon stubs in the same bx as ttRack (i.e. not HSCPs) and passing some cuts
-  produces<l1t::BayesMuCorrTrackBxCollection >(hscpTracksProductName); //"slow" tracks, i.e. exclusive versus the "fast" tracks and passing some cuts
+  produces<l1t::BayesMuCorrTrackBxCollection>(hscpTracksProductName);
+  //"slow" tracks, i.e. exclusive versus the "fast" tracks and passing some cuts
 
   MuStubsInputTokens muStubsInputTokens;
-  muStubsInputTokens.inputTokenDtPh = consumes<L1MuDTChambPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPh"));
-  muStubsInputTokens.inputTokenDtTh = consumes<L1MuDTChambThContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTTh"));
-  muStubsInputTokens.inputTokenCSC = consumes<CSCCorrelatedLCTDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcCSC"));
+  muStubsInputTokens.inputTokenDtPh =
+      consumes<L1MuDTChambPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPh"));
+  muStubsInputTokens.inputTokenDtTh =
+      consumes<L1MuDTChambThContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTTh"));
+  muStubsInputTokens.inputTokenCSC =
+      consumes<CSCCorrelatedLCTDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcCSC"));
   muStubsInputTokens.inputTokenRPC = consumes<RPCDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcRPC"));
 
-  edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2 = consumes<L1Phase2MuDTPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPhPhase2"));
+  edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2 =
+      consumes<L1Phase2MuDTPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPhPhase2"));
 
   edm::InputTag l1TrackInputTag = cfg.getParameter<edm::InputTag>("L1TrackInputTag");
-  ttTrackToken = consumes< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > >(l1TrackInputTag);
+  ttTrackToken = consumes<std::vector<TTTrack<Ref_Phase2TrackerDigi_> > >(l1TrackInputTag);
 
   std::string trackSrc = "L1_TRACKER";
-  if(cfg.exists("ttTracksSource") )
+  if (cfg.exists("ttTracksSource"))
     trackSrc = cfg.getParameter<std::string>("ttTracksSource");
 
-  if(trackSrc == "SIM_TRACKS")
-	  inputTokenSimTracks = mayConsume<edm::SimTrackContainer>(edmParameterSet.getParameter<edm::InputTag>("g4SimTrackSrc")); //TODO is it needed?
+  if (trackSrc == "SIM_TRACKS")
+    inputTokenSimTracks = mayConsume<edm::SimTrackContainer>(
+        edmParameterSet.getParameter<edm::InputTag>("g4SimTrackSrc"));  //TODO is it needed?
 
-  if(trackSrc == "TRACKING_PARTICLES")
-	  trackingParticleToken = mayConsume< std::vector< TrackingParticle > >(edmParameterSet.getParameter<edm::InputTag>("TrackingParticleInputTag") );
+  if (trackSrc == "TRACKING_PARTICLES")
+    trackingParticleToken = mayConsume<std::vector<TrackingParticle> >(
+        edmParameterSet.getParameter<edm::InputTag>("TrackingParticleInputTag"));
 
-  inputMaker = std::make_unique<MuCorrelatorInputMaker>(edmParameterSet, muStubsInputTokens, inputTokenDTPhPhase2, muCorrelatorConfig.get() ); //TODO why muCorrelatorConfig is not passed here?
+  inputMaker = std::make_unique<MuCorrelatorInputMaker>(
+      edmParameterSet,
+      muStubsInputTokens,
+      inputTokenDTPhPhase2,
+      muCorrelatorConfig.get());  //TODO why muCorrelatorConfig is not passed here?
   ttTracksInputMaker = std::make_unique<TTTracksInputMaker>(edmParameterSet);
 
   //Range of the BXes for which the emulation is performed,
-  if(edmParameterSet.exists("bxRangeMin") ){
+  if (edmParameterSet.exists("bxRangeMin")) {
     bxRangeMin = edmParameterSet.getParameter<int>("bxRangeMin");
   }
-  if(edmParameterSet.exists("bxRangeMax") ){
+  if (edmParameterSet.exists("bxRangeMax")) {
     bxRangeMax = edmParameterSet.getParameter<int>("bxRangeMax");
   }
 
-  if(edmParameterSet.exists("useStubsFromAdditionalBxs") ){
+  if (edmParameterSet.exists("useStubsFromAdditionalBxs")) {
     useStubsFromAdditionalBxs = edmParameterSet.getParameter<int>("useStubsFromAdditionalBxs");
   }
 
   //muCorrelatorConfig->setBxToProcess(useStubsFromAdditionalBxs + 1); TODO correct, now does not compile due to const
 
-  for(unsigned int ptBin = 0; ptBin < muCorrelatorConfig->getPtHwBins().size(); ++ptBin) {
-    edm::LogInfo("l1tOmtfEventPrint")<<"ptBin "<<setw(2)<<ptBin<<" range Hw: "<<muCorrelatorConfig->ptBinString(ptBin, 0)<<" = "<<muCorrelatorConfig->ptBinString(ptBin, 1)<<std::endl;
+  for (unsigned int ptBin = 0; ptBin < muCorrelatorConfig->getPtHwBins().size(); ++ptBin) {
+    edm::LogInfo("l1tOmtfEventPrint") << "ptBin " << setw(2) << ptBin
+                                      << " range Hw: " << muCorrelatorConfig->ptBinString(ptBin, 0) << " = "
+                                      << muCorrelatorConfig->ptBinString(ptBin, 1) << std::endl;
   }
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-L1TMuonBayesMuCorrelatorTrackProducer::~L1TMuonBayesMuCorrelatorTrackProducer(){
-}
+L1TMuonBayesMuCorrelatorTrackProducer::~L1TMuonBayesMuCorrelatorTrackProducer() {}
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonBayesMuCorrelatorTrackProducer::beginJob(){
-
+void L1TMuonBayesMuCorrelatorTrackProducer::beginJob() {
   //m_Reconstruction.beginJob();
-
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonBayesMuCorrelatorTrackProducer::endJob(){
-
+void L1TMuonBayesMuCorrelatorTrackProducer::endJob() {
   //m_Reconstruction.endJob();
 
   IPdfModule* pdfModule = muCorrelatorProcessor->getPdfModule();
   PdfModuleWithStats* pdfModuleWithStats = dynamic_cast<PdfModuleWithStats*>(pdfModule);
-  if(pdfModuleWithStats) {
+  if (pdfModuleWithStats) {
     // using TFileService insteed
     /*gStyle->SetOptStat(111111);
     TFile outfile("muCorrPdfs.root", "RECREATE");
@@ -104,8 +114,8 @@ void L1TMuonBayesMuCorrelatorTrackProducer::endJob(){
     outfile.cd();
     //pdfModuleWithStats->write();*/
 
-    if(edmParameterSet.exists("generatePdfs") && edmParameterSet.getParameter<bool>("generatePdfs")) {
-      if(edmParameterSet.exists("outPdfModuleFile") ) {
+    if (edmParameterSet.exists("generatePdfs") && edmParameterSet.getParameter<bool>("generatePdfs")) {
+      if (edmParameterSet.exists("outPdfModuleFile")) {
         pdfModuleFile = edmParameterSet.getParameter<std::string>("outPdfModuleFile");
       }
       pdfModuleWithStats->generateCoefficients();
@@ -113,12 +123,13 @@ void L1TMuonBayesMuCorrelatorTrackProducer::endJob(){
     }
   }
 
-
-  MuTimingModuleWithStat* muTimingModule = dynamic_cast<MuTimingModuleWithStat*>(muCorrelatorProcessor->getMuTimingModule() );
-  if(muTimingModule) {
-    if(edmParameterSet.exists("generateTiming") && edmParameterSet.getParameter<bool>("generateTiming")) {
+  MuTimingModuleWithStat* muTimingModule =
+      dynamic_cast<MuTimingModuleWithStat*>(muCorrelatorProcessor->getMuTimingModule());
+  if (muTimingModule) {
+    if (edmParameterSet.exists("generateTiming") && edmParameterSet.getParameter<bool>("generateTiming")) {
       string muTimingModuleFileName = "muTimingModule.xml";
-      if(edmParameterSet.exists("outputTimingFile") ) {//if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
+      if (edmParameterSet.exists(
+              "outputTimingFile")) {  //if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
         muTimingModuleFileName = edmParameterSet.getParameter<std::string>("outputTimingFile");
       }
       muTimingModule->generateCoefficients();
@@ -133,33 +144,30 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
     cout<<"ptHw "<<setw(3)<<ptHw<<" = "<<setw(5)<<muCorrelatorConfig->hwPtToGev(ptHw)<<" GeV ptBin "<<muCorrelatorConfig->ptHwToPtBin(ptHw)<<endl;
   }*/
 
-  if(!muCorrelatorProcessor) {
+  if (!muCorrelatorProcessor) {
     std::string pdfModuleType = "PdfModule";
-    if(edmParameterSet.exists("pdfModuleType") ) {
+    if (edmParameterSet.exists("pdfModuleType")) {
       pdfModuleType = edmParameterSet.getParameter<std::string>("pdfModuleType");
     }
 
     PdfModule* pdfModule = nullptr;
 
-    if(pdfModuleType == "PdfModule") {
+    if (pdfModuleType == "PdfModule") {
       pdfModule = new PdfModule(muCorrelatorConfig);
-      edm::LogImportant("l1tOmtfEventPrint")<<" creating PdfModule for muCorrelatorProcessor"<<std::endl;
-    }
-    else if(pdfModuleType == "PdfModuleWithStats") {
-      edm::LogImportant("l1tOmtfEventPrint")<<" creating PdfModuleWithStats for muCorrelatorProcessor"<<std::endl;
+      edm::LogImportant("l1tOmtfEventPrint") << " creating PdfModule for muCorrelatorProcessor" << std::endl;
+    } else if (pdfModuleType == "PdfModuleWithStats") {
+      edm::LogImportant("l1tOmtfEventPrint") << " creating PdfModuleWithStats for muCorrelatorProcessor" << std::endl;
       pdfModule = new PdfModuleWithStats(muCorrelatorConfig);
-    }
-    else {
+    } else {
       throw cms::Exception("L1TMuonBayesMuCorrelatorTrackProducer::beginRun: unknown pdfModuleType: " + pdfModuleType);
     }
 
-
-    if(edmParameterSet.exists("generatePdfs") && edmParameterSet.getParameter<bool>("generatePdfs")) {
+    if (edmParameterSet.exists("generatePdfs") && edmParameterSet.getParameter<bool>("generatePdfs")) {
       //dont read the pdf if they are going to be generated
-    }
-    else if(edmParameterSet.exists("pdfModuleFile") ) {//if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
+    } else if (edmParameterSet.exists(
+                   "pdfModuleFile")) {  //if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
       pdfModuleFile = edmParameterSet.getParameter<edm::FileInPath>("pdfModuleFile").fullPath();
-      edm::LogImportant("l1tOmtfEventPrint")<<" reading the pdfModule from file "<<pdfModuleFile<<std::endl;
+      edm::LogImportant("l1tOmtfEventPrint") << " reading the pdfModule from file " << pdfModuleFile << std::endl;
       readPdfs(pdfModule, pdfModuleFile);
     }
 
@@ -167,21 +175,22 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
 
     muCorrelatorProcessor = std::make_unique<MuCorrelatorProcessor>(muCorrelatorConfig, std::move(pdfModuleUniqPtr));
 
-
-    if(edmParameterSet.exists("generateTiming") && edmParameterSet.getParameter<bool>("generateTiming")) {
-      std::unique_ptr<MuTimingModule> muTimingModuleUniqPtr = std::make_unique<MuTimingModuleWithStat>(muCorrelatorConfig.get());
+    if (edmParameterSet.exists("generateTiming") && edmParameterSet.getParameter<bool>("generateTiming")) {
+      std::unique_ptr<MuTimingModule> muTimingModuleUniqPtr =
+          std::make_unique<MuTimingModuleWithStat>(muCorrelatorConfig.get());
       muCorrelatorProcessor->setMuTimingModule(muTimingModuleUniqPtr);
-    }
-    else if(edmParameterSet.exists("timingModuleFile") ) {
+    } else if (edmParameterSet.exists("timingModuleFile")) {
       string timingModuleFile = edmParameterSet.getParameter<edm::FileInPath>("timingModuleFile").fullPath();
-      edm::LogImportant("l1tOmtfEventPrint")<<" reading the MuTimingModule from file "<<timingModuleFile<<std::endl;
+      edm::LogImportant("l1tOmtfEventPrint")
+          << " reading the MuTimingModule from file " << timingModuleFile << std::endl;
 
-      std::unique_ptr<MuTimingModule> muTimingModuleUniqPtr = std::make_unique<MuTimingModule>(muCorrelatorConfig.get());
+      std::unique_ptr<MuTimingModule> muTimingModuleUniqPtr =
+          std::make_unique<MuTimingModule>(muCorrelatorConfig.get());
       readTimingModule(muTimingModuleUniqPtr.get(), timingModuleFile);
       muCorrelatorProcessor->setMuTimingModule(muTimingModuleUniqPtr);
     }
 
-    edm::LogImportant("l1tOmtfEventPrint")<<" muCorrelatorProcessor constructed"<<std::endl;
+    edm::LogImportant("l1tOmtfEventPrint") << " muCorrelatorProcessor constructed" << std::endl;
 
     //the parameters can be overwritten from the python config
     muCorrelatorConfig->configureFromEdmParameterSet(edmParameterSet);
@@ -189,7 +198,7 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup){
+void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup) {
   inputMaker->loadAndFilterDigis(iEvent);
 
   std::unique_ptr<l1t::BayesMuCorrTrackBxCollection> allTracks(new l1t::BayesMuCorrTrackBxCollection);
@@ -202,60 +211,57 @@ void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const ed
   hscpTracks->setBXRange(bxRangeMin, bxRangeMax);
 
   //std::cout<<"\n"<<__FUNCTION__<<":"<<__LINE__<<" iEvent "<<iEvent.id().event()<<" #####################################################################"<<endl;
-  for(int bx = bxRangeMin; bx <= bxRangeMax; bx++) {
-
+  for (int bx = bxRangeMin; bx <= bxRangeMax; bx++) {
     MuonStubsInput muonStubsInput(muCorrelatorConfig.get());
-    inputMaker->buildInputForProcessor(muonStubsInput.getMuonStubs(), 0, l1t::tftype::bmtf, bx, bx + useStubsFromAdditionalBxs);
+    inputMaker->buildInputForProcessor(
+        muonStubsInput.getMuonStubs(), 0, l1t::tftype::bmtf, bx, bx + useStubsFromAdditionalBxs);
     //std::cout<<muonStubsInput<<std::endl;
 
     auto ttTRacks = ttTracksInputMaker->loadTTTracks(iEvent, bx, edmParameterSet, muCorrelatorConfig.get());
 
-    LogTrace("l1tOmtfEventPrint")<<"\n\nEvent "<<iEvent.id().event()<<" muonStubsInput bx "<<bx<<": \n "<<muonStubsInput<<endl;
-    for(auto& ttTRack : ttTRacks) {
-      LogTrace("l1tOmtfEventPrint")<<*ttTRack<<endl;
+    LogTrace("l1tOmtfEventPrint") << "\n\nEvent " << iEvent.id().event() << " muonStubsInput bx " << bx << ": \n "
+                                  << muonStubsInput << endl;
+    for (auto& ttTRack : ttTRacks) {
+      LogTrace("l1tOmtfEventPrint") << *ttTRack << endl;
     }
-    LogTrace("l1tOmtfEventPrint")<<"\n";
+    LogTrace("l1tOmtfEventPrint") << "\n";
 
     //for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor)
     {
       AlgoTTMuons algoTTMuons = muCorrelatorProcessor->processTracks(muonStubsInput, ttTRacks);
       //fill outgoing collection
-      l1t::BayesMuCorrTrackCollection bayesMuCorrTracksInBx = muCorrelatorProcessor->getMuCorrTrackCollection(0, algoTTMuons);
-      for (auto & muTrack :  bayesMuCorrTracksInBx) {
+      l1t::BayesMuCorrTrackCollection bayesMuCorrTracksInBx =
+          muCorrelatorProcessor->getMuCorrTrackCollection(0, algoTTMuons);
+      for (auto& muTrack : bayesMuCorrTracksInBx) {
         allTracks->push_back(bx, muTrack);
 
         auto firedLayerBits = muTrack.getFiredLayerBits(muCorrelatorConfig->nLayers());
-        if( muTrack.hwQual() >= 12 &&
-            muTrack.getCandidateType() == l1t::BayesMuCorrelatorTrack::fastTrack &&
-            ( (firedLayerBits.count() == 2 && muTrack.pdfSum() > 1100) ||
-              (firedLayerBits.count() == 3 && muTrack.pdfSum() > 1400) ||
-               firedLayerBits.count() >= 4) &&
-            ( (muTrack.getTtTrackPtr().isNonnull() && muTrack.getTtTrackPtr()->chi2Red() < 200 ) || muTrack.getTtTrackPtr().isNull() )
-        )
-        {
+        if (muTrack.hwQual() >= 12 && muTrack.getCandidateType() == l1t::BayesMuCorrelatorTrack::fastTrack &&
+            ((firedLayerBits.count() == 2 && muTrack.pdfSum() > 1100) ||
+             (firedLayerBits.count() == 3 && muTrack.pdfSum() > 1400) || firedLayerBits.count() >= 4) &&
+            ((muTrack.getTtTrackPtr().isNonnull() && muTrack.getTtTrackPtr()->chi2Red() < 200) ||
+             muTrack.getTtTrackPtr().isNull())) {
           muonTracks->push_back(bx, muTrack);
         }
 
-        if( muTrack.getCandidateType() == l1t::BayesMuCorrelatorTrack::slowTrack &&
-            muTrack.hwQual() >= 13 &&
-            ( (firedLayerBits.count() == 2 && muTrack.pdfSum() > 1300 && muTrack.getBetaLikelihood() >= 6) ||
-              (firedLayerBits.count() == 3 && muTrack.pdfSum() > 1700 && muTrack.getBetaLikelihood() >= 7) ||
-              (firedLayerBits.count() == 4 && muTrack.pdfSum() > 2200 && muTrack.getBetaLikelihood() >= 9) ||
-              firedLayerBits.count() >= 5) &&
-            ( (muTrack.getTtTrackPtr().isNonnull() && muTrack.getTtTrackPtr()->chi2Red() < 200  ) || muTrack.getTtTrackPtr().isNull() ) //todo probably in firmware exactly like that will be not possible, rather cut of chi2 depending on the nStubs
-          )
-        {
+        if (muTrack.getCandidateType() == l1t::BayesMuCorrelatorTrack::slowTrack && muTrack.hwQual() >= 13 &&
+            ((firedLayerBits.count() == 2 && muTrack.pdfSum() > 1300 && muTrack.getBetaLikelihood() >= 6) ||
+             (firedLayerBits.count() == 3 && muTrack.pdfSum() > 1700 && muTrack.getBetaLikelihood() >= 7) ||
+             (firedLayerBits.count() == 4 && muTrack.pdfSum() > 2200 && muTrack.getBetaLikelihood() >= 9) ||
+             firedLayerBits.count() >= 5) &&
+            ((muTrack.getTtTrackPtr().isNonnull() && muTrack.getTtTrackPtr()->chi2Red() < 200) ||
+             muTrack.getTtTrackPtr()
+                 .isNull())  //todo probably in firmware exactly like that will be not possible, rather cut of chi2 depending on the nStubs
+        ) {
           hscpTracks->push_back(bx, muTrack);
         }
       }
-
     }
-
   }
 
-  iEvent.put(std::move(allTracks),  allTracksProductName);
+  iEvent.put(std::move(allTracks), allTracksProductName);
   iEvent.put(std::move(muonTracks), muonTracksProductName);
-  iEvent.put(std::move(hscpTracks),  hscpTracksProductName);
+  iEvent.put(std::move(hscpTracks), hscpTracksProductName);
 }
 
 /////////////////////////////////////////////////////
@@ -268,14 +274,14 @@ void L1TMuonBayesMuCorrelatorTrackProducer::readPdfs(IPdfModule* pdfModule, std:
   boost::archive::xml_iarchive ia(ifs);
 
   PdfModule* pdfModuleImpl = dynamic_cast<PdfModule*>(pdfModule);
-  if(pdfModuleImpl) {
-    LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" readPdfs from file "<<fileName<<endl;
+  if (pdfModuleImpl) {
+    LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ": " << __LINE__ << " readPdfs from file " << fileName << endl;
     PdfModule& pdfModuleRef = *pdfModuleImpl;
     ia >> BOOST_SERIALIZATION_NVP(pdfModuleRef);
 
-    LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" pdfModule->getCoefficients().size() "<<pdfModuleRef.getCoefficients().size()<<endl;
-  }
-  else {
+    LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ": " << __LINE__ << " pdfModule->getCoefficients().size() "
+                                  << pdfModuleRef.getCoefficients().size() << endl;
+  } else {
     throw cms::Exception("L1TMuonBayesMuCorrelatorTrackProducer::readPdfs: pdfModule is not of the type PdfModule*");
   }
 }
@@ -288,15 +294,15 @@ void L1TMuonBayesMuCorrelatorTrackProducer::writePdfs(const IPdfModule* pdfModul
 
   const PdfModule* pdfModuleImpl = dynamic_cast<const PdfModule*>(pdfModule);
   // write class instance to archive
-  if(pdfModuleImpl) {
-    edm::LogImportant("l1tOmtfEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" writing pdf to file "<<fileName<<endl;
+  if (pdfModuleImpl) {
+    edm::LogImportant("l1tOmtfEventPrint")
+        << __FUNCTION__ << ": " << __LINE__ << " writing pdf to file " << fileName << endl;
     const PdfModule& pdfModuleRef = *pdfModuleImpl;
     xmlOutArch << BOOST_SERIALIZATION_NVP(pdfModuleRef);
     //txtOutArch << (*pdfModuleImpl);
   }
   // archive and stream closed when destructors are called
 }
-
 
 void L1TMuonBayesMuCorrelatorTrackProducer::readTimingModule(MuTimingModule* muTimingModule, std::string fileName) {
   // open the archive
@@ -307,17 +313,18 @@ void L1TMuonBayesMuCorrelatorTrackProducer::readTimingModule(MuTimingModule* muT
   // write class instance to archive
   //PdfModule* pdfModuleImpl = dynamic_cast<PdfModule*>(pdfModule);
   // write class instance to archive
-  if(muTimingModule) {
-    LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" readTimingModule from file "<<fileName<<endl;
+  if (muTimingModule) {
+    LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ": " << __LINE__ << " readTimingModule from file " << fileName
+                                  << endl;
     MuTimingModule& muTimingModuleRef = *muTimingModule;
     ia >> BOOST_SERIALIZATION_NVP(muTimingModuleRef);
-  }
-  else {
+  } else {
     throw cms::Exception("L1TMuonBayesMuCorrelatorTrackProducer::readTimingModule: muTimingModule is 0");
   }
 }
 
-void L1TMuonBayesMuCorrelatorTrackProducer::writeTimingModule(const MuTimingModule* muTimingModule, std::string fileName) {
+void L1TMuonBayesMuCorrelatorTrackProducer::writeTimingModule(const MuTimingModule* muTimingModule,
+                                                              std::string fileName) {
   std::ofstream ofs(fileName);
 
   boost::archive::xml_oarchive xmlOutArch(ofs);
@@ -325,8 +332,9 @@ void L1TMuonBayesMuCorrelatorTrackProducer::writeTimingModule(const MuTimingModu
 
   //const PdfModule* pdfModuleImpl = dynamic_cast<const PdfModule*>(pdfModule);
   // write class instance to archive
-  if(muTimingModule) {
-    edm::LogImportant("l1tOmtfEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" writing MuTimingModule to file "<<fileName<<endl;
+  if (muTimingModule) {
+    edm::LogImportant("l1tOmtfEventPrint")
+        << __FUNCTION__ << ": " << __LINE__ << " writing MuTimingModule to file " << fileName << endl;
     const MuTimingModule& muTimingModuleRef = *muTimingModule;
     xmlOutArch << BOOST_SERIALIZATION_NVP(muTimingModuleRef);
     //txtOutArch << (*pdfModuleImpl);

@@ -6,35 +6,33 @@
  */
 
 #include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h"
-#include <math.h>
+#include <cmath>
+#include <iomanip>
 #include <limits>
 #include <sstream>
-#include <iomanip>
 
-MuCorrelatorConfig::MuCorrelatorConfig() {
-  buildPtHwBins();
-}
+MuCorrelatorConfig::MuCorrelatorConfig() { buildPtHwBins(); }
 
 //TODO should be read from config
 void MuCorrelatorConfig::buildPtHwBins() {
   float stride = 1;
   int iPt = 6;
-  for(unsigned int ptBin = 0; ptBin < ptBins; ptBin++) {
+  for (unsigned int ptBin = 0; ptBin < ptBins; ptBin++) {
     ptHwBins.push_back(iPt);
 
-    if(ptBin < 8)
+    if (ptBin < 8)
       stride = 1;
-    else if(ptBin < 12)
+    else if (ptBin < 12)
       stride = 1;
-    else if(ptBin < 24)
+    else if (ptBin < 24)
       stride = 2;
-    else if(ptBin < 32)
+    else if (ptBin < 32)
       stride = 3;
-    else if(ptBin < 40)
+    else if (ptBin < 40)
       stride = 4;
-    else if(ptBin < 48)
+    else if (ptBin < 48)
       stride = 6;
-    else if(ptBin < 56)
+    else if (ptBin < 56)
       stride += 4;
     else
       stride += 8;
@@ -50,21 +48,21 @@ unsigned int MuCorrelatorConfig::logLayerToRefLayar(unsigned int logicLayer, uns
 }
 
 int MuCorrelatorConfig::getProcScalePhi(double phiRad, double procPhiZeroRad) const {
-  const double phiUnit = 2*M_PI/nPhiBins(); //rad/unit
+  const double phiUnit = 2 * M_PI / nPhiBins();  //rad/unit
 
   // local angle in CSC halfStrip usnits
-  return foldPhi( lround ( (phiRad - procPhiZeroRad)/phiUnit ) );
+  return foldPhi(lround((phiRad - procPhiZeroRad) / phiUnit));
 }
 
 float MuCorrelatorConfig::getProcScalePhiToRad(int phiHw) const {
-  const double phiUnit = 2*M_PI/nPhiBins();
+  const double phiUnit = 2 * M_PI / nPhiBins();
   return phiHw * phiUnit;
 }
 
 unsigned int MuCorrelatorConfig::ptGeVToPtBin(float ptGeV) const {
   //TODO implement nonlinear scale;
   //ptBin = ptHw / 8; //TODO some implementation, probably not optimal, do it in a batter way
-/*  double  ptBin = 40 * log10(1 + (ptGeV - 2.5) * 0.15);
+  /*  double  ptBin = 40 * log10(1 + (ptGeV - 2.5) * 0.15);
   if(ptBin < 0)
     return 0;
   if(ptBin >= ptBins)
@@ -76,30 +74,29 @@ unsigned int MuCorrelatorConfig::ptGeVToPtBin(float ptGeV) const {
 }
 
 unsigned int MuCorrelatorConfig::ptHwToPtBin(int ptHw) const {
-  for(unsigned int ptBin = 0; ptBin < ptBins; ptBin++) {
-    if(ptHwBins[ptBin] >= ptHw)
+  for (unsigned int ptBin = 0; ptBin < ptBins; ptBin++) {
+    if (ptHwBins[ptBin] >= ptHw)
       return ptBin;
   }
 
-  return ptBins -1; //"to inf" bin
+  return ptBins - 1;  //"to inf" bin
 }
 
 unsigned int MuCorrelatorConfig::etaHwToEtaBin(int etaHw) const {
-  int endcapBorder = 80; //= 0.87
-  if(abs(etaHw) < endcapBorder)
+  int endcapBorder = 80;  //= 0.87
+  if (abs(etaHw) < endcapBorder)
     return 0;
 
   //TODO optimize e.g. use scale 8 (easier for firmware), but then check what is the eta dependence above eta 2.175
   //if 10 is kept then use firmware friendly division, i.e. e.g.:
   //((abs(etaHw) - endcapBorder) * 102) >> 10 where 102 = 2^10 / 10
   int scale = 10;
-  unsigned int etaBin = (abs(etaHw) - endcapBorder)/scale;
+  unsigned int etaBin = (abs(etaHw) - endcapBorder) / scale;
 
-  if(etaBin < etaBins)
+  if (etaBin < etaBins)
     return etaBin;
 
-  return etaBins-1;
-
+  return etaBins - 1;
 }
 /*
  0  - MB1 phi
@@ -140,27 +137,26 @@ unsigned int MuCorrelatorConfig::etaHwToEtaBin(int etaHw) const {
  29 - ME4 eta
  */
 bool MuCorrelatorConfig::isEndcapLayer(unsigned int layer) const {
-  if(layer >= 8 && layer <= 12)
+  if (layer >= 8 && layer <= 12)
     return true;
 
-  if(layer >= 19 && layer <= 22)
+  if (layer >= 19 && layer <= 22)
     return true;
 
-  if(layer >= 26 && layer <= 29)
+  if (layer >= 26 && layer <= 29)
     return true;
 
   return false;
 }
 
 bool MuCorrelatorConfig::isPhiLayer(unsigned int layer) const {
-  if(layer < phiLayers)
+  if (layer < phiLayers)
     return true;
   return false;
 }
 
-
 bool MuCorrelatorConfig::isBendingLayer(unsigned int layer) const {
-  if(layer == 1 || layer == 3 || layer == 5 || layer == 7) {
+  if (layer == 1 || layer == 3 || layer == 5 || layer == 7) {
     return true;
   }
   return false;
@@ -170,10 +166,10 @@ std::string MuCorrelatorConfig::ptBinString(unsigned int ptBin, int mode) const 
   int ptHwLow = ptBin > 0 ? ptHwBins.at(ptBin - 1) : 0;
   int ptHwUp = ptHwBins.at(ptBin);
   std::ostringstream ostr;
-  if(mode == 0)
-    ostr<<"ptHw: "<<std::setw(3)<<ptHwLow+1<<" - "<<std::setw(3)<<ptHwUp;
-  else if(mode == 1)
-    ostr<<hwPtToGev(ptHwLow+1)<<" - "<<hwPtToGev(ptHwUp+1)<<" GeV";
+  if (mode == 0)
+    ostr << "ptHw: " << std::setw(3) << ptHwLow + 1 << " - " << std::setw(3) << ptHwUp;
+  else if (mode == 1)
+    ostr << hwPtToGev(ptHwLow + 1) << " - " << hwPtToGev(ptHwUp + 1) << " GeV";
 
   return ostr.str();
 }

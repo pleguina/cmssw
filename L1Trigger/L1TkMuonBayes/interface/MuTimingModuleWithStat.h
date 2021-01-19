@@ -14,17 +14,18 @@
 
 #include "TH2I.h"
 
-class MuTimingModuleWithStat: public MuTimingModule {
+class MuTimingModuleWithStat : public MuTimingModule {
 public:
   MuTimingModuleWithStat(const ProcConfigurationBase* config);
-  virtual ~MuTimingModuleWithStat();
+  ~MuTimingModuleWithStat() override;
 
   void process(AlgoMuonBase* algoMuon) override;
 
   void generateCoefficients();
+
 private:
   //[layer][wheel_ring][etaBin][x=timing, y = 1_Beta]
-  std::vector<std::vector<std::vector<TH2I*> > >  timigVs1_BetaHists; //gives average 1/beta
+  std::vector<std::vector<std::vector<TH2I*> > > timigVs1_BetaHists;  //gives average 1/beta
 
   TH1I* betaDist = nullptr;
 

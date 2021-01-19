@@ -9,23 +9,24 @@
 #include "L1Trigger/L1TkMuonBayes/interface/MuTimingModuleWithStat.h"
 #include "TF1.h"
 
-MuTimingModuleWithStat::MuTimingModuleWithStat(const ProcConfigurationBase* config): MuTimingModule(config),
-timigVs1_BetaHists(config->nLayers()) {
+MuTimingModuleWithStat::MuTimingModuleWithStat(const ProcConfigurationBase* config)
+    : MuTimingModule(config), timigVs1_BetaHists(config->nLayers()) {
   TFileDirectory subDir = fileService->mkdir("timingModule");
 
   //[layer][wheel_ring][etaBin][timing][1_Beta]
-  for(unsigned int iLayer = 0; iLayer < timigTo1_Beta.size(); ++iLayer) {
-    for(unsigned int iRoll = 0; iRoll < timigTo1_Beta[iLayer].size(); ++iRoll) {
+  for (unsigned int iLayer = 0; iLayer < timigTo1_Beta.size(); ++iLayer) {
+    for (unsigned int iRoll = 0; iRoll < timigTo1_Beta[iLayer].size(); ++iRoll) {
       timigVs1_BetaHists[iLayer].emplace_back();
-      for(unsigned int iEtaBin = 0; iEtaBin < timigTo1_Beta[iLayer][iRoll].size(); ++iEtaBin) {
+      for (unsigned int iEtaBin = 0; iEtaBin < timigTo1_Beta[iLayer][iRoll].size(); ++iEtaBin) {
         /*if(iLayer < 13 || iLayer > 22) {
           timigVs1_BetaHists[iLayer][iRoll].emplace_back(nullptr);
           continue;
         }*/
         std::ostringstream name;
-        name<<"timingHist_layer_"<<iLayer<<"_roll_"<<iRoll<<"_eta_"<<iEtaBin;
+        name << "timingHist_layer_" << iLayer << "_roll_" << iRoll << "_eta_" << iEtaBin;
         //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" creating timigVs1_BetaHists "<<name.str()<<std::endl;
-        TH2I* hist = subDir.make<TH2I>(name.str(). c_str(), name.str(). c_str(), 50, -10, 90, betaBins, -0.5, betaBins -0.5);
+        TH2I* hist =
+            subDir.make<TH2I>(name.str().c_str(), name.str().c_str(), 50, -10, 90, betaBins, -0.5, betaBins - 0.5);
         hist->GetXaxis()->SetTitle("hit timing [ns]");
         hist->GetYaxis()->SetTitle("(1/beta-1) * 4 + 1");
         timigVs1_BetaHists[iLayer][iRoll].emplace_back(hist);
@@ -37,109 +38,115 @@ timigVs1_BetaHists(config->nLayers()) {
   betaDist->GetXaxis()->SetTitle("beta");
 }
 
-MuTimingModuleWithStat::~MuTimingModuleWithStat() {
-}
+MuTimingModuleWithStat::~MuTimingModuleWithStat() {}
 
 void MuTimingModuleWithStat::process(AlgoMuonBase* algoMuon) {
-  if(algoMuon->getSimBeta() == 0) {
-    LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" algoMuon->getSimBeta() == 0 "<<std::endl;
+  if (algoMuon->getSimBeta() == 0) {
+    LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " algoMuon->getSimBeta() == 0 " << std::endl;
     return;
   }
 
   betaDist->Fill(algoMuon->getSimBeta());
 
-  unsigned int one_beta = betaTo1_betaBin(algoMuon->getSimBeta() );
-  LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" algoMuon SimBeta "<<algoMuon->getSimBeta()<<" one_beta "<<one_beta<<std::endl;
+  unsigned int one_beta = betaTo1_betaBin(algoMuon->getSimBeta());
+  LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " algoMuon SimBeta " << algoMuon->getSimBeta()
+                                << " one_beta " << one_beta << std::endl;
 
-  for(auto& stubResult : algoMuon->getStubResults() ) {
-    if(!stubResult.getValid())
+  for (auto& stubResult : algoMuon->getStubResults()) {
+    if (!stubResult.getValid())
       continue;
 
     unsigned int layer = stubResult.getMuonStub()->logicLayer;
-    unsigned int roll =  stubResult.getMuonStub()->roll;
+    unsigned int roll = stubResult.getMuonStub()->roll;
     unsigned int etaBin = etaHwToEtaBin(algoMuon->getEtaHw(), stubResult.getMuonStub());
 
     int hitTiming = stubResult.getMuonStub()->timing;
 
-    LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" layer "<<layer
-        <<" algoMuon eta "<<algoMuon->getEtaHw()<<" MuonStub eta "<<stubResult.getMuonStub()->etaHw<<"  etaSigma "<<stubResult.getMuonStub()->etaSigmaHw
-        <<" etaBin "<<etaBin<<" hitTiming "<<stubResult.getMuonStub()->timing<<std::endl;
+    LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " layer " << layer << " algoMuon eta "
+                                  << algoMuon->getEtaHw() << " MuonStub eta " << stubResult.getMuonStub()->etaHw
+                                  << "  etaSigma " << stubResult.getMuonStub()->etaSigmaHw << " etaBin " << etaBin
+                                  << " hitTiming " << stubResult.getMuonStub()->timing << std::endl;
 
     auto timigVs1_BetaHist = timigVs1_BetaHists.at(layer).at(roll).at(etaBin);
-    if(timigVs1_BetaHist)
+    if (timigVs1_BetaHist)
       timigVs1_BetaHist->Fill(hitTiming, one_beta);
   }
 }
 
-
 void MuTimingModuleWithStat::generateCoefficients() {
-  for(unsigned int iLayer = 0; iLayer < timigTo1_Beta.size(); ++iLayer) {
-    for(unsigned int iRoll = 0; iRoll < timigTo1_Beta[iLayer].size(); ++iRoll) {
-      for(unsigned int iEtaBin = 0; iEtaBin < timigTo1_Beta[iLayer][iRoll].size(); ++iEtaBin) {
+  for (unsigned int iLayer = 0; iLayer < timigTo1_Beta.size(); ++iLayer) {
+    for (unsigned int iRoll = 0; iRoll < timigTo1_Beta[iLayer].size(); ++iRoll) {
+      for (unsigned int iEtaBin = 0; iEtaBin < timigTo1_Beta[iLayer][iRoll].size(); ++iEtaBin) {
         auto timigVs1_BetaHist = timigVs1_BetaHists.at(iLayer).at(iRoll).at(iEtaBin);
-        if(!timigVs1_BetaHist)
+        if (!timigVs1_BetaHist)
           continue;
 
-        for(unsigned int iBetaBin = 0; iBetaBin < betaBins; iBetaBin++) {
-          for(unsigned int iTimingBin = 0; iTimingBin < timingBins; iTimingBin++) {
-            timigTo1_Beta.at(iLayer).at(iRoll).at(iEtaBin).at(iTimingBin).at(iBetaBin) = 0; //cleanig previous values
+        for (unsigned int iBetaBin = 0; iBetaBin < betaBins; iBetaBin++) {
+          for (unsigned int iTimingBin = 0; iTimingBin < timingBins; iTimingBin++) {
+            timigTo1_Beta.at(iLayer).at(iRoll).at(iEtaBin).at(iTimingBin).at(iBetaBin) = 0;  //cleanig previous values
           }
         }
 
         //timigVs1_BetaHist->Sumw2();
-        if(timigVs1_BetaHist->Integral() <= 0) {
+        if (timigVs1_BetaHist->Integral() <= 0) {
           //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" iLayer "<<iLayer<<" iRoll "<<iRoll<<" iEtaBin "<<iEtaBin<<" - no entries, coefficients not calculated"<<std::endl;
           continue;
         }
 
-        for(unsigned int iBetaBin = 0; iBetaBin < betaBins; iBetaBin++) {
+        for (unsigned int iBetaBin = 0; iBetaBin < betaBins; iBetaBin++) {
           //Normalize pdf in each betaBin separately, to get p(timing | beta, eta)
           std::ostringstream ostr;
-          ostr<<timigVs1_BetaHist->GetName()<<"_ptBin_"<<iBetaBin;
-          TH1D* timingHistInBetaBin = timigVs1_BetaHist->ProjectionX(ostr.str().c_str(), iBetaBin +1, iBetaBin +1); //+1 Because the bins in root hist are counted from 1
+          ostr << timigVs1_BetaHist->GetName() << "_ptBin_" << iBetaBin;
+          TH1D* timingHistInBetaBin = timigVs1_BetaHist->ProjectionX(
+              ostr.str().c_str(), iBetaBin + 1, iBetaBin + 1);  //+1 Because the bins in root hist are counted from 1
 
           timingHistInBetaBin->SetTitle(ostr.str().c_str());
 
           //timingHistInBetaBin->Sumw2();
-          if(timingHistInBetaBin->Integral() <= 0) {
-            edm::LogVerbatim("l1tOmtfEventPrint")<<__FUNCTION__<<": "<<__LINE__<<" iLayer "<<iLayer<<" iEtaBin "<<iEtaBin<<" iBetaBin "<<iBetaBin<<" - no entries, coefficients not calculated"<<std::endl;
+          if (timingHistInBetaBin->Integral() <= 0) {
+            edm::LogVerbatim("l1tOmtfEventPrint")
+                << __FUNCTION__ << ": " << __LINE__ << " iLayer " << iLayer << " iEtaBin " << iEtaBin << " iBetaBin "
+                << iBetaBin << " - no entries, coefficients not calculated" << std::endl;
             continue;
           }
 
-          timingHistInBetaBin->Scale(1./timingHistInBetaBin->Integral());
+          timingHistInBetaBin->Scale(1. / timingHistInBetaBin->Integral());
 
           const double minPdfVal = 0.01;
-          const double minPlog =  log(minPdfVal);
-          const double pdfMaxLogVal = 3; //the maximum value tha the logPdf can have (n.b. logPdf = pdfMaxLogVal - log(pdfVal) * pdfMaxLogVal / minPlog)
+          const double minPlog = log(minPdfVal);
+          const double pdfMaxLogVal =
+              3;  //the maximum value tha the logPdf can have (n.b. logPdf = pdfMaxLogVal - log(pdfVal) * pdfMaxLogVal / minPlog)
 
-
-          for(int iTimingHistBin = 1; iTimingHistBin <= timingHistInBetaBin->GetXaxis()->GetNbins(); iTimingHistBin++) {
+          for (int iTimingHistBin = 1; iTimingHistBin <= timingHistInBetaBin->GetXaxis()->GetNbins();
+               iTimingHistBin++) {
             double pdfVal = timingHistInBetaBin->GetBinContent(iTimingHistBin);
             double logPdf = 0;
             //double error = 0;
-            if(pdfVal >= minPdfVal) {
+            if (pdfVal >= minPdfVal) {
               logPdf = pdfMaxLogVal - log(pdfVal) * pdfMaxLogVal / minPlog;
             }
 
             int timing = timingHistInBetaBin->GetXaxis()->GetBinLowEdge(iTimingHistBin);
             unsigned int timingBin = timingToTimingBin(timing);
 
-            timigTo1_Beta.at(iLayer).at(iRoll).at(iEtaBin).at(timingBin).at(iBetaBin) = + round(logPdf); //in the timingHistInBetaBin there are bins with negative timing. after round it will not be very good
+            timigTo1_Beta.at(iLayer).at(iRoll).at(iEtaBin).at(timingBin).at(iBetaBin) = +round(
+                logPdf);  //in the timingHistInBetaBin there are bins with negative timing. after round it will not be very good
             //pdfHistInPtBin->SetBinContent(iTimingHistBin, logPdf);
 
-            if(timigTo1_Beta.at(iLayer).at(iRoll).at(iEtaBin).at(timingBin).at(iBetaBin) > pdfMaxLogVal)
-              timigTo1_Beta.at(iLayer).at(iRoll).at(iEtaBin).at(timingBin).at(iBetaBin) = pdfMaxLogVal; //should be not needed if the above is corrected
+            if (timigTo1_Beta.at(iLayer).at(iRoll).at(iEtaBin).at(timingBin).at(iBetaBin) > pdfMaxLogVal)
+              timigTo1_Beta.at(iLayer).at(iRoll).at(iEtaBin).at(timingBin).at(iBetaBin) =
+                  pdfMaxLogVal;  //should be not needed if the above is corrected
 
-            edm::LogVerbatim("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" layer "<<iLayer<<" roll "<<iRoll<<" etaBin "<<iEtaBin<<" iBetaBin "<<iBetaBin
-                <<" iTimingHistBin "<<iTimingHistBin<<" iTimingBin "<<timingBin<<" timing "<<timing<<" logPdf "<<logPdf<<std::endl;
+            edm::LogVerbatim("l1tOmtfEventPrint")
+                << __FUNCTION__ << ":" << __LINE__ << " layer " << iLayer << " roll " << iRoll << " etaBin " << iEtaBin
+                << " iBetaBin " << iBetaBin << " iTimingHistBin " << iTimingHistBin << " iTimingBin " << timingBin
+                << " timing " << timing << " logPdf " << logPdf << std::endl;
           }
-
         }
       }
     }
   }
 }
-
 
 /*void MuTimingModuleWithStat::generateCoefficients() {
   for(unsigned int iLayer = 0; iLayer < timigTo1_Beta.size(); ++iLayer) {

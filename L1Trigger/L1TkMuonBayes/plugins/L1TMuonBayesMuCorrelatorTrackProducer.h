@@ -20,7 +20,7 @@
 #include <vector>
 
 class L1TMuonBayesMuCorrelatorTrackProducer : public edm::EDProducer {
- public:
+public:
   L1TMuonBayesMuCorrelatorTrackProducer(const edm::ParameterSet&);
 
   ~L1TMuonBayesMuCorrelatorTrackProducer() override;
@@ -30,16 +30,17 @@ class L1TMuonBayesMuCorrelatorTrackProducer : public edm::EDProducer {
   void endJob() override;
 
   void beginRun(edm::Run const& run, edm::EventSetup const& iSetup) override;
-  
+
   void produce(edm::Event&, const edm::EventSetup&) override;
 
-  static constexpr char allTracksProductName[] = "AllTracks"; //all tracks produced by the muon correlator, without additional cuts
-  static constexpr char muonTracksProductName[] = "MuonTracks"; //"fast" tracks, i.e. with at least two muon stubs in the same bx as ttRack (=> not HSCPs) and with some cuts reducing rate
-  static constexpr char hscpTracksProductName[] = "HscpTracks"; //"slow" tracks, i.e. exclusive versus the "fast" tracks and passing some cuts
+  static constexpr char allTracksProductName[] =
+      "AllTracks";  //all tracks produced by the muon correlator, without additional cuts
+  static constexpr char muonTracksProductName[] =
+      "MuonTracks";  //"fast" tracks, i.e. with at least two muon stubs in the same bx as ttRack (=> not HSCPs) and with some cuts reducing rate
+  static constexpr char hscpTracksProductName[] =
+      "HscpTracks";  //"slow" tracks, i.e. exclusive versus the "fast" tracks and passing some cuts
 
- private:
-
-
+private:
   void readPdfs(IPdfModule* pdfModule, std::string fileName);
   void writePdfs(const IPdfModule* pdfModule, std::string fileName);
 
@@ -47,17 +48,17 @@ class L1TMuonBayesMuCorrelatorTrackProducer : public edm::EDProducer {
   void writeTimingModule(const MuTimingModule* muTimingModule, std::string fileName);
 
   edm::ParameterSet edmParameterSet;
-  
-/*  edm::EDGetTokenT<L1MuDTChambPhContainer> inputTokenDTPh;
+
+  /*  edm::EDGetTokenT<L1MuDTChambPhContainer> inputTokenDTPh;
   edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDTTh;
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> inputTokenCSC;
   edm::EDGetTokenT<RPCDigiCollection> inputTokenRPC;*/
 
-  edm::EDGetTokenT< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > > ttTrackToken;
+  edm::EDGetTokenT<std::vector<TTTrack<Ref_Phase2TrackerDigi_> > > ttTrackToken;
 
-  edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimTracks; //TODO remove
+  edm::EDGetTokenT<edm::SimTrackContainer> inputTokenSimTracks;  //TODO remove
 
-  edm::EDGetTokenT< std::vector< TrackingParticle > > trackingParticleToken;
+  edm::EDGetTokenT<std::vector<TrackingParticle> > trackingParticleToken;
 
   bool dumpResultToXML = false;
 
@@ -77,4 +78,3 @@ class L1TMuonBayesMuCorrelatorTrackProducer : public edm::EDProducer {
 };
 
 #endif
-

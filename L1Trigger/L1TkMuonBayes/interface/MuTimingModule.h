@@ -22,38 +22,37 @@ public:
 
   virtual void process(AlgoMuonBase* algoMuon);
 
-  template<class Archive>
-  void serialize(Archive & ar, const unsigned int version)
-  {
-      ar & BOOST_SERIALIZATION_NVP(rolls);
-      ar & BOOST_SERIALIZATION_NVP(etaBins);
-      ar & BOOST_SERIALIZATION_NVP(timingBins);
-      ar & BOOST_SERIALIZATION_NVP(betaBins);
+  template <class Archive>
+  void serialize(Archive& ar, const unsigned int version) {
+    ar& BOOST_SERIALIZATION_NVP(rolls);
+    ar& BOOST_SERIALIZATION_NVP(etaBins);
+    ar& BOOST_SERIALIZATION_NVP(timingBins);
+    ar& BOOST_SERIALIZATION_NVP(betaBins);
 
-      ar & BOOST_SERIALIZATION_NVP(timigTo1_Beta);
+    ar& BOOST_SERIALIZATION_NVP(timigTo1_Beta);
   }
 
 protected:
-  const ProcConfigurationBase* config; //TODO is this needed?
+  const ProcConfigurationBase* config;  //TODO is this needed?
 
   virtual unsigned int etaHwToEtaBin(int trackEtaHw, const MuonStubPtr& muonStub) const;
 
   virtual unsigned int betaTo1_betaBin(double beta) const;
 
-  virtual float one_betaBinToBeta(unsigned int one_betaBin) const; //one_betaBin one over beta
+  virtual float one_betaBinToBeta(unsigned int one_betaBin) const;  //one_betaBin one over beta
 
   virtual unsigned int timingToTimingBin(int timing) const;
 
   //[layer][roll][etaBin][timing] = 1_Beta_bin
-  std::vector<std::vector<std::vector<std::vector<std::vector<short> > > > > timigTo1_Beta; //gives average 1/beta
+  std::vector<std::vector<std::vector<std::vector<std::vector<short> > > > > timigTo1_Beta;  //gives average 1/beta
 
   //[layer][etaBin][timing]
   //std::vector<std::vector<std::vector<int> > >  timigTo1_Beta;
 
-  unsigned int rolls = 9; //in the barrel abs(wheel) is used
+  unsigned int rolls = 9;  //in the barrel abs(wheel) is used
   unsigned int etaBins = 4;
   unsigned int timingBins = 40;
-  unsigned int betaBins = 16; //8 per BX, betaBins[0] reserved for no-beta, betaBins[1] - beta = 1
+  unsigned int betaBins = 16;  //8 per BX, betaBins[0] reserved for no-beta, betaBins[1] - beta = 1
 };
 
 #endif /* INTERFACE_MUTIMINGMODULE_H_ */

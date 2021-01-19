@@ -16,7 +16,7 @@
 
 class TrackingTriggerTrack {
 public:
-/*  TrackingTriggerTrack(double phi, double eta,  double pt, int charge) : phi(phi), eta(eta), pt(pt), charge(charge) {
+  /*  TrackingTriggerTrack(double phi, double eta,  double pt, int charge) : phi(phi), eta(eta), pt(pt), charge(charge) {
     //todo convert to hw scale
   };
 
@@ -24,96 +24,54 @@ public:
     //todo convert to physics scale
   };*/
 
-
   TrackingTriggerTrack(const SimTrackRef& simTrackPtr);
 
-  TrackingTriggerTrack(const edm::Ptr< TrackingParticle >& trackingParticlePtr);
+  TrackingTriggerTrack(const edm::Ptr<TrackingParticle>& trackingParticlePtr);
 
-  TrackingTriggerTrack(const edm::Ptr< TTTrack< Ref_Phase2TrackerDigi_ > >& ttTrackPtr, int l1Tk_nPar);
+  TrackingTriggerTrack(const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& ttTrackPtr, int l1Tk_nPar);
 
-  int getCharge() const {
-    return charge;
-  }
+  int getCharge() const { return charge; }
 
-  double getEta() const {
-    return eta;
-  }
+  double getEta() const { return eta; }
 
-  double getPhi() const {
-    return phi;
-  }
+  double getPhi() const { return phi; }
 
-  double getPt() const {
-    return pt;
-  }
+  double getPt() const { return pt; }
 
-  int getEtaHw() const {
-    return etaHw;
-  }
+  int getEtaHw() const { return etaHw; }
 
-  int getPhiHw() const {
-    return phiHw;
-  }
+  int getPhiHw() const { return phiHw; }
 
-  int getPtHw() const {
-    return ptHw;
-  }
+  int getPtHw() const { return ptHw; }
 
-  void setEtaHw(int etaHw = 0) {
-    this->etaHw = etaHw;
-  }
+  void setEtaHw(int etaHw = 0) { this->etaHw = etaHw; }
 
-  void setPhiHw(int phiHw = 0) {
-    this->phiHw = phiHw;
-  }
+  void setPhiHw(int phiHw = 0) { this->phiHw = phiHw; }
 
-  void setPtHw(int ptHw = 0) {
-    this->ptHw = ptHw;
-  }
+  void setPtHw(int ptHw = 0) { this->ptHw = ptHw; }
 
   //index in the tTTrackHandle or in the SimTrackHanlde
-  unsigned int getIndex() const {
-    return index;
-  }
+  unsigned int getIndex() const { return index; }
 
-  unsigned int getEtaBin() const {
-    return etaBin;
-  }
+  unsigned int getEtaBin() const { return etaBin; }
 
-  void setEtaBin(unsigned int etaBin = 0) {
-    this->etaBin = etaBin;
-  }
+  void setEtaBin(unsigned int etaBin = 0) { this->etaBin = etaBin; }
 
-  unsigned int getPtBin() const {
-    return ptBin;
-  }
+  unsigned int getPtBin() const { return ptBin; }
 
-  void setPtBin(unsigned int ptBin = 0) {
-    this->ptBin = ptBin;
-  }
+  void setPtBin(unsigned int ptBin = 0) { this->ptBin = ptBin; }
 
+  double getSimBeta() const { return simBeta; }
 
-  double getSimBeta() const {
-    return simBeta;
-  }
+  void setSimBeta(double simBeta = 0) { this->simBeta = simBeta; }
 
-  void setSimBeta(double simBeta = 0) {
-    this->simBeta = simBeta;
-  }
+  friend std::ostream& operator<<(std::ostream& out, const TrackingTriggerTrack& ttTrack);
 
-  friend std::ostream & operator << (std::ostream &out, const TrackingTriggerTrack& ttTrack);
+  const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& getTTTrackPtr() const { return ttTrackPtr; }
 
-  const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& getTTTrackPtr() const {
-    return ttTrackPtr;
-  }
+  const SimTrackRef& getSimTrackRef() const { return simTrackRef; }
 
-  const SimTrackRef& getSimTrackRef() const {
-    return simTrackRef;
-  }
-
-  const edm::Ptr<TrackingParticle>& getTrackingParticlePtr() const {
-    return trackingParticlePtr;
-  }
+  const edm::Ptr<TrackingParticle>& getTrackingParticlePtr() const { return trackingParticlePtr; }
 
 private:
   double phi = 0;
@@ -128,22 +86,19 @@ private:
   int etaHw = 0;
   int ptHw = 0;
 
-
   //used to address the LUTs
   unsigned int ptBin = 0;
   unsigned int etaBin = 0;
 
   unsigned int index = 0;
 
-
   //the "pointers" the either simTrack or trackingParticlePtr or ttTrack that was use to create this TrackingTriggerTrack, needed only for analysis
   SimTrackRef simTrackRef;
-  edm::Ptr< TrackingParticle > trackingParticlePtr;
-  edm::Ptr< TTTrack< Ref_Phase2TrackerDigi_ > > ttTrackPtr;
+  edm::Ptr<TrackingParticle> trackingParticlePtr;
+  edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > ttTrackPtr;
 };
 
 typedef std::shared_ptr<const TrackingTriggerTrack> TrackingTriggerTrackPtr;
 typedef std::vector<TrackingTriggerTrackPtr> TrackingTriggerTracks;
-
 
 #endif /* INTERFACE_TRACKINGTRIGGERTRACK_H_ */

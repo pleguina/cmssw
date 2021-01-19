@@ -18,7 +18,7 @@
 
 class IPdfModule {
 public:
-  IPdfModule(MuCorrelatorConfigPtr config): config(config) {}
+  IPdfModule(MuCorrelatorConfigPtr config) : config(config) {}
 
   virtual ~IPdfModule() {}
 
@@ -26,28 +26,35 @@ public:
 
   //virtual void processStub(const MuonStubPtr& stub, int layer, const TrackingTriggerTrackPtr& ttTrack, const MuonStubPtr refStub, AlgoTTMuonPtr algoTTMuon) = 0;
 
-  virtual void processStubs(const MuonStubsInput& muonStubs, unsigned int layer, const TrackingTriggerTrackPtr& ttTrack, const MuonStubPtr refStub, AlgoTTMuonPtr algoTTMuon) = 0;
+  virtual void processStubs(const MuonStubsInput& muonStubs,
+                            unsigned int layer,
+                            const TrackingTriggerTrackPtr& ttTrack,
+                            const MuonStubPtr refStub,
+                            AlgoTTMuonPtr algoTTMuon) = 0;
+
 protected:
   MuCorrelatorConfigPtr config;
 };
 
-
-
-class PdfModule: public IPdfModule {
+class PdfModule : public IPdfModule {
 public:
   PdfModule(MuCorrelatorConfigPtr& config);
 
-  virtual ~PdfModule() {}
+  ~PdfModule() override {}
 
   //assign the coefficients vectors and fills it with some dummy values
   void init();
 
   //adds the StubResult to the algoTTMuon
-  virtual void processStubs(const MuonStubsInput& muonStubs, unsigned int layer, const TrackingTriggerTrackPtr& ttTrack, const MuonStubPtr refStub, AlgoTTMuonPtr algoTTMuon);
-
+  void processStubs(const MuonStubsInput& muonStubs,
+                    unsigned int layer,
+                    const TrackingTriggerTrackPtr& ttTrack,
+                    const MuonStubPtr refStub,
+                    AlgoTTMuonPtr algoTTMuon) override;
 
   //refLayer = 0 means no ref layer is used
-  virtual float getPdfVal(unsigned int layer, unsigned int etaBin, unsigned int refLayer, unsigned int ptBin, int pdfBin);
+  virtual float getPdfVal(
+      unsigned int layer, unsigned int etaBin, unsigned int refLayer, unsigned int ptBin, int pdfBin);
 
   virtual float getExtrapolation(unsigned int layer, unsigned int etaBin, unsigned int refLayer, unsigned int ptBin);
 
@@ -63,11 +70,10 @@ public:
 
   friend class boost::serialization::access;
 
-  template<class Archive>
-  void serialize(Archive & ar, const unsigned int version)
-  {
-      ar & BOOST_SERIALIZATION_NVP(bitShift);
-      ar & BOOST_SERIALIZATION_NVP(coefficients);
+  template <class Archive>
+  void serialize(Archive& ar, const unsigned int version) {
+    ar& BOOST_SERIALIZATION_NVP(bitShift);
+    ar& BOOST_SERIALIZATION_NVP(coefficients);
   }
 
 protected:
@@ -79,7 +85,5 @@ protected:
 
   //boost::multi_array<short, 3> coefficients; -  cannot be use since the lengths of vectors varies between layers (1 eta bin for barrel layer, 8 or 16 for endcap)
 };
-
-
 
 #endif /* INTERFACE_PDFMODULE_H_ */

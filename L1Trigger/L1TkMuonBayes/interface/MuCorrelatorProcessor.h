@@ -8,7 +8,6 @@
 #ifndef MUCORRELATOR_MUCORRELATORPROCESSOR_H_
 #define MUCORRELATOR_MUCORRELATORPROCESSOR_H_
 
-
 #include "L1Trigger/L1TkMuonBayes/interface/AlgoTTMuon.h"
 #include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h"
 #include "L1Trigger/L1TkMuonBayes/interface/PdfModule.h"
@@ -23,8 +22,6 @@
 #include "boost/multi_array.hpp"
 #include "L1Trigger/L1TkMuonBayes/interface/MuTimingModule.h"
 
-
-
 class StandaloneCandWithStubs {
 public:
   l1t::RegionalMuonCand regionalCand;
@@ -33,7 +30,6 @@ public:
   unsigned int index;
 };
 
-
 typedef std::vector<StandaloneCandWithStubs> StandaloneCandWithStubsVec;
 
 class CorrelatorMuCandidate {
@@ -41,7 +37,6 @@ class CorrelatorMuCandidate {
 };
 
 typedef std::vector<CorrelatorMuCandidate> CorrelatorMuCandidates;
-
 
 class MuCorrelatorProcessor {
 public:
@@ -62,31 +57,36 @@ public:
   virtual AlgoTTMuons processTracks(const MuonStubsInput& muonStubs, const TrackingTriggerTracks& ttTracks);
 
   virtual AlgoTTMuonPtr processTrack(const MuonStubsInput& muonStubs, const TrackingTriggerTrackPtr& ttTrack);
-  virtual AlgoTTMuonPtr processTrackUsingRefStubs(const MuonStubsInput& muonStubs, const TrackingTriggerTrackPtr& ttTrack);
+  virtual AlgoTTMuonPtr processTrackUsingRefStubs(const MuonStubsInput& muonStubs,
+                                                  const TrackingTriggerTrackPtr& ttTrack);
 
   virtual MuonStubsInput selectStubs(const MuonStubsInput& muonStubs, const TrackingTriggerTrackPtr& ttTrack);
 
   virtual MuonStubPtrs1D selectRefStubs(const MuonStubsInput& muonStubs, const TrackingTriggerTrackPtr& ttTrack);
 
   //adds the StubResult to the algoTTMuon
-  virtual void processStubs(const MuonStubsInput& muonStubs, unsigned int layer, const TrackingTriggerTrackPtr& ttTrack, const MuonStubPtr refStub, AlgoTTMuonPtr algoTTMuon);
+  virtual void processStubs(const MuonStubsInput& muonStubs,
+                            unsigned int layer,
+                            const TrackingTriggerTrackPtr& ttTrack,
+                            const MuonStubPtr refStub,
+                            AlgoTTMuonPtr algoTTMuon);
 
   virtual AlgoTTMuons ghostBust(AlgoTTMuons& algoTTMuons);
 
   int ghostBust3(std::shared_ptr<AlgoTTMuon> first, std::shared_ptr<AlgoTTMuon> second);
   int ghostBust4(std::shared_ptr<AlgoTTMuon> first, std::shared_ptr<AlgoTTMuon> second);
 
-  virtual AlgoTTMuons processTracks(const StandaloneCandWithStubsVec& candsWithStubs, const TrackingTriggerTracks& ttTracks);
+  virtual AlgoTTMuons processTracks(const StandaloneCandWithStubsVec& candsWithStubs,
+                                    const TrackingTriggerTracks& ttTracks);
 
   AlgoTTMuonPtr processTrack(const StandaloneCandWithStubsVec& candsWithStubs, const TrackingTriggerTrackPtr& ttTrack);
 
   ///initial selection of the standalone candidates compatibile with a given ttTrack
   ///return vector to allow for an option when ex. two close stand alone candidates are selected for a given ttTrack, then final one is selected based on stubs
-  virtual StandaloneCandWithStubsVec selectCandsWithStubs(const StandaloneCandWithStubsVec& candsWithStubs, const TrackingTriggerTrackPtr& ttTrack);
+  virtual StandaloneCandWithStubsVec selectCandsWithStubs(const StandaloneCandWithStubsVec& candsWithStubs,
+                                                          const TrackingTriggerTrackPtr& ttTrack);
 
-  IPdfModule* getPdfModule() {
-    return pdfModule.get();
-  }
+  IPdfModule* getPdfModule() { return pdfModule.get(); }
 
   //virtual std::vector<l1t::RegionalMuonCand> getFinalCandidates(unsigned int iProcessor, l1t::tftype mtfType, AlgoTTMuons& algoTTMuons);
 
@@ -99,9 +99,7 @@ public:
     this->muTimingModule = std::move(muTimingModule);
   }
 
-  MuTimingModule* getMuTimingModule() {
-    return muTimingModule.get();
-  }
+  MuTimingModule* getMuTimingModule() { return muTimingModule.get(); }
 
 private:
   MuCorrelatorConfigPtr config;
@@ -111,12 +109,12 @@ private:
    * 1 if second kills first
    * 2 otherwise (none is killed)
    */
-  std::function<int (AlgoTTMuonPtr first, AlgoTTMuonPtr second)> ghostBustFunc;
+  std::function<int(AlgoTTMuonPtr first, AlgoTTMuonPtr second)> ghostBustFunc;
 
   unique_ptr<IPdfModule> pdfModule;
   unique_ptr<MuTimingModule> muTimingModule;
 
-  std::vector< std::pair<int, boost::dynamic_bitset<> > > lowQualityHitPatterns;
+  std::vector<std::pair<int, boost::dynamic_bitset<> > > lowQualityHitPatterns;
 };
 
 #endif /* INTERFACE_MUCORRELATOR_MUCORRELATORPROCESSOR_H_ */
