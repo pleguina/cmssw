@@ -13,15 +13,9 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/CandidateSimMuonMatcher.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/StubsSimHitsMatcher.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
-#include "TH1I.h"
-#include "TH2I.h"
-
-class RPCGeometry;
-class CSCGeometry;
-class DTGeometry;
 
 class EventCapture : public IOMTFEmulationObserver {
 public:
@@ -44,8 +38,6 @@ public:
   void observeEventEnd(const edm::Event& event,
                        std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
 
-  void stubsSimHitsMatching(const edm::Event& iEvent);
-
   void endJob() override;
 
 private:
@@ -60,23 +52,7 @@ private:
   std::vector<AlgoMuons> algoMuonsInProcs;
   std::vector<AlgoMuons> gbCandidatesInProcs;
 
-  edm::InputTag rpcSimHitsInputTag;
-  edm::InputTag cscSimHitsInputTag;
-  edm::InputTag  dtSimHitsInputTag;
-
-  edm::InputTag rpcDigiSimLinkInputTag;
-  edm::InputTag cscStripDigiSimLinksInputTag;
-  edm::InputTag dtDigiSimLinksInputTag;
-
-  // pointers to the current geometry records
-  unsigned long long _geom_cache_id = 0;
-  edm::ESHandle<RPCGeometry> _georpc;
-  edm::ESHandle<CSCGeometry> _geocsc;
-  edm::ESHandle<DTGeometry> _geodt;
-
-  TH2I* muonVsNotMuonStubs = nullptr;
-  TH1I* muonStubsInLayers = nullptr;
-  TH1I* notMuonStubsInLayers = nullptr;
+  StubsSimHitsMatcher stubsSimHitsMatcher;
 };
 
 #endif /* OMTF_EVENTCAPTURE_H_ */

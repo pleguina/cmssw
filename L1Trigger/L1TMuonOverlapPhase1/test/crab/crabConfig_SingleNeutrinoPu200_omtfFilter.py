@@ -1,7 +1,7 @@
 from CRABClient.UserUtilities import config #, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = 'omtf_nn_MC_analysis_SingleNeutrino_PU200_v3_t110'
+config.General.requestName = 'omtf_nn_MC_analysis_SingleNeutrino_PU200_v3_t111_test1'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
@@ -22,8 +22,8 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 30
 #config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'CRAB3_omtf_nn_MC_analysis_SingleNeutrino_PU200_v3_t110'
-config.Data.totalUnits = 1667
+config.Data.outputDatasetTag = 'CRAB3_omtf_nn_MC_analysis_SingleNeutrino_PU200_v3_t111_test1'
+config.Data.totalUnits = 60#1667
 config.Data.ignoreLocality = False
 
 config.section_("Debug")
@@ -33,4 +33,5 @@ config.Site.storageSite = 'T2_PL_Swierk'
 #config.Site.storageSite = 'T2_CH_CERN'
 #config.Site.whitelist = ['T2_US_Caltech', 'T3_US_Colorado']
 #config.Site.blacklist = ['T2_US_Purdue', 'T2_US_Florida', 'T2_US_MIT', 'T2_US_Nebraska', 'T2_US_Purdue', 'T2_US_UCSD', 'T2_US_Vanderbilt', 'T2_US_Wisconsin']
+config.Site.blacklist = ['T3_US_FNALLPC']
 #does not work, so no matter

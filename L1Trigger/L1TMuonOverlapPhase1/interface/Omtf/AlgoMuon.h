@@ -129,6 +129,7 @@ private:
   unsigned int index = 0;
 };
 
-typedef std::vector<std::shared_ptr<AlgoMuon> > AlgoMuons;
+typedef std::shared_ptr<AlgoMuon> AlgoMuonPtr;
+typedef std::vector<AlgoMuonPtr> AlgoMuons;
 
 #endif

@@ -135,19 +135,19 @@ bool trackingParticleIsMuonInOmtfBx0(const TrackingParticle& trackingParticle) {
   else
     return false;
 
+  if(trackingParticle.pt() < 2.5) //in the overlap, the propagation of muons with pt less then ~3.2 fails - the actual threshold depends slightly on eta,
+    return false;
 
   if(trackingParticle.parentVertex().isNonnull() )
-    edm::LogVerbatim("l1tOmtfEventPrint") <<"trackingParticleIsMuonInOmtfBx0, pdgId "<<std::setw(3)<<trackingParticle.pdgId()<<" pt "<<std::setw(9)<<trackingParticle.pt()
+    LogTrace("l1tOmtfEventPrint") <<"trackingParticleIsMuonInOmtfBx0, pdgId "<<std::setw(3)<<trackingParticle.pdgId()<<" pt "<<std::setw(9)<<trackingParticle.pt()
           <<" eta "<<std::setw(9)<<trackingParticle.momentum().eta()<<" phi "<<std::setw(9)<<trackingParticle.momentum().phi()<<" event "<<trackingParticle.eventId().event()
           <<" trackId "<<trackingParticle.g4Tracks().at(0).trackId()
           <<" parentVertex Rho "<<trackingParticle.parentVertex()->position().Rho()<<" eta "<<trackingParticle.parentVertex()->position().eta()<<" phi "<<trackingParticle.parentVertex()->position().phi()<<std::endl;
   else
-    edm::LogVerbatim("l1tOmtfEventPrint") <<"trackingParticleIsMuonInOmtfBx0, pdgId "<<std::setw(3)<<trackingParticle.pdgId()<<" pt "<<std::setw(9)<<trackingParticle.pt()
+    LogTrace("l1tOmtfEventPrint") <<"trackingParticleIsMuonInOmtfBx0, pdgId "<<std::setw(3)<<trackingParticle.pdgId()<<" pt "<<std::setw(9)<<trackingParticle.pt()
         <<" eta "<<std::setw(9)<<trackingParticle.momentum().eta()<<" phi "<<std::setw(9)<<trackingParticle.momentum().phi()
         <<" trackId "<<trackingParticle.g4Tracks().at(0).trackId();
 
-  if(trackingParticle.pt() < 2.5) //in the overlap, the propagation of muons with pt less then ~3.2 fails - the actual threshold depends slightly on eta,
-    return false;
 
   //if( (fabs(simTrack.momentum().eta()) >= 0.82 ) && (fabs(trackingParticle.momentum().eta()) <= 1.24) ) {
   if( (fabs(trackingParticle.momentum().eta()) >= 0.72 ) && (fabs(trackingParticle.momentum().eta()) <= 1.3) ) { //higher margin for matching, otherwise many candidates re marked as ghosts
@@ -176,8 +176,8 @@ bool trackingParticleIsMuonInOmtfEvent0(const TrackingParticle& trackingParticle
 void CandidateSimMuonMatcher::observeEventEnd(const edm::Event& event,
                                    std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates)
 {
-  AlgoMuons resultGbCandidates;
-  std::vector<const l1t::RegionalMuonCand*> ghostBustedCands = CandidateSimMuonMatcher::ghostBust(finalCandidates.get(), gbCandidates, resultGbCandidates);
+  AlgoMuons ghostBustedProcMuons;
+  std::vector<const l1t::RegionalMuonCand*> ghostBustedRegionalCands = CandidateSimMuonMatcher::ghostBust(finalCandidates.get(), gbCandidates, ghostBustedProcMuons);
 
   //event.getByToken(simTrackToken, simTraksHandle);
 
@@ -191,7 +191,7 @@ void CandidateSimMuonMatcher::observeEventEnd(const edm::Event& event,
     LogTrace("l1tOmtfEventPrint")<<"simTraksHandle size "<<simTraksHandle.product()->size()<<std::endl;;
 
     std::function<bool(const SimTrack& )> const& simTrackFilter = simTrackIsMuonInOmtfBx0; //TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    matchingResults = match(ghostBustedCands, simTraksHandle.product(), simVertices.product(), simTrackFilter);
+    matchingResults = match(ghostBustedRegionalCands, ghostBustedProcMuons, simTraksHandle.product(), simVertices.product(), simTrackFilter);
   }
   else if(edmCfg.exists("trackingParticleTag")) {
     edm::Handle<TrackingParticleCollection> trackingParticleHandle;
@@ -199,7 +199,7 @@ void CandidateSimMuonMatcher::observeEventEnd(const edm::Event& event,
     LogTrace("l1tOmtfEventPrint")<<"trackingParticleHandle size "<<trackingParticleHandle.product()->size()<<std::endl;;
 
     std::function<bool(const TrackingParticle& )> trackParticleFilter = trackingParticleIsMuonInOmtfBx0; //TODO!!!!!!!!!!!!!!!!!!!!!!!!!!
-    matchingResults = match(ghostBustedCands, trackingParticleHandle.product(), trackParticleFilter);
+    matchingResults = match(ghostBustedRegionalCands, ghostBustedProcMuons, trackingParticleHandle.product(), trackParticleFilter);
   }
 
 }
@@ -208,7 +208,7 @@ void CandidateSimMuonMatcher::endJob() {}
 
 
 std::vector<const l1t::RegionalMuonCand*> CandidateSimMuonMatcher::ghostBust(const l1t::RegionalMuonCandBxCollection* mtfCands,
-    const AlgoMuons& gbCandidates, AlgoMuons& resultGbCandidates)
+    const AlgoMuons& gbCandidates, AlgoMuons& ghostBustedProcMuons)
 {
   if(gbCandidates.size() != mtfCands->size() ) {
     edm::LogError("l1tOmtfEventPrint")<<"CandidateSimMuonMatcher::ghostBust(): gbCandidates.size() "<<gbCandidates.size()
@@ -245,10 +245,10 @@ std::vector<const l1t::RegionalMuonCand*> CandidateSimMuonMatcher::ghostBust(con
   for(unsigned int  i1 = 0; i1 < mtfCands->size(0); ++i1) {
     if(!isKilled[i1] && mtfCands->at( 0, i1 ).hwQual()) { //dropping candidates with quality 0 !!!!!!!!!!!!!!!!!!!! fixme if not needed
       resultCands.push_back(&(mtfCands->at( 0, i1 ) ));
-      resultGbCandidates.push_back( gbCandidates.at(i1) );
+      ghostBustedProcMuons.push_back( gbCandidates.at(i1) );
     }
 
-    LogTrace("l1tOmtfEventPrint") <<"CandidateSimMuonMatcher::ghostBust pt "<<std::setw(3)<<mtfCands->at( 0, i1 ).hwPt()<<" qual "<<std::setw(2)<<mtfCands->at( 0, i1 ).hwQual()
+    LogTrace("l1tOmtfEventPrint") <<"CandidateSimMuonMatcher::ghostBust\n  regionalCand pt "<<std::setw(3)<<mtfCands->at( 0, i1 ).hwPt()<<" qual "<<std::setw(2)<<mtfCands->at( 0, i1 ).hwQual()
         <<" proc "<<std::setw(2)<<mtfCands->at( 0, i1 ).processor()<<" eta "<<std::setw(4)<<mtfCands->at( 0, i1 ).hwEta()<<" gloablEta "<<std::setw(8)<<mtfCands->at( 0, i1 ).hwEta() * 0.010875
         <<" hwPhi "<<std::setw(3)<<mtfCands->at( 0, i1 ).hwPhi()
         <<" globalPhi "<<std::setw(8)<<hwGmtPhiToGlobalPhi(l1t::MicroGMTConfiguration::calcGlobalPhi( mtfCands->at( 0, i1 ).hwPhi(), mtfCands->at( 0, i1 ).trackFinderType(), mtfCands->at( 0, i1 ).processor() ) )
@@ -369,7 +369,7 @@ float normal_pdf(float x, float m, float s) {
     return inv_sqrt_2pi / s * std::exp(-0.5 * a * a);
 }
 
-MatchingResult CandidateSimMuonMatcher::match(const l1t::RegionalMuonCand* muonCand, const SimTrack& simTrack, TrajectoryStateOnSurface& tsof) {
+MatchingResult CandidateSimMuonMatcher::match(const l1t::RegionalMuonCand* muonCand, const AlgoMuonPtr& procMuon, const SimTrack& simTrack, TrajectoryStateOnSurface& tsof) {
   MatchingResult result(simTrack);
 
   double candGloablEta  = muonCand->hwEta() * 0.010875;
@@ -397,6 +397,7 @@ MatchingResult CandidateSimMuonMatcher::match(const l1t::RegionalMuonCand* muonC
     result.matchingLikelihood = normal_pdf(result.deltaPhi, mean, sigma); //TODO temporary solution
 
     result.muonCand = muonCand;
+    result.procMuon = procMuon;
 
     double treshold = 6. * sigma;
     if(simTrack.momentum().pt() > 20)
@@ -427,7 +428,7 @@ MatchingResult CandidateSimMuonMatcher::match(const l1t::RegionalMuonCand* muonC
   return result;
 }
 
-MatchingResult CandidateSimMuonMatcher::match(const l1t::RegionalMuonCand* muonCand, const TrackingParticle& trackingParticle, TrajectoryStateOnSurface& tsof) {
+MatchingResult CandidateSimMuonMatcher::match(const l1t::RegionalMuonCand* muonCand, const AlgoMuonPtr& procMuon, const TrackingParticle& trackingParticle, TrajectoryStateOnSurface& tsof) {
   MatchingResult result(trackingParticle);
 
   double candGloablEta  = muonCand->hwEta() * 0.010875;
@@ -458,6 +459,7 @@ MatchingResult CandidateSimMuonMatcher::match(const l1t::RegionalMuonCand* muonC
     result.matchingLikelihood = normal_pdf(result.deltaPhi, mean, sigma); //TODO temporary solution
 
     result.muonCand = muonCand;
+    result.procMuon = procMuon;
 
     double treshold = 6. * sigma;
     if(trackingParticle.pt() > 20)
@@ -489,7 +491,8 @@ MatchingResult CandidateSimMuonMatcher::match(const l1t::RegionalMuonCand* muonC
 }
 
 
-std::vector<MatchingResult> CandidateSimMuonMatcher::cleanMatching(std::vector<MatchingResult> matchingResults, std::vector<const l1t::RegionalMuonCand*>& muonCands) {
+std::vector<MatchingResult> CandidateSimMuonMatcher::cleanMatching(std::vector<MatchingResult> matchingResults,
+    std::vector<const l1t::RegionalMuonCand*>& muonCands, AlgoMuons& ghostBustedProcMuons) {
   //Cleaning the matching
   std::sort(matchingResults.begin(), matchingResults.end(),
       [](const MatchingResult& a, const MatchingResult& b)->bool { return a.matchingLikelihood > b.matchingLikelihood; } );
@@ -528,6 +531,7 @@ std::vector<MatchingResult> CandidateSimMuonMatcher::cleanMatching(std::vector<M
   }
 
   //adding the muonCand-s that were not matched, i.e. in order to analyze them later
+  unsigned int iCand = 0;
   for(auto& muonCand : muonCands) {
     bool isMatched = false;
     for(auto& matchingResult : cleanedMatchingResults) {
@@ -540,8 +544,10 @@ std::vector<MatchingResult> CandidateSimMuonMatcher::cleanMatching(std::vector<M
     if(!isMatched) {
       MatchingResult result;
       result.muonCand = muonCand;
+      result.procMuon = ghostBustedProcMuons.at(iCand);
       cleanedMatchingResults.push_back(result);
     }
+    iCand++;
   }
 
 
@@ -554,10 +560,11 @@ std::vector<MatchingResult> CandidateSimMuonMatcher::cleanMatching(std::vector<M
       LogTrace("l1tOmtfEventPrint")<<"no matched track ";
 
         //<<" propagation eta "<<std::setw(8)<<tsof.globalPosition().eta()<<" phi "<<tsof.globalPosition().phi()
-    if(result.muonCand)
+    if(result.muonCand) {
       LogTrace("l1tOmtfEventPrint")<<" muonCand pt "<<std::setw(8)<<result.muonCand->hwPt()<<" hwQual "<<result.muonCand->hwQual()<<" hwEta "<<result.muonCand->hwEta()
-        <<" deltaEta "<<std::setw(8)<<result.deltaEta<<" deltaPhi "<<std::setw(8)<<result.deltaPhi<<" Likelihood "<<std::setw(8)<<result.matchingLikelihood <<" result "<<(short)result.result
-        << std::endl;
+        <<" deltaEta "<<std::setw(8)<<result.deltaEta<<" deltaPhi "<<std::setw(8)<<result.deltaPhi<<" Likelihood "<<std::setw(8)<<result.matchingLikelihood <<" result "<<(short)result.result;
+      LogTrace("l1tOmtfEventPrint")<<" procMuon "<<*(result.procMuon)<< std::endl;
+    }
     else
       LogTrace("l1tOmtfEventPrint")<<" no muonCand "<<" result "<<(short)result.result<< std::endl;
   }
@@ -566,7 +573,8 @@ std::vector<MatchingResult> CandidateSimMuonMatcher::cleanMatching(std::vector<M
   return cleanedMatchingResults;
 }
 
-std::vector<MatchingResult> CandidateSimMuonMatcher::match(std::vector<const l1t::RegionalMuonCand*>& muonCands, const edm::SimTrackContainer* simTracks, const edm::SimVertexContainer* simVertices,
+std::vector<MatchingResult> CandidateSimMuonMatcher::match(std::vector<const l1t::RegionalMuonCand*>& muonCands, AlgoMuons& ghostBustedProcMuons,
+    const edm::SimTrackContainer* simTracks, const edm::SimVertexContainer* simVertices,
     std::function<bool(const SimTrack& )> const& simTrackFilter)
 {
   std::vector<MatchingResult> matchingResults;
@@ -596,20 +604,21 @@ std::vector<MatchingResult> CandidateSimMuonMatcher::match(std::vector<const l1t
 
     deltaPhiVertexProp->Fill(ptGen, simTrack.momentum().phi() - tsof.globalPosition().phi());*/
 
-
+    unsigned int iCand = 0;
     for(auto& muonCand : muonCands) {
       //int refLayer = (int)omtfCand->trackAddress().at(1);
       //int layerHits = (int)omtfCand->trackAddress().at(0);
       //std::bitset<18> layerHitBits(layerHits);
 
-      if(muonCand->hwQual() <= 1) //dropping very low quality candidates, as they are fakes usually
-        continue;
-
-      MatchingResult result = match(muonCand, simTrack, tsof);
-      if(result.result == MatchingResult::ResultType::matched) {
-        matchingResults.push_back(result);
-        matched = true;
+      //if(muonCand->hwQual() > 1)
+      {//dropping very low quality candidates, as they are fakes usually - has no sense, then the results are not conclusive
+        MatchingResult result = match(muonCand, ghostBustedProcMuons.at(iCand), simTrack, tsof);
+        if(result.result == MatchingResult::ResultType::matched) {
+          matchingResults.push_back(result);
+          matched = true;
+        }
       }
+      iCand++;
     }
 
     if(!matched) { //we are adding also if it was not matching to any candidate
@@ -624,10 +633,11 @@ std::vector<MatchingResult> CandidateSimMuonMatcher::match(std::vector<const l1t
     }
   }
 
-  return cleanMatching(matchingResults, muonCands);
+  return cleanMatching(matchingResults, muonCands, ghostBustedProcMuons);
 }
 
-std::vector<MatchingResult> CandidateSimMuonMatcher::match(std::vector<const l1t::RegionalMuonCand*>& muonCands, const TrackingParticleCollection* trackingParticles,
+std::vector<MatchingResult> CandidateSimMuonMatcher::match(std::vector<const l1t::RegionalMuonCand*>& muonCands, AlgoMuons& ghostBustedProcMuons,
+    const TrackingParticleCollection* trackingParticles,
     std::function<bool(const TrackingParticle& )> const& simTrackFilter)
 {
   std::vector<MatchingResult> matchingResults;
@@ -659,6 +669,7 @@ std::vector<MatchingResult> CandidateSimMuonMatcher::match(std::vector<const l1t
 
     deltaPhiVertexProp->Fill(ptGen, trackingParticle.momentum().phi() - tsof.globalPosition().phi());
 */
+    unsigned int iCand = 0;
     for(auto& muonCand : muonCands) {
       //int refLayer = (int)omtfCand->trackAddress().at(1);
       //int layerHits = (int)omtfCand->trackAddress().at(0);
@@ -669,8 +680,10 @@ std::vector<MatchingResult> CandidateSimMuonMatcher::match(std::vector<const l1t
 
       MatchingResult result;
       if(tsof.isValid()) {
-        result = match(muonCand, trackingParticle, tsof);
+        result = match(muonCand, ghostBustedProcMuons.at(iCand), trackingParticle,  tsof);
       }
+      iCand++;
+
       /*else //only for muons with pt < 3.5
         result = match(muonCand, trackingParticle);*/
 
@@ -687,7 +700,7 @@ std::vector<MatchingResult> CandidateSimMuonMatcher::match(std::vector<const l1t
     }
   }
 
-  return cleanMatching(matchingResults, muonCands);
+  return cleanMatching(matchingResults, muonCands, ghostBustedProcMuons);
 }
 
 

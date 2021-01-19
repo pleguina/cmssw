@@ -88,6 +88,7 @@ public:
   double matchingLikelihood = 0;
 
   const l1t::RegionalMuonCand* muonCand = nullptr;
+  AlgoMuonPtr procMuon; //Processor gbCandidate
 
   //to avoid using simTrack or trackingParticle
   double pdgId = 0;
@@ -129,9 +130,9 @@ public:
   //only candidates in the bx=0 are included
   //ghost busts at the same time the  mtfCands and the gbCandidates
   //gbCandidates - all gbCandidates from all processors, should be one-to-one as the mtfCands,
-  //and the resultGbCandidates are one-to-onr to the returned RegionalMuonCands
+  //and the ghostBustedProcMuons are one-to-onr to the returned RegionalMuonCands
   static std::vector<const l1t::RegionalMuonCand*> ghostBust(const l1t::RegionalMuonCandBxCollection* mtfCands,
-      const AlgoMuons& gbCandidates, AlgoMuons& resultGbCandidates);
+      const AlgoMuons& gbCandidates, AlgoMuons& ghostBustedProcMuons);
 
   FreeTrajectoryState simTrackToFts(const SimTrack& simTrack, const SimVertex& simVertex);
 
@@ -144,16 +145,19 @@ public:
   TrajectoryStateOnSurface propagate(const TrackingParticle& trackingParticle);
 
   //tsof should be the result of track propagation
-  MatchingResult match(const l1t::RegionalMuonCand* omtfCand, const SimTrack& simTrack, TrajectoryStateOnSurface& tsof);
+  MatchingResult match(const l1t::RegionalMuonCand* omtfCand, const AlgoMuonPtr& procMuon, const SimTrack& simTrack, TrajectoryStateOnSurface& tsof);
 
-  MatchingResult match(const l1t::RegionalMuonCand* omtfCand, const TrackingParticle& trackingParticle, TrajectoryStateOnSurface& tsof);
+  MatchingResult match(const l1t::RegionalMuonCand* omtfCand, const AlgoMuonPtr& procMuon, const TrackingParticle& trackingParticle, TrajectoryStateOnSurface& tsof);
 
-  std::vector<MatchingResult> cleanMatching(std::vector<MatchingResult> matchingResults, std::vector<const l1t::RegionalMuonCand*>& muonCands);
+  std::vector<MatchingResult> cleanMatching(std::vector<MatchingResult> matchingResults,
+      std::vector<const l1t::RegionalMuonCand*>& muonCands, AlgoMuons& ghostBustedProcMuons);
 
-  std::vector<MatchingResult> match(std::vector<const l1t::RegionalMuonCand*>& muonCands, const edm::SimTrackContainer* simTracks, const edm::SimVertexContainer* simVertices,
+  std::vector<MatchingResult> match(std::vector<const l1t::RegionalMuonCand*>& muonCands, AlgoMuons& ghostBustedProcMuons,
+      const edm::SimTrackContainer* simTracks, const edm::SimVertexContainer* simVertices,
       std::function<bool(const SimTrack& )> const& simTrackFilter);
 
-  std::vector<MatchingResult> match(std::vector<const l1t::RegionalMuonCand*>& muonCands, const TrackingParticleCollection* trackingParticles,
+  std::vector<MatchingResult> match(std::vector<const l1t::RegionalMuonCand*>& muonCands, AlgoMuons& ghostBustedProcMuons,
+      const TrackingParticleCollection* trackingParticles,
       std::function<bool(const TrackingParticle& )> const& simTrackFilter);
 
   std::vector<MatchingResult> getMatchingResults() {

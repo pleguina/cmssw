@@ -144,10 +144,12 @@ int AngleConverterBase::getProcessorPhi(int phiZero,
   //the phi conversion is done like above - and not simply converting the layer->centerOfStrip(halfStrip/2 +1).phi() - to mimic this what is done by the firmware,
   //where phi of the stub is calculated with use of the offset and scale provided by an register
 
+	/*
   auto localPoint = layer->toLocal(layer->centerOfStrip(halfStrip));
   LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << 147 << " csc: " <<csc.rawId()<<" "<< csc<<" layer "<<layer->id()<<" "<<layer->id().rawId()
       << " halfStrip "<<halfStrip<<" phiGlobal " << layer->centerOfStrip(halfStrip).phi()<<" local phi "<<localPoint.phi()<<" x "<<localPoint.x()<<" y "<<localPoint.y() <<std::endl;
-
+	*/
+	
   /*//debug
   auto radToDeg = [](double rad) { return (180. / M_PI * rad); };
   LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" "<<std::setw(16)<<csc<<" phiZero "<<phiZero<<" hs: "<<std::setw(3)<< halfStrip <<" phiHalfStrip0 "<<std::setw(10)<<radToDeg(phiHalfStrip0)<<" offset: " << offsetLoc
