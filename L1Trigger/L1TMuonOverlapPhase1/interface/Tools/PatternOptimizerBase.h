@@ -81,7 +81,7 @@ protected:
 
   TH1F* simMuPtSpectrum;
 
-  bool writeLayerStat =  false;
+  bool writeLayerStat = false;
 };
 
 #endif /* OMTF_PATTERNOPTIMIZERBASE_H_ */

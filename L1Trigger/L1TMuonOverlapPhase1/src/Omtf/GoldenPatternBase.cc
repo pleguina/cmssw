@@ -85,7 +85,7 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
     //for standard omtf foldPhi is not needed, but if one processor works for full phi then it is
     //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0)
     //std::cout<<__FUNCTION__<<":"<<__LINE__<<" itHit "<<itHit<<" phiMean "<<phiMean<<" phiRefHit "<<phiRefHit<<" phiDist "<<phiDist<<std::endl;
-    phiDist = phiDist >> this->getDistPhiBitShift(iLayer,  iRefLayer);
+    phiDist = phiDist >> this->getDistPhiBitShift(iLayer, iRefLayer);
     //N.B. >> works well also for negative numbers. NB2. if the shift is done here, it means that the phiMean in the xml should be the same as without shift
     //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0) std::cout<<__FUNCTION__<<":"<<__LINE__<<" phiDist "<<phiDist<<std::endl;
     if (abs(phiDist) < abs(phiDistMin)) {

@@ -33,9 +33,8 @@ void DtDigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
   // FIXME (MK): at least Ts2Tag selection is not correct! Check it
   //    if (digiIt.bxNum()!= 0 || digiIt.BxCnt()!= 0 || digiIt.Ts2Tag()!= 0 || digiIt.code()<4) continue;
 
-  if (digi.code() == 7 ||
-      digi.code() <
-          config->getMinDtPhiQuality())  //7 is empty digi, TODO update if the definition of the quality is changed
+  //7 is empty digi, TODO update if the definition of the quality is changed
+  if (digi.code() == 7 || digi.code() < config->getMinDtPhiQuality())
     return;
 
   unsigned int hwNumber = config->getLayerNumber(detid.rawId());

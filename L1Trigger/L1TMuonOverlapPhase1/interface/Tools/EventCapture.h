@@ -19,7 +19,8 @@
 
 class EventCapture : public IOMTFEmulationObserver {
 public:
-  EventCapture(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
+  EventCapture(const edm::ParameterSet& edmCfg,
+               const OMTFConfiguration* omtfConfig,
                CandidateSimMuonMatcher* candidateSimMuonMatcher);
 
   ~EventCapture() override;

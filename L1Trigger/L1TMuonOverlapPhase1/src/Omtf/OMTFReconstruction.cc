@@ -101,8 +101,8 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
     }
   }
 
-  if (omtfProc == nullptr &&
-      buildPatternsFromXml) {  //if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
+  //if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
+  if (omtfProc == nullptr && buildPatternsFromXml) {
     std::vector<std::string> patternsXMLFiles;
 
     if (edmParameterSet.exists("patternsXMLFile")) {
@@ -193,7 +193,8 @@ void OMTFReconstruction::addObservers() {
 
   if (edmParameterSet.exists("eventCaptureDebug"))
     if (edmParameterSet.getParameter<bool>("eventCaptureDebug")) {
-      observers.emplace_back(std::make_unique<EventCapture>(edmParameterSet, omtfConfig.get(), candidateSimMuonMatcher));
+      observers.emplace_back(
+          std::make_unique<EventCapture>(edmParameterSet, omtfConfig.get(), candidateSimMuonMatcher));
     }
 
   if (edmParameterSet.exists("dumpResultToROOT"))

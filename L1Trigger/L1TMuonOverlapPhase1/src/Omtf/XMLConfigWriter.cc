@@ -428,10 +428,7 @@ void XMLConfigWriter::writeGPData(GoldenPattern& aGP) {
 }
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-void XMLConfigWriter::writeGPData(GoldenPattern* aGP1,
-                                  GoldenPattern* aGP2,
-                                  GoldenPattern* aGP3,
-                                  GoldenPattern* aGP4) {
+void XMLConfigWriter::writeGPData(GoldenPattern* aGP1, GoldenPattern* aGP2, GoldenPattern* aGP3, GoldenPattern* aGP4) {
   std::ostringstream stringStr;
   auto setAttributeInt = [&](xercesc::DOMElement* domElement, std::string name, int value) -> void {
     stringStr << value;

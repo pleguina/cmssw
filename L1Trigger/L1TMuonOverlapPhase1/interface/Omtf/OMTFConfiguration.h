@@ -7,7 +7,7 @@
 #include <ostream>
 #include <memory>
 
-#undef BOOST_DISABLE_ASSERTS //TODO remove for production version
+#undef BOOST_DISABLE_ASSERTS  //TODO remove for production version
 #include "boost/multi_array.hpp"
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"

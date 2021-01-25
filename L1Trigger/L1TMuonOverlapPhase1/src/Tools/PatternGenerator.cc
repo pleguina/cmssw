@@ -16,13 +16,13 @@
 PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg,
                                    const OMTFConfiguration* omtfConfig,
                                    std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps)
-    : PatternOptimizerBase(edmCfg, omtfConfig, gps), eventCntPerGp(gps.size(), 0)
-{
-  edm::LogImportant("l1tOmtfEventPrint") << "constructing PatternGenerator, type: " <<edmCfg.getParameter< string >("patternGenerator")<< std::endl;
+    : PatternOptimizerBase(edmCfg, omtfConfig, gps), eventCntPerGp(gps.size(), 0) {
+  edm::LogImportant("l1tOmtfEventPrint") << "constructing PatternGenerator, type: "
+                                         << edmCfg.getParameter<string>("patternGenerator") << std::endl;
 
   goldenPatterns = gps;
 
-  if(edmCfg.getParameter< string >("patternGenerator") == "patternGen")
+  if (edmCfg.getParameter<string>("patternGenerator") == "patternGen")
     initPatternGen();
 }
 
@@ -43,7 +43,8 @@ void PatternGenerator::initPatternGen() {
     gp->iniStatisitics(statBinsCnt, 1);  //TODO
   }
 
-  edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::initPatternGen():" << __LINE__ << " goldenPatterns.size() " <<goldenPatterns.size()<< std::endl;
+  edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::initPatternGen():" << __LINE__
+                                         << " goldenPatterns.size() " << goldenPatterns.size() << std::endl;
 
   //GoldenPatternResult::setFinalizeFunction(3); TODO why it was this one????
   // edm::LogImportant("l1tOmtfEventPrint") << "reseting golden pattern !!!!!" << std::endl;
@@ -189,17 +190,16 @@ void PatternGenerator::observeEventEnd(const edm::Event& iEvent,
 }
 
 void PatternGenerator::endJob() {
-  if(edmCfg.getParameter< string >("patternGenerator") == "modifyClassProb")
+  if (edmCfg.getParameter<string>("patternGenerator") == "modifyClassProb")
     modifyClassProb(1);
-  else if(edmCfg.getParameter< string >("patternGenerator") == "groupPatterns")
+  else if (edmCfg.getParameter<string>("patternGenerator") == "groupPatterns")
     groupPatterns();
-  else if(edmCfg.getParameter< string >("patternGenerator") == "patternGen") {
+  else if (edmCfg.getParameter<string>("patternGenerator") == "patternGen") {
     upadatePdfs();
     writeLayerStat = true;
-  }
-  else if(edmCfg.getParameter< string >("patternGenerator") == "patternGenFromStat") {
+  } else if (edmCfg.getParameter<string>("patternGenerator") == "patternGenFromStat") {
     std::string rootFileName = edmCfg.getParameter<edm::FileInPath>("patternsROOTFile").fullPath();
-    edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::endJob() rootFileName "<<rootFileName<<std::endl;
+    edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::endJob() rootFileName " << rootFileName << std::endl;
     TFile inFile(rootFileName.c_str());
     //inFile.cd("layerStats");
     TDirectory* curDir = (TDirectory*)inFile.Get("layerStats");
@@ -215,26 +215,29 @@ void PatternGenerator::endJob() {
       for (unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
         for (unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
           ostrName.str("");
-          ostrName << "histLayerStat_PatNum_" << gp->key().theNumber << "_refLayer_" << iRefLayer << "_Layer_" << iLayer;
+          ostrName << "histLayerStat_PatNum_" << gp->key().theNumber << "_refLayer_" << iRefLayer << "_Layer_"
+                   << iLayer;
 
           TH1I* histLayerStat = (TH1I*)curDir->Get(ostrName.str().c_str());
 
-          if(histLayerStat) {
-            for(int iBin = 0; iBin < statBinsCnt; iBin++) {
-              gp->updateStat(iLayer, iRefLayer, iBin, 0, histLayerStat->GetBinContent(iBin+1) );
+          if (histLayerStat) {
+            for (int iBin = 0; iBin < statBinsCnt; iBin++) {
+              gp->updateStat(iLayer, iRefLayer, iBin, 0, histLayerStat->GetBinContent(iBin + 1));
             }
-          }
-          else {
-            edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::endJob() - reading histLayerStat: histogram not found "<<ostrName.str()<<std::endl;
+          } else {
+            edm::LogImportant("l1tOmtfEventPrint")
+                << "PatternGenerator::endJob() - reading histLayerStat: histogram not found " << ostrName.str()
+                << std::endl;
           }
         }
       }
     }
 
     TH1* simMuFoundByOmtfPt_fromFile = (TH1*)inFile.Get("simMuFoundByOmtfPt");
-    for(unsigned int iGp = 0; iGp < eventCntPerGp.size(); iGp++) {
+    for (unsigned int iGp = 0; iGp < eventCntPerGp.size(); iGp++) {
       eventCntPerGp[iGp] = simMuFoundByOmtfPt_fromFile->GetBinContent(simMuFoundByOmtfPt_fromFile->FindBin(iGp));
-      edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::endJob() - eventCntPerGp: iGp" <<iGp<<" - "<<eventCntPerGp[iGp]<<std::endl;
+      edm::LogImportant("l1tOmtfEventPrint")
+          << "PatternGenerator::endJob() - eventCntPerGp: iGp" << iGp << " - " << eventCntPerGp[iGp] << std::endl;
     }
 
     //TODO chose the desired grouping ///////////////
@@ -313,8 +316,9 @@ void PatternGenerator::upadatePdfs() {
       continue;
 
     int minHitCnt = minHitCntThresh * eventCntPerGp[gp->key().number()];  // //TODO tune threshold <<<<<<<<<<<<<<<<<<
-    edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::upadatePdfs() Calculating meanDistPhi " << gp->key()
-                                           << " eventCnt " << eventCntPerGp[gp->key().number()]<<" minHitCnt " <<minHitCnt<< std::endl;
+    edm::LogImportant("l1tOmtfEventPrint")
+        << "PatternGenerator::upadatePdfs() Calculating meanDistPhi " << gp->key() << " eventCnt "
+        << eventCntPerGp[gp->key().number()] << " minHitCnt " << minHitCnt << std::endl;
 
     for (unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
       for (unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
@@ -395,7 +399,8 @@ void PatternGenerator::upadatePdfs() {
   for (auto& gp : goldenPatterns) {
     if (gp->key().thePt == 0)
       continue;
-    int minHitCnt = 2 * minHitCntThresh * eventCntPerGp[gp->key().number()];  // //TODO tune threshold <<<<<<<<<<<<<<<<<<
+    int minHitCnt =
+        2 * minHitCntThresh * eventCntPerGp[gp->key().number()];  // //TODO tune threshold <<<<<<<<<<<<<<<<<<
 
     for (unsigned int iLayer = 0; iLayer < gp->getPdf().size(); ++iLayer) {
       for (unsigned int iRefLayer = 0; iRefLayer < gp->getPdf()[iLayer].size(); ++iRefLayer) {
@@ -476,7 +481,6 @@ void PatternGenerator::saveHists(TFile& outfile) {
   //TODO rather store the gp->getStatistics(), so the pdf calcualtion can be done without runnign on the data every time
 }
 
-
 void PatternGenerator::modifyClassProb(double step) {
   edm::LogImportant("l1tOmtfEventPrint") << __FUNCTION__ << ": " << __LINE__ << " Correcting P(C_k) " << std::endl;
   unsigned int iPdf = omtfConfig->nPdfBins() / 2;  // <<(omtfConfig->nPdfAddrBits()-1);
@@ -495,14 +499,15 @@ void PatternGenerator::modifyClassProb(double step) {
     else if (iRefLayer == 6 || iRefLayer == 7)  //bRPC
       step = 1.5;
 
-    edm::LogImportant("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " RefLayer " << iRefLayer << " step " << step << std::endl;
+    edm::LogImportant("l1tOmtfEventPrint")
+        << __FUNCTION__ << ":" << __LINE__ << " RefLayer " << iRefLayer << " step " << step << std::endl;
     for (int sign = -1; sign <= 1; sign++) {
       for (auto& gp : boost::adaptors::reverse(goldenPatterns)) {
         if (gp->key().thePt == 0 || gp->key().theCharge != sign)
           continue;
 
         double ptFrom = omtfConfig->getPatternPtRange(gp->key().theNumber).ptFrom;
-        double ptTo = omtfConfig->getPatternPtRange(gp->key().theNumber).ptTo ;
+        double ptTo = omtfConfig->getPatternPtRange(gp->key().theNumber).ptTo;
 
         double ptRange = ptTo - ptFrom;
 
@@ -514,15 +519,15 @@ void PatternGenerator::modifyClassProb(double step) {
         minPlog *= 2;
 
         //last bin of th eptRange goes to 10000, so here we change it to 1000
-        if(ptRange > 800)
+        if (ptRange > 800)
           ptRange = 800;
 
-        double norm =  0.001;
+        double norm = 0.001;
         double classProb = vxIntegMuRate(ptFrom, ptRange, 0.82, 1.24) * norm;
 
         int digitisedVal = rint(pdfMaxVal - log(classProb) / minPlog * pdfMaxVal);
 
-        int newPdfVal =  digitisedVal; //gp->getPdf()[refLayerLogicNumber][iRefLayer][iPdf]
+        int newPdfVal = digitisedVal;  //gp->getPdf()[refLayerLogicNumber][iRefLayer][iPdf]
         //if(ptFrom > 60)
         //  newPdfVal += 1;
 
@@ -541,19 +546,17 @@ void PatternGenerator::modifyClassProb(double step) {
         if(ptFrom == 200)
           newPdfVal = 13; */
 
-        if(ptFrom == 0)
+        if (ptFrom == 0)
           newPdfVal = 20;
-        if(ptFrom == 200)
-          newPdfVal = 15;          
+        if (ptFrom == 200)
+          newPdfVal = 15;
 
         gp->setPdfValue(newPdfVal, refLayerLogicNumber, iRefLayer, iPdf);
 
-
-        edm::LogImportant("l1tOmtfEventPrint")<< gp->key() << " "
-            << omtfConfig->getPatternPtRange(gp->key().theNumber).ptFrom << " - "
+        edm::LogImportant("l1tOmtfEventPrint")
+            << gp->key() << " " << omtfConfig->getPatternPtRange(gp->key().theNumber).ptFrom << " - "
             << omtfConfig->getPatternPtRange(gp->key().theNumber).ptTo << " GeV"
-            <<" ptRange "<<ptRange << " RefLayer " << iRefLayer << " newPdfVal " << newPdfVal << std::endl;
-
+            << " ptRange " << ptRange << " RefLayer " << iRefLayer << " newPdfVal " << newPdfVal << std::endl;
       }
     }
   }
@@ -563,50 +566,47 @@ void PatternGenerator::reCalibratePt() {
   edm::LogImportant("l1tOmtfEventPrint") << __FUNCTION__ << ": " << __LINE__ << " reCalibratePt" << std::endl;
   std::map<int, float> ptMap;
   //for Patterns_0x0009_oldSample_3_10Files_classProb2.xml
-  ptMap[  7] =   4.0 ;
-  ptMap[  8] =   4.5 ;
-  ptMap[  9] =   5.0 ;
-  ptMap[ 10] =   5.5 ;
-  ptMap[ 11] =   6.0 ;
-  ptMap[ 13] =   7.0 ;
-  ptMap[ 15] =   8.5 ;
-  ptMap[ 17] =   9.5 ;
-  ptMap[ 21] =  12.0 ;
-  ptMap[ 25] =  14.0 ;
-  ptMap[ 29] =  16.0 ;
-  ptMap[ 33] =  18.5 ;
-  ptMap[ 37] =  21.0 ;
-  ptMap[ 41] =  23.0 ;
-  ptMap[ 45] =  26.0 ;
-  ptMap[ 49] =  28.0 ;
-  ptMap[ 53] =  30.0 ;
-  ptMap[ 57] =  32.0 ;
-  ptMap[ 61] =  36.0 ;
-  ptMap[ 71] =  40.0 ;
-  ptMap[ 81] =  48.0 ;
-  ptMap[ 91] =  54.0 ;
-  ptMap[101] =  60.0 ;
-  ptMap[121] =  70.0 ;
-  ptMap[141] =  82.0 ;
-  ptMap[161] =  96.0 ;
-  ptMap[201] = 114.0 ;
-  ptMap[401] = 200.0 ;
-
+  ptMap[7] = 4.0;
+  ptMap[8] = 4.5;
+  ptMap[9] = 5.0;
+  ptMap[10] = 5.5;
+  ptMap[11] = 6.0;
+  ptMap[13] = 7.0;
+  ptMap[15] = 8.5;
+  ptMap[17] = 9.5;
+  ptMap[21] = 12.0;
+  ptMap[25] = 14.0;
+  ptMap[29] = 16.0;
+  ptMap[33] = 18.5;
+  ptMap[37] = 21.0;
+  ptMap[41] = 23.0;
+  ptMap[45] = 26.0;
+  ptMap[49] = 28.0;
+  ptMap[53] = 30.0;
+  ptMap[57] = 32.0;
+  ptMap[61] = 36.0;
+  ptMap[71] = 40.0;
+  ptMap[81] = 48.0;
+  ptMap[91] = 54.0;
+  ptMap[101] = 60.0;
+  ptMap[121] = 70.0;
+  ptMap[141] = 82.0;
+  ptMap[161] = 96.0;
+  ptMap[201] = 114.0;
+  ptMap[401] = 200.0;
 
   for (auto& gp : goldenPatterns) {
     if (gp->key().thePt == 0)
       continue;
 
-    int newPt = omtfConfig->ptGevToHw( ptMap[gp->key().thePt] );
-    edm::LogImportant("l1tOmtfEventPrint")<<gp->key().thePt<<" -> "<< newPt<<std::endl;
+    int newPt = omtfConfig->ptGevToHw(ptMap[gp->key().thePt]);
+    edm::LogImportant("l1tOmtfEventPrint") << gp->key().thePt << " -> " << newPt << std::endl;
 
-    gp->key().setPt( newPt );
-
+    gp->key().setPt(newPt);
   }
 }
 
 void PatternGenerator::groupPatterns() {
-
   int group = 0;
   int indexInGroup = 0;
   for (auto& gp : goldenPatterns) {
@@ -615,14 +615,15 @@ void PatternGenerator::groupPatterns() {
     gp->key().setIndexInGroup(indexInGroup);
     //indexInGroup is counted from 1
 
-    edm::LogImportant("l1tOmtfEventPrint") << "setGroup(group): group "<<group <<" indexInGroup "<<indexInGroup<< std::endl;
+    edm::LogImportant("l1tOmtfEventPrint")
+        << "setGroup(group): group " << group << " indexInGroup " << indexInGroup << std::endl;
 
-    if(gp->key().thePt <= 10 && indexInGroup == 2) { //TODO
+    if (gp->key().thePt <= 10 && indexInGroup == 2) {  //TODO
       indexInGroup = 0;
       group++;
     }
 
-    if(gp->key().thePt > 10 && indexInGroup == 4) { //TODO
+    if (gp->key().thePt > 10 && indexInGroup == 4) {  //TODO
       indexInGroup = 0;
       group++;
     }
@@ -637,7 +638,6 @@ void PatternGenerator::groupPatterns() {
     }
     edm::LogImportant("l1tOmtfEventPrint") << std::endl;
   }
-
 
   int pdfBins = exp2(omtfConfig->nPdfAddrBits());
 
@@ -656,9 +656,9 @@ void PatternGenerator::groupPatterns() {
             if (gp->meanDistPhiValue(iLayer, iRefLayer) != 0)
               mergedCnt++;
             edm::LogImportant("l1tOmtfEventPrint")
-                                              << __FUNCTION__ << ": " << __LINE__ << " iGroup " << iGroup << " numInGroup " << i << " " << gp->key()
-                                              << " iLayer " << iLayer << " iRefLayer " << iRefLayer
-                                              <<" old meanDistPhiValue "<<gp->meanDistPhiValue(iLayer, iRefLayer)<<endl;
+                << __FUNCTION__ << ": " << __LINE__ << " iGroup " << iGroup << " numInGroup " << i << " " << gp->key()
+                << " iLayer " << iLayer << " iRefLayer " << iRefLayer << " old meanDistPhiValue "
+                << gp->meanDistPhiValue(iLayer, iRefLayer) << endl;
           }
 
           if (mergedCnt) {
@@ -669,33 +669,34 @@ void PatternGenerator::groupPatterns() {
             for (unsigned int i = 0; i < patternGroups[iGroup].size(); i++) {
               auto gp = goldenPatterns.at(patternGroups[iGroup][i]).get();
               unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefLayer];
-              if(refLayerLogicNum != iLayer)
-              {
-                int shift = meanDistPhi - gp->meanDistPhiValue(iLayer, iRefLayer) ;
+              if (refLayerLogicNum != iLayer) {
+                int shift = meanDistPhi - gp->meanDistPhiValue(iLayer, iRefLayer);
                 edm::LogImportant("l1tOmtfEventPrint")
-                                  << __FUNCTION__ << ": " << __LINE__ << " iGroup " << iGroup << " numInGroup " << i << " " << gp->key()
-                                  << " iLayer " << iLayer << " iRefLayer " << iRefLayer
-                                  << " new meanDistPhi after averaging "<< meanDistPhi
-                                  <<" old meanDistPhiValue "<<gp->meanDistPhiValue(iLayer, iRefLayer)
-                                  <<" shift "<<shift<< endl;
+                    << __FUNCTION__ << ": " << __LINE__ << " iGroup " << iGroup << " numInGroup " << i << " "
+                    << gp->key() << " iLayer " << iLayer << " iRefLayer " << iRefLayer
+                    << " new meanDistPhi after averaging " << meanDistPhi << " old meanDistPhiValue "
+                    << gp->meanDistPhiValue(iLayer, iRefLayer) << " shift " << shift << endl;
 
-                if(shift < 0) {
-                  for (int iBin = 1 -shift ; iBin < pdfBins; iBin++) {  //iBin = 0 i.e. no hit is included here, to have the proper norm
+                if (shift < 0) {
+                  for (int iBin = 1 - shift; iBin < pdfBins;
+                       iBin++) {  //iBin = 0 i.e. no hit is included here, to have the proper norm
                     auto pdfVal = gp->pdfValue(iLayer, iRefLayer, iBin);
                     gp->setPdfValue(pdfVal, iLayer, iRefLayer, iBin + shift);
-                    edm::LogImportant("l1tOmtfEventPrint")<<"     iBin "<<iBin<<"  iBin + shift "<<iBin + shift<<" pdfVal "<<pdfVal<<endl;
+                    edm::LogImportant("l1tOmtfEventPrint")
+                        << "     iBin " << iBin << "  iBin + shift " << iBin + shift << " pdfVal " << pdfVal << endl;
                   }
-                  for (int iBin = pdfBins + shift ; iBin < pdfBins; iBin++) {
+                  for (int iBin = pdfBins + shift; iBin < pdfBins; iBin++) {
                     gp->setPdfValue(0, iLayer, iRefLayer, iBin);
                   }
-                }
-                else if(shift > 0) {
-                  for (int iBin = pdfBins -1 - shift; iBin > 0 ; iBin--) {  //iBin = 0 i.e. no hit is included here, to have the proper norm
+                } else if (shift > 0) {
+                  for (int iBin = pdfBins - 1 - shift; iBin > 0;
+                       iBin--) {  //iBin = 0 i.e. no hit is included here, to have the proper norm
                     auto pdfVal = gp->pdfValue(iLayer, iRefLayer, iBin);
                     gp->setPdfValue(pdfVal, iLayer, iRefLayer, iBin + shift);
-                    edm::LogImportant("l1tOmtfEventPrint")<<"     iBin "<<iBin<<"  iBin + shift "<<iBin + shift<<" pdfVal "<<pdfVal<<endl;
+                    edm::LogImportant("l1tOmtfEventPrint")
+                        << "     iBin " << iBin << "  iBin + shift " << iBin + shift << " pdfVal " << pdfVal << endl;
                   }
-                  for (int iBin = shift ; iBin > 0; iBin--) {
+                  for (int iBin = shift; iBin > 0; iBin--) {
                     gp->setPdfValue(0, iLayer, iRefLayer, iBin);
                   }
                 }

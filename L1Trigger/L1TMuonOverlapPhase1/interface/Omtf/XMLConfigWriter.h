@@ -49,10 +49,7 @@ public:
 
   void writeGPData(GoldenPattern& aGP);
 
-  void writeGPData(GoldenPattern* aGP1,
-                   GoldenPattern* aGP2,
-                   GoldenPattern* aGP3,
-                   GoldenPattern* aGP4);
+  void writeGPData(GoldenPattern* aGP1, GoldenPattern* aGP2, GoldenPattern* aGP3, GoldenPattern* aGP4);
 
   template <class GoldenPatternType>
   void writeGPs(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats, std::string fName);

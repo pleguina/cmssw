@@ -44,7 +44,6 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
       return true;
   };
 
-
   auto customLessByFPLLH = [&](const AlgoMuons::value_type& a, const AlgoMuons::value_type& b) -> bool {
     if (!a->isValid()) {
       return true;
@@ -55,15 +54,14 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
 
     if (a->getQ() > b->getQ())
       return false;
-    else if (a->getQ() == b->getQ() ) {
+    else if (a->getQ() == b->getQ()) {
       return false;
-    } else if (a->getQ() == b->getQ()  && a->getDisc() > b->getDisc())
+    } else if (a->getQ() == b->getQ() && a->getDisc() > b->getDisc())
       return false;
-    else if (a->getQ() == b->getQ()  && a->getDisc() == b->getDisc() &&
-             a->getPatternNumber() > b->getPatternNumber())
+    else if (a->getQ() == b->getQ() && a->getDisc() == b->getDisc() && a->getPatternNumber() > b->getPatternNumber())
       return false;
-    else if (a->getQ() == b->getQ()  && a->getDisc() == b->getDisc() &&
-             a->getPatternNumber() == b->getPatternNumber() && a->getRefHitNumber() < b->getRefHitNumber())
+    else if (a->getQ() == b->getQ() && a->getDisc() == b->getDisc() && a->getPatternNumber() == b->getPatternNumber() &&
+             a->getRefHitNumber() < b->getRefHitNumber())
       return false;
     else
       return true;
@@ -81,8 +79,8 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
       return false;
     else if (a->getDisc() == b->getDisc() && a->getPatternNumber() > b->getPatternNumber())
       return false;
-    else if (a->getDisc() == b->getDisc() && a->getPatternNumber() == b->getPatternNumber()
-        && a->getRefHitNumber() < b->getRefHitNumber())
+    else if (a->getDisc() == b->getDisc() && a->getPatternNumber() == b->getPatternNumber() &&
+             a->getRefHitNumber() < b->getRefHitNumber())
       return false;
     else
       return true;
@@ -114,9 +112,9 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
       return true;
   };*/
 
-  if(omtfConfig->getGhostBusterType() == "byLLH")
+  if (omtfConfig->getGhostBusterType() == "byLLH")
     std::sort(muonsIN.rbegin(), muonsIN.rend(), customLessByLLH);
-  else if(omtfConfig->getGhostBusterType() == "byFPLLH")
+  else if (omtfConfig->getGhostBusterType() == "byFPLLH")
     std::sort(muonsIN.rbegin(), muonsIN.rend(), customLessByFPLLH);
   else
     std::sort(muonsIN.rbegin(), muonsIN.rend(), customLess);

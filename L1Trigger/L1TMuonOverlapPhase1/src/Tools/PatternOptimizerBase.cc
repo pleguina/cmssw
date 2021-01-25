@@ -224,7 +224,7 @@ void PatternOptimizerBase::savePatternsInRoot(std::string rootFileName) {
   gStyle->SetOptStat(111111);
   TFile outfile(rootFileName.c_str(), "RECREATE");
   cout << __FUNCTION__ << ": " << __LINE__ << " out fileName " << rootFileName << " outfile->GetName() "
-       << outfile.GetName()<<" writeLayerStat "<<writeLayerStat << endl;
+       << outfile.GetName() << " writeLayerStat " << writeLayerStat << endl;
 
   outfile.cd();
   simMuFoundByOmtfPt->Write();
@@ -293,7 +293,7 @@ void PatternOptimizerBase::savePatternsInRoot(std::string rootFileName) {
         hist->Write();
 
         /////////////////////// histLayerStat
-        if(writeLayerStat) {
+        if (writeLayerStat) {
           string histName = "histLayerStat_" + ostrName.str();
           unsigned int binCnt = gp->getStatistics()[iLayer][iRefLayer].size();
           TH1I* histLayerStat = new TH1I(histName.c_str(), histName.c_str(), binCnt, -0.5, binCnt - 0.5);

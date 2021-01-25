@@ -46,17 +46,11 @@ struct Key {
 
   unsigned int theIndexInGroup = 0;  //starts from 1, as in xml
 
-  void setPt(int pt) {
-    thePt = pt;
-  }
+  void setPt(int pt) { thePt = pt; }
 
-  void setGroup(int group) {
-    theGroup = group;
-  }
+  void setGroup(int group) { theGroup = group; }
 
-  void setIndexInGroup(unsigned int indexInGroup) {
-    theIndexInGroup = indexInGroup;
-  }
+  void setIndexInGroup(unsigned int indexInGroup) { theIndexInGroup = indexInGroup; }
 };
 //////////////////////////////////
 // Golden Pattern

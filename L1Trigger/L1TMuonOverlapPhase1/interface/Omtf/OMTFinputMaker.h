@@ -44,7 +44,7 @@ public:
 
 private:
   const OMTFConfiguration* config = nullptr;
-  const OmtfAngleConverter* angleConverter;
+  const OmtfAngleConverter* angleConverter = nullptr;
 };
 
 class CscDigiToStubsConverterOmtf : public CscDigiToStubsConverter {
@@ -67,7 +67,7 @@ public:
 
 private:
   const OMTFConfiguration* config = nullptr;
-  const OmtfAngleConverter* angleConverter;
+  const OmtfAngleConverter* angleConverter = nullptr;
 };
 
 class RpcDigiToStubsConverterOmtf : public RpcDigiToStubsConverter {
@@ -92,7 +92,7 @@ public:
 
 private:
   const OMTFConfiguration* config = nullptr;
-  const OmtfAngleConverter* angleConverter;
+  const OmtfAngleConverter* angleConverter = nullptr;
 };
 
 class OMTFinputMaker : public MuonStubMakerBase {
