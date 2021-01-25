@@ -73,6 +73,10 @@ public:
 
   virtual void setMinDtPhiBQuality(int minDtPhiBQuality = 2) { this->minDtPhiBQuality = minDtPhiBQuality; }
 
+  virtual bool getFixCscGeometryOffset() const { return fixCscGeometryOffset; }
+
+  virtual bool setFixCscGeometryOffset(bool fixCscGeometryOffset) { return this->fixCscGeometryOffset = fixCscGeometryOffset; }
+
 private:
   int cscLctCentralBx_ = 8;  //CSCConstants::LCT_CENTRAL_BX;
 
@@ -86,6 +90,8 @@ private:
   int minDtPhiQuality = 2;
 
   int minDtPhiBQuality = 2;  //used on the top of the minDtPhiQuality
+
+  bool fixCscGeometryOffset = false;
 };
 
 #endif /* INTERFACE_PROCCONFIGURATIONBASE_H_ */
