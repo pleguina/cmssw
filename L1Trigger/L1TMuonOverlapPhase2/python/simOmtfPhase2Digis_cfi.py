@@ -10,7 +10,7 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   srcRPC = cms.InputTag('simMuonRPCDigis'), 
   srcDTPhPhase2 = cms.InputTag('dtTriggerPhase2PrimitiveDigis'),
   
-  g4SimTrackSrc = cms.InputTag('g4SimHits'),                             
+  simTrackInputTag = cms.InputTag('g4SimHits'),                             
   dumpResultToXML = cms.bool(False),
   dumpDetailedResultToXML = cms.bool(False),
   XMLDumpFileName = cms.string("TestEvents.xml"),                                     

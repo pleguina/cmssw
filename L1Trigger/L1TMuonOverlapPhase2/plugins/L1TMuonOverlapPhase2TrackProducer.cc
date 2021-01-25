@@ -26,8 +26,11 @@ L1TMuonOverlapPhase2TrackProducer::L1TMuonOverlapPhase2TrackProducer(const edm::
                     consumes<L1Phase2MuDTPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPhPhase2"))) {
   produces<l1t::RegionalMuonCandBxCollection>("OMTF");
 
-  inputTokenSimHit =
-      consumes<edm::SimTrackContainer>(edmParameterSet.getParameter<edm::InputTag>("g4SimTrackSrc"));  //TODO remove
+  //is it needed?
+  if (edmParameterSet.exists("simTracksTag"))
+    mayConsume<edm::SimTrackContainer>(edmParameterSet.getParameter<edm::InputTag>("simTracksTag"));
+  //if(edmParameterSet.exists("simVertexesTag"))
+  //  mayConsume<edm::SimVertexContainer>(edmParameterSet.getParameter<edm::InputTag>("simVertexesTag") );
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////

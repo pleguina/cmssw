@@ -88,7 +88,7 @@ public:
 
 private:
   const OMTFConfiguration* config = nullptr;
-  const OmtfAngleConverter* angleConverter;
+  const OmtfAngleConverter* angleConverter = nullptr;
 };
 
 class InputMakerPhase2 : public OMTFinputMaker {
