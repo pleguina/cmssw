@@ -63,7 +63,7 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event& event,
   } else if (bx != 0 || ttTracksSource == TRACKING_PARTICLES) {
     edm::Handle<std::vector<TrackingParticle> > trackingParticlesHandle;
     event.getByLabel(edmCfg.getParameter<edm::InputTag>("TrackingParticleInputTag"), trackingParticlesHandle);
-    //std::cout<<__FUNCTION__<<":"<<__LINE__<<" simTks.size() "<<simTks->size()<<std::endl;
+    //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" trackingParticlesHandle.size() "<<trackingParticlesHandle->size()<<std::endl;
     for (unsigned int iTP = 0; iTP != trackingParticlesHandle->size(); iTP++) {
       edm::Ptr<TrackingParticle> trackingParticlePtr(trackingParticlesHandle, iTP);
 
@@ -79,15 +79,16 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event& event,
           addTTTrack(ttTracks, ttTrack, procConf);
           //if(ttTrack->getPt() > 20)
 
-          //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" bx "<<bx<<" adding ttTrack from TrackingParticle: pdgId "<<trackingParticlePtr->pdgId()<<" genParticles().size() "<<trackingParticlePtr->genParticles().size()
-          //          <<" Beta() "<<trackingParticlePtr->p4().Beta()<<" added track "<<*ttTrack<<std::endl;
+          //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" bx "<<bx<<" adding ttTrack from TrackingParticle: pdgId "
+          //    <<std::setw(6)<<trackingParticlePtr->pdgId()<<" genParticles().size() "<<trackingParticlePtr->genParticles().size()
+          //          <<" Beta() "<<std::setw(8)<<trackingParticlePtr->p4().Beta()<<" added track "<<*ttTrack<<std::endl;
         }
       }
     }
   } else if (ttTracksSource == L1_TRACKER) {
     edm::Handle<std::vector<TTTrack<Ref_Phase2TrackerDigi_> > > tTTrackHandle;
     event.getByLabel(edmCfg.getParameter<edm::InputTag>("L1TrackInputTag"), tTTrackHandle);
-    //cout << __FUNCTION__<<":"<<__LINE__ << " LTTTrackHandle->size() "<<tTTrackHandle->size() << endl;
+    //LogTrace("l1tOmtfEventPrint") << __FUNCTION__<<":"<<__LINE__ << " LTTTrackHandle->size() "<<tTTrackHandle->size() << std::endl;
 
     for (unsigned int iTTTrack = 0; iTTTrack != tTTrackHandle->size(); iTTTrack++) {
       edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > ttTrackPtr(tTTrackHandle, iTTTrack);

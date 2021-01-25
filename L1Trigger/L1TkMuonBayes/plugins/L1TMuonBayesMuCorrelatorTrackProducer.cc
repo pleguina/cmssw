@@ -45,8 +45,9 @@ L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(con
       consumes<CSCCorrelatedLCTDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcCSC"));
   muStubsInputTokens.inputTokenRPC = consumes<RPCDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcRPC"));
 
-  edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2 =
-      consumes<L1Phase2MuDTPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPhPhase2"));
+  edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2;
+  if (edmParameterSet.exists("srcDTPhPhase2"))
+    inputTokenDTPhPhase2 = consumes<L1Phase2MuDTPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPhPhase2"));
 
   edm::InputTag l1TrackInputTag = cfg.getParameter<edm::InputTag>("L1TrackInputTag");
   ttTrackToken = consumes<std::vector<TTTrack<Ref_Phase2TrackerDigi_> > >(l1TrackInputTag);
@@ -67,7 +68,9 @@ L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(con
       edmParameterSet,
       muStubsInputTokens,
       inputTokenDTPhPhase2,
-      muCorrelatorConfig.get());  //TODO why muCorrelatorConfig is not passed here?
+      muCorrelatorConfig.get(),
+      new AngleConverterBase());  //MuCorrelatorInputMaker keeps the AngleConverter
+
   ttTracksInputMaker = std::make_unique<TTTracksInputMaker>(edmParameterSet);
 
   //Range of the BXes for which the emulation is performed,
@@ -85,7 +88,7 @@ L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(con
   //muCorrelatorConfig->setBxToProcess(useStubsFromAdditionalBxs + 1); TODO correct, now does not compile due to const
 
   for (unsigned int ptBin = 0; ptBin < muCorrelatorConfig->getPtHwBins().size(); ++ptBin) {
-    edm::LogInfo("l1tOmtfEventPrint") << "ptBin " << setw(2) << ptBin
+    edm::LogImportant("l1tOmtfEventPrint") << "ptBin " << setw(2) << ptBin
                                       << " range Hw: " << muCorrelatorConfig->ptBinString(ptBin, 0) << " = "
                                       << muCorrelatorConfig->ptBinString(ptBin, 1) << std::endl;
   }
@@ -139,7 +142,7 @@ void L1TMuonBayesMuCorrelatorTrackProducer::endJob() {
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::EventSetup const& iSetup) {
+void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::EventSetup const& eventSetup) {
   /*for(int ptHw = 0; ptHw < 512; ptHw++) {
     cout<<"ptHw "<<setw(3)<<ptHw<<" = "<<setw(5)<<muCorrelatorConfig->hwPtToGev(ptHw)<<" GeV ptBin "<<muCorrelatorConfig->ptHwToPtBin(ptHw)<<endl;
   }*/
@@ -164,8 +167,8 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
 
     if (edmParameterSet.exists("generatePdfs") && edmParameterSet.getParameter<bool>("generatePdfs")) {
       //dont read the pdf if they are going to be generated
-    } else if (edmParameterSet.exists(
-                   "pdfModuleFile")) {  //if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
+    } else if (edmParameterSet.exists("pdfModuleFile")) {
+      //if we read the patterns directly from the xml, we do it only once, at the beginning of the first run, not every run
       pdfModuleFile = edmParameterSet.getParameter<edm::FileInPath>("pdfModuleFile").fullPath();
       edm::LogImportant("l1tOmtfEventPrint") << " reading the pdfModule from file " << pdfModuleFile << std::endl;
       readPdfs(pdfModule, pdfModuleFile);
@@ -194,6 +197,8 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
 
     //the parameters can be overwritten from the python config
     muCorrelatorConfig->configureFromEdmParameterSet(edmParameterSet);
+
+    inputMaker->initialize(edmParameterSet, eventSetup);
   }
 }
 /////////////////////////////////////////////////////
@@ -217,10 +222,12 @@ void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const ed
         muonStubsInput.getMuonStubs(), 0, l1t::tftype::bmtf, bx, bx + useStubsFromAdditionalBxs);
     //std::cout<<muonStubsInput<<std::endl;
 
-    auto ttTRacks = ttTracksInputMaker->loadTTTracks(iEvent, bx, edmParameterSet, muCorrelatorConfig.get());
 
     LogTrace("l1tOmtfEventPrint") << "\n\nEvent " << iEvent.id().event() << " muonStubsInput bx " << bx << ": \n "
                                   << muonStubsInput << endl;
+
+    auto ttTRacks = ttTracksInputMaker->loadTTTracks(iEvent, bx, edmParameterSet, muCorrelatorConfig.get());
+    LogTrace("l1tOmtfEventPrint")<<" ttTRacks.size() " << ttTRacks.size()<< endl;
     for (auto& ttTRack : ttTRacks) {
       LogTrace("l1tOmtfEventPrint") << *ttTRack << endl;
     }
@@ -250,8 +257,8 @@ void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const ed
              (firedLayerBits.count() == 4 && muTrack.pdfSum() > 2200 && muTrack.getBetaLikelihood() >= 9) ||
              firedLayerBits.count() >= 5) &&
             ((muTrack.getTtTrackPtr().isNonnull() && muTrack.getTtTrackPtr()->chi2Red() < 200) ||
-             muTrack.getTtTrackPtr()
-                 .isNull())  //todo probably in firmware exactly like that will be not possible, rather cut of chi2 depending on the nStubs
+             muTrack.getTtTrackPtr().isNull())
+             //todo probably in firmware exactly like that will be not possible, rather cut of chi2 depending on the nStubs
         ) {
           hscpTracks->push_back(bx, muTrack);
         }

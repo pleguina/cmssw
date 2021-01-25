@@ -42,10 +42,8 @@ TrackingTriggerTrack::TrackingTriggerTrack(const edm::Ptr<TTTrack<Ref_Phase2Trac
   eta = ttTrackPtr->momentum().eta();
   phi = ttTrackPtr->momentum().phi();
 
-  charge =
-      (ttTrackPtr->rInv() > 0
-           ? 1
-           : -1);  //ttTRack.ge //where is the charge???? TODO check this, was changed in the CMSSW 11_x_x !!!!!!!!!!!!!
+  charge = (ttTrackPtr->rInv() > 0 ? 1 : -1);
+  //ttTRack.ge //where is the charge???? TODO check this, was changed in the CMSSW 11_x_x !!!!!!!!!!!!!
 
   index = ttTrackPtr.key();
 }

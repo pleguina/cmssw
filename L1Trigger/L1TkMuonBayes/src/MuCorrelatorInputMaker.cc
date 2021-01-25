@@ -8,6 +8,8 @@
 #include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorInputMaker.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/AngleConverterBase.h"
 
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
 //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
 void DtDigiToStubsConverterTkMu::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
                                               const L1MuDTChambPhDigi& digi,
@@ -25,12 +27,12 @@ void DtDigiToStubsConverterTkMu::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
 
   //if (digi.code() != 4 && digi.code() != 5 && digi.code() != 6) return; //TODO onluy for the pdf generation
   //if (digi.code() != 2 && digi.code() != 3 && digi.code() != 4 && digi.code() != 5 && digi.code() != 6) return;
-  if (digi.code() == 7 ||
-      digi.code() <
-          config->getMinDtPhiQuality())  //7 is empty digi, TODO update if the definition of the quality is changed
+
+  //7 is empty digi, TODO update if the definition of the quality is changed
+  if (digi.code() == 7 || digi.code() < config->getMinDtPhiQuality())
     return;
 
-  unsigned int iLayer = MuCorrelatorInputMaker::getLayerNumber(config, detid);
+  unsigned int iLayer = getLayerNumber(config, detid, false);
 
   MuonStub stub;
 
@@ -46,7 +48,7 @@ void DtDigiToStubsConverterTkMu::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
 
   stub.bx = digi.bxNum();  //TODO sholdn't  it be BxCnt()?
   //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
-  stub.timing = digi.bxNum() * 2;  //TODO temporary solution untill the real sub-bx timing is provided
+  stub.timing = digi.bxNum() * 2;  //TODO temporary solution until the real sub-bx timing is provided
 
   stub.roll = abs(digi.whNum());
   //if(roll.ring() == 0 && roll.sector() %2) {//in wheel zero in the odd sectors the chambers are placed from the other side than in even, thus the rolls have to be swapped
@@ -63,10 +65,11 @@ void DtDigiToStubsConverterTkMu::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
 void DtDigiToStubsConverterTkMu::addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers,
                                                const L1MuDTChambThDigi& thetaDigi,
                                                unsigned int iProcessor,
-                                               l1t::tftype procTyp) {
+                                               l1t::tftype procTyp) 
+{
   DTChamberId detid(thetaDigi.whNum(), thetaDigi.stNum(), thetaDigi.scNum() + 1);
 
-  unsigned int iLayer = MuCorrelatorInputMaker::getLayerNumber(config, detid, true);
+  unsigned int iLayer = getLayerNumber(config, detid, true);
 
   std::vector<EtaValue> etaSegments;
   angleConverter->getGlobalEta(thetaDigi, etaSegments);
@@ -102,21 +105,10 @@ void DtPhase2DigiToStubsConverterTkMu::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
                                                     l1t::tftype procTyp) {
   DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum() + 1);
 
-  ///Check Trigger primitive quality
-  ///Ts2Tag() == 0 - take only first track from DT Trigger Server
-  ///BxCnt()  == 0 - ??
-  ///code()>=3     - take only double layer hits, HH, HL and LL
-  // FIXME (MK): at least Ts2Tag selection is not correct! Check it
-  //    if (digiIt.bxNum()!= 0 || digiIt.BxCnt()!= 0 || digiIt.Ts2Tag()!= 0 || digiIt.code()<4) continue;
-
-  //if (digi.code() != 4 && digi.code() != 5 && digi.code() != 6) return; //TODO onluy for the pdf generation
-  //if (digi.code() != 2 && digi.code() != 3 && digi.code() != 4 && digi.code() != 5 && digi.code() != 6) return;
-  if (digi.quality() == 7 ||
-      digi.quality() <
-          config->getMinDtPhiQuality())  //7 is empty digi, TODO update if the definition of the quality is changed
+  if (digi.quality() < config->getMinDtPhiQuality())
     return;
 
-  unsigned int iLayer = MuCorrelatorInputMaker::getLayerNumber(config, detid);
+  unsigned int iLayer = DtDigiToStubsConverterTkMu::getLayerNumber(config, detid, false);
 
   MuonStub stub;
 
@@ -127,12 +119,13 @@ void DtPhase2DigiToStubsConverterTkMu::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   stub.etaHw = etaVal.eta;
   stub.etaSigmaHw = etaVal.etaSigma;
 
-  stub.phiBHw = digi.phiBend();
+  stub.phiBHw = digi.phiBend();  //phiB in Ph2 has 2018==1.4rad
   stub.qualityHw = digi.quality();
 
-  stub.bx = digi.bxNum();  //TODO sholdn't  it be BxCnt()?
-  //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
-  stub.timing = digi.bxNum() * 2;  //TODO temporary solution untill the real sub-bx timing is provided
+  // need to shift 20-BX to roll-back the shift introduced by the DT TPs
+  stub.bx = digi.bxNum() - 20;
+  //stub.timing = digi.bxNum() * 2;  //TODO temporary solution until the real sub-bx timing is provided
+  stub.timing = digi.t0();  //TODO check if the t0 provide the timing
 
   stub.roll = abs(digi.whNum());
   //if(roll.ring() == 0 && roll.sector() %2) {//in wheel zero in the odd sectors the chambers are placed from the other side than in even, thus the rolls have to be swapped
@@ -146,13 +139,14 @@ void DtPhase2DigiToStubsConverterTkMu::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
 }
 
+//TODO no phase2 DTChambThDigi yet, so we are using the phase1
 void DtPhase2DigiToStubsConverterTkMu::addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers,
                                                      const L1MuDTChambThDigi& thetaDigi,
                                                      unsigned int iProcessor,
                                                      l1t::tftype procTyp) {
   DTChamberId detid(thetaDigi.whNum(), thetaDigi.stNum(), thetaDigi.scNum() + 1);
 
-  unsigned int iLayer = MuCorrelatorInputMaker::getLayerNumber(config, detid, true);
+  unsigned int iLayer = DtDigiToStubsConverterTkMu::getLayerNumber(config, detid, true);
 
   std::vector<EtaValue> etaSegments;
   angleConverter->getGlobalEta(thetaDigi, etaSegments);
@@ -169,7 +163,7 @@ void DtPhase2DigiToStubsConverterTkMu::addDTetaStubs(MuonStubPtrs2D& muonStubsIn
     stub.phiBHw = 0;
     stub.qualityHw = etaVal.quality;
 
-    stub.bx = etaVal.bx;  //TODO sholdn't  it be BxCnt()?
+    stub.bx = etaVal.bx - 20;  //FIXME is -20 BX needed here????
     //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
 
     //stub.etaType = ?? TODO
@@ -185,11 +179,13 @@ void CscDigiToStubsConverterTkMu::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers,
                                               unsigned int rawid,
                                               const CSCCorrelatedLCTDigi& digi,
                                               unsigned int iProcessor,
-                                              l1t::tftype procTyp) {
+                                              l1t::tftype procTyp)
+{
   int bxOffset = config->cscLctCentralBx();
   CSCDetId detId(rawid);
   {
-    unsigned int iLayer = MuCorrelatorInputMaker::getLayerNumber(config, detId);
+    //unsigned int iLayer = MuCorrelatorInputMaker::getLayerNumber(config, detId);
+    unsigned int iLayer = getLayerNumber(detId, false);
 
     MuonStub stub;
     stub.type = MuonStub::CSC_PHI;
@@ -225,7 +221,7 @@ void CscDigiToStubsConverterTkMu::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers,
   }
 
   {  //adding eta stub
-    unsigned int iLayer = MuCorrelatorInputMaker::getLayerNumber(config, detId, true);
+    unsigned int iLayer = getLayerNumber( detId, true);
 
     MuonStub stub;
     stub.type = MuonStub::CSC_ETA;
@@ -272,7 +268,7 @@ void RpcDigiToStubsConverterTkMu::addRPCstub(MuonStubPtrs2D& muonStubsInLayers,
   //      std::cout <<"ADDING HIT: iLayer = " << iLayer << " iInput: " << iInput << " iPhi: " << iPhi << std::endl;
   //if (iLayer==17 && (iInput==0 || iInput==1)) continue;  // FIXME (MK) there is no RPC link for that input, because it is taken by DAQ link
 
-  unsigned int iLayer = MuCorrelatorInputMaker::getLayerNumber(config, roll);
+  unsigned int iLayer = getLayerNumber(roll);
 
   MuonStub stub;
   stub.type = MuonStub::RPC;
@@ -311,7 +307,6 @@ void RpcDigiToStubsConverterTkMu::addRPCstub(MuonStubPtrs2D& muonStubsInLayers,
   }
 
   stub.detId = rawid;
-
   MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
 
   //      if (cSize>2) flag |= 2;
@@ -332,11 +327,12 @@ void RpcDigiToStubsConverterTkMu::addRPCstub(MuonStubPtrs2D& muonStubsInLayers,
 MuCorrelatorInputMaker::MuCorrelatorInputMaker(const edm::ParameterSet& edmParameterSet,
                                                MuStubsInputTokens& muStubsInputTokens,
                                                edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2,
-                                               const MuCorrelatorConfig* config)
-    : MuonStubMakerBase(config), config(config) {
+                                               const MuCorrelatorConfig* config,
+                                               AngleConverterBase* angleConv)
+    : MuonStubMakerBase(config), config(config), angleConverter(angleConv) {
   if (!edmParameterSet.getParameter<bool>("dropDTPrimitives"))
     digiToStubsConverters.emplace_back(std::make_unique<DtDigiToStubsConverterTkMu>(
-        config, &angleConverter, muStubsInputTokens.inputTokenDtPh, muStubsInputTokens.inputTokenDtTh));
+        config, angleConverter.get(), muStubsInputTokens.inputTokenDtPh, muStubsInputTokens.inputTokenDtTh));
 
   if (edmParameterSet.getParameter<bool>("usePhase2DTPrimitives")) {
     if (edmParameterSet.getParameter<bool>("dropDTPrimitives") != true)
@@ -345,258 +341,26 @@ MuCorrelatorInputMaker::MuCorrelatorInputMaker(const edm::ParameterSet& edmParam
           "is not true");
     //if the Phase2DTPrimitives are used, then the phase1 DT primitives should be dropped
     digiToStubsConverters.emplace_back(std::make_unique<DtPhase2DigiToStubsConverterTkMu>(
-        config, &angleConverter, inputTokenDTPhPhase2, muStubsInputTokens.inputTokenDtTh));
+        config, angleConverter.get(), inputTokenDTPhPhase2, muStubsInputTokens.inputTokenDtTh));
   }
 
   if (!edmParameterSet.getParameter<bool>("dropCSCPrimitives"))
     digiToStubsConverters.emplace_back(
-        std::make_unique<CscDigiToStubsConverterTkMu>(config, &angleConverter, muStubsInputTokens.inputTokenCSC));
+        std::make_unique<CscDigiToStubsConverterTkMu>(config, angleConverter.get(), muStubsInputTokens.inputTokenCSC));
 
   if (!edmParameterSet.getParameter<bool>("dropRPCPrimitives"))
     digiToStubsConverters.emplace_back(std::make_unique<RpcDigiToStubsConverterTkMu>(
-        config, &angleConverter, &rpcClusterization, muStubsInputTokens.inputTokenRPC));
+        config, angleConverter.get(), &rpcClusterization, muStubsInputTokens.inputTokenRPC));
 }
 
 MuCorrelatorInputMaker::~MuCorrelatorInputMaker() {
   // TODO Auto-generated destructor stub
 }
 
-/*
-void MuCorrelatorInputMaker::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambPhDigi& digi,
-    const L1MuDTChambThContainer *dtThDigis,
-    unsigned int iProcessor, l1t::tftype procTyp)
-{
-
-  DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum()+1);
-
-  ///Check Trigger primitive quality
-  ///Ts2Tag() == 0 - take only first track from DT Trigger Server
-  ///BxCnt()  == 0 - ??
-  ///code()>=3     - take only double layer hits, HH, HL and LL
-  // FIXME (MK): at least Ts2Tag selection is not correct! Check it
-  //    if (digiIt.bxNum()!= 0 || digiIt.BxCnt()!= 0 || digiIt.Ts2Tag()!= 0 || digiIt.code()<4) continue;
-
-  if(digi.code() ==  7 || digi.code() < config->getMinDtPhiQuality()) //7 is empty digi, TODO update if the definition of the quality is changed
-    return;
-
-  unsigned int iLayer = MuCorrelatorInputMaker::getLayerNumber(config, detid);
-
-  MuonStub stub;
-
-  stub.type = MuonStub::DT_PHI;
-  stub.phiHw  =  angleConverter.getProcessorPhi(0, procTyp, digi.scNum(), digi.phi());
-
-  EtaValue etaVal = angleConverter.getGlobalEtaDt(detid);
-  stub.etaHw  = etaVal.eta;
-  stub.etaSigmaHw = etaVal.etaSigma;
-
-  stub.phiBHw = digi.phiB();
-  stub.qualityHw = digi.code();
-
-  stub.bx = digi.bxNum(); //TODO sholdn't  it be BxCnt()?
-  //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
-  stub.timing = digi.bxNum() * 2; //TODO temporary solution untill the real sub-bx timing is provided
-
-  stub.roll = abs(digi.whNum());
-  //if(roll.ring() == 0 && roll.sector() %2) {//in wheel zero in the odd sectors the chambers are placed from the other side than in even, thus the rolls have to be swapped
-    //not so easy - the cells are also readout from the other side. separate rolls are needed
-
-  //stub.etaType = ?? TODO
-
-  stub.logicLayer = iLayer;
-  stub.detId = detid;
-
-  MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
+void MuCorrelatorInputMaker::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es) {
+  MuonStubMakerBase::initialize(edmCfg, es);
+  angleConverter->checkAndUpdateGeometry(es, config);
 }
-
-
-void MuCorrelatorInputMaker::addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambThDigi& thetaDigi,
-    unsigned int iProcessor, l1t::tftype procTyp)
-{
-  DTChamberId detid(thetaDigi.whNum(), thetaDigi.stNum(), thetaDigi.scNum()+1);
-
-  unsigned int iLayer = getLayerNumber(detid, true);
-
-  std::vector<EtaValue> etaSegments;
-  angleConverter.getGlobalEta(thetaDigi, etaSegments);
-
-  for(auto& etaVal : etaSegments) {
-    MuonStub stub;
-
-    stub.type = MuonStub::DT_THETA;
-    //stub.phiHw  =  angleConverter.getProcessorPhi(0, procTyp, thetaDigi); TODO implement
-
-    stub.etaHw  = etaVal.eta;
-    stub.etaSigmaHw = etaVal.etaSigma;
-
-    stub.phiBHw = 0;
-    stub.qualityHw = etaVal.quality;
-
-    stub.bx = etaVal.bx; //TODO sholdn't  it be BxCnt()?
-    //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
-
-    //stub.etaType = ?? TODO
-
-    stub.logicLayer = iLayer;
-    stub.detId = detid;
-
-    MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
-  }
-}
-
-*/
-////////////////////////////////////////////
-////////////////////////////////////////////
-/*
-
-void MuCorrelatorInputMaker::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int rawid, const CSCCorrelatedLCTDigi& digi,
-   unsigned int iProcessor, l1t::tftype procTyp)
-{
-
-  int bxOffset = config->cscLctCentralBx();
-  CSCDetId detId(rawid);
-  {
-    unsigned int iLayer = getLayerNumber(detId);
-
-    MuonStub stub;
-    stub.type = MuonStub::CSC_PHI;
-    stub.phiHw  =  angleConverter.getProcessorPhi(0, procTyp, detId, digi);
-
-    EtaValue etaVal = angleConverter.getGlobalEtaCsc(rawid); //middle of the chamber
-    stub.etaHw  = etaVal.eta;
-    stub.etaSigmaHw = etaVal.etaSigma;
-
-    stub.phiBHw = digi.getPattern(); //TODO change to phiB when implemented
-    stub.qualityHw = digi.getQuality();
-
-    stub.bx = digi.getBX() - bxOffset; //TODO sholdn't  it be getBX0()?
-    //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
-    stub.timing = (digi.getBX() - bxOffset) * 2;
-
-    //stub.etaType = ?? TODO
-
-    stub.logicLayer = iLayer;
-    stub.detId = rawid;
-
-    if(detId.ring() == 4) //ME1/1 a, for //ME1/1 there is separate layer, so it should be ok move it to roll 1
-      stub.roll = 1;
-    else
-      stub.roll = abs(detId.ring()-1);
-
-    //stub.phi = config->getProcScalePhiToRad(stub.phiHw);
-    //stub.eta = config->hwEtaToEta(stub.etaHw);
-
-    MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
-
-    //cout<<__FUNCTION__<<":"<<__LINE__<<" adding CSC phi stub from chamber "<<detId<<" "<<stub<<endl;
-  }
-
-  { //adding eta stub
-    unsigned int iLayer = getLayerNumber(detId, true);
-
-    MuonStub stub;
-    stub.type = MuonStub::CSC_ETA;
-    //stub.phiHw  =  angleConverter.getProcessorPhi(0, procTyp, detId, digi);
-
-    EtaValue etaVal = angleConverter.getGlobalEta(rawid, digi); //eta of the segment, the separate phi and eta segments are added
-    stub.etaHw  = etaVal.eta;
-    stub.etaSigmaHw = etaVal.etaSigma;
-
-    stub.qualityHw = digi.getQuality();
-
-    stub.bx = digi.getBX() - bxOffset; //TODO sholdn't  it be getBX0()?
-    //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
-    stub.timing = (digi.getBX() - bxOffset) * 2;
-
-    //stub.etaType = ?? TODO
-
-    stub.logicLayer = iLayer;
-    stub.detId = rawid;
-
-    //stub.phi = config->getProcScalePhiToRad(stub.phiHw);
-    //stub.eta = config->hwEtaToEta(stub.etaHw);
-
-    MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
-
-    //cout<<__FUNCTION__<<":"<<__LINE__<<" adding CSC eta stub from chamber "<<detId<<" "<<stub<<endl;
-  }
-
-}
-*/
-
-////////////////////////////////////////////
-////////////////////////////////////////////
-/*
-void MuCorrelatorInputMaker::addRPCstub(MuonStubPtrs2D& muonStubsInLayers, const RPCDetId& roll, const RpcCluster& cluster,
-   unsigned int iProcessor, l1t::tftype procTyp) {
-  //      int iPhiHalfStrip1 = myangleConverter.getProcessorPhi(getProcessorPhiZero(iProcessor), type, roll, cluster.first);
-  //      int iPhiHalfStrip2 = myangleConverter.getProcessorPhi(getProcessorPhiZero(iProcessor), type, roll, cluster.second);
-
-  //unsigeint cSize =  cluster.size();
-
-  //      std::cout << " HStrip_1: " << iPhiHalfStrip1 <<" HStrip_2: "<<iPhiHalfStrip2<<" iPhi: " << iPhi << " cluster: ["<< cluster.first << ", "<<  cluster.second <<"]"<< std::endl;
-  //if (cSize>3) continue; this icut is allready in rpcClusterization.getClusters
-  unsigned int rawid = roll.rawId();
-  //      std::cout <<"ADDING HIT: iLayer = " << iLayer << " iInput: " << iInput << " iPhi: " << iPhi << std::endl;
-  //if (iLayer==17 && (iInput==0 || iInput==1)) continue;  // FIXME (MK) there is no RPC link for that input, because it is taken by DAQ link
-
-  unsigned int iLayer = getLayerNumber(roll);
-
-  MuonStub stub;
-  stub.type = MuonStub::RPC;
-  stub.phiHw  =  angleConverter.getProcessorPhi(0, procTyp, roll, cluster.firstStrip, cluster.lastStrip);
-
-  EtaValue etaVal = angleConverter.getGlobalEta(rawid, cluster.firstStrip);
-  stub.etaHw  = etaVal.eta;
-  stub.etaSigmaHw = etaVal.etaSigma;
-
-  angleConverter.AngleConverterBase::getGlobalEta(rawid, cluster.firstStrip);
-  //stub.phiBHw =
-  stub.qualityHw = cluster.size();
-  //stub.etaType = ?? TODO
-
-  stub.bx = cluster.bx;
-  stub.timing = cluster.timing;
-
-  stub.logicLayer = iLayer;
-
-  if(roll.region() == 0) {//barel
-    stub.roll = abs(roll.ring()) * 3 + roll.roll()-1;
-    if(roll.ring() == 0 && roll.sector() %2) {//in wheel zero in the odd sectors the chambers are placed from the other side than in even, thus the rolls have to be swapped
-      //not so easy - the strips are also readout from the other side. separate rolls are needed
-      if(stub.roll == 0)
-        stub.roll = 2;
-      else if(stub.roll == 1)
-        stub.roll = 0;
-    }
-  }
-  else {
-    if(roll.region() != 0  &&  abs(roll.station()) >= 3 && roll.ring() == 1 ) { //iRPC
-      stub.roll = 0; //todo fix when the iRPC rolls understood
-    }
-    else
-      stub.roll = (roll.ring() -1) * 3 + roll.roll()-1;
-  }
-
-  stub.detId = rawid;
-
-  MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
-
-  //      if (cSize>2) flag |= 2;
-  //      if (!outres) flag |= 1;
-
-  std::ostringstream str;
-  str <<" RPC halfDigi "
-      <<" begin: "<<cluster.firstStrip<<" end: "<<cluster.lastStrip
-      <<" iPhi: "<<stub.phiHw
-      <<" iEta: "<<stub.etaHw
-      <<" iLayer: "<<iLayer
-      //<<" out: " << outres
-      <<std::endl;
-
-  edm::LogInfo("MuonStubMaker")<<str.str();
-}
-*/
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
@@ -621,7 +385,7 @@ void MuCorrelatorInputMaker::addStub(const MuCorrelatorConfig* config,
   //cout<<__FUNCTION__<<":"<<__LINE__<<" stub phi "<<stub.phiHw<<endl;
 }
 
-uint32_t MuCorrelatorInputMaker::getLayerNumber(const MuCorrelatorConfig* config, const DTChamberId& detid, bool eta) {
+uint32_t DtDigiToStubsConverterTkMu::getLayerNumber(const MuCorrelatorConfig* config, const DTChamberId& detid, bool eta) {
   //station is counted from 1
   if (eta)
     return (detid.station() - 1) + config->nPhiLayers();

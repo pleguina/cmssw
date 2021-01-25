@@ -45,6 +45,7 @@ public:
                      unsigned int iProcessor,
                      l1t::tftype procTyp) override;
 
+  static uint32_t getLayerNumber(const MuCorrelatorConfig* config, const DTChamberId& detid, bool eta = false);
 private:
   const MuCorrelatorConfig* config = nullptr;
   const AngleConverterBase* angleConverter = nullptr;
@@ -67,6 +68,7 @@ public:
                     unsigned int iProcessor,
                     l1t::tftype procTyp) override;
 
+  //TODO no phase2 DTChambThDigi yet, so we are using the phase1
   void addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers,
                      const L1MuDTChambThDigi& thetaDigi,
                      unsigned int iProcessor,
@@ -130,9 +132,12 @@ public:
   MuCorrelatorInputMaker(const edm::ParameterSet& edmParameterSet,
                          MuStubsInputTokens& muStubsInputTokens,
                          edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2,
-                         const MuCorrelatorConfig* config);
+                         const MuCorrelatorConfig* config,
+                         AngleConverterBase* angleConv);
 
   ~MuCorrelatorInputMaker() override;
+
+  void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es) override;
 
   static void addStub(const MuCorrelatorConfig* config,
                       MuonStubPtrs2D& muonStubsInLayers,
@@ -140,7 +145,7 @@ public:
                       MuonStub& stub);
 
   //logic layer numbers
-  static uint32_t getLayerNumber(const MuCorrelatorConfig* config, const DTChamberId& detid, bool eta = false);
+  //static uint32_t getLayerNumber(const MuCorrelatorConfig* config, const DTChamberId& detid, bool eta = false);
   //uint32_t getLayerNumber(const CSCDetId& detid, bool eta = false) const;
   //uint32_t getLayerNumber(const RPCDetId& detid) const;uint32_t getLayerNumber(const RPCDetId& detid) const;
 
@@ -166,7 +171,7 @@ private:
 
   const MuCorrelatorConfig* config;
 
-  AngleConverterBase angleConverter;
+  std::unique_ptr<AngleConverterBase> angleConverter;
 };
 
 #endif /* INTERFACE_MUCORRELATOR_MUONCORRELATORINPUTMAKER_H_ */
