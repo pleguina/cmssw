@@ -315,14 +315,14 @@ std::vector<EtaValue> AngleConverterBase::getGlobalEta(const L1MuDTChambThContai
 float AngleConverterBase::cscChamberEtaSize(const CSCDetId& detId) const {
   if (detId.station() == 1) {
     if (detId.ring() == 1)
-      return (2.5 - 1.6) /
-             2.;  ///ME1/1 lower eta (b?, eta < ~2.1), muCorrelator eta bins 6-11 - but getGlobalEtaCsc(const CSCDetId& detId) gives the midle of the full chamber, so here we put the size of the full chamber
+      return (2.5 - 1.6) / 2.;
+    ///ME1/1 lower eta (b?, eta < ~2.1), L1TkMuonBayes eta bins 6-11 - but getGlobalEtaCsc(const CSCDetId& detId) gives the midle of the full chamber, so here we put the size of the full chamber
     if (detId.ring() == 2)
       return (1.7 - 1.2) / 2.;
     if (detId.ring() == 3)
       return (1.12 - 0.9) / 2.;
     if (detId.ring() == 4)
-      return (2.5 - 1.6) / 2.;  ///ME1/1 higher eta (a?, eta > ~2.1), muCorrelator eta bins 10-15
+      return (2.5 - 1.6) / 2.;  ///ME1/1 higher eta (a?, eta > ~2.1), L1TkMuonBayes eta bins 10-15
   } else if (detId.station() == 2) {
     if (detId.ring() == 1)
       return (2.5 - 1.6) / 2.;

@@ -29,7 +29,7 @@ if verbose:
                          l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) ),
                          OMTFReconstruction = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) )
                        ),
-       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'OmtfTTAnalyzer', 'simOmtfPhase1Digis', 'omtfTTAnalyzer', 'simBayesMuCorrelatorTrackProducer') 
+       debugModules = cms.untracked.vstring('simOmtfPhase1Digis', 'omtfTTAnalyzer', 'simBayesMuCorrelatorTrackProducer') 
        #debugModules = cms.untracked.vstring('*')
     )
 
