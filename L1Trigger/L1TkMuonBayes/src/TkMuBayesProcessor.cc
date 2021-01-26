@@ -1,29 +1,29 @@
 /*
- * MuCorrelatorProcessor.cpp
+ * TkMuBayesProcessor.cpp
  *
  *  Created on: Jan 18, 2019
  *      Author: kbunkow
  */
 
-#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorProcessor.h"
+#include "L1Trigger/L1TkMuonBayes/interface/TkMuBayesProcessor.h"
 #include "L1Trigger/L1TkMuonBayes/interface/PdfModuleWithStats.h"
 #include <functional>
 
-MuCorrelatorProcessor::MuCorrelatorProcessor(MuCorrelatorConfigPtr& config, std::string pdfModuleType)
+TkMuBayesProcessor::TkMuBayesProcessor(TkMuBayesProcConfigPtr& config, std::string pdfModuleType)
     : config(config) {
   if (pdfModuleType == "PdfModuleWithStats")
     pdfModule = std::make_unique<PdfModuleWithStats>(config);
   else
     pdfModule = std::make_unique<PdfModule>(config);
 
-  ghostBustFunc = std::bind(&MuCorrelatorProcessor::ghostBust4, this, std::placeholders::_1, std::placeholders::_2);
-  //ghostBustFunc = std::bind(&MuCorrelatorProcessor::ghostBust3, this, std::placeholders::_1, std::placeholders::_2);
+  ghostBustFunc = std::bind(&TkMuBayesProcessor::ghostBust4, this, std::placeholders::_1, std::placeholders::_2);
+  //ghostBustFunc = std::bind(&TkMuBayesProcessor::ghostBust3, this, std::placeholders::_1, std::placeholders::_2);
 }
 
-MuCorrelatorProcessor::MuCorrelatorProcessor(MuCorrelatorConfigPtr& config, unique_ptr<IPdfModule> pdfModule)
+TkMuBayesProcessor::TkMuBayesProcessor(TkMuBayesProcConfigPtr& config, unique_ptr<IPdfModule> pdfModule)
     : config(config), pdfModule(std::move(pdfModule)) {
   //ghostBustFunc = std::bind(&MuCorrelatorProcessor::ghostBust4, this, std::placeholders::_1, std::placeholders::_2);
-  ghostBustFunc = std::bind(&MuCorrelatorProcessor::ghostBust3, this, std::placeholders::_1, std::placeholders::_2);
+  ghostBustFunc = std::bind(&TkMuBayesProcessor::ghostBust3, this, std::placeholders::_1, std::placeholders::_2);
 
   ///FIXME: read the list from configuration so this can be controlled at runtime.
   lowQualityHitPatterns = {
@@ -48,11 +48,11 @@ MuCorrelatorProcessor::MuCorrelatorProcessor(MuCorrelatorConfigPtr& config, uniq
   };
 }
 
-MuCorrelatorProcessor::~MuCorrelatorProcessor() {
+TkMuBayesProcessor::~TkMuBayesProcessor() {
   // TODO Auto-generated destructor stub
 }
 
-AlgoTTMuons MuCorrelatorProcessor::processTracks(const MuonStubsInput& muonStubs,
+AlgoTTMuons TkMuBayesProcessor::processTracks(const MuonStubsInput& muonStubs,
                                                  const TrackingTriggerTracks& ttTracks) {
   AlgoTTMuons algoTTMuons;
 
@@ -101,7 +101,7 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const MuonStubsInput& muonStubs
   return ghostBustedTTmuons;
 }
 
-AlgoTTMuonPtr MuCorrelatorProcessor::processTrack(const MuonStubsInput& muonStubs,
+AlgoTTMuonPtr TkMuBayesProcessor::processTrack(const MuonStubsInput& muonStubs,
                                                   const TrackingTriggerTrackPtr& ttTrack) {
   //Selecting stubs that fit coarsely to the ttTrack, e.g. the full chambers
   MuonStubsInput selectedMuonStubs = selectStubs(muonStubs, ttTrack);
@@ -115,7 +115,7 @@ AlgoTTMuonPtr MuCorrelatorProcessor::processTrack(const MuonStubsInput& muonStub
   return algoTTMuon;
 }
 
-AlgoTTMuonPtr MuCorrelatorProcessor::processTrackUsingRefStubs(const MuonStubsInput& muonStubs,
+AlgoTTMuonPtr TkMuBayesProcessor::processTrackUsingRefStubs(const MuonStubsInput& muonStubs,
                                                                const TrackingTriggerTrackPtr& ttTrack) {
   AlgoTTMuonPtr bestAlgoTTMuon;
 
@@ -147,7 +147,7 @@ AlgoTTMuonPtr MuCorrelatorProcessor::processTrackUsingRefStubs(const MuonStubsIn
   return bestAlgoTTMuon;
 }
 
-MuonStubsInput MuCorrelatorProcessor::selectStubs(const MuonStubsInput& muonStubs,
+MuonStubsInput TkMuBayesProcessor::selectStubs(const MuonStubsInput& muonStubs,
                                                   const TrackingTriggerTrackPtr& ttTrack) {
   MuonStubsInput selectedMuonStubs(config.get());
 
@@ -170,14 +170,14 @@ MuonStubsInput MuCorrelatorProcessor::selectStubs(const MuonStubsInput& muonStub
   return selectedMuonStubs;
 }
 
-MuonStubPtrs1D MuCorrelatorProcessor::selectRefStubs(const MuonStubsInput& muonStubs,
+MuonStubPtrs1D TkMuBayesProcessor::selectRefStubs(const MuonStubsInput& muonStubs,
                                                      const TrackingTriggerTrackPtr& ttTrack) {
   MuonStubPtrs1D refStubs;
   //TODO implement
   return refStubs;
 }
 
-void MuCorrelatorProcessor::processStubs(const MuonStubsInput& muonStubs,
+void TkMuBayesProcessor::processStubs(const MuonStubsInput& muonStubs,
                                          unsigned int layer,
                                          const TrackingTriggerTrackPtr& ttTrack,
                                          const MuonStubPtr refStub,
@@ -185,7 +185,7 @@ void MuCorrelatorProcessor::processStubs(const MuonStubsInput& muonStubs,
   pdfModule->processStubs(muonStubs, layer, ttTrack, refStub, algoTTMuon);
 }
 
-AlgoTTMuons MuCorrelatorProcessor::ghostBust(AlgoTTMuons& algoTTMuons) {
+AlgoTTMuons TkMuBayesProcessor::ghostBust(AlgoTTMuons& algoTTMuons) {
   AlgoTTMuons selectedTTMuons;
   for (auto& ttMuon : algoTTMuons) {
     for (auto& selected : selectedTTMuons) {
@@ -216,7 +216,7 @@ AlgoTTMuons MuCorrelatorProcessor::ghostBust(AlgoTTMuons& algoTTMuons) {
  * 2 second is killed
  * 3 both are killed
  */
-int MuCorrelatorProcessor::ghostBust3(std::shared_ptr<AlgoTTMuon> first, std::shared_ptr<AlgoTTMuon> second) {
+int TkMuBayesProcessor::ghostBust3(std::shared_ptr<AlgoTTMuon> first, std::shared_ptr<AlgoTTMuon> second) {
   //cout<<__FUNCTION__<<":"<<__LINE__<<endl;
   //good ghost bust function looks on the hits indexes in each candidate and check how many hits are common, kill one of them if more then e.g. 1
   int commonHits = 0;
@@ -253,7 +253,7 @@ int MuCorrelatorProcessor::ghostBust3(std::shared_ptr<AlgoTTMuon> first, std::sh
  * 2 second is killed
  * 3 both are killed
  */
-int MuCorrelatorProcessor::ghostBust4(std::shared_ptr<AlgoTTMuon> first, std::shared_ptr<AlgoTTMuon> second) {
+int TkMuBayesProcessor::ghostBust4(std::shared_ptr<AlgoTTMuon> first, std::shared_ptr<AlgoTTMuon> second) {
   //cout<<__FUNCTION__<<":"<<__LINE__<<endl;
   //good ghost bust function looks on the hits indexes in each candidate and check how many hits are common, kill one of them if more then e.g. 1
   int commonHits = 0;
@@ -286,7 +286,7 @@ int MuCorrelatorProcessor::ghostBust4(std::shared_ptr<AlgoTTMuon> first, std::sh
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-AlgoTTMuons MuCorrelatorProcessor::processTracks(const StandaloneCandWithStubsVec& candsWithStubs,
+AlgoTTMuons TkMuBayesProcessor::processTracks(const StandaloneCandWithStubsVec& candsWithStubs,
                                                  const TrackingTriggerTracks& ttTracks) {
   AlgoTTMuons algoTTMuons;
 
@@ -323,7 +323,7 @@ AlgoTTMuons MuCorrelatorProcessor::processTracks(const StandaloneCandWithStubsVe
   return ghostBustedTTmuons;
 }
 
-AlgoTTMuonPtr MuCorrelatorProcessor::processTrack(const StandaloneCandWithStubsVec& candsWithStubs,
+AlgoTTMuonPtr TkMuBayesProcessor::processTrack(const StandaloneCandWithStubsVec& candsWithStubs,
                                                   const TrackingTriggerTrackPtr& ttTrack) {
   AlgoTTMuonPtr algoTTMuon = std::make_shared<AlgoTTMuon>(ttTrack, config);
 
@@ -336,7 +336,7 @@ AlgoTTMuonPtr MuCorrelatorProcessor::processTrack(const StandaloneCandWithStubsV
   return algoTTMuon;
 }
 
-StandaloneCandWithStubsVec MuCorrelatorProcessor::selectCandsWithStubs(const StandaloneCandWithStubsVec& candsWithStubs,
+StandaloneCandWithStubsVec TkMuBayesProcessor::selectCandsWithStubs(const StandaloneCandWithStubsVec& candsWithStubs,
                                                                        const TrackingTriggerTrackPtr& ttTrack) {
   StandaloneCandWithStubsVec selectedStandaloneCands;
 
@@ -347,7 +347,7 @@ StandaloneCandWithStubsVec MuCorrelatorProcessor::selectCandsWithStubs(const Sta
   return selectedStandaloneCands;
 }
 
-/*std::vector<l1t::RegionalMuonCand> MuCorrelatorProcessor::getFinalCandidates(unsigned int iProcessor, l1t::tftype mtfType, AlgoTTMuons& algoTTMuons) {
+/*std::vector<l1t::RegionalMuonCand> TkMuBayesProcessor::getFinalCandidates(unsigned int iProcessor, l1t::tftype mtfType, AlgoTTMuons& algoTTMuons) {
   std::vector<l1t::RegionalMuonCand> candidates;
 
   for(auto& algoTTMuon: algoTTMuons) {
@@ -377,9 +377,9 @@ StandaloneCandWithStubsVec MuCorrelatorProcessor::selectCandsWithStubs(const Sta
 
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-l1t::BayesMuCorrTrackCollection MuCorrelatorProcessor::getMuCorrTrackCollection(unsigned int iProcessor,
+l1t::TkMuonBayesTrackCollection TkMuBayesProcessor::getMuCorrTrackCollection(unsigned int iProcessor,
                                                                                 AlgoTTMuons& algoTTMuons) {
-  l1t::BayesMuCorrTrackCollection candidates;
+  l1t::TkMuonBayesTrackCollection candidates;
 
   for (auto& algoTTMuon : algoTTMuons) {
     if (algoTTMuon->getTTTrack()->getTTTrackPtr().isNonnull()) {
@@ -395,10 +395,10 @@ l1t::BayesMuCorrTrackCollection MuCorrelatorProcessor::getMuCorrTrackCollection(
       candidates.back().setSimTrackPtr(algoTTMuon->getTTTrack()->getSimTrackRef());
     } else {
       throw cms::Exception(
-          "MuCorrelatorProcessor::getMuCorrTrackCollection(): no pointer to construct l1t::BayesMuCorrelatorTrack");
+          "TkMuBayesProcessor::getMuCorrTrackCollection(): no pointer to construct l1t::TkMuonBayesTrack");
     }
 
-    l1t::BayesMuCorrelatorTrack& candidate = candidates.back();
+    l1t::TkMuonBayesTrack& candidate = candidates.back();
     candidate.setHwPt(algoTTMuon->getTTTrack()->getPtHw());
     candidate.setHwEta(algoTTMuon->getTTTrack()->getEtaHw());
     candidate.setHwPhi(config->phiToGlobalHwPhi(algoTTMuon->getTTTrack()->getPhi()));  //TODO use hw phi
@@ -413,9 +413,9 @@ l1t::BayesMuCorrTrackCollection MuCorrelatorProcessor::getMuCorrTrackCollection(
     candidate.setPdfSum(algoTTMuon->getPdfSum());
 
     if (algoTTMuon->getFiredLayerCnt(0) >= config->nMinFiredLayers())
-      candidate.setCandidateType(l1t::BayesMuCorrelatorTrack::fastTrack);
+      candidate.setCandidateType(l1t::TkMuonBayesTrack::fastTrack);
     else
-      candidate.setCandidateType(l1t::BayesMuCorrelatorTrack::slowTrack);
+      candidate.setCandidateType(l1t::TkMuonBayesTrack::slowTrack);
 
     candidate.setBeta(algoTTMuon->getBeta());
     candidate.setBetaLikelihood(algoTTMuon->getBetaLikelihood());
@@ -426,7 +426,7 @@ l1t::BayesMuCorrTrackCollection MuCorrelatorProcessor::getMuCorrTrackCollection(
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
 
-bool MuCorrelatorProcessor::assignQuality(AlgoTTMuons& algoTTMuons) {
+bool TkMuBayesProcessor::assignQuality(AlgoTTMuons& algoTTMuons) {
   for (auto& algoTTMuon : algoTTMuons) {
     for (auto& firedLayers : lowQualityHitPatterns) {
       algoTTMuon->setQuality(13);  //Default quality

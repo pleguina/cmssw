@@ -106,13 +106,13 @@
   <class name="std::vector<l1t::RegionalMuonCandRefPair>"/>
   <class name="l1t::RegionalMuonCandRefPairBxCollection"/>
   <class name="edm::Wrapper<l1t::RegionalMuonCandRefPairBxCollection>"/>
-
-  <class name="l1t::BayesMuCorrelatorTrack" />
-  <class name="l1t::BayesMuCorrTrackCollection"/>
-  <class name="edm::Wrapper<l1t::BayesMuCorrTrackCollection>"/>
+ 
+  <class name="l1t::TkMuonBayesTrack" />
+  <class name="l1t::TkMuonBayesTrackCollection"/>
+  <class name="edm::Wrapper<l1t::TkMuonBayesTrackCollection>"/> 
   
-  <class name="l1t::BayesMuCorrTrackBxCollection" />
-  <class name="edm::Wrapper<l1t::BayesMuCorrTrackBxCollection>" />
+  <class name="l1t::TkMuonBayesTrackBxCollection" />
+  <class name="edm::Wrapper<l1t::TkMuonBayesTrackBxCollection>" />
   
  </selection>
 </lcgdict>

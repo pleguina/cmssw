@@ -5,8 +5,8 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#ifndef INTERFACE_MUTIMINGMODULE_H_
-#define INTERFACE_MUTIMINGMODULE_H_
+#ifndef L1TkMuonBayes_MUTIMINGMODULE_H_
+#define L1TkMuonBayes_MUTIMINGMODULE_H_
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/AlgoMuonBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
@@ -55,4 +55,4 @@ protected:
   unsigned int betaBins = 16;  //8 per BX, betaBins[0] reserved for no-beta, betaBins[1] - beta = 1
 };
 
-#endif /* INTERFACE_MUTIMINGMODULE_H_ */
+#endif /* L1TkMuonBayes_MUTIMINGMODULE_H_ */

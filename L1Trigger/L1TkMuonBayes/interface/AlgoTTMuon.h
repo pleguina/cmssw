@@ -5,10 +5,10 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#ifndef MUCORRELATOR_ALGOTTMUON_H_
-#define MUCORRELATOR_ALGOTTMUON_H_
+#ifndef L1TkMuonBayes_ALGOTTMUON_H_
+#define L1TkMuonBayes_ALGOTTMUON_H_
 
-#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h"
+#include "L1Trigger/L1TkMuonBayes/interface/TkMuBayesProcConfig.h"
 #include "L1Trigger/L1TkMuonBayes/interface/TrackingTriggerTrack.h"
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/AlgoMuonBase.h"
@@ -21,10 +21,10 @@
 
 class AlgoTTMuon : public AlgoMuonBase {
 public:
-  AlgoTTMuon(const TrackingTriggerTrackPtr& ttTrack, MuCorrelatorConfigPtr& config)
+  AlgoTTMuon(const TrackingTriggerTrackPtr& ttTrack, TkMuBayesProcConfigPtr& config)
       : AlgoMuonBase(config.get()), ttTrack(ttTrack), stubResults(config->nLayers()){};
 
-  AlgoTTMuon(const TrackingTriggerTrackPtr& ttTrack, MuCorrelatorConfigPtr& config, const MuonStubPtr& refStub)
+  AlgoTTMuon(const TrackingTriggerTrackPtr& ttTrack, TkMuBayesProcConfigPtr& config, const MuonStubPtr& refStub)
       : AlgoMuonBase(config.get()), ttTrack(ttTrack), stubResults(config->nLayers()), refStub(refStub){};
 
   ~AlgoTTMuon() override{};
@@ -86,4 +86,4 @@ private:
 typedef std::shared_ptr<AlgoTTMuon> AlgoTTMuonPtr;
 typedef std::vector<AlgoTTMuonPtr> AlgoTTMuons;
 
-#endif /* MUCORRELATOR_ALGOTTMUON_H_ */
+#endif /* L1TkMuonBayes_ALGOTTMUON_H_ */

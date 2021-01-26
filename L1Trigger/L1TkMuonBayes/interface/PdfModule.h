@@ -5,11 +5,11 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#ifndef INTERFACE_PDFMODULE_H_
-#define INTERFACE_PDFMODULE_H_
+#ifndef L1TkMuonBayes_PDFMODULE_H_
+#define L1TkMuonBayes_PDFMODULE_H_
 
 #include "L1Trigger/L1TkMuonBayes/interface/AlgoTTMuon.h"
-#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h"
+#include "L1Trigger/L1TkMuonBayes/interface/TkMuBayesProcConfig.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubsInput.h"
 
 #include <vector>
@@ -18,7 +18,7 @@
 
 class IPdfModule {
 public:
-  IPdfModule(MuCorrelatorConfigPtr config) : config(config) {}
+  IPdfModule(TkMuBayesProcConfigPtr config) : config(config) {}
 
   virtual ~IPdfModule() {}
 
@@ -33,12 +33,12 @@ public:
                             AlgoTTMuonPtr algoTTMuon) = 0;
 
 protected:
-  MuCorrelatorConfigPtr config;
+  TkMuBayesProcConfigPtr config;
 };
 
 class PdfModule : public IPdfModule {
 public:
-  PdfModule(MuCorrelatorConfigPtr& config);
+  PdfModule(TkMuBayesProcConfigPtr& config);
 
   ~PdfModule() override {}
 
@@ -86,4 +86,4 @@ protected:
   //boost::multi_array<short, 3> coefficients; -  cannot be use since the lengths of vectors varies between layers (1 eta bin for barrel layer, 8 or 16 for endcap)
 };
 
-#endif /* INTERFACE_PDFMODULE_H_ */
+#endif /* L1TkMuonBayes_PDFMODULE_H_ */

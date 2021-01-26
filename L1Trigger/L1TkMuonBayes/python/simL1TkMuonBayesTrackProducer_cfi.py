@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-simBayesMuCorrelatorTrackProducer = cms.EDProducer("L1TMuonBayesMuCorrelatorTrackProducer",
+simL1TkMuonBayesTrackProducer = cms.EDProducer("L1TkMuonBayesTrackProducer",
                               
   srcDTPh = cms.InputTag('simDtTriggerPrimitiveDigis'),
   srcDTTh = cms.InputTag('simDtTriggerPrimitiveDigis'),

@@ -30,7 +30,7 @@ if verbose:
                          #DEBUG   = cms.untracked.int32(0),
                          l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(100000000) )
                        ),
-       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'OmtfTTAnalyzer', 'simOmtfDigis', 'omtfTTAnalyzer', 'simBayesMuCorrelatorTrackProducer') 
+       debugModules = cms.untracked.vstring('L1TkMuonBayesTrackProducer', 'OmtfTTAnalyzer', 'simOmtfDigis', 'omtfTTAnalyzer', 'simL1TkMuonBayesTrackProducer') 
        #debugModules = cms.untracked.vstring('*')
     )
 
@@ -146,25 +146,25 @@ process.L1TrackTrigger_step = cms.Path(process.L1TrackTrigger)
 
 
 ####OMTF Emulator
-process.load('L1Trigger.L1TkMuonBayes.simBayesMuCorrelatorTrackProducer_cfi')
-process.simBayesMuCorrelatorTrackProducer.usePhase2DTPrimitives = cms.bool(False)
+process.load('L1Trigger.L1TkMuonBayes.simL1TkMuonBayesTrackProducer_cfi')
+process.simL1TkMuonBayesTrackProducer.usePhase2DTPrimitives = cms.bool(False)
 
-process.simBayesMuCorrelatorTrackProducer.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")  
-#process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("TRACKING_PARTICLES") #
-process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("L1_TRACKER") #
+process.simL1TkMuonBayesTrackProducer.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")  
+#process.simL1TkMuonBayesTrackProducer.ttTracksSource = cms.string("TRACKING_PARTICLES") #
+process.simL1TkMuonBayesTrackProducer.ttTracksSource = cms.string("L1_TRACKER") #
 
-process.simBayesMuCorrelatorTrackProducer.TrackingParticleInputTag= cms.InputTag("mix", "MergedTrackTruth") #trackingParticleTag
+process.simL1TkMuonBayesTrackProducer.TrackingParticleInputTag= cms.InputTag("mix", "MergedTrackTruth") #trackingParticleTag
 
-process.simBayesMuCorrelatorTrackProducer.lctCentralBx = cms.int32(8)#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+process.simL1TkMuonBayesTrackProducer.lctCentralBx = cms.int32(8)#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
-#process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/pdfModule.xml")
+#process.simL1TkMuonBayesTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/pdfModule.xml")
 
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
 process.L1TMuonSeq = cms.Sequence( #process.esProd +    
                                    process.L1TrackTrigger + L1HybridTracksWithAssociators#+     
-                                   + process.simBayesMuCorrelatorTrackProducer 
+                                   + process.simL1TkMuonBayesTrackProducer 
                                    #+ process.dumpED
                                    #+ process.dumpES
 )

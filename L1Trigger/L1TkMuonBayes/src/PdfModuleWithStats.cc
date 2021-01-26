@@ -10,7 +10,7 @@
 #include "TFitResult.h"
 #include "TF1.h"
 
-PdfModuleWithStats::PdfModuleWithStats(MuCorrelatorConfigPtr& config) : PdfModule(config), pdfHists(config->nLayers()) {
+PdfModuleWithStats::PdfModuleWithStats(TkMuBayesProcConfigPtr& config) : PdfModule(config), pdfHists(config->nLayers()) {
   TFileDirectory subDir = fs->mkdir("pdfs");
 
   for (unsigned int iLayer = 0; iLayer < coefficients.size(); ++iLayer) {

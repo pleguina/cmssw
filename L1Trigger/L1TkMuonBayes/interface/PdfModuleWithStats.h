@@ -5,8 +5,8 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#ifndef INTERFACE_PDFMODULEWITHSTATS_H_
-#define INTERFACE_PDFMODULEWITHSTATS_H_
+#ifndef L1TkMuonBayes_PDFMODULEWITHSTATS_H_
+#define L1TkMuonBayes_PDFMODULEWITHSTATS_H_
 
 #include "L1Trigger/L1TkMuonBayes/interface/PdfModule.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -16,7 +16,7 @@
 
 class PdfModuleWithStats : public PdfModule {
 public:
-  PdfModuleWithStats(MuCorrelatorConfigPtr& config);
+  PdfModuleWithStats(TkMuBayesProcConfigPtr& config);
 
   ~PdfModuleWithStats() override;
 
@@ -39,4 +39,4 @@ private:
   double sigmaFactor = 1.;
 };
 
-#endif /* INTERFACE_PDFMODULEWITHSTATS_H_ */
+#endif /* L1TkMuonBayes_PDFMODULEWITHSTATS_H_ */

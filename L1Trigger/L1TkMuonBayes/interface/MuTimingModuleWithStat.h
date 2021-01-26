@@ -5,8 +5,8 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#ifndef INTERFACE_MUTIMINGMODULEWITHSTAT_H_
-#define INTERFACE_MUTIMINGMODULEWITHSTAT_H_
+#ifndef L1TkMuonBayes_MUTIMINGMODULEWITHSTAT_H_
+#define L1TkMuonBayes_MUTIMINGMODULEWITHSTAT_H_
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -32,4 +32,4 @@ private:
   edm::Service<TFileService> fileService;
 };
 
-#endif /* INTERFACE_MUTIMINGMODULEWITHSTAT_H_ */
+#endif /* L1TkMuonBayes_MUTIMINGMODULEWITHSTAT_H_ */

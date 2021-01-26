@@ -1,11 +1,11 @@
 /*
- * MuonCorrelatorInputMaker.cc
+ * L1TkMuonBayesTrackProducer.cc
  *
  *  Created on: Jan 30, 2019
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorInputMaker.h"
+#include "L1Trigger/L1TkMuonBayes/interface/MuonStubInputMaker.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/AngleConverterBase.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -59,7 +59,7 @@ void DtDigiToStubsConverterTkMu::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
   stub.logicLayer = iLayer;
   stub.detId = detid;
 
-  MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
+  MuonStubInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
 }
 
 void DtDigiToStubsConverterTkMu::addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers,
@@ -94,7 +94,7 @@ void DtDigiToStubsConverterTkMu::addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers
     stub.logicLayer = iLayer;
     stub.detId = detid;
 
-    MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
+    MuonStubInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
   }
 }
 
@@ -136,7 +136,7 @@ void DtPhase2DigiToStubsConverterTkMu::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   stub.logicLayer = iLayer;
   stub.detId = detid;
 
-  MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
+  MuonStubInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
 }
 
 //TODO no phase2 DTChambThDigi yet, so we are using the phase1
@@ -171,7 +171,7 @@ void DtPhase2DigiToStubsConverterTkMu::addDTetaStubs(MuonStubPtrs2D& muonStubsIn
     stub.logicLayer = iLayer;
     stub.detId = detid;
 
-    MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
+    MuonStubInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
   }
 }
 
@@ -215,7 +215,7 @@ void CscDigiToStubsConverterTkMu::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers,
     //stub.phi = config->getProcScalePhiToRad(stub.phiHw);
     //stub.eta = config->hwEtaToEta(stub.etaHw);
 
-    MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
+    MuonStubInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
 
     //cout<<__FUNCTION__<<":"<<__LINE__<<" adding CSC phi stub from chamber "<<detId<<" "<<stub<<endl;
   }
@@ -246,7 +246,7 @@ void CscDigiToStubsConverterTkMu::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers,
     //stub.phi = config->getProcScalePhiToRad(stub.phiHw);
     //stub.eta = config->hwEtaToEta(stub.etaHw);
 
-    MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
+    MuonStubInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
 
     //cout<<__FUNCTION__<<":"<<__LINE__<<" adding CSC eta stub from chamber "<<detId<<" "<<stub<<endl;
   }
@@ -307,7 +307,7 @@ void RpcDigiToStubsConverterTkMu::addRPCstub(MuonStubPtrs2D& muonStubsInLayers,
   }
 
   stub.detId = rawid;
-  MuCorrelatorInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
+  MuonStubInputMaker::addStub(config, muonStubsInLayers, iLayer, stub);
 
   //      if (cSize>2) flag |= 2;
   //      if (!outres) flag |= 1;
@@ -324,10 +324,10 @@ void RpcDigiToStubsConverterTkMu::addRPCstub(MuonStubPtrs2D& muonStubsInLayers,
   edm::LogInfo("MuonStubMaker")<<str.str();*/
 }
 
-MuCorrelatorInputMaker::MuCorrelatorInputMaker(const edm::ParameterSet& edmParameterSet,
+MuonStubInputMaker::MuonStubInputMaker(const edm::ParameterSet& edmParameterSet,
                                                MuStubsInputTokens& muStubsInputTokens,
                                                edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2,
-                                               const MuCorrelatorConfig* config,
+                                               const TkMuBayesProcConfig* config,
                                                AngleConverterBase* angleConv)
     : MuonStubMakerBase(config), config(config), angleConverter(angleConv) {
   if (!edmParameterSet.getParameter<bool>("dropDTPrimitives"))
@@ -353,18 +353,18 @@ MuCorrelatorInputMaker::MuCorrelatorInputMaker(const edm::ParameterSet& edmParam
         config, angleConverter.get(), &rpcClusterization, muStubsInputTokens.inputTokenRPC));
 }
 
-MuCorrelatorInputMaker::~MuCorrelatorInputMaker() {
+MuonStubInputMaker::~MuonStubInputMaker() {
   // TODO Auto-generated destructor stub
 }
 
-void MuCorrelatorInputMaker::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es) {
+void MuonStubInputMaker::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es) {
   MuonStubMakerBase::initialize(edmCfg, es);
   angleConverter->checkAndUpdateGeometry(es, config);
 }
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-void MuCorrelatorInputMaker::addStub(const MuCorrelatorConfig* config,
+void MuonStubInputMaker::addStub(const TkMuBayesProcConfig* config,
                                      MuonStubPtrs2D& muonStubsInLayers,
                                      unsigned int iLayer,
                                      MuonStub& stub) {
@@ -385,7 +385,7 @@ void MuCorrelatorInputMaker::addStub(const MuCorrelatorConfig* config,
   //cout<<__FUNCTION__<<":"<<__LINE__<<" stub phi "<<stub.phiHw<<endl;
 }
 
-uint32_t DtDigiToStubsConverterTkMu::getLayerNumber(const MuCorrelatorConfig* config, const DTChamberId& detid, bool eta) {
+uint32_t DtDigiToStubsConverterTkMu::getLayerNumber(const TkMuBayesProcConfig* config, const DTChamberId& detid, bool eta) {
   //station is counted from 1
   if (eta)
     return (detid.station() - 1) + config->nPhiLayers();

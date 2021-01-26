@@ -1,20 +1,20 @@
 /*
- * MuCorrelatorConfig.cc
+ * TkMuBayesProcConfig.cc
  *
  *  Created on: Jan 30, 2019
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h"
+#include "L1Trigger/L1TkMuonBayes/interface/TkMuBayesProcConfig.h"
 #include <cmath>
 #include <iomanip>
 #include <limits>
 #include <sstream>
 
-MuCorrelatorConfig::MuCorrelatorConfig() { buildPtHwBins(); }
+TkMuBayesProcConfig::TkMuBayesProcConfig() { buildPtHwBins(); }
 
 //TODO should be read from config
-void MuCorrelatorConfig::buildPtHwBins() {
+void TkMuBayesProcConfig::buildPtHwBins() {
   float stride = 1;
   int iPt = 6;
   for (unsigned int ptBin = 0; ptBin < ptBins; ptBin++) {
@@ -42,24 +42,24 @@ void MuCorrelatorConfig::buildPtHwBins() {
   ptHwBins.push_back(std::numeric_limits<int>::max());
 }
 
-unsigned int MuCorrelatorConfig::logLayerToRefLayar(unsigned int logicLayer, unsigned int etaBin) const {
+unsigned int TkMuBayesProcConfig::logLayerToRefLayar(unsigned int logicLayer, unsigned int etaBin) const {
   //TODO implement
   return 0;
 }
 
-int MuCorrelatorConfig::getProcScalePhi(double phiRad, double procPhiZeroRad) const {
+int TkMuBayesProcConfig::getProcScalePhi(double phiRad, double procPhiZeroRad) const {
   const double phiUnit = 2 * M_PI / nPhiBins();  //rad/unit
 
   // local angle in CSC halfStrip usnits
   return foldPhi(lround((phiRad - procPhiZeroRad) / phiUnit));
 }
 
-float MuCorrelatorConfig::getProcScalePhiToRad(int phiHw) const {
+float TkMuBayesProcConfig::getProcScalePhiToRad(int phiHw) const {
   const double phiUnit = 2 * M_PI / nPhiBins();
   return phiHw * phiUnit;
 }
 
-unsigned int MuCorrelatorConfig::ptGeVToPtBin(float ptGeV) const {
+unsigned int TkMuBayesProcConfig::ptGeVToPtBin(float ptGeV) const {
   //TODO implement nonlinear scale;
   //ptBin = ptHw / 8; //TODO some implementation, probably not optimal, do it in a batter way
   /*  double  ptBin = 40 * log10(1 + (ptGeV - 2.5) * 0.15);
@@ -73,7 +73,7 @@ unsigned int MuCorrelatorConfig::ptGeVToPtBin(float ptGeV) const {
   return ptHwToPtBin(ptGevToHw(ptGeV));
 }
 
-unsigned int MuCorrelatorConfig::ptHwToPtBin(int ptHw) const {
+unsigned int TkMuBayesProcConfig::ptHwToPtBin(int ptHw) const {
   for (unsigned int ptBin = 0; ptBin < ptBins; ptBin++) {
     if (ptHwBins[ptBin] >= ptHw)
       return ptBin;
@@ -82,7 +82,7 @@ unsigned int MuCorrelatorConfig::ptHwToPtBin(int ptHw) const {
   return ptBins - 1;  //"to inf" bin
 }
 
-unsigned int MuCorrelatorConfig::etaHwToEtaBin(int etaHw) const {
+unsigned int TkMuBayesProcConfig::etaHwToEtaBin(int etaHw) const {
   int endcapBorder = 80;  //= 0.87
   if (abs(etaHw) < endcapBorder)
     return 0;
@@ -136,7 +136,7 @@ unsigned int MuCorrelatorConfig::etaHwToEtaBin(int etaHw) const {
  28 - ME3 eta
  29 - ME4 eta
  */
-bool MuCorrelatorConfig::isEndcapLayer(unsigned int layer) const {
+bool TkMuBayesProcConfig::isEndcapLayer(unsigned int layer) const {
   if (layer >= 8 && layer <= 12)
     return true;
 
@@ -149,20 +149,20 @@ bool MuCorrelatorConfig::isEndcapLayer(unsigned int layer) const {
   return false;
 }
 
-bool MuCorrelatorConfig::isPhiLayer(unsigned int layer) const {
+bool TkMuBayesProcConfig::isPhiLayer(unsigned int layer) const {
   if (layer < phiLayers)
     return true;
   return false;
 }
 
-bool MuCorrelatorConfig::isBendingLayer(unsigned int layer) const {
+bool TkMuBayesProcConfig::isBendingLayer(unsigned int layer) const {
   if (layer == 1 || layer == 3 || layer == 5 || layer == 7) {
     return true;
   }
   return false;
 }
 
-std::string MuCorrelatorConfig::ptBinString(unsigned int ptBin, int mode) const {
+std::string TkMuBayesProcConfig::ptBinString(unsigned int ptBin, int mode) const {
   int ptHwLow = ptBin > 0 ? ptHwBins.at(ptBin - 1) : 0;
   int ptHwUp = ptHwBins.at(ptBin);
   std::ostringstream ostr;

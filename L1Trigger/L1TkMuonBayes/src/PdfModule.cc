@@ -7,7 +7,7 @@
 
 #include "L1Trigger/L1TkMuonBayes/interface/PdfModule.h"
 
-PdfModule::PdfModule(MuCorrelatorConfigPtr& config) : IPdfModule(config), coefficients(config->nLayers()) { init(); }
+PdfModule::PdfModule(TkMuBayesProcConfigPtr& config) : IPdfModule(config), coefficients(config->nLayers()) { init(); }
 
 void PdfModule::init() {
   for (unsigned int iLayer = 0; iLayer < coefficients.size(); ++iLayer) {

@@ -1,19 +1,19 @@
 /*
- * MuonCorrelatorInputMaker.h
+ * MuonStubInputMaker.h
  *
  *  Created on: Jan 30, 2019
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#ifndef MUCORRELATOR_MUONCORRELATORINPUTMAKER_H_
-#define MUCORRELATOR_MUONCORRELATORINPUTMAKER_H_
+#ifndef L1TkMuonBayes_MuonStubInputMaker_H_
+#define L1TkMuonBayes_MuonStubInputMaker_H_
 
+#include <L1Trigger/L1TkMuonBayes/interface/TkMuBayesProcConfig.h>
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
 #include "DataFormats/MuonDetId/interface/DTChamberId.h"
 #include "DataFormats/MuonDetId/interface/RPCDetId.h"
 
-#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubMakerBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/AngleConverterBase.h"
@@ -25,7 +25,7 @@ namespace edm {
 
 class DtDigiToStubsConverterTkMu : public DtDigiToStubsConverter {
 public:
-  DtDigiToStubsConverterTkMu(const MuCorrelatorConfig* config,
+  DtDigiToStubsConverterTkMu(const TkMuBayesProcConfig* config,
                              const AngleConverterBase* angleConverter,
                              edm::EDGetTokenT<L1MuDTChambPhContainer> inputTokenDtPh,
                              edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDtTh)
@@ -45,15 +45,15 @@ public:
                      unsigned int iProcessor,
                      l1t::tftype procTyp) override;
 
-  static uint32_t getLayerNumber(const MuCorrelatorConfig* config, const DTChamberId& detid, bool eta = false);
+  static uint32_t getLayerNumber(const TkMuBayesProcConfig* config, const DTChamberId& detid, bool eta = false);
 private:
-  const MuCorrelatorConfig* config = nullptr;
+  const TkMuBayesProcConfig* config = nullptr;
   const AngleConverterBase* angleConverter = nullptr;
 };
 
 class DtPhase2DigiToStubsConverterTkMu : public DtPhase2DigiToStubsConverter {
 public:
-  DtPhase2DigiToStubsConverterTkMu(const MuCorrelatorConfig* config,
+  DtPhase2DigiToStubsConverterTkMu(const TkMuBayesProcConfig* config,
                                    const AngleConverterBase* angleConverter,
                                    edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDtPh,
                                    edm::EDGetTokenT<L1MuDTChambThContainer> inputTokenDtTh)
@@ -75,13 +75,13 @@ public:
                      l1t::tftype procTyp) override;
 
 private:
-  const MuCorrelatorConfig* config = nullptr;
+  const TkMuBayesProcConfig* config = nullptr;
   const AngleConverterBase* angleConverter;
 };
 
 class CscDigiToStubsConverterTkMu : public CscDigiToStubsConverter {
 public:
-  CscDigiToStubsConverterTkMu(const MuCorrelatorConfig* config,
+  CscDigiToStubsConverterTkMu(const TkMuBayesProcConfig* config,
                               const AngleConverterBase* angleConverter,
                               edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> inputTokenCsc)
       : CscDigiToStubsConverter(config, inputTokenCsc), config(config), angleConverter(angleConverter){};
@@ -98,13 +98,13 @@ public:
   virtual uint32_t getLayerNumber(const CSCDetId& detid, bool eta = false) const;
 
 private:
-  const MuCorrelatorConfig* config = nullptr;
+  const TkMuBayesProcConfig* config = nullptr;
   const AngleConverterBase* angleConverter;
 };
 
 class RpcDigiToStubsConverterTkMu : public RpcDigiToStubsConverter {
 public:
-  RpcDigiToStubsConverterTkMu(const MuCorrelatorConfig* config,
+  RpcDigiToStubsConverterTkMu(const TkMuBayesProcConfig* config,
                               const AngleConverterBase* angleConverter,
                               const RpcClusterization* rpcClusterization,
                               edm::EDGetTokenT<RPCDigiCollection> inputTokenRpc)
@@ -123,55 +123,31 @@ public:
   virtual uint32_t getLayerNumber(const RPCDetId& detid) const;
 
 private:
-  const MuCorrelatorConfig* config = nullptr;
+  const TkMuBayesProcConfig* config = nullptr;
   const AngleConverterBase* angleConverter;
 };
 
-class MuCorrelatorInputMaker : public MuonStubMakerBase {
+class MuonStubInputMaker : public MuonStubMakerBase {
 public:
-  MuCorrelatorInputMaker(const edm::ParameterSet& edmParameterSet,
+  MuonStubInputMaker(const edm::ParameterSet& edmParameterSet,
                          MuStubsInputTokens& muStubsInputTokens,
                          edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2,
-                         const MuCorrelatorConfig* config,
+                         const TkMuBayesProcConfig* config,
                          AngleConverterBase* angleConv);
 
-  ~MuCorrelatorInputMaker() override;
+  ~MuonStubInputMaker() override;
 
   void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es) override;
 
-  static void addStub(const MuCorrelatorConfig* config,
+  static void addStub(const TkMuBayesProcConfig* config,
                       MuonStubPtrs2D& muonStubsInLayers,
                       unsigned int iLayer,
                       MuonStub& stub);
 
-  //logic layer numbers
-  //static uint32_t getLayerNumber(const MuCorrelatorConfig* config, const DTChamberId& detid, bool eta = false);
-  //uint32_t getLayerNumber(const CSCDetId& detid, bool eta = false) const;
-  //uint32_t getLayerNumber(const RPCDetId& detid) const;uint32_t getLayerNumber(const RPCDetId& detid) const;
-
 private:
-  /*  virtual bool acceptDigi(uint32_t rawId, unsigned int iProcessor, l1t::tftype procType) {
-    return true;
-  }
-
-  //the phi and eta digis are merged (even thought it is artificial)
-  virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambPhDigi& digi,
-     const L1MuDTChambThContainer *dtThDigis,
-     unsigned int iProcessor,
-     l1t::tftype procTyp);
-
-  virtual void addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers, const L1MuDTChambThDigi& thetaDigi,
-       unsigned int iProcessor, l1t::tftype procTyp);
-
-  virtual void addCSCstubs(MuonStubPtrs2D& muonStubsInLayers,  unsigned int rawid, const CSCCorrelatedLCTDigi& digi,
-     unsigned int iProcessor, l1t::tftype procTyp);
-
-  virtual void addRPCstub(MuonStubPtrs2D& muonStubsInLayers, const RPCDetId& roll, const RpcCluster& cluster,
-     unsigned int iProcessor, l1t::tftype procTyp);*/
-
-  const MuCorrelatorConfig* config;
+  const TkMuBayesProcConfig* config;
 
   std::unique_ptr<AngleConverterBase> angleConverter;
 };
 
-#endif /* INTERFACE_MUCORRELATOR_MUONCORRELATORINPUTMAKER_H_ */
+#endif /* L1TkMuonBayes_MuonStubInputMaker_H_ */

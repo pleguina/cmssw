@@ -1,5 +1,12 @@
-#ifndef L1TMuonOverlapTTMergerTrackProducer_H
-#define L1TMuonOverlapTTMergerTrackProducer_H
+#ifndef L1TkMuonBayes_L1TkMuonBayesTrackProducer_H
+#define L1TkMuonBayes_L1TkMuonBayesTrackProducer_H
+
+#include "L1Trigger/L1TkMuonBayes/interface/TkMuBayesProcConfig.h"
+#include "L1Trigger/L1TkMuonBayes/interface/MuonStubInputMaker.h"
+#include "L1Trigger/L1TkMuonBayes/interface/TkMuBayesProcessor.h"
+#include "L1Trigger/L1TkMuonBayes/interface/TTTracksInputMaker.h"
+
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubMakerBase.h"
 
 #include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
@@ -9,21 +16,15 @@
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
 
-#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h"
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubMakerBase.h"
-#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorInputMaker.h"
-#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorProcessor.h"
-#include "L1Trigger/L1TkMuonBayes/interface/TTTracksInputMaker.h"
-
 #include <memory>
 #include <string>
 #include <vector>
 
-class L1TMuonBayesMuCorrelatorTrackProducer : public edm::EDProducer {
+class L1TkMuonBayesTrackProducer : public edm::EDProducer {
 public:
-  L1TMuonBayesMuCorrelatorTrackProducer(const edm::ParameterSet&);
+  L1TkMuonBayesTrackProducer(const edm::ParameterSet&);
 
-  ~L1TMuonBayesMuCorrelatorTrackProducer() override;
+  ~L1TkMuonBayesTrackProducer() override;
 
   void beginJob() override;
 
@@ -34,7 +35,7 @@ public:
   void produce(edm::Event&, const edm::EventSetup&) override;
 
   static constexpr char allTracksProductName[] =
-      "AllTracks";  //all tracks produced by the muon correlator, without additional cuts
+      "AllTracks";  //all tracks produced by the muon processor, without additional cuts
   static constexpr char muonTracksProductName[] =
       "MuonTracks";  //"fast" tracks, i.e. with at least two muon stubs in the same bx as ttRack (=> not HSCPs) and with some cuts reducing rate
   static constexpr char hscpTracksProductName[] =
@@ -62,10 +63,10 @@ private:
 
   bool dumpResultToXML = false;
 
-  MuCorrelatorConfigPtr muCorrelatorConfig;
+  TkMuBayesProcConfigPtr config;
 
-  std::unique_ptr<MuCorrelatorInputMaker> inputMaker;
-  std::unique_ptr<MuCorrelatorProcessor> muCorrelatorProcessor;
+  std::unique_ptr<MuonStubInputMaker> inputMaker;
+  std::unique_ptr<TkMuBayesProcessor> processor;
   std::unique_ptr<TTTracksInputMaker> ttTracksInputMaker;
 
   std::string pdfModuleFile = "pdfModule.xml";
@@ -77,4 +78,4 @@ private:
   int useStubsFromAdditionalBxs = 0;
 };
 
-#endif
+#endif //L1TkMuonBayes_L1TkMuonBayesTrackProducer_H

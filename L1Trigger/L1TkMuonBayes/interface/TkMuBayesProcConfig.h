@@ -1,12 +1,12 @@
 /*
- * MuCorrelatorConfig.h
+ * TkMuBayesProcConfig.h
  *
  *  Created on: Jan 30, 2019
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#ifndef MUCORRELATOR_MUCORRELATORCONFIG_H_
-#define MUCORRELATOR_MUCORRELATORCONFIG_H_
+#ifndef L1TkMuonBayes_TkMuBayesProcConfig_H_
+#define L1TkMuonBayes_TkMuBayesProcConfig_H_
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
 
@@ -14,11 +14,11 @@
 #include <memory>
 #include <vector>
 
-class MuCorrelatorConfig : public ProcConfigurationBase {
+class TkMuBayesProcConfig : public ProcConfigurationBase {
 public:
-  MuCorrelatorConfig();
+  TkMuBayesProcConfig();
 
-  ~MuCorrelatorConfig() override {}
+  ~TkMuBayesProcConfig() override {}
 
   unsigned int nRefLayers() const { return refLayers; };
 
@@ -127,6 +127,6 @@ private:
   void buildPtHwBins();
 };
 
-typedef std::shared_ptr<MuCorrelatorConfig> MuCorrelatorConfigPtr;
+typedef std::shared_ptr<TkMuBayesProcConfig> TkMuBayesProcConfigPtr;
 
-#endif /* MUCORRELATOR_MUCORRELATORCONFIG_H_ */
+#endif /* L1TkMuonBayes_TkMuBayesProcConfig_H_ */

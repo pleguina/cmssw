@@ -49,7 +49,9 @@ Source_Files = cms.untracked.vstring(
          #"/store/mc/PhaseIITDRSpring19DR/Nu_E10-pythia8-gun/GEN-SIM-DIGI-RAW/PU200_106X_upgrade2023_realistic_v3-v3/70001/FFB3195D-E113-3744-877D-44E21C060358.root"
          #"/store/mc/PhaseIITDRSpring19DR/Nu_E10-pythia8-gun/GEN-SIM-DIGI-RAW/PU250_106X_upgrade2023_realistic_v3_ext2-v1/50002/FFE07316-3810-6E44-97A1-5753A3070D12.root"
          #"/store/mc/Phase2HLTTDRWinter20DIGI/ZprimeToMuMu_M-6000_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_110X_mcRun4_realistic_v3-v2/50000/CFBA4AE8-00DE-1743-9B83-7582C69FC7F7.root"
-         "/store/mc/Phase2HLTTDRWinter20DIGI/Muminus_Pt10-gun/GEN-SIM-DIGI-RAW/NoPU_110X_mcRun4_realistic_v3-v2/50000/E6F1BC5E-BD51-A948-ADDC-8D84EFF14174.root"
+         #"/store/mc/Phase2HLTTDRWinter20DIGI/Muminus_Pt10-gun/GEN-SIM-DIGI-RAW/NoPU_110X_mcRun4_realistic_v3-v2/50000/E6F1BC5E-BD51-A948-ADDC-8D84EFF14174.root"
+         '/store/mc/Phase2HLTTDRWinter20DIGI/DoubleMuon_gun_FlatPt-1To100/GEN-SIM-DIGI-RAW/NoPU_110X_mcRun4_realistic_v3-v2/30000/3FD40D17-5C29-804C-B49A-029CC02B63DC.root'
+         
 )
 
 process = cms.Process("PickEvent")
@@ -96,7 +98,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 #outputFileNme = 'HSCPppstau_M_871_PU200_v3-v2_1ADE9D9E-8C0C-1948-A405-5DFDA1AF5172_dump100Ev.root'
 #outputFileNme = 'Nu_E10-pythia8-gun_PU200_v3-v3_FFB3195D-E113-3744-877D-44E21C060358_dump100Ev.root'
 #outputFileNme = 'Phase2HLTTDRWinter20DIGI__ZprimeToMuMu_M-6000_NoPU_CFBA4AE8-00DE-1743-9B83-7582C69FC7F7_dump100Ev.root'
-outputFileNme = 'Phase2HLTTDRWinter20DIGI__Muminus_Pt10-gun_NoPU_E6F1BC5E-BD51-A948-ADDC-8D84EFF14174_dump100Ev.root'
+outputFileNme = 'Phase2HLTTDRWinter20DIGI_DoubleMuon_gun_FlatPt-1To100_NoPU_3FD40D17-5C29-804C-B49A-029CC02B63DC_dump100Ev.root'
 
 process.Out = cms.OutputModule("PoolOutputModule",
         fileName = cms.untracked.string (outputFileNme)

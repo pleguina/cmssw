@@ -1,3 +1,14 @@
+#include "L1Trigger/L1TkMuonBayes/plugins/L1TkMuonBayesTrackProducer.h"
+#include "L1Trigger/L1TkMuonBayes/interface/PdfModuleWithStats.h"
+#include "L1Trigger/L1TkMuonBayes/interface/MuTimingModuleWithStat.h"
+
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
+#include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
+#include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
+
+#include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
+#include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 
 #include <iostream>
 #include <strstream>
@@ -13,27 +24,14 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
-#include "L1Trigger/L1TkMuonBayes/interface/PdfModuleWithStats.h"
-#include "L1Trigger/L1TkMuonBayes/plugins/L1TMuonBayesMuCorrelatorTrackProducer.h"
+L1TkMuonBayesTrackProducer::L1TkMuonBayesTrackProducer(const edm::ParameterSet& cfg)
+    : edmParameterSet(cfg), config(std::make_shared<TkMuBayesProcConfig>()) {
+  produces<l1t::TkMuonBayesTrackBxCollection>(allTracksProductName);  //all tracks
 
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
-
-#include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
-#include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
-
-#include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
-#include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
-
-#include "L1Trigger/L1TkMuonBayes/interface/MuTimingModuleWithStat.h"
-
-L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(const edm::ParameterSet& cfg)
-    : edmParameterSet(cfg), muCorrelatorConfig(std::make_shared<MuCorrelatorConfig>()) {
-  produces<l1t::BayesMuCorrTrackBxCollection>(allTracksProductName);  //all tracks
-
-  produces<l1t::BayesMuCorrTrackBxCollection>(muonTracksProductName);
+  produces<l1t::TkMuonBayesTrackBxCollection>(muonTracksProductName);
   //"fast" tracks, i.e. with at least two muon stubs in the same bx as ttRack (i.e. not HSCPs) and passing some cuts
 
-  produces<l1t::BayesMuCorrTrackBxCollection>(hscpTracksProductName);
+  produces<l1t::TkMuonBayesTrackBxCollection>(hscpTracksProductName);
   //"slow" tracks, i.e. exclusive versus the "fast" tracks and passing some cuts
 
   MuStubsInputTokens muStubsInputTokens;
@@ -64,12 +62,12 @@ L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(con
     trackingParticleToken = mayConsume<std::vector<TrackingParticle> >(
         edmParameterSet.getParameter<edm::InputTag>("TrackingParticleInputTag"));
 
-  inputMaker = std::make_unique<MuCorrelatorInputMaker>(
+  inputMaker = std::make_unique<MuonStubInputMaker>(
       edmParameterSet,
       muStubsInputTokens,
       inputTokenDTPhPhase2,
-      muCorrelatorConfig.get(),
-      new AngleConverterBase());  //MuCorrelatorInputMaker keeps the AngleConverter
+      config.get(),
+      new AngleConverterBase());  //MuonStubInputMaker keeps the AngleConverter
 
   ttTracksInputMaker = std::make_unique<TTTracksInputMaker>(edmParameterSet);
 
@@ -87,26 +85,26 @@ L1TMuonBayesMuCorrelatorTrackProducer::L1TMuonBayesMuCorrelatorTrackProducer(con
 
   //muCorrelatorConfig->setBxToProcess(useStubsFromAdditionalBxs + 1); TODO correct, now does not compile due to const
 
-  for (unsigned int ptBin = 0; ptBin < muCorrelatorConfig->getPtHwBins().size(); ++ptBin) {
+  for (unsigned int ptBin = 0; ptBin < config->getPtHwBins().size(); ++ptBin) {
     edm::LogImportant("l1tOmtfEventPrint") << "ptBin " << setw(2) << ptBin
-                                      << " range Hw: " << muCorrelatorConfig->ptBinString(ptBin, 0) << " = "
-                                      << muCorrelatorConfig->ptBinString(ptBin, 1) << std::endl;
+                                      << " range Hw: " << config->ptBinString(ptBin, 0) << " = "
+                                      << config->ptBinString(ptBin, 1) << std::endl;
   }
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-L1TMuonBayesMuCorrelatorTrackProducer::~L1TMuonBayesMuCorrelatorTrackProducer() {}
+L1TkMuonBayesTrackProducer::~L1TkMuonBayesTrackProducer() {}
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonBayesMuCorrelatorTrackProducer::beginJob() {
+void L1TkMuonBayesTrackProducer::beginJob() {
   //m_Reconstruction.beginJob();
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonBayesMuCorrelatorTrackProducer::endJob() {
+void L1TkMuonBayesTrackProducer::endJob() {
   //m_Reconstruction.endJob();
 
-  IPdfModule* pdfModule = muCorrelatorProcessor->getPdfModule();
+  IPdfModule* pdfModule = processor->getPdfModule();
   PdfModuleWithStats* pdfModuleWithStats = dynamic_cast<PdfModuleWithStats*>(pdfModule);
   if (pdfModuleWithStats) {
     // using TFileService insteed
@@ -127,7 +125,7 @@ void L1TMuonBayesMuCorrelatorTrackProducer::endJob() {
   }
 
   MuTimingModuleWithStat* muTimingModule =
-      dynamic_cast<MuTimingModuleWithStat*>(muCorrelatorProcessor->getMuTimingModule());
+      dynamic_cast<MuTimingModuleWithStat*>(processor->getMuTimingModule());
   if (muTimingModule) {
     if (edmParameterSet.exists("generateTiming") && edmParameterSet.getParameter<bool>("generateTiming")) {
       string muTimingModuleFileName = "muTimingModule.xml";
@@ -142,12 +140,8 @@ void L1TMuonBayesMuCorrelatorTrackProducer::endJob() {
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::EventSetup const& eventSetup) {
-  /*for(int ptHw = 0; ptHw < 512; ptHw++) {
-    cout<<"ptHw "<<setw(3)<<ptHw<<" = "<<setw(5)<<muCorrelatorConfig->hwPtToGev(ptHw)<<" GeV ptBin "<<muCorrelatorConfig->ptHwToPtBin(ptHw)<<endl;
-  }*/
-
-  if (!muCorrelatorProcessor) {
+void L1TkMuonBayesTrackProducer::beginRun(edm::Run const& run, edm::EventSetup const& eventSetup) {
+  if (!processor) {
     std::string pdfModuleType = "PdfModule";
     if (edmParameterSet.exists("pdfModuleType")) {
       pdfModuleType = edmParameterSet.getParameter<std::string>("pdfModuleType");
@@ -156,13 +150,13 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
     PdfModule* pdfModule = nullptr;
 
     if (pdfModuleType == "PdfModule") {
-      pdfModule = new PdfModule(muCorrelatorConfig);
-      edm::LogImportant("l1tOmtfEventPrint") << " creating PdfModule for muCorrelatorProcessor" << std::endl;
+      pdfModule = new PdfModule(config);
+      edm::LogImportant("l1tOmtfEventPrint") << " creating PdfModule for processor" << std::endl;
     } else if (pdfModuleType == "PdfModuleWithStats") {
-      edm::LogImportant("l1tOmtfEventPrint") << " creating PdfModuleWithStats for muCorrelatorProcessor" << std::endl;
-      pdfModule = new PdfModuleWithStats(muCorrelatorConfig);
+      edm::LogImportant("l1tOmtfEventPrint") << " creating PdfModuleWithStats for processor" << std::endl;
+      pdfModule = new PdfModuleWithStats(config);
     } else {
-      throw cms::Exception("L1TMuonBayesMuCorrelatorTrackProducer::beginRun: unknown pdfModuleType: " + pdfModuleType);
+      throw cms::Exception("L1TkMuonBayesTrackProducer::beginRun: unknown pdfModuleType: " + pdfModuleType);
     }
 
     if (edmParameterSet.exists("generatePdfs") && edmParameterSet.getParameter<bool>("generatePdfs")) {
@@ -176,48 +170,48 @@ void L1TMuonBayesMuCorrelatorTrackProducer::beginRun(edm::Run const& run, edm::E
 
     std::unique_ptr<PdfModule> pdfModuleUniqPtr(pdfModule);
 
-    muCorrelatorProcessor = std::make_unique<MuCorrelatorProcessor>(muCorrelatorConfig, std::move(pdfModuleUniqPtr));
+    processor = std::make_unique<TkMuBayesProcessor>(config, std::move(pdfModuleUniqPtr));
 
     if (edmParameterSet.exists("generateTiming") && edmParameterSet.getParameter<bool>("generateTiming")) {
       std::unique_ptr<MuTimingModule> muTimingModuleUniqPtr =
-          std::make_unique<MuTimingModuleWithStat>(muCorrelatorConfig.get());
-      muCorrelatorProcessor->setMuTimingModule(muTimingModuleUniqPtr);
+          std::make_unique<MuTimingModuleWithStat>(config.get());
+      processor->setMuTimingModule(muTimingModuleUniqPtr);
     } else if (edmParameterSet.exists("timingModuleFile")) {
       string timingModuleFile = edmParameterSet.getParameter<edm::FileInPath>("timingModuleFile").fullPath();
       edm::LogImportant("l1tOmtfEventPrint")
           << " reading the MuTimingModule from file " << timingModuleFile << std::endl;
 
       std::unique_ptr<MuTimingModule> muTimingModuleUniqPtr =
-          std::make_unique<MuTimingModule>(muCorrelatorConfig.get());
+          std::make_unique<MuTimingModule>(config.get());
       readTimingModule(muTimingModuleUniqPtr.get(), timingModuleFile);
-      muCorrelatorProcessor->setMuTimingModule(muTimingModuleUniqPtr);
+      processor->setMuTimingModule(muTimingModuleUniqPtr);
     }
 
-    edm::LogImportant("l1tOmtfEventPrint") << " muCorrelatorProcessor constructed" << std::endl;
+    edm::LogImportant("l1tOmtfEventPrint") << " processor constructed" << std::endl;
 
     //the parameters can be overwritten from the python config
-    muCorrelatorConfig->configureFromEdmParameterSet(edmParameterSet);
+    config->configureFromEdmParameterSet(edmParameterSet);
 
     inputMaker->initialize(edmParameterSet, eventSetup);
   }
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup) {
+void L1TkMuonBayesTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup) {
   inputMaker->loadAndFilterDigis(iEvent);
 
-  std::unique_ptr<l1t::BayesMuCorrTrackBxCollection> allTracks(new l1t::BayesMuCorrTrackBxCollection);
+  std::unique_ptr<l1t::TkMuonBayesTrackBxCollection> allTracks(new l1t::TkMuonBayesTrackBxCollection);
   allTracks->setBXRange(bxRangeMin, bxRangeMax);
 
-  std::unique_ptr<l1t::BayesMuCorrTrackBxCollection> muonTracks(new l1t::BayesMuCorrTrackBxCollection);
+  std::unique_ptr<l1t::TkMuonBayesTrackBxCollection> muonTracks(new l1t::TkMuonBayesTrackBxCollection);
   muonTracks->setBXRange(bxRangeMin, bxRangeMax);
 
-  std::unique_ptr<l1t::BayesMuCorrTrackBxCollection> hscpTracks(new l1t::BayesMuCorrTrackBxCollection);
+  std::unique_ptr<l1t::TkMuonBayesTrackBxCollection> hscpTracks(new l1t::TkMuonBayesTrackBxCollection);
   hscpTracks->setBXRange(bxRangeMin, bxRangeMax);
 
   //std::cout<<"\n"<<__FUNCTION__<<":"<<__LINE__<<" iEvent "<<iEvent.id().event()<<" #####################################################################"<<endl;
   for (int bx = bxRangeMin; bx <= bxRangeMax; bx++) {
-    MuonStubsInput muonStubsInput(muCorrelatorConfig.get());
+    MuonStubsInput muonStubsInput(config.get());
     inputMaker->buildInputForProcessor(
         muonStubsInput.getMuonStubs(), 0, l1t::tftype::bmtf, bx, bx + useStubsFromAdditionalBxs);
     //std::cout<<muonStubsInput<<std::endl;
@@ -226,7 +220,7 @@ void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const ed
     LogTrace("l1tOmtfEventPrint") << "\n\nEvent " << iEvent.id().event() << " muonStubsInput bx " << bx << ": \n "
                                   << muonStubsInput << endl;
 
-    auto ttTRacks = ttTracksInputMaker->loadTTTracks(iEvent, bx, edmParameterSet, muCorrelatorConfig.get());
+    auto ttTRacks = ttTracksInputMaker->loadTTTracks(iEvent, bx, edmParameterSet, config.get());
     LogTrace("l1tOmtfEventPrint")<<" ttTRacks.size() " << ttTRacks.size()<< endl;
     for (auto& ttTRack : ttTRacks) {
       LogTrace("l1tOmtfEventPrint") << *ttTRack << endl;
@@ -235,15 +229,14 @@ void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const ed
 
     //for(unsigned int iProcessor=0; iProcessor<m_OMTFConfig->nProcessors(); ++iProcessor)
     {
-      AlgoTTMuons algoTTMuons = muCorrelatorProcessor->processTracks(muonStubsInput, ttTRacks);
+      AlgoTTMuons algoTTMuons = processor->processTracks(muonStubsInput, ttTRacks);
       //fill outgoing collection
-      l1t::BayesMuCorrTrackCollection bayesMuCorrTracksInBx =
-          muCorrelatorProcessor->getMuCorrTrackCollection(0, algoTTMuons);
+      l1t::TkMuonBayesTrackCollection bayesMuCorrTracksInBx = processor->getMuCorrTrackCollection(0, algoTTMuons);
       for (auto& muTrack : bayesMuCorrTracksInBx) {
         allTracks->push_back(bx, muTrack);
 
-        auto firedLayerBits = muTrack.getFiredLayerBits(muCorrelatorConfig->nLayers());
-        if (muTrack.hwQual() >= 12 && muTrack.getCandidateType() == l1t::BayesMuCorrelatorTrack::fastTrack &&
+        auto firedLayerBits = muTrack.getFiredLayerBits(config->nLayers());
+        if (muTrack.hwQual() >= 12 && muTrack.getCandidateType() == l1t::TkMuonBayesTrack::fastTrack &&
             ((firedLayerBits.count() == 2 && muTrack.pdfSum() > 1100) ||
              (firedLayerBits.count() == 3 && muTrack.pdfSum() > 1400) || firedLayerBits.count() >= 4) &&
             ((muTrack.getTtTrackPtr().isNonnull() && muTrack.getTtTrackPtr()->chi2Red() < 200) ||
@@ -251,7 +244,7 @@ void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const ed
           muonTracks->push_back(bx, muTrack);
         }
 
-        if (muTrack.getCandidateType() == l1t::BayesMuCorrelatorTrack::slowTrack && muTrack.hwQual() >= 13 &&
+        if (muTrack.getCandidateType() == l1t::TkMuonBayesTrack::slowTrack && muTrack.hwQual() >= 13 &&
             ((firedLayerBits.count() == 2 && muTrack.pdfSum() > 1300 && muTrack.getBetaLikelihood() >= 6) ||
              (firedLayerBits.count() == 3 && muTrack.pdfSum() > 1700 && muTrack.getBetaLikelihood() >= 7) ||
              (firedLayerBits.count() == 4 && muTrack.pdfSum() > 2200 && muTrack.getBetaLikelihood() >= 9) ||
@@ -274,7 +267,7 @@ void L1TMuonBayesMuCorrelatorTrackProducer::produce(edm::Event& iEvent, const ed
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 
-void L1TMuonBayesMuCorrelatorTrackProducer::readPdfs(IPdfModule* pdfModule, std::string fileName) {
+void L1TkMuonBayesTrackProducer::readPdfs(IPdfModule* pdfModule, std::string fileName) {
   // open the archive
   std::ifstream ifs(fileName);
   assert(ifs.good());
@@ -289,11 +282,11 @@ void L1TMuonBayesMuCorrelatorTrackProducer::readPdfs(IPdfModule* pdfModule, std:
     LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ": " << __LINE__ << " pdfModule->getCoefficients().size() "
                                   << pdfModuleRef.getCoefficients().size() << endl;
   } else {
-    throw cms::Exception("L1TMuonBayesMuCorrelatorTrackProducer::readPdfs: pdfModule is not of the type PdfModule*");
+    throw cms::Exception("L1TkMuonBayesTrackProducer::readPdfs: pdfModule is not of the type PdfModule*");
   }
 }
 
-void L1TMuonBayesMuCorrelatorTrackProducer::writePdfs(const IPdfModule* pdfModule, std::string fileName) {
+void L1TkMuonBayesTrackProducer::writePdfs(const IPdfModule* pdfModule, std::string fileName) {
   std::ofstream ofs(fileName);
 
   boost::archive::xml_oarchive xmlOutArch(ofs);
@@ -311,7 +304,7 @@ void L1TMuonBayesMuCorrelatorTrackProducer::writePdfs(const IPdfModule* pdfModul
   // archive and stream closed when destructors are called
 }
 
-void L1TMuonBayesMuCorrelatorTrackProducer::readTimingModule(MuTimingModule* muTimingModule, std::string fileName) {
+void L1TkMuonBayesTrackProducer::readTimingModule(MuTimingModule* muTimingModule, std::string fileName) {
   // open the archive
   std::ifstream ifs(fileName);
   assert(ifs.good());
@@ -326,11 +319,11 @@ void L1TMuonBayesMuCorrelatorTrackProducer::readTimingModule(MuTimingModule* muT
     MuTimingModule& muTimingModuleRef = *muTimingModule;
     ia >> BOOST_SERIALIZATION_NVP(muTimingModuleRef);
   } else {
-    throw cms::Exception("L1TMuonBayesMuCorrelatorTrackProducer::readTimingModule: muTimingModule is 0");
+    throw cms::Exception("L1TkMuonBayesTrackProducer::readTimingModule: muTimingModule is 0");
   }
 }
 
-void L1TMuonBayesMuCorrelatorTrackProducer::writeTimingModule(const MuTimingModule* muTimingModule,
+void L1TkMuonBayesTrackProducer::writeTimingModule(const MuTimingModule* muTimingModule,
                                                               std::string fileName) {
   std::ofstream ofs(fileName);
 
@@ -350,4 +343,4 @@ void L1TMuonBayesMuCorrelatorTrackProducer::writeTimingModule(const MuTimingModu
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
-DEFINE_FWK_MODULE(L1TMuonBayesMuCorrelatorTrackProducer);
+DEFINE_FWK_MODULE(L1TkMuonBayesTrackProducer);

@@ -1,23 +1,22 @@
 /*
- * MuCorrelatorProcessor.h
+ * TkMuBayesProcessor.h
  *
  *  Created on: Jan 18, 2019
  *      Author: kbunkow
  */
 
-#ifndef MUCORRELATOR_MUCORRELATORPROCESSOR_H_
-#define MUCORRELATOR_MUCORRELATORPROCESSOR_H_
+#ifndef L1TkMuonBayes_TkMuBayesProcessor_H_
+#define L1TkMuonBayes_TkMuBayesProcessor_H_
 
+#include <DataFormats/L1TMuon/interface/TkMuonBayesTrack.h>
 #include "L1Trigger/L1TkMuonBayes/interface/AlgoTTMuon.h"
-#include "L1Trigger/L1TkMuonBayes/interface/MuCorrelatorConfig.h"
+#include "L1Trigger/L1TkMuonBayes/interface/TkMuBayesProcConfig.h"
 #include "L1Trigger/L1TkMuonBayes/interface/PdfModule.h"
 #include "L1Trigger/L1TkMuonBayes/interface/TrackingTriggerTrack.h"
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubsInput.h"
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
-#include "DataFormats/L1TMuon/interface/BayesMuCorrelatorTrack.h"
-
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
 #include "boost/multi_array.hpp"
 #include "L1Trigger/L1TkMuonBayes/interface/MuTimingModule.h"
@@ -32,27 +31,27 @@ public:
 
 typedef std::vector<StandaloneCandWithStubs> StandaloneCandWithStubsVec;
 
-class CorrelatorMuCandidate {
+/*class CorrelatorMuCandidate {
   //TODO
 };
 
-typedef std::vector<CorrelatorMuCandidate> CorrelatorMuCandidates;
+typedef std::vector<CorrelatorMuCandidate> CorrelatorMuCandidates;*/
 
-class MuCorrelatorProcessor {
+class TkMuBayesProcessor {
 public:
   //default pdfModuleType is PdfModule
-  MuCorrelatorProcessor(MuCorrelatorConfigPtr& config, std::string pdfModuleType = "");
+  TkMuBayesProcessor(TkMuBayesProcConfigPtr& config, std::string pdfModuleType = "");
 
   //takes the ownership of the pdfModule
-  MuCorrelatorProcessor(MuCorrelatorConfigPtr& config, unique_ptr<IPdfModule> pdfModule);
+  TkMuBayesProcessor(TkMuBayesProcConfigPtr& config, unique_ptr<IPdfModule> pdfModule);
 
-  virtual ~MuCorrelatorProcessor();
+  virtual ~TkMuBayesProcessor();
 
-  virtual CorrelatorMuCandidates run(int bx) {
+/*  virtual CorrelatorMuCandidates run(int bx) {
     //TODO implement;
     CorrelatorMuCandidates muCandidates;
     return muCandidates;
-  }
+  }*/
 
   virtual AlgoTTMuons processTracks(const MuonStubsInput& muonStubs, const TrackingTriggerTracks& ttTracks);
 
@@ -90,7 +89,7 @@ public:
 
   //virtual std::vector<l1t::RegionalMuonCand> getFinalCandidates(unsigned int iProcessor, l1t::tftype mtfType, AlgoTTMuons& algoTTMuons);
 
-  virtual l1t::BayesMuCorrTrackCollection getMuCorrTrackCollection(unsigned int iProcessor, AlgoTTMuons& algoTTMuons);
+  virtual l1t::TkMuonBayesTrackCollection getMuCorrTrackCollection(unsigned int iProcessor, AlgoTTMuons& algoTTMuons);
 
   virtual bool assignQuality(AlgoTTMuons& algoTTMuons);
 
@@ -102,7 +101,7 @@ public:
   MuTimingModule* getMuTimingModule() { return muTimingModule.get(); }
 
 private:
-  MuCorrelatorConfigPtr config;
+  TkMuBayesProcConfigPtr config;
 
   /**should return:
    * 0 if first kills second
@@ -117,4 +116,4 @@ private:
   std::vector<std::pair<int, boost::dynamic_bitset<> > > lowQualityHitPatterns;
 };
 
-#endif /* INTERFACE_MUCORRELATOR_MUCORRELATORPROCESSOR_H_ */
+#endif /* L1TkMuonBayes_TkMuBayesProcessor_H_ */

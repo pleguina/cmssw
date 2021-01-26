@@ -5,8 +5,8 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#ifndef L1TMUONBAYES_TRACKINGTRIGGERTRACK_H_
-#define L1TMUONBAYES_TRACKINGTRIGGERTRACK_H_
+#ifndef L1TkMuonBayes_TRACKINGTRIGGERTRACK_H_
+#define L1TkMuonBayes_TRACKINGTRIGGERTRACK_H_
 
 #include "SimDataFormats/Track/interface/SimTrack.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
@@ -101,4 +101,4 @@ private:
 typedef std::shared_ptr<const TrackingTriggerTrack> TrackingTriggerTrackPtr;
 typedef std::vector<TrackingTriggerTrackPtr> TrackingTriggerTracks;
 
-#endif /* INTERFACE_TRACKINGTRIGGERTRACK_H_ */
+#endif /* L1TkMuonBayes_TRACKINGTRIGGERTRACK_H_ */

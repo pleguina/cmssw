@@ -5,8 +5,8 @@
  *      Author: Karol Bunkowski kbunkow@cern.ch
  */
 
-#ifndef L1TMUONBAYES_TTTRACKSINPUTMAKER_H_
-#define L1TMUONBAYES_TTTRACKSINPUTMAKER_H_
+#ifndef L1TkMuonBayes_TTTRACKSINPUTMAKER_H_
+#define L1TkMuonBayes_TTTRACKSINPUTMAKER_H_
 
 #include "L1Trigger/L1TkMuonBayes/interface/TrackingTriggerTrack.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
@@ -45,4 +45,4 @@ private:
   //TrackingTriggerTracks ttTracks;
 };
 
-#endif /* INTERFACE_TTTRACKSINPUTMAKER_H_ */
+#endif /* L1TkMuonBayes_TTTRACKSINPUTMAKER_H_ */

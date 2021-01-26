@@ -41,7 +41,7 @@ if verbose:
                          #DEBUG   = cms.untracked.int32(0),
                          l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(100000000) )
                        ),
-       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'OmtfTTAnalyzer', 'simOmtfDigis', 'omtfTTAnalyzer', 'simBayesMuCorrelatorTrackProducer') 
+       debugModules = cms.untracked.vstring('OmtfTTAnalyzer', 'simOmtfDigis', 'omtfTTAnalyzer', 'simL1TkMuonBayesTrackProducer') 
        #debugModules = cms.untracked.vstring('*')
     )
 
@@ -175,40 +175,40 @@ if makeTTracks :
 
 #######################################TTTracks################################################
 
-####OMTF L1TkMuonBayes
-process.load('L1Trigger.L1TkMuonBayes.simBayesMuCorrelatorTrackProducer_cfi')
-process.simBayesMuCorrelatorTrackProducer.usePhase2DTPrimitives = cms.bool(False)
+####L1TkMuonBayes
+process.load('L1Trigger.L1TkMuonBayes.simL1TkMuonBayesTrackProducer_cfi')
+process.simL1TkMuonBayesTrackProducer.usePhase2DTPrimitives = cms.bool(False)
 
 #process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorHists.root'), closeFileFast = cms.untracked.bool(True))
 
-process.simBayesMuCorrelatorTrackProducer.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")  
-process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("L1_TRACKER")
-#process.simBayesMuCorrelatorTrackProducer.ttTracksSource = cms.string("SIM_TRACKS") #TODO !!!!!!!
+process.simL1TkMuonBayesTrackProducer.L1TrackInputTag = cms.InputTag("TTTracksFromTrackletEmulation", "Level1TTTracks")  
+process.simL1TkMuonBayesTrackProducer.ttTracksSource = cms.string("L1_TRACKER")
+#process.simL1TkMuonBayesTrackProducer.ttTracksSource = cms.string("SIM_TRACKS") #TODO !!!!!!!
 
-process.simBayesMuCorrelatorTrackProducer.TrackingParticleInputTag= cms.InputTag("mix", "MergedTrackTruth") #
+process.simL1TkMuonBayesTrackProducer.TrackingParticleInputTag= cms.InputTag("mix", "MergedTrackTruth") #
 
-process.simBayesMuCorrelatorTrackProducer.lctCentralBx = cms.int32(8)#<process.simBayesMuCorrelatorTrackProducer.lctCentralBx = cms.int32(8)#<
+process.simL1TkMuonBayesTrackProducer.lctCentralBx = cms.int32(8)#<process.simL1TkMuonBayesTrackProducer.lctCentralBx = cms.int32(8)#<
 
-process.simBayesMuCorrelatorTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
-#process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModule.xml") #TODO!!!!!!!!!!!!!!!!!!!!!!!!!!11
-#process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModuleSimTracks100FilesWithiRPC.xml")
-#process.simBayesMuCorrelatorTrackProducer.timingModuleFile  = cms.FileInPath("L1Trigger/L1TMuonBayes/test/muTimingModule100FilesWithiRPC.xml")
-#process.simBayesMuCorrelatorTrackProducer.timingModuleFile  = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muTimingModuleTest.xml")
-#process.simBayesMuCorrelatorTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/pdfModuleSimTracks100FilesSigma1p3.xml")  
+process.simL1TkMuonBayesTrackProducer.pdfModuleType = cms.string("PdfModuleWithStats") #TODO
+#process.simL1TkMuonBayesTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModule.xml") #TODO!!!!!!!!!!!!!!!!!!!!!!!!!!11
+#process.simL1TkMuonBayesTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuonBayes/test/pdfModuleSimTracks100FilesWithiRPC.xml")
+#process.simL1TkMuonBayesTrackProducer.timingModuleFile  = cms.FileInPath("L1Trigger/L1TMuonBayes/test/muTimingModule100FilesWithiRPC.xml")
+#process.simL1TkMuonBayesTrackProducer.timingModuleFile  = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muTimingModuleTest.xml")
+#process.simL1TkMuonBayesTrackProducer.pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/pdfModuleSimTracks100FilesSigma1p3.xml")  
 
 
 
-process.simBayesMuCorrelatorTrackProducer.generateTiming = cms.bool(False)
-process.simBayesMuCorrelatorTrackProducer.useStubsFromAdditionalBxs = cms.int32(3)
-#process.simBayesMuCorrelatorTrackProducer.bxRangeMin = cms.int32(-3)
-#process.simBayesMuCorrelatorTrackProducer.bxRangeMax = cms.int32(3)
+process.simL1TkMuonBayesTrackProducer.generateTiming = cms.bool(False)
+process.simL1TkMuonBayesTrackProducer.useStubsFromAdditionalBxs = cms.int32(3)
+#process.simL1TkMuonBayesTrackProducer.bxRangeMin = cms.int32(-3)
+#process.simL1TkMuonBayesTrackProducer.bxRangeMax = cms.int32(3)
 
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
 process.L1TMuonSeq = cms.Sequence( #process.esProd +         
                                    process.L1TrackTrigger + process.L1HybridTracksWithAssociators#+ 
-                                   + process.simBayesMuCorrelatorTrackProducer 
+                                   + process.simL1TkMuonBayesTrackProducer 
                                    #+ process.dumpED
                                    #+ process.dumpES
 )
