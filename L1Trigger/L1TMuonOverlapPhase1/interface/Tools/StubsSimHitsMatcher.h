@@ -87,6 +87,8 @@ private:
   TH2I* stubsInLayersCntByPdgId = nullptr;
   TH2I* firedLayersCntByPdgId = nullptr;
   TH2I* ptByPdgId = nullptr;
+
+  TH2I* rhoByPdgId = nullptr;
 };
 
 #endif /* OMTF__TOOLS_STUBSSIMHITSMATCHER_H_ */

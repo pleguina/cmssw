@@ -77,6 +77,9 @@ StubsSimHitsMatcher::StubsSimHitsMatcher(const edm::ParameterSet& edmCfg, const 
 
   ptByPdgId = subDir.make<TH2I>("ptByPdgId", "ptByPdgId bestMatched;;pT [GeV];#", 3, 0, 3, 20, 0, 10);
   ptByPdgId->SetCanExtend(TH1::kAllAxes);
+
+  rhoByPdgId = subDir.make<TH2I>("rhoByPdgId", "rhoByPdgId bestMatched;;Rho [cm];#", 3, 0, 3, 50, 0, 500);
+  rhoByPdgId->SetCanExtend(TH1::kAllAxes);
 }
 
 StubsSimHitsMatcher::~StubsSimHitsMatcher() {
@@ -429,6 +432,10 @@ void StubsSimHitsMatcher::match(const edm::Event& iEvent,
       bestMatchedTracksPdgIds->Fill(str.c_str(), 1);
       firedLayersCntByPdgId->Fill(str.c_str(), gpResult.getFiredLayerCnt(), 1);
       ptByPdgId->Fill(str.c_str(), bestMatchedPart->pt(), 1);
+
+      if (bestMatchedPart->parentVertex().isNonnull()) {
+        rhoByPdgId->Fill(str.c_str(), bestMatchedPart->parentVertex()->position().Rho(), 1);
+      }
 
       ostr << "bestMatchedPart: pdgId " << std::setw(3) << bestMatchedPart->pdgId() << " event " << std::setw(4)
            << bestMatchedPart->eventId().event() << " trackId " << std::setw(8)
