@@ -41,7 +41,7 @@ if verbose:
                          #DEBUG   = cms.untracked.int32(0),
                          l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(100000000) )
                        ),
-       debugModules = cms.untracked.vstring('OmtfTTAnalyzer', 'simOmtfDigis', 'omtfTTAnalyzer', 'simL1TkMuonBayesTrackProducer') 
+       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'muCorrelatorAnalyzer', 'simOmtfDigis', 'simL1TkMuonBayesTrackProducer') 
        #debugModules = cms.untracked.vstring('*')
     )
 
@@ -239,7 +239,7 @@ for a in sys.argv :
     
 print "analysisType=" + analysisType
 
-process.omtfTTAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer", 
+process.muCorrelatorAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer", 
                                  outRootFile = cms.string("muCorrelatorTTAnalysis1.root"),
                                  etaCutFrom = cms.double(0.), #OMTF eta range
                                  etaCutTo = cms.double(2.4),
@@ -269,25 +269,25 @@ process.omtfTTAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer",
                                        muCandQualityCut = cms.int32(12),
                                        analysisType = cms.string(analysisType)
                                         )
-process.omtfTTAnalyzerPath = cms.Path(process.omtfTTAnalyzer)
+process.muCorrelatorAnalyzerPath = cms.Path(process.muCorrelatorAnalyzer)
 
 ###########################################################
 
 ############################################################
 
 # use this if you want to re-run the stub making
-#process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksWithTruth, process.L1TMuonPath, process.omtfTTAnalyzerPath)
+#process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksWithTruth, process.L1TMuonPath, process.muCorrelatorAnalyzerPath)
 
 # use this if cluster/stub associators not available
 # process.TTClusterStub, process.TTTracks, 
 
 if makeTTracks:
-    process.schedule = cms.Schedule(process.L1TMuonPath, process.omtfTTAnalyzerPath) #TODO default process.TTTracksWithTruth, 
+    process.schedule = cms.Schedule(process.L1TMuonPath, process.muCorrelatorAnalyzerPath) #TODO default process.TTTracksWithTruth, 
 else :
-    process.schedule = cms.Schedule(process.omtfTTAnalyzerPath)  
+    process.schedule = cms.Schedule(process.muCorrelatorAnalyzerPath)  
     
-#process.schedule = cms.Schedule(process.TTTracks, process.TTTracksWithTruth, process.L1TMuonPath, process.omtfTTAnalyzerPath)
-#process.schedule = cms.Schedule(process.TTClusterStub, process.TTClusterStubTruth, process.TTTracksWithTruth, process.TTTracks, process.L1TMuonPath, process.omtfTTAnalyzerPath)
+#process.schedule = cms.Schedule(process.TTTracks, process.TTTracksWithTruth, process.L1TMuonPath, process.muCorrelatorAnalyzerPath)
+#process.schedule = cms.Schedule(process.TTClusterStub, process.TTClusterStubTruth, process.TTTracksWithTruth, process.TTTracks, process.L1TMuonPath, process.muCorrelatorAnalyzerPath)
 
 # use this to only run tracking + track associator
 #process.schedule = cms.Schedule(process.TTTracksWithTruth,process.ana)

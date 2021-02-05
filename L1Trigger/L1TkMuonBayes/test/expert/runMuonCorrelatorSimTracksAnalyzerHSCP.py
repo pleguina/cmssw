@@ -28,7 +28,7 @@ if verbose:
                          #DEBUG   = cms.untracked.int32(0),
                          l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(100000000) )
                        ),
-       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'OmtfTTAnalyzer', 'simOmtfDigis', 'omtfTTAnalyzer', 'simBayesMuCorrelatorTrackProducer') 
+       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'muCorrelatorAnalyzer', 'simOmtfDigis', 'simBayesMuCorrelatorTrackProducer') 
        #debugModules = cms.untracked.vstring('*')
     )
 
@@ -210,7 +210,7 @@ process.L1TMuonPath = cms.Path(process.L1TMuonSeq)
 
 ############################################################
 
-process.omtfTTAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer", 
+process.muCorrelatorAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer", 
                                  outRootFile = cms.string("muCorrelatorTTAnalysis1.root"),
                                  etaCutFrom = cms.double(0.), #OMTF eta range
                                  etaCutTo = cms.double(2.4),
@@ -220,7 +220,6 @@ process.omtfTTAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer",
                                        SaveAllTracks = cms.bool(True),   # save *all* L1 tracks, not just truth matched to primary particle
                                        SaveStubs = cms.bool(False),      # save some info for *all* stubs
                                        LooseMatch = cms.bool(True),     # turn on to use "loose" MC truth association
-                                       L1Tk_nPar = cms.int32(4),         # use 4 or 5-parameter L1 track fit ??
                                        L1Tk_minNStub = cms.int32(4),     # L1 tracks with >= 4 stubs
                                        TP_minNStub = cms.int32(4),       # require TP to have >= X number of stubs associated with it
                                        TP_minNStubLayer = cms.int32(4),  # require TP to have stubs in >= X layers/disks
@@ -240,7 +239,7 @@ process.omtfTTAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer",
                                        muCandQualityCut = cms.int32(12),
                                        analysisType = cms.string("withTrackPart")
                                         )
-process.omtfTTAnalyzerPath = cms.Path(process.omtfTTAnalyzer)
+process.muCorrelatorAnalyzerPath = cms.Path(process.muCorrelatorAnalyzer)
 
 ###########################################################
 
@@ -251,7 +250,7 @@ process.omtfTTAnalyzerPath = cms.Path(process.omtfTTAnalyzer)
 
 # use this if cluster/stub associators not available
 # process.TTClusterStub, process.TTTracks, 
-process.schedule = cms.Schedule(process.TTTracksWithTruth, process.L1TMuonPath, process.omtfTTAnalyzerPath) # 
+process.schedule = cms.Schedule(process.TTTracksWithTruth, process.L1TMuonPath, process.muCorrelatorAnalyzerPath) # 
 
 # use this to only run tracking + track associator
 #process.schedule = cms.Schedule(process.TTTracksWithTruth,process.ana)

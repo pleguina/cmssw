@@ -30,7 +30,7 @@ if verbose:
                          #DEBUG   = cms.untracked.int32(0),
                          l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(100000000) )
                        ),
-       debugModules = cms.untracked.vstring('L1TkMuonBayesTrackProducer', 'OmtfTTAnalyzer', 'simOmtfDigis', 'omtfTTAnalyzer', 'simL1TkMuonBayesTrackProducer') 
+       debugModules = cms.untracked.vstring('L1TkMuonBayesTrackProducer', 'simOmtfDigis', 'simL1TkMuonBayesTrackProducer') 
        #debugModules = cms.untracked.vstring('*')
     )
 

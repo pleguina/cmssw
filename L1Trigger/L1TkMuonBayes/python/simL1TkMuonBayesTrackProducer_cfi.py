@@ -21,7 +21,6 @@ simL1TkMuonBayesTrackProducer = cms.EDProducer("L1TkMuonBayesTrackProducer",
   #TrackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth"),
   #TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
   
-  l1Tk_nPar = cms.int32(4),         # use 4 or 5-parameter L1 track fit ??
   l1Tk_minNStub = cms.int32(4),     # L1 tracks with >= 4 stubs
   pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuon/data/muonBayesCorrelator_config/muCorrelatorPdfModule.xml"), 
   #pdfModuleFile = cms.FileInPath("L1Trigger/L1TMuon/data/muonBayesCorrelator_config/pdfModuleSimTracks100FilesSigma1p3_t9_sigma_1p2_1p4.xml"), 

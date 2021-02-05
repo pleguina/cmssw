@@ -29,7 +29,7 @@ if verbose:
                          l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) ),
                          OMTFReconstruction = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) )
                        ),
-       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'OmtfTTAnalyzer', 'simBayesOmtfDigis', 'omtfTTAnalyzer', 'simBayesMuCorrelatorTrackProducer') 
+       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'muCorrelatorAnalyzer', 'simBayesOmtfDigis', 'simBayesMuCorrelatorTrackProducer') 
        #debugModules = cms.untracked.vstring('*')
     )
 
@@ -234,7 +234,7 @@ for a in sys.argv :
     
 print "analysisType=" + analysisType
 
-process.omtfTTAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer", 
+process.muCorrelatorAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer", 
                                  outRootFile = cms.string("l1TkMuonsTP_analysis1.root"),
                                  etaCutFrom = cms.double(0.8), #OMTF eta range
                                  etaCutTo = cms.double(1.2), #2.4
@@ -244,7 +244,6 @@ process.omtfTTAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer",
                                        SaveAllTracks = cms.bool(True),   # save *all* L1 tracks, not just truth matched to primary particle
                                        SaveStubs = cms.bool(False),      # save some info for *all* stubs
                                        LooseMatch = cms.bool(True),     # turn on to use "loose" MC truth association
-                                       L1Tk_nPar = cms.int32(4),         # use 4 or 5-parameter L1 track fit ??
                                        L1Tk_minNStub = cms.int32(4),     # L1 tracks with >= 4 stubs
                                        TP_minNStub = cms.int32(4),       # require TP to have >= X number of stubs associated with it
                                        TP_minNStubLayer = cms.int32(4),  # require TP to have stubs in >= X layers/disks
@@ -264,20 +263,20 @@ process.omtfTTAnalyzer= cms.EDAnalyzer("MuCorrelatorAnalyzer",
                                        muCandQualityCut = cms.int32(12),
                                        analysisType = cms.string(analysisType)
                                         )
-process.omtfTTAnalyzerPath = cms.Path(process.omtfTTAnalyzer)
+process.muCorrelatorAnalyzerPath = cms.Path(process.muCorrelatorAnalyzer)
 
 ###########################################################
 
 ############################################################
 
 # use this if you want to re-run the stub making
-#process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksWithTruth, process.L1TMuonPath, process.omtfTTAnalyzerPath)
+#process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksWithTruth, process.L1TMuonPath, process.muCorrelatorAnalyzerPath)
 
 # use this if cluster/stub associators not available
 # process.TTClusterStub, process.TTTracks, 
-process.schedule = cms.Schedule(process.TTTracksWithTruth, process.L1TMuonPath, process.omtfTTAnalyzerPath) #TODO default
-#process.schedule = cms.Schedule(process.TTTracks, process.TTTracksWithTruth, process.L1TMuonPath, process.omtfTTAnalyzerPath)
-#process.schedule = cms.Schedule(process.TTClusterStub, process.TTClusterStubTruth, process.TTTracksWithTruth, process.TTTracks, process.L1TMuonPath, process.omtfTTAnalyzerPath)
+process.schedule = cms.Schedule(process.TTTracksWithTruth, process.L1TMuonPath, process.muCorrelatorAnalyzerPath) #TODO default
+#process.schedule = cms.Schedule(process.TTTracks, process.TTTracksWithTruth, process.L1TMuonPath, process.muCorrelatorAnalyzerPath)
+#process.schedule = cms.Schedule(process.TTClusterStub, process.TTClusterStubTruth, process.TTTracksWithTruth, process.TTTracks, process.L1TMuonPath, process.muCorrelatorAnalyzerPath)
 
 # use this to only run tracking + track associator
 #process.schedule = cms.Schedule(process.TTTracksWithTruth,process.ana)
