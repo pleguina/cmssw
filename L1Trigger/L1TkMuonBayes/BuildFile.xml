@@ -31,6 +31,8 @@
 <use name="L1Trigger/L1TMuonOverlapPhase1"/>
 <use name="L1Trigger/L1TMuonOverlapPhase2"/>
 
+<use name="DataFormats/L1TrackTrigger"/>
+
 <use   name="PhysicsTools/UtilAlgos"/>
 <use   name="FWCore/ServiceRegistry"/>
 

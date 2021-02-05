@@ -259,9 +259,8 @@ int TkMuBayesProcessor::ghostBust4(std::shared_ptr<AlgoTTMuon> first, std::share
   int commonHits = 0;
   for (unsigned int iLayer = 0; iLayer < first->getStubResults().size(); ++iLayer) {
     if (first->getStubResult(iLayer).getValid() && second->getStubResult(iLayer).getValid() &&
-        first->getStubResult(iLayer).getMuonStub() ==
-            second->getStubResult(iLayer)
-                .getMuonStub()) {  //TODO comparing here just the pointer to the muon stub, in hardware probably it should be an index of the stub
+        first->getStubResult(iLayer).getMuonStub() == second->getStubResult(iLayer).getMuonStub()) {
+      //TODO comparing here just the pointer to the muon stub, in hardware probably it should be an index of the stub
 
       if (first->getStubResult(iLayer).getPdfVal() > second->getStubResult(iLayer).getPdfVal()) {
         second->invalidateStubResult(iLayer);

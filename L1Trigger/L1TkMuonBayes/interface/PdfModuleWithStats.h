@@ -20,8 +20,8 @@ public:
 
   ~PdfModuleWithStats() override;
 
-  float getPdfVal(
-      unsigned int layer, unsigned int etaBin, unsigned int refLayer, unsigned int ptBin, int pdfBin) override;
+  float getPdfVal(unsigned int layer, unsigned int etaBin, unsigned int refLayer,
+                  const TrackingTriggerTrackPtr& ttTrack, int pdfBin) override;
 
   //writes pdfHists to current root file
   //virtual void write() const;

@@ -16,9 +16,7 @@ TTTracksInputMaker::TTTracksInputMaker(const edm::ParameterSet& edmCfg) {
       ttTracksSource = SIM_TRACKS;
     else if (trackSrc == "L1_TRACKER") {
       ttTracksSource = L1_TRACKER;
-      if (edmCfg.exists("l1Tk_nPar")) {
-        l1Tk_nPar = edmCfg.getParameter<int>("l1Tk_nPar");
-      }
+
       if (edmCfg.exists("l1Tk_minNStub")) {
         l1Tk_minNStub = edmCfg.getParameter<int>("l1Tk_minNStub");
       }
@@ -91,16 +89,20 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event& event,
     //LogTrace("l1tOmtfEventPrint") << __FUNCTION__<<":"<<__LINE__ << " LTTTrackHandle->size() "<<tTTrackHandle->size() << std::endl;
 
     for (unsigned int iTTTrack = 0; iTTTrack != tTTrackHandle->size(); iTTTrack++) {
+
       edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > ttTrackPtr(tTTrackHandle, iTTTrack);
       //TODO is there bx in the ttTrackPtr? Or the emulator works only in the BX 0, thus no tracks in other BXes?
-      auto ttTrack = std::make_shared<TrackingTriggerTrack>(ttTrackPtr, l1Tk_nPar);
+      auto ttTrack = std::make_shared<TrackingTriggerTrack>(ttTrackPtr, false);
 
       //TODO is this cut possible to apply in the firmware? there should be "Hit mask" so should be used whenever available
       if (ttTrackPtr->getStubRefs().size() >= l1Tk_minNStub)
         addTTTrack(ttTracks, ttTrack, procConf);
 
-      //cout<<__FUNCTION__<<":"<<__LINE__<<" "<<*iterL1Track<<" Momentum "<<iterL1Track->getMomentum(l1Tk_nPar)<<" RInv "<<iterL1Track->getRInv(l1Tk_nPar)<<endl;
-      //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" bx "<<bx<<" adding ttTrack from TTTrack: "<<" added track "<<*ttTrack<<std::endl;
+      //auto ttTrackRef = tTTrackHandle.product()->at(iTTTrack);
+      //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" bx "<<bx
+    		  //<<" "<<ttTrackRef.get_RinvBits() - not implemented
+    	//	  <<" adding ttTrack from TTTrack: iRinv "<<ttTrackRef.get_iRinv()<<" rInv() "<<ttTrackRef.rInv()<<" get_iphi "<<ttTrackRef.get_iphi()
+    	//	  <<"  "<<*ttTrack<<std::endl;
     }
   }
   //cout<<__FUNCTION__<<":"<<__LINE__<<" ttTracks.size() "<<ttTracks.size()<<endl;

@@ -28,7 +28,7 @@ public:
 
   TrackingTriggerTrack(const edm::Ptr<TrackingParticle>& trackingParticlePtr);
 
-  TrackingTriggerTrack(const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& ttTrackPtr, int l1Tk_nPar);
+  TrackingTriggerTrack(edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& ttTrackPtr, bool fromdigitisedValues);
 
   int getCharge() const { return charge; }
 
@@ -37,6 +37,8 @@ public:
   double getPhi() const { return phi; }
 
   double getPt() const { return pt; }
+
+  double getRInv() const { return rInv; }
 
   int getEtaHw() const { return etaHw; }
 
@@ -79,12 +81,16 @@ private:
   double pt = 0;
   int charge = 0;
 
+  double rInv = 0;
+
   double simBeta = 0;
 
   ///in integer hardware scales
   int phiHw = 0;
   int etaHw = 0;
   int ptHw = 0;
+
+  int rInvHw = 0;
 
   //used to address the LUTs
   unsigned int ptBin = 0;

@@ -15,12 +15,12 @@ if verbose:
        destinations   = cms.untracked.vstring(
                                                #'detailedInfo',
                                                #'critical',
-                                               #'cout',
+                                               'cout',
                                                #'cerr',
-                                               'muCorrelatorEventPrint'
+                                               'l1TkMuonBayesLog'
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint'),
-       muCorrelatorEventPrint = cms.untracked.PSet(    
+       l1TkMuonBayesLog = cms.untracked.PSet(    
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('INFO'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -28,11 +28,24 @@ if verbose:
                          #DEBUG   = cms.untracked.int32(0),
                          l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(100000000) )
                        ),
-       debugModules = cms.untracked.vstring('L1TMuonBayesMuCorrelatorTrackProducer', 'muCorrelatorAnalyzer', 'simOmtfDigis', 'muCorrelatorAnalyzer', 'simL1TkMuonBayesTrackProducer') 
+              cout = cms.untracked.PSet(    
+                         threshold = cms.untracked.string('INFO'),
+                         default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
+                         #INFO   =  cms.untracked.int32(0),
+                         #DEBUG   = cms.untracked.int32(0),
+                         l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(10000000) ),
+                         #OMTFReconstruction = cms.untracked.PSet( limit = cms.untracked.int32(10000000) )
+                         FwkReport = cms.untracked.PSet(
+                             reportEvery = cms.untracked.int32(1000),
+                             optionalPSet = cms.untracked.bool(True),
+                             limit = cms.untracked.int32(10000000)
+                             ),
+                       ),
+       debugModules = cms.untracked.vstring('L1TkMuonBayesTrackProducer', 'muCorrelatorAnalyzer', 'simOmtfDigis', 'muCorrelatorAnalyzer', 'simL1TkMuonBayesTrackProducer') 
        #debugModules = cms.untracked.vstring('*')
     )
 
-    #process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
+    #process.MessageLogger.cout.FwkReport.reportEvery = cms.untracked.int32(100)
 if not verbose:
     process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
     process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False), 
@@ -53,9 +66,9 @@ process.load('SimGeneral.MixingModule.mixNoPU_cfi')
 process.load('Configuration.Geometry.GeometryExtended2026D49Reco_cff') #TODO!!!!!!!!!!!!! this geometry is required for Phase2HLTTDRWinter20
 
 process.load('Configuration.StandardSequences.MagneticField_cff')
-process.load('Configuration.StandardSequences.RawToDigi_Data_cff')
-process.load('Configuration.StandardSequences.L1TrackTrigger_cff')
-process.load('Configuration.StandardSequences.SimL1Emulator_cff')
+#process.load('Configuration.StandardSequences.RawToDigi_Data_cff')
+#process.load('Configuration.StandardSequences.L1TrackTrigger_cff')
+#process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
@@ -79,7 +92,8 @@ Source_Files = cms.untracked.vstring(
          #"file:///eos/cms/store/group/upgrade/sandhya/SMP-PhaseIIFall17D-00001.root"
          #'file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_15_p_1_1_qtl.root' 
          #'file:///eos/user/k/kbunkow/cms_data/mc/Phase2HLTTDRWinter20/Phase2HLTTDRWinter20DIGI__Muminus_Pt10-gun_NoPU_E6F1BC5E-BD51-A948-ADDC-8D84EFF14174_dump100Ev.root'
-         'file:///eos/user/k/kbunkow/cms_data/mc/Phase2HLTTDRWinter20/Phase2HLTTDRWinter20DIGI_DoubleMuon_gun_FlatPt-1To100_NoPU_3FD40D17-5C29-804C-B49A-029CC02B63DC_dump100Ev.root'
+         #'file:///eos/user/k/kbunkow/cms_data/mc/Phase2HLTTDRWinter20/Phase2HLTTDRWinter20DIGI_DoubleMuon_gun_FlatPt-1To100_NoPU_3FD40D17-5C29-804C-B49A-029CC02B63DC_dump100Ev.root'
+         'file:///eos/user/k/kbunkow/cms_data/mc/Phase2HLTTDRWinter20/Phase2HLTTDRWinter20DIGI_DoubleMuon_gun_FlatPt-1To100_NoPU_3FD40D17-5C29-804C-B49A-029CC02B63DC_dump1016Ev.root'
 )
 
 
@@ -119,18 +133,18 @@ process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorr
 # remake L1 stubs and/or cluster/stub truth ??
 ############################################################
 
-process.load('L1Trigger.TrackTrigger.TrackTrigger_cff')
-from L1Trigger.TrackTrigger.TTStubAlgorithmRegister_cfi import *
-process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
-
-from SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff import *
-TTClusterAssociatorFromPixelDigis.digiSimLinks = cms.InputTag("simSiPixelDigis","Tracker")
-
-process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
-process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
-
-
-from L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff import *
+#process.load('L1Trigger.TrackTrigger.TrackTrigger_cff')
+# from L1Trigger.TrackTrigger.TTStubAlgorithmRegister_cfi import *
+# process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
+# 
+# from SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff import *
+# TTClusterAssociatorFromPixelDigis.digiSimLinks = cms.InputTag("simSiPixelDigis","Tracker")
+# 
+# process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
+# process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
+# 
+# 
+# from L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff import *
 
 
 #######################################TTTracks################################################
@@ -165,8 +179,8 @@ process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
 process.L1TMuonSeq = cms.Sequence( #process.esProd +         
-                                   process.L1TrackTrigger + process.L1HybridTracksWithAssociators#+ 
-                                   + process.simL1TkMuonBayesTrackProducer 
+                                   #process.L1TrackTrigger + process.L1HybridTracksWithAssociators#+ 
+                                   process.simL1TkMuonBayesTrackProducer 
                                    #+ process.dumpED
                                    #+ process.dumpES
 )

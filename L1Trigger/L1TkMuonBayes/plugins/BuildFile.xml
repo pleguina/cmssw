@@ -6,6 +6,7 @@
   <use name="FWCore/ServiceRegistry"/>
   <use name="CondCore/DBOutputService"/>
   <use name="SimDataFormats/Track"/>
+  <use name="DataFormats/L1TrackTrigger"/>
   <use name="root"/>
   <use name="clhep"/>
   <Use name="hepmc"/>

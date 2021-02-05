@@ -8,7 +8,7 @@
 #ifndef L1TkMuonBayes_MuonStubInputMaker_H_
 #define L1TkMuonBayes_MuonStubInputMaker_H_
 
-#include <L1Trigger/L1TkMuonBayes/interface/TkMuBayesProcConfig.h>
+#include "L1Trigger/L1TkMuonBayes/interface/TkMuBayesProcConfig.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
 #include "DataFormats/MuonDetId/interface/DTChamberId.h"

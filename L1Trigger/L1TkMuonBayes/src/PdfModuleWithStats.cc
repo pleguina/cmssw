@@ -53,10 +53,11 @@ PdfModuleWithStats::~PdfModuleWithStats() {
   // TODO Auto-generated destructor stub
 }
 
-float PdfModuleWithStats::getPdfVal(
-    unsigned int layer, unsigned int etaBin, unsigned int refLayer, unsigned int ptBin, int pdfBin) {
-  pdfHists.at(layer).at(etaBin).at(refLayer)->Fill(ptBin, pdfBin);
-  return PdfModule::getPdfVal(layer, etaBin, refLayer, ptBin, pdfBin);
+float PdfModuleWithStats::getPdfVal(unsigned int layer, unsigned int etaBin, unsigned int refLayer,
+                                    const TrackingTriggerTrackPtr& ttTrack, int pdfBin)
+{
+  pdfHists.at(layer).at(etaBin).at(refLayer)->Fill(ttTrack->getPtBin(), pdfBin);
+  return PdfModule::getPdfVal(layer, etaBin, refLayer, ttTrack, pdfBin);
 }
 
 /* whith file service it is not needed
@@ -142,7 +143,7 @@ void PdfModuleWithStats::generateCoefficients() {
 
           sigma *= sigmaFactor;  //artificial changing of the pdf width<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-          //just to ahve the drown histogram, it not needed for the actual coefficients calcucation
+          //just to have the drawn histogram, it is not needed for the actual coefficients calculation
           for (int iBinPdf = 0; iBinPdf < pdfHistInPtBin->GetXaxis()->GetNbins(); iBinPdf++) {
             double pdfVal = pdfHistInPtBin->GetBinContent(iBinPdf);
 

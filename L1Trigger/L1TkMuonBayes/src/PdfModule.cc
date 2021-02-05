@@ -37,13 +37,16 @@ void PdfModule::init() {
   }
 }
 
-float PdfModule::getPdfVal(
-    unsigned int layer, unsigned int etaBin, unsigned int refLayer, unsigned int ptBin, int pdfBin) {
+float PdfModule::getPdfVal(unsigned int layer, unsigned int etaBin, unsigned int refLayer,
+                           const TrackingTriggerTrackPtr& ttTrack, int pdfBin)
+{
+  unsigned int ptBin =  ttTrack->getPtBin();
   std::vector<int>& coeff = coefficients.at(layer).at(etaBin).at(refLayer).at(ptBin);
   return (-1) * ((coeff.at(2) * pdfBin * ((int64_t)pdfBin)) >> bitShift) + coeff.at(0);
 }
 
-float PdfModule::getExtrapolation(unsigned int layer, unsigned int etaBin, unsigned int refLayer, unsigned int ptBin) {
+float PdfModule::getExtrapolation(unsigned int layer, unsigned int etaBin, unsigned int refLayer, const TrackingTriggerTrackPtr& ttTrack) {
+  unsigned int ptBin =  ttTrack->getPtBin();
   return coefficients.at(layer).at(etaBin).at(refLayer).at(ptBin).at(1);
 }
 
@@ -51,8 +54,8 @@ void PdfModule::processStubs(const MuonStubsInput& muonStubs,
                              unsigned int layer,
                              const TrackingTriggerTrackPtr& ttTrack,
                              const MuonStubPtr refStub,
-                             AlgoTTMuonPtr algoTTMuon) {
-  unsigned int ptBin = ttTrack->getPtBin();
+                             AlgoTTMuonPtr algoTTMuon)
+{
   int charge = -ttTrack->getCharge();
   //we inverse the charge since the positive tracks bends into negative phi direction, and we wan to to have positive values of pdfBin when the coeff.at(1) is 0
   //== positive values of coeff.at(1)
@@ -74,7 +77,7 @@ void PdfModule::processStubs(const MuonStubsInput& muonStubs,
     refLayerNum = config->logLayerToRefLayar(refStub->logicLayer, etaBin);
   }
 
-  int extrapolation = getExtrapolation(layer, etaBin, refLayerNum, ptBin);
+  int extrapolation = getExtrapolation(layer, etaBin, refLayerNum, ttTrack);
 
   int minPdfBin = config->nPhiBins();
   MuonStubPtr selectedStub;
@@ -84,17 +87,15 @@ void PdfModule::processStubs(const MuonStubsInput& muonStubs,
     if (config->isPhiLayer(layer)) {
       int refPhi = ttTrack->getPhiHw();
       if (refLayerNum != 0) {  //refLayerNum = 0 means that no refLayer is used
-        if (layer !=
-            refStub
-                ->logicLayer)  //for the layer == refLayer the refPhi is the phi of the ttTrack, otherwise phi of the refHit
+        //for the layer == refLayer the refPhi is the phi of the ttTrack, otherwise phi of the refHit
+        if (layer != refStub->logicLayer)
           refPhi = refStub->phiHw;
       }
-      pdfBin = charge * config->foldPhi(stub->phiHw - refPhi) -
-               extrapolation;  //extrapolation is meanDistPhi, TODO check if the formula is OK
+      pdfBin = charge * config->foldPhi(stub->phiHw - refPhi) - extrapolation;
+      //extrapolation is meanDistPhi, TODO check if the formula is OK
     } else if (config->isEtaLayer(layer))
-      pdfBin = stub->etaHw - ttTrack->getEtaHw() -
-               extrapolation;  //do we need for eta to extrapolate, i.e. to subtract coeff.at(1)?
-
+      pdfBin = stub->etaHw - ttTrack->getEtaHw() -   extrapolation;
+    //do we need for eta to extrapolate, i.e. to subtract coeff.at(1)?
     //std::cout<<__FUNCTION__<<":"<<__LINE__<<" processed stub\n"<<(*stub)<<" pdfBin "<<pdfBin<<std::endl;
     /*
      * TODO IMPORTANT NOTE: in the CSC when there are two segments in one chamber, the segments are duplicated in the next BX.
@@ -123,7 +124,7 @@ void PdfModule::processStubs(const MuonStubsInput& muonStubs,
       //endcap
     }*/
 
-  float pdfVal = getPdfVal(layer, etaBin, refLayerNum, ptBin, minPdfBin);
+  float pdfVal = getPdfVal(layer, etaBin, refLayerNum, ttTrack, minPdfBin);
   //std::cout<<__FUNCTION__<<":"<<__LINE__<<" selectedStub\n"<<(*selectedStub)<<" minPdfBin "<<minPdfBin<<" pdfVal "<<pdfVal<<std::endl;
 
   //if pdfVal <= 0, the stub result is not valid, todo - maybe then simply dont add it? on the other hand may be needed for debugging or optimization
@@ -133,10 +134,10 @@ void PdfModule::processStubs(const MuonStubsInput& muonStubs,
   //handling of the phiB
   if (selectedStub->type == MuonStub::DT_PHI || selectedStub->type == MuonStub::DT_PHI_ETA) {
     //assuming that the corresponding bandig layer is just layer + 1, TODO maybe add function getBandingLayer(layer)
-    int extrapolation = getExtrapolation(layer + 1, etaBin, refLayerNum, ptBin);
+    int extrapolation = getExtrapolation(layer + 1, etaBin, refLayerNum, ttTrack);
     int pdfBin = charge * selectedStub->phiBHw - extrapolation;
     if (phiHitValid)  //it is done like that only to avoid filling histogram in PdfModuleWithStats::getPdfVal when the phi hit is not valid
-      pdfVal = getPdfVal(layer + 1, etaBin, refLayerNum, ptBin, pdfBin);
+      pdfVal = getPdfVal(layer + 1, etaBin, refLayerNum, ttTrack, pdfBin);
     else
       pdfVal = 0;
 

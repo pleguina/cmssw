@@ -43,20 +43,21 @@ public:
   ~PdfModule() override {}
 
   //assign the coefficients vectors and fills it with some dummy values
-  void init();
+  virtual void init();
 
   //adds the StubResult to the algoTTMuon
-  void processStubs(const MuonStubsInput& muonStubs,
+  virtual void processStubs(const MuonStubsInput& muonStubs,
                     unsigned int layer,
                     const TrackingTriggerTrackPtr& ttTrack,
                     const MuonStubPtr refStub,
                     AlgoTTMuonPtr algoTTMuon) override;
 
-  //refLayer = 0 means no ref layer is used
-  virtual float getPdfVal(
-      unsigned int layer, unsigned int etaBin, unsigned int refLayer, unsigned int ptBin, int pdfBin);
 
-  virtual float getExtrapolation(unsigned int layer, unsigned int etaBin, unsigned int refLayer, unsigned int ptBin);
+  virtual float getExtrapolation(unsigned int layer, unsigned int etaBin, unsigned int refLayer, const TrackingTriggerTrackPtr& ttTrack);
+
+  //refLayer = 0 means no ref layer is used, pdfBin is deltaPhi or deltaEta
+  virtual float getPdfVal(unsigned int layer, unsigned int etaBin, unsigned int refLayer,
+                          const TrackingTriggerTrackPtr& ttTrack, int pdfBin);
 
   const std::vector<std::vector<std::vector<std::vector<std::vector<int> > > > >& getCoefficients() const {
     return coefficients;

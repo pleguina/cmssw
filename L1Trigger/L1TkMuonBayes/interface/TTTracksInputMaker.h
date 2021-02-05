@@ -32,8 +32,6 @@ public:
   }*/
 
 private:
-  int l1Tk_nPar = 4;
-
   unsigned int l1Tk_minNStub = 4;
 
   TTTracksSource ttTracksSource = L1_TRACKER;
