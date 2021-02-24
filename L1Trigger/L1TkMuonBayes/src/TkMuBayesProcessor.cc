@@ -22,8 +22,8 @@ TkMuBayesProcessor::TkMuBayesProcessor(TkMuBayesProcConfigPtr& config, std::stri
 
 TkMuBayesProcessor::TkMuBayesProcessor(TkMuBayesProcConfigPtr& config, unique_ptr<IPdfModule> pdfModule)
     : config(config), pdfModule(std::move(pdfModule)) {
-  //ghostBustFunc = std::bind(&MuCorrelatorProcessor::ghostBust4, this, std::placeholders::_1, std::placeholders::_2);
-  ghostBustFunc = std::bind(&TkMuBayesProcessor::ghostBust3, this, std::placeholders::_1, std::placeholders::_2);
+  ghostBustFunc = std::bind(&TkMuBayesProcessor::ghostBust4, this, std::placeholders::_1, std::placeholders::_2);
+  //ghostBustFunc = std::bind(&TkMuBayesProcessor::ghostBust3, this, std::placeholders::_1, std::placeholders::_2);
 
   ///FIXME: read the list from configuration so this can be controlled at runtime.
   lowQualityHitPatterns = {

@@ -51,7 +51,10 @@ Source_Files = cms.untracked.vstring(
          #"/store/mc/Phase2HLTTDRWinter20DIGI/ZprimeToMuMu_M-6000_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW/NoPU_110X_mcRun4_realistic_v3-v2/50000/CFBA4AE8-00DE-1743-9B83-7582C69FC7F7.root"
          #"/store/mc/Phase2HLTTDRWinter20DIGI/Muminus_Pt10-gun/GEN-SIM-DIGI-RAW/NoPU_110X_mcRun4_realistic_v3-v2/50000/E6F1BC5E-BD51-A948-ADDC-8D84EFF14174.root"
          #'/store/mc/Phase2HLTTDRWinter20DIGI/DoubleMuon_gun_FlatPt-1To100/GEN-SIM-DIGI-RAW/NoPU_110X_mcRun4_realistic_v3-v2/30000/3FD40D17-5C29-804C-B49A-029CC02B63DC.root'
-         '/store/mc/Phase2HLTTDRWinter20DIGI/DoubleMuon_gun_FlatPt-1To100/GEN-SIM-DIGI-RAW/NoPU_110X_mcRun4_realistic_v3-v2/30000/D19F8A25-CD3A-674B-B856-DFBD7B445493.root'
+         #'/store/mc/Phase2HLTTDRWinter20DIGI/DoubleMuon_gun_FlatPt-1To100/GEN-SIM-DIGI-RAW/NoPU_110X_mcRun4_realistic_v3-v2/30000/D19F8A25-CD3A-674B-B856-DFBD7B445493.root'
+         #'/store/mc/Phase2HLTTDRSummer20ReRECOMiniAOD/JPsiToMuMu_Pt0to100-pythia8_TuneCP5-gun/GEN-SIM-DIGI-RAW-MINIAOD/NoPU_111X_mcRun4_realistic_T15_v1-v1/130000/4F62DC7A-60F8-524D-958C-222F583EBE88.root'
+         #'/store/data/Commissioning2021/Cosmics/ALCARECO/MuAlGlobalCosmics-PromptReco-v1/000/339/579/00000/004ca602-cd10-41e4-84d1-7f3f83bb889a.root'
+         '/store/express/Commissioning2021/ExpressCosmics/FEVT/Express-v1/000/339/579/00000/0005f522-eac5-4cce-82c5-0dbdc3fcde95.root'
          
 )
 
@@ -91,7 +94,7 @@ process.source = cms.Source ("PoolSource",
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1)
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(500))
 
 #outputFileNme = '/eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_FlatPt-2to100/GEN-SIM-DIGI-RAW/L1TnoPU_93X_upgrade2023_realistic_v5-v1/00000/F4EEAE55-C937-E811-8C29-48FD8EE739D1_dump1000Events.root'
 #outputFileNme = 'HSCPppstau_M-651_TuneZ2star_13TeV_0E0D542C-A9C8-E611-981C-A0000420FE80_dump100Events.root'
@@ -99,7 +102,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 #outputFileNme = 'HSCPppstau_M_871_PU200_v3-v2_1ADE9D9E-8C0C-1948-A405-5DFDA1AF5172_dump100Ev.root'
 #outputFileNme = 'Nu_E10-pythia8-gun_PU200_v3-v3_FFB3195D-E113-3744-877D-44E21C060358_dump100Ev.root'
 #outputFileNme = 'Phase2HLTTDRWinter20DIGI__ZprimeToMuMu_M-6000_NoPU_CFBA4AE8-00DE-1743-9B83-7582C69FC7F7_dump100Ev.root'
-outputFileNme = 'Phase2HLTTDRWinter20DIGI_DoubleMuon_gun_FlatPt-1To100_NoPU_3FD40D17-5C29-804C-B49A-029CC02B63DC_dump100Ev.root'
+outputFileNme = 'MuAlGlobalCosmics-PromptReco-v1_Run_339579_004ca602-cd10-41e4-84d1-7f3f83bb889a.root'
 
 process.Out = cms.OutputModule("PoolOutputModule",
         fileName = cms.untracked.string (outputFileNme)
