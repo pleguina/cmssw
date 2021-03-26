@@ -25,21 +25,27 @@ EventCapture::EventCapture(const edm::ParameterSet& edmCfg,
       candidateSimMuonMatcher(candidateSimMuonMatcher),
       inputInProcs(omtfConfig->processorCnt()),
       algoMuonsInProcs(omtfConfig->processorCnt()),
-      gbCandidatesInProcs(omtfConfig->processorCnt()),
-      stubsSimHitsMatcher(edmCfg, omtfConfig) {
+      gbCandidatesInProcs(omtfConfig->processorCnt())
+       {
   //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" omtfConfig->nProcessors() "<<omtfConfig->nProcessors()<<std::endl;
   if (edmCfg.exists("simTrackInputTag"))
     simTrackInputTag = edmCfg.getParameter<edm::InputTag>("simTrackInputTag");
   else
     edm::LogImportant("OMTFReconstruction")
         << "EventCapture::EventCapture: no InputTag simTrackInputTag found" << std::endl;
+
+  if(this->candidateSimMuonMatcher)
+    stubsSimHitsMatcher.reset(new StubsSimHitsMatcher(edmCfg, omtfConfig));
 }
 
 EventCapture::~EventCapture() {
   // TODO Auto-generated destructor stub
 }
 
-void EventCapture::beginRun(edm::EventSetup const& eventSetup) { stubsSimHitsMatcher.beginRun(eventSetup); }
+void EventCapture::beginRun(edm::EventSetup const& eventSetup) {
+  if(stubsSimHitsMatcher)
+    stubsSimHitsMatcher->beginRun(eventSetup);
+}
 
 void EventCapture::observeEventBegin(const edm::Event& event) {
   simMuons.clear();
@@ -115,10 +121,12 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
              << (finalCandidate->hwEta() * 0.010875) << " phi " << std::endl;
 
         if (runStubsSimHitsMatcher)
-          stubsSimHitsMatcher.match(iEvent, matchingResult.muonCand, matchingResult.procMuon, ostr);
+          stubsSimHitsMatcher->match(iEvent, matchingResult.muonCand, matchingResult.procMuon, ostr);
       }
     }
   }
+
+  dump = true; //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!!!!! TODO
 
   /*
   bool wasSimMuInOmtfPos = false;
@@ -262,4 +270,7 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
   edm::LogVerbatim("l1tOmtfEventPrint") << std::endl;
 }
 
-void EventCapture::endJob() { stubsSimHitsMatcher.endJob(); }
+void EventCapture::endJob() {
+  if(stubsSimHitsMatcher)
+    stubsSimHitsMatcher->endJob();
+}
