@@ -43,9 +43,9 @@ public:
 
 private:
   edm::InputTag simTrackInputTag;
-  const OMTFConfiguration* omtfConfig;
+  const OMTFConfiguration* omtfConfig = nullptr;
 
-  CandidateSimMuonMatcher* candidateSimMuonMatcher;
+  CandidateSimMuonMatcher* candidateSimMuonMatcher = nullptr;
 
   std::vector<edm::Ptr<SimTrack> > simMuons;
 
@@ -53,7 +53,7 @@ private:
   std::vector<AlgoMuons> algoMuonsInProcs;
   std::vector<AlgoMuons> gbCandidatesInProcs;
 
-  StubsSimHitsMatcher stubsSimHitsMatcher;
+  std::unique_ptr<StubsSimHitsMatcher> stubsSimHitsMatcher;
 };
 
 #endif /* OMTF_EVENTCAPTURE_H_ */

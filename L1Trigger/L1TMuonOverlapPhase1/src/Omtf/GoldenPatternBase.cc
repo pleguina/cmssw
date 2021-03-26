@@ -72,8 +72,8 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
 
     int hitPhi = stub->phiHw;
     if (this->myOmtfConfig->isBendingLayer(iLayer)) {
-      if (stub->qualityHw < this->myOmtfConfig->getMinDtPhiBQuality())
-        continue;  //rejecting phiB of the low quality DT stubs
+      //if (stub->qualityHw < this->myOmtfConfig->getMinDtPhiBQuality()) //moved to OMTFInputMaker
+      //  continue;  //rejecting phiB of the low quality DT stubs
 
       hitPhi = stub->phiBHw;
     }

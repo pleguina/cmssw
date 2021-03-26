@@ -48,12 +48,18 @@ void DtDigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
   MuonStub stub;
 
   stub.type = MuonStub::DT_PHI_ETA;
+
+  stub.qualityHw = digi.code();
+
   //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
   stub.phiHw = angleConverter->getProcessorPhi(
       OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, digi.scNum(), digi.phi());
   stub.etaHw = angleConverter->getGlobalEta(detid, dtThDigis, digi.bxNum());
-  stub.phiBHw = digi.phiB();
-  stub.qualityHw = digi.code();
+
+  if (stub.qualityHw >= config->getMinDtPhiBQuality())
+    stub.phiBHw = digi.phiB();
+  else
+    stub.phiBHw = config->nPhiBins();
 
   stub.bx = digi.bxNum();  //TODO sholdn't  it be BxCnt()?
   //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?

@@ -67,14 +67,19 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   MuonStub stub;
 
   stub.type = MuonStub::DT_PHI_ETA;
+  stub.qualityHw = digi.quality();
+
   //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
   stub.phiHw = angleConverter->getProcessorPhi(
       OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, digi.scNum(), digi.phi());
   //stub.etaHw  =  angleConverter->getGlobalEta(digi, dtThDigis);
   stub.etaHw = angleConverter->getGlobalEta(detid, dtThDigis, digi.bxNum() - 20);
   //phiB in Ph2 has 2018==1.4rad ... need to convert them to 512==1rad (so we can use OLD patterns)
-  stub.phiBHw = round(digi.phiBend() * 1.4 * 512 / 2048.);
-  stub.qualityHw = digi.quality();
+
+  if (stub.qualityHw >= config->getMinDtPhiBQuality())
+    stub.phiBHw = round(digi.phiBend() * 1.4 * 512 / 2048.);
+  else
+    stub.phiBHw = config->nPhiBins();
 
   // need to shift 20-BX to roll-back the shift introduced by the DT TPs
   stub.bx = digi.bxNum() - 20;

@@ -37,14 +37,19 @@ void DtDigiToStubsConverterTkMu::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
   MuonStub stub;
 
   stub.type = MuonStub::DT_PHI;
+
+  stub.qualityHw = digi.code();
+
   stub.phiHw = angleConverter->getProcessorPhi(0, procTyp, digi.scNum(), digi.phi());
 
   EtaValue etaVal = angleConverter->getGlobalEtaDt(detid);
   stub.etaHw = etaVal.eta;
   stub.etaSigmaHw = etaVal.etaSigma;
 
-  stub.phiBHw = digi.phiB();
-  stub.qualityHw = digi.code();
+  if (stub.qualityHw >= config->getMinDtPhiBQuality())
+    stub.phiBHw = digi.phiB();
+  else
+    stub.phiBHw = config->nPhiBins();
 
   stub.bx = digi.bxNum();  //TODO sholdn't  it be BxCnt()?
   //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
@@ -113,14 +118,20 @@ void DtPhase2DigiToStubsConverterTkMu::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   MuonStub stub;
 
   stub.type = MuonStub::DT_PHI;
+
+  stub.qualityHw = digi.quality();
+
   stub.phiHw = angleConverter->getProcessorPhi(0, procTyp, digi.scNum(), digi.phi());
 
   EtaValue etaVal = angleConverter->getGlobalEtaDt(detid);
   stub.etaHw = etaVal.eta;
   stub.etaSigmaHw = etaVal.etaSigma;
 
-  stub.phiBHw = digi.phiBend();  //phiB in Ph2 has 2018==1.4rad
-  stub.qualityHw = digi.quality();
+  if (stub.qualityHw >= config->getMinDtPhiBQuality())
+    stub.phiBHw = round(digi.phiBend() * 1.4 * 512 / 2048.); //FIXME check if this is correct
+  else
+    stub.phiBHw = config->nPhiBins();
+
 
   // need to shift 20-BX to roll-back the shift introduced by the DT TPs
   stub.bx = digi.bxNum() - 20;
