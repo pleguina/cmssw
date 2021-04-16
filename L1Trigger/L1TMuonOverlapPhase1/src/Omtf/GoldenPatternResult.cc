@@ -312,7 +312,7 @@ void GoldenPatternResult::finalise9() {
       }
     } else {
       if (iLogicLayer < 10 && stubResults[iLogicLayer].getPdfVal() == 0)
-        pdfSum -= 64;
+        pdfSum -= 32;
       else
         pdfSum += stubResults[iLogicLayer].getPdfVal();
       if (firedLayerBits & (1 << iLogicLayer)) {  //pdfSum is counted always
