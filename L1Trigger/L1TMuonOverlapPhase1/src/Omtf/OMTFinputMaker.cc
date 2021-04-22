@@ -428,7 +428,7 @@ void OMTFinputMaker::addStub(const OMTFConfiguration* config,
                              unsigned int iLayer,
                              unsigned int iInput,
                              MuonStub& stub) {
-  LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " iInput " << iInput << " " << stub << endl;
+  //LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " iInput " << iInput << " " << stub << endl;
   //in principle it is possible that in the DAQ data the digis are duplicated,
   //since the same link is connected to two OMTF boards
   //in principle this dupliactes should be already reoomved in the OMTF uncpacer, but just in case...

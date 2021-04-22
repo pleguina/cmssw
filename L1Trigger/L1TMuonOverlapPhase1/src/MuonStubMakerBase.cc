@@ -80,23 +80,26 @@ void RpcDigiToStubsConverter::makeStubs(
     MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor, l1t::tftype procTyp, int bxFrom, int bxTo) {
   if (!rpcDigis)
     return;
-  //  std::cout <<" RPC HITS, processor : " << iProcessor << std::endl;
+  //LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ <<" RPC HITS, processor : " << iProcessor<<" "<<std::endl;
 
   const RPCDigiCollection& rpcDigiCollection = *rpcDigis;
   for (auto rollDigis : rpcDigiCollection) {
     RPCDetId roll = rollDigis.first;
     //unsigned int rawid = roll.rawId();
 
-    //    if(roll.region() != 0  &&  abs(roll.station()) >= 3 && roll.ring() == 1 ) {
-    //      //iRPC
-    //      for (auto pDigi=rollDigis.second.first; pDigi != rollDigis.second.second; pDigi++) {
-    //        LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" roll "<<roll
-    //            <<" strip "<<pDigi->strip()
-    //            <<" hasX "<<pDigi->hasX()<<" coordinateX "<<pDigi->coordinateX()<<" hasY "<<pDigi->hasY()<<" coordinateY "<<pDigi->coordinateY()
-    //            <<" bx "<<pDigi->bx()<<" time "<<pDigi->time()<<" irpc"<<std::endl;
-    //      }
-    //      //continue;
-    //    }
+    //if(roll.region() != 0  &&  abs(roll.station()) >= 3 && roll.ring() == 1 )
+/*    {
+      //iRPC
+      for (auto pDigi=rollDigis.second.first; pDigi != rollDigis.second.second; pDigi++) {
+        LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" roll "<<roll
+            <<" strip "<<pDigi->strip()
+            <<" hasX "<<pDigi->hasX()<<" coordinateX "<<pDigi->coordinateX()<<" hasY "<<pDigi->hasY()<<" coordinateY "<<pDigi->coordinateY()
+            <<" bx "<<pDigi->bx()<<" time "<<pDigi->time()<<" irpc"<<std::endl;
+      }
+      //continue;
+    }*/
+
+    //LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ <<" roll "<<roll<<" "<<std::endl;
 
     if (!acceptDigi(roll, iProcessor, procTyp))
       continue;
@@ -146,8 +149,8 @@ void MuonStubMakerBase::loadAndFilterDigis(const edm::Event& event) {
 
 void MuonStubMakerBase::buildInputForProcessor(
     MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor, l1t::tftype procTyp, int bxFrom, int bxTo) {
-  LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " iProcessor " << iProcessor << " preocType "
-                                << procTyp << std::endl;
+  //LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " iProcessor " << iProcessor << " preocType "
+  //                              << procTyp << std::endl;
 
   for (auto& digiToStubsConverter : digiToStubsConverters)
     digiToStubsConverter->makeStubs(muonStubsInLayers, iProcessor, procTyp, bxFrom, bxTo);

@@ -190,29 +190,32 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
   edm::LogVerbatim("l1tOmtfEventPrint") << ostr.str() << endl;  //printing sim muons
 
   edm::LogVerbatim("l1tOmtfEventPrint") << "finalCandidates " << std::endl;
-  for (auto& finalCandidate : *finalCandidates) {
-    int globHwPhi = (finalCandidate.processor()) * 96 + finalCandidate.hwPhi();
-    // first processor starts at CMS phi = 15 degrees (24 in int)... Handle wrap-around with %. Add 576 to make sure the number is positive
-    globHwPhi = (globHwPhi + 600) % 576;
+  for(int bx = finalCandidates->getFirstBX(); bx <= finalCandidates->getLastBX(); bx++) {
+    for (auto finalCandidateIt = finalCandidates->begin(bx); finalCandidateIt !=  finalCandidates->end(bx); finalCandidateIt++) {
+      auto& finalCandidate = *finalCandidateIt;
+      int globHwPhi = (finalCandidate.processor()) * 96 + finalCandidate.hwPhi();
+      // first processor starts at CMS phi = 15 degrees (24 in int)... Handle wrap-around with %. Add 576 to make sure the number is positive
+      globHwPhi = (globHwPhi + 600) % 576;
 
-    double globalPhi = globHwPhi * 2. * M_PI / 576;
-    if (globalPhi > M_PI)
-      globalPhi = globalPhi - (2. * M_PI);
+      double globalPhi = globHwPhi * 2. * M_PI / 576;
+      if (globalPhi > M_PI)
+        globalPhi = globalPhi - (2. * M_PI);
 
-    int layerHits = (int)finalCandidate.trackAddress().at(0);
-    std::bitset<18> layerHitBits(layerHits);
+      int layerHits = (int)finalCandidate.trackAddress().at(0);
+      std::bitset<18> layerHitBits(layerHits);
 
-    edm::LogVerbatim("l1tOmtfEventPrint")
-        << " hwPt " << finalCandidate.hwPt() << " hwSign " << finalCandidate.hwSign() << " hwQual "
-        << finalCandidate.hwQual() << " hwEta " << std::setw(4) << finalCandidate.hwEta() << std::setw(4) << " hwPhi "
-        << finalCandidate.hwPhi() << "    eta " << std::setw(9) << (finalCandidate.hwEta() * 0.010875) << " phi "
-        << std::setw(9) << globalPhi << " " << layerHitBits << " processor "
-        << OmtfName(finalCandidate.processor(), finalCandidate.trackFinderType()) << std::endl;
+      edm::LogVerbatim("l1tOmtfEventPrint")<<" bx "<<bx
+      << " hwPt " << finalCandidate.hwPt() << " hwSign " << finalCandidate.hwSign() << " hwQual "
+      << finalCandidate.hwQual() << " hwEta " << std::setw(4) << finalCandidate.hwEta() << std::setw(4) << " hwPhi "
+      << finalCandidate.hwPhi() << "    eta " << std::setw(9) << (finalCandidate.hwEta() * 0.010875) << " phi "
+      << std::setw(9) << globalPhi << " " << layerHitBits << " processor "
+      << OmtfName(finalCandidate.processor(), finalCandidate.trackFinderType()) << std::endl;
 
-    for (auto& trackAddr : finalCandidate.trackAddress()) {
-      if (trackAddr.first >= 10)
-        edm::LogVerbatim("l1tOmtfEventPrint") << "trackAddr first " << trackAddr.first << " second " << trackAddr.second
-                                              << " ptGeV " << omtfConfig->hwPtToGev(trackAddr.second);
+      for (auto& trackAddr : finalCandidate.trackAddress()) {
+        if (trackAddr.first >= 10)
+          edm::LogVerbatim("l1tOmtfEventPrint") << "trackAddr first " << trackAddr.first << " second " << trackAddr.second
+          << " ptGeV " << omtfConfig->hwPtToGev(trackAddr.second);
+      }
     }
   }
   edm::LogVerbatim("l1tOmtfEventPrint") << std::endl;
