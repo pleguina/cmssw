@@ -429,15 +429,18 @@ void OMTFinputMaker::addStub(const OMTFConfiguration* config,
                              unsigned int iInput,
                              MuonStub& stub) {
   //LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " iInput " << iInput << " " << stub << endl;
-  //in principle it is possible that in the DAQ data the digis are duplicated,
-  //since the same link is connected to two OMTF boards
-  //in principle this dupliactes should be already reoomved in the OMTF uncpacer, but just in case...
+  //there is a small rate of duplicated digis in the real data in the DT and CSC, the reason for this duplicates is not understood
+  //in case of RPC the duplicated digis appear in data only for the layer 17 (RE3), where the rolls 2 and 3 has the same eta = 115 assigned, and the muon can hit both rolls
+  //the reason of the  duplicates cannot be the fact that the same data (links) goes to neighboring boards, because this is  removed in the OMTF unpacker
+  //the duplicates cannot be dropped, because if they appear in data, are also duplicated on the input of the algorithm, and both can be used as the reference hits
   if (muonStubsInLayers[iLayer][iInput] && muonStubsInLayers[iLayer][iInput]->phiHw == stub.phiHw &&
       muonStubsInLayers[iLayer][iInput]->phiBHw == stub.phiBHw &&
       muonStubsInLayers[iLayer][iInput]->etaHw == stub.etaHw) {
-    LogTrace("OMTFReconstruction")
-        << "addStub: the stub with exactly the same phi, phiB and eta was already added, stub.type: " << stub.type;
-    return;
+    LogTrace("OMTFReconstruction") //
+        << "addStub: the stub with exactly the same phi, phiB and eta was already added:\n"
+        <<"incomnig stub "<< stub<<"\n"
+        <<"existing stub "<<*(muonStubsInLayers[iLayer][iInput])<<std::endl;
+    //return;
   }
 
   if (muonStubsInLayers[iLayer][iInput] && muonStubsInLayers[iLayer][iInput]->phiHw != (int)config->nPhiBins())

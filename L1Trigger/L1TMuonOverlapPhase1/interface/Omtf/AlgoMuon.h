@@ -51,6 +51,13 @@ public:
     return goldenPatern->key().theNumber;
   }
 
+  unsigned int getHwPatternNumber() const {
+    if (goldenPatern == nullptr)
+      return 0;
+    return goldenPatern->key().theGroup * 4 + goldenPatern->key().theIndexInGroup;
+  }
+
+
   unsigned int getRefHitNumber() const { return m_rhitNumb; }
 
   void setQ(int q) { m_q = q; }

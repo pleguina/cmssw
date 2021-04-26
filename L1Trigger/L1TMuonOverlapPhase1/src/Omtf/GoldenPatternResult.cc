@@ -118,14 +118,13 @@ void GoldenPatternResult::finalise0() {
     unsigned int connectedLayer = omtfConfig->getLogicToLogic().at(iLogicLayer);
     //here we require that in case of the DT layers, both phi and phiB is fired
     if (firedLayerBits & (1 << connectedLayer)) {
-      if (firedLayerBits &
-          (1
-           << iLogicLayer)) {  //now in the GoldenPattern::process1Layer1RefLayer the pdf bin 0 is returned when the layer is not fired, so this is 'if' is to assured that this pdf val is not added here
+      if (firedLayerBits & (1 << iLogicLayer)) {
+        //now in the GoldenPattern::process1Layer1RefLayer the pdf bin 0 is returned when the layer is not fired, so this is 'if' is to assured that this pdf val is not added here
         pdfSum += stubResults[iLogicLayer].getPdfVal();
 
         if (omtfConfig->fwVersion() <= 4) {
-          if (!omtfConfig->getBendingLayers().count(
-                  iLogicLayer))  //in DT case, the phi and phiB layers are threaded as one, so the firedLayerCnt is increased only for the phi layer
+          if (!omtfConfig->getBendingLayers().count( iLogicLayer))
+            //in DT case, the phi and phiB layers are threaded as one, so the firedLayerCnt is increased only for the phi layer
             firedLayerCnt++;
         } else
           firedLayerCnt++;

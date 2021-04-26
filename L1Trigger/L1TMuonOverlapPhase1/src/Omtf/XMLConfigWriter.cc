@@ -251,7 +251,7 @@ void XMLConfigWriter::writeAlgoMuon(xercesc::DOMElement* aTopElement, const Algo
   stringStr << aCand.getPhiRHit();
   aResult->setAttribute(_toDOMS("phiRHit"), _toDOMS(stringStr.str()));
   stringStr.str("");
-  stringStr << aCand.getPatternNumber();
+  stringStr << aCand.getHwPatternNumber();
   aResult->setAttribute(_toDOMS("patNum"), _toDOMS(stringStr.str()));
 
   aTopElement->appendChild(aResult);

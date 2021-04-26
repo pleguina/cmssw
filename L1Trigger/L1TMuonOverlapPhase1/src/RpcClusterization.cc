@@ -41,6 +41,14 @@ std::vector<RpcCluster> RpcClusterization::getClusters(const RPCDetId& roll, std
     if (allClusters.size() > maxClusterCnt)
       return filteredClusters;
 
+  //debug printout only
+  if (allClusters.size() > maxClusterCnt) {
+    LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" allClusters.size() >= maxClusterCnt "<<std::endl;
+    for (auto& cluster : allClusters)
+      edm::LogVerbatim("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" roll "<<roll<<" cluster: firstStrip "<<cluster.firstStrip
+                                           <<" lastStrip "<<cluster.lastStrip<<" halfStrip "<<cluster.halfStrip()<<std::endl;
+  }
+
   //TODO this is very simple filtering of the cluster,
   //unfortunately the in firmware it is more complicated and cannot be easily emulated from digi
   //(in principle would required raws, because in the firmware the clusterizaton is based on the 8-bit strip partitions
