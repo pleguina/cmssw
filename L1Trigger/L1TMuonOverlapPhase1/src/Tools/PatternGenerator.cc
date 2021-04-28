@@ -241,7 +241,7 @@ void PatternGenerator::endJob() {
     }
 
     //TODO chose the desired grouping ///////////////
-    /*int group = 0;
+    int group = 0;
     int indexInGroup = 0;
     for (auto& gp : goldenPatterns) {
       indexInGroup++;
@@ -260,13 +260,15 @@ void PatternGenerator::endJob() {
         indexInGroup = 0;
         group++;
       }
-    } *//////////////////////////////////////////////
+    } /////////////////////////////////////////////
 
     upadatePdfs();
 
     modifyClassProb(1);
 
-    //reCalibratePt();
+    //groupPatterns(); IMPORTANT don't call grouping here, just set the groups above!!!!
+
+    reCalibratePt();
     this->writeLayerStat = true;
   }
 
@@ -547,9 +549,9 @@ void PatternGenerator::modifyClassProb(double step) {
           newPdfVal = 13; */
 
         if (ptFrom == 0)
-          newPdfVal = 20;
+          newPdfVal = 23;
         if (ptFrom == 200)
-          newPdfVal = 15;
+          newPdfVal = 18;
 
         gp->setPdfValue(newPdfVal, refLayerLogicNumber, iRefLayer, iPdf);
 
@@ -573,7 +575,7 @@ void PatternGenerator::reCalibratePt() {
   ptMap[11] = 6.0;
   ptMap[13] = 7.0;
   ptMap[15] = 8.5;
-  ptMap[17] = 9.5;
+  ptMap[17] = 10.0;
   ptMap[21] = 12.0;
   ptMap[25] = 14.0;
   ptMap[29] = 16.0;
@@ -618,12 +620,12 @@ void PatternGenerator::groupPatterns() {
     edm::LogImportant("l1tOmtfEventPrint")
         << "setGroup(group): group " << group << " indexInGroup " << indexInGroup << std::endl;
 
-    if (gp->key().thePt <= 10 && indexInGroup == 2) {  //TODO
+    if (gp->key().thePt <= 12 && indexInGroup == 2) {  //TODO
       indexInGroup = 0;
       group++;
     }
 
-    if (gp->key().thePt > 10 && indexInGroup == 4) {  //TODO
+    if (gp->key().thePt > 12 && indexInGroup == 4) {  //TODO
       indexInGroup = 0;
       group++;
     }
