@@ -533,23 +533,22 @@ void PatternGenerator::modifyClassProb(double step) {
         //if(ptFrom > 60)
         //  newPdfVal += 1;
 
-        /*if(ptFrom == 0)
-          newPdfVal = 24;
+        if(ptFrom == 0)
+          newPdfVal = 30;
         if(ptFrom == 3.5)
-          newPdfVal += 4;
+          newPdfVal += 5;
         if(ptFrom == 4)
-          newPdfVal += 3;
+          newPdfVal += 4;
         if(ptFrom == 4.5)
           newPdfVal += 2;
         if(ptFrom == 5)
           newPdfVal += 1;
+        /*
         if(ptFrom == 100)
           newPdfVal = 11;  
         if(ptFrom == 200)
           newPdfVal = 13; */
 
-        if (ptFrom == 0)
-          newPdfVal = 26;
         if (ptFrom == 200)
           newPdfVal = 16;
 
