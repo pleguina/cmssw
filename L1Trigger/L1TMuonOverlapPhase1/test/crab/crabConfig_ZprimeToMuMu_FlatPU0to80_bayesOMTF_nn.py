@@ -4,7 +4,7 @@ config = config()
 type = 'omtf_nn'
 #type = 'omtf_0x0006'
 
-config.General.requestName = type + '_MC_analysis_ZprimeToMuMu_PU140_v3_t120'
+config.General.requestName = type + '_MC_analysis_ZprimeToMuMu_PU140_v3_t126'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
@@ -29,13 +29,13 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 5
 #config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'CRAB_' + type + '_MC_analysis_ZprimeToMuMu_PU140_v3_t120'
+config.Data.outputDatasetTag = 'CRAB_' + type + '_MC_analysis_ZprimeToMuMu_PU140_v3_t126'
 config.Data.totalUnits = 252
 config.Data.ignoreLocality = False
 
 config.section_("Debug")
 config.Debug.extraJDL = ['+CMS_ALLOW_OVERFLOW=False']
 
-#config.Site.storageSite = 'T2_PL_Swierk'
-config.Site.storageSite = 'T2_CH_CERN'
+config.Site.storageSite = 'T2_PL_Swierk'
+#config.Site.storageSite = 'T2_CH_CERN'
 

@@ -202,11 +202,11 @@ void PatternOptimizerBase::endJob() {
 
 const SimTrack* PatternOptimizerBase::findSimMuon(const edm::Event& event, const SimTrack* previous) {
   const SimTrack* result = nullptr;
-  if (edmCfg.exists("simTrackInputTag") == false)
+  if (edmCfg.exists("simTracksTag") == false)
     return result;
 
   edm::Handle<edm::SimTrackContainer> simTks;
-  event.getByLabel(edmCfg.getParameter<edm::InputTag>("simTrackInputTag"), simTks);
+  event.getByLabel(edmCfg.getParameter<edm::InputTag>("simTracksTag"), simTks);
 
   for (std::vector<SimTrack>::const_iterator it = simTks->begin(); it < simTks->end(); it++) {
     const SimTrack& aTrack = *it;

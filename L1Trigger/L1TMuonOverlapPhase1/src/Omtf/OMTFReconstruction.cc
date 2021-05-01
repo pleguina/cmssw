@@ -191,18 +191,18 @@ void OMTFReconstruction::addObservers() {
     }
   }
 
-  if (edmParameterSet.exists("eventCaptureDebug"))
-    if (edmParameterSet.getParameter<bool>("eventCaptureDebug")) {
-      observers.emplace_back(
-          std::make_unique<EventCapture>(edmParameterSet, omtfConfig.get(), candidateSimMuonMatcher));
-    }
-
   if (edmParameterSet.exists("dumpResultToROOT"))
     if (edmParameterSet.getParameter<bool>("dumpResultToROOT"))
       observers.emplace_back(std::make_unique<DataROOTDumper>(edmParameterSet, omtfConfig.get()));
 
   auto omtfProcGoldenPat = dynamic_cast<OMTFProcessor<GoldenPattern>*>(omtfProc.get());
   if (omtfProcGoldenPat) {
+    if (edmParameterSet.exists("eventCaptureDebug"))
+      if (edmParameterSet.getParameter<bool>("eventCaptureDebug")) {
+        observers.emplace_back(
+            std::make_unique<EventCapture>(edmParameterSet, omtfConfig.get(), omtfProcGoldenPat->getPatterns(), candidateSimMuonMatcher));
+      }
+
     if (edmParameterSet.exists("dumpHitsToROOT") && edmParameterSet.getParameter<bool>("dumpHitsToROOT")) {
       std::string rootFileName = edmParameterSet.getParameter<std::string>("dumpHitsFileName");
       observers.emplace_back(std::make_unique<DataROOTDumper2>(
