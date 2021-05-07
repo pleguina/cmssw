@@ -2,7 +2,7 @@ from WMCore.Configuration import Configuration
 config = Configuration()
 
 config.section_("General")
-config.General.requestName = 'omtf_run3_ZeroBias_Run2018D_t115'
+config.General.requestName = 'omtf_run3_ZeroBias_Run2018D_t127'
 #config.General.workArea = 'jobs_SM_Run2017E-ZMu-17Nov2017'
 #config.General.workArea = 'jobs_JHT_2018D'
 config.General.transferLogs = True 
@@ -31,7 +31,7 @@ config.Data.inputDBS = 'global'
 #config.Data.splitting = 'LumiBased'
 config.Data.splitting = 'Automatic'
 #config.Data.unitsPerJob = 200 #number of files per jobs
-config.Data.totalUnits =  10000000 #number of event
+config.Data.totalUnits =  20000000 #number of event
 #config.Data.outLFNDirBase = '/store/user/konec/test/'
 config.Data.publication = False 
 #config.Data.outputDatasetTag = 'CRAB3_tutorial_May2015_Data_analysis'

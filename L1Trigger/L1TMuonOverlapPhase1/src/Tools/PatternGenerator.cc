@@ -549,9 +549,9 @@ void PatternGenerator::modifyClassProb(double step) {
           newPdfVal += 2;
 
         if(ptFrom == 100)
-          newPdfVal = 14;
+          newPdfVal = 16;
         if(ptFrom == 200)
-          newPdfVal = 18;
+          newPdfVal = 22;
 
 
         gp->setPdfValue(newPdfVal, refLayerLogicNumber, iRefLayer, iPdf);
