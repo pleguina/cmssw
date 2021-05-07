@@ -69,8 +69,8 @@ bool ProcessorBase<GoldenPatternType>::configure(OMTFConfiguration* omtfConfig,
                   iGP * (myOmtfConfig->nRefLayers() * myOmtfConfig->nLayers());
         int value = meanDistPhiLUT->data(address) - (1 << (meanDistPhiLUT->nrBitsData() - 1));
         aGP->setMeanDistPhiValue(value, iLayer, iRefLayer, 0);
-        if (meanDistPhiLUT->nrBitsAddress() ==
-            15) {  //for the new version of the meanDistPhi which have two values for each gp,iLayer,iRefLayer, FIXME: do it a better way
+        if (meanDistPhiLUT->nrBitsAddress() == 15) {
+          //for the new version of the meanDistPhi which have two values for each gp,iLayer,iRefLayer, FIXME: do it a better way
           value = meanDistPhiLUT->data(address + meanDistPhiSize) - (1 << (meanDistPhiLUT->nrBitsData() - 1));
           //the second meanDistPhi is in the LUT at the position (address+meanDistPhiSize)
           aGP->setMeanDistPhiValue(value, iLayer, iRefLayer, 1);
@@ -196,10 +196,12 @@ void ProcessorBase<GoldenPatternType>::initPatternPtRange(bool firstPatFrom0) {
 
 template <class GoldenPatternType>
 void ProcessorBase<GoldenPatternType>::printInfo() const {
+  unsigned int patNum = 0;
   for (auto& gp : theGPs) {
     edm::LogVerbatim("OMTFReconstruction")
-        << gp->key() << " " << myOmtfConfig->getPatternPtRange(gp->key().theNumber).ptFrom << " - "
-        << myOmtfConfig->getPatternPtRange(gp->key().theNumber).ptTo << " GeV" << std::endl;
+        <<std::setw(2)<<patNum<<" "<< gp->key() << " " << myOmtfConfig->getPatternPtRange(patNum).ptFrom << " - "
+        << myOmtfConfig->getPatternPtRange(patNum).ptTo << " GeV" << std::endl;
+    patNum++;
   }
 }
 

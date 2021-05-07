@@ -98,10 +98,8 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT *> luts,
     int out = 0;
     for (auto it : aGPs) {
       if (type == "iCharge")
-        out =
-            it->key().theCharge == -1
-                ? 0
-                : 1;  //changing only -1 (negative charge) to 0 (to avoid negative numbers in LUT?) -N.B. that this is not the uGMT charge convention!!!!
+        out = it->key().theCharge == -1  ? 0 : 1;
+      //changing only -1 (negative charge) to 0 (to avoid negative numbers in LUT?) -N.B. that this is not the uGMT charge convention!!!!
       if (type == "iEta")
         out = it->key().theEtaCode;
       if (type == "iPt")
@@ -110,22 +108,15 @@ void XMLConfigReader::readLUTs(std::vector<l1t::LUT *> luts,
         int meanDistPhiSize = aConfig.nGoldenPatterns() * aConfig.nLayers() * aConfig.nRefLayers();
         for (unsigned int iLayer = 0; iLayer < (unsigned)aConfig.nLayers(); ++iLayer) {
           for (unsigned int iRefLayer = 0; iRefLayer < (unsigned)aConfig.nRefLayers(); ++iRefLayer) {
-            out =
-                (1 << (outWidth - 1)) +
-                it->getMeanDistPhi()
-                    [iLayer][iRefLayer]
-                    [0];  //making the LUT values positive - it is needed because the outWidth is not 32 and the dataMask_ in LUT affects the negative values. Would be better to just use outWidth=32
+            out = (1 << (outWidth - 1)) + it->getMeanDistPhi() [iLayer][iRefLayer] [0];
+            //making the LUT values positive - it is needed because the outWidth is not 32 and the dataMask_ in LUT affects the negative values. Would be better to just use outWidth=32
             strStream << in << " " << out << std::endl;
 
             if (totalInWidth == 15) {  //new version of the MeanDistPhi LUT
-              out =
-                  (1 << (outWidth - 1)) +
-                  it->getMeanDistPhi()
-                      [iLayer][iRefLayer]
-                      [1];  //making the LUT values positive - it is needed because the outWidth is not 32 and the dataMask_ in LUT affects the negative values. Would be better to just use outWidth=32
-              strStream
-                  << (in + meanDistPhiSize) << " " << out
-                  << std::endl;  //writing the second value of the getMeanDistPhi at the position (in+meanDistPhiSize)
+              out = (1 << (outWidth - 1)) +  it->getMeanDistPhi() [iLayer][iRefLayer] [1];
+              //making the LUT values positive - it is needed because the outWidth is not 32 and the dataMask_ in LUT affects the negative values. Would be better to just use outWidth=32
+              strStream << (in + meanDistPhiSize) << " " << out << std::endl;
+              //writing the second value of the getMeanDistPhi at the position (in+meanDistPhiSize)
             }
             ++in;
           }
