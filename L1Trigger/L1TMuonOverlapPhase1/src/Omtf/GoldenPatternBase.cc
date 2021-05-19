@@ -10,7 +10,7 @@
 #include <iomanip>
 
 std::ostream& operator<<(std::ostream& out, const Key& o) {
-  out << "Key_" << std::setw(2) << o.theNumber << " group " << std::setw(2) << o.theGroup << ":" << o.theIndexInGroup
+  out << "Key_" << std::setw(2) << o.theNumber <<" hwNum "<< std::setw(2)<<o.getHwPatternNumber()<< " group " << std::setw(2) << o.theGroup << ":" << o.theIndexInGroup
       << " : (eta=" << o.theEtaCode << ", pt=" << std::setw(3) << o.thePt << ", charge=" << setw(2) << o.theCharge
       << ")";
   return out;

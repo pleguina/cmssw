@@ -166,7 +166,7 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
   }
 
 
-  /*  dump = true; ///TODO if presetn then dumps all events!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  /*  dump = true; ///TODO if present then dumps all events!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   if(!dump)
     return;
 
@@ -177,7 +177,7 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
     }
   }*/
 
-  //dump = true; //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!!!!! TODO
+  dump = true; //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!!!!! TODO if present then dumps all events!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   if (!dump)
     return;
@@ -265,12 +265,13 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
             if (gp->key().thePt == 0)
               continue;
 
-            auto& gpResult = gp->getResults()[iProc][algoMuon->getRefHitNumber()];
+            //printing GoldenPatternResult, uncomment if needed
+            /*auto& gpResult = gp->getResults()[iProc][algoMuon->getRefHitNumber()];
             edm::LogVerbatim("l1tOmtfEventPrint") << " "<<gp->key() << "  "
               //<< "  refLayer: " << gpResult.getRefLayer() << "\t"
               << " Sum over layers: " << gpResult.getPdfSum() << "\t"
               << " Number of hits: " << gpResult.getFiredLayerCnt() << "\t"
-              << std::endl;
+              << std::endl;*/
           }
           edm::LogVerbatim("l1tOmtfEventPrint") << std::endl << std::endl;
         }

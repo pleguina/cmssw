@@ -54,7 +54,7 @@ public:
   unsigned int getHwPatternNumber() const {
     if (goldenPatern == nullptr)
       return 0;
-    return goldenPatern->key().theGroup * 4 + goldenPatern->key().theIndexInGroup;
+    return goldenPatern->key().getHwPatternNumber();
   }
 
 

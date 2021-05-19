@@ -58,7 +58,7 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
     setGhostBuster(new GhostBusterPreferRefDt(this->myOmtfConfig));
     edm::LogVerbatim("OMTFReconstruction") << "setting " << this->myOmtfConfig->getGhostBusterType() << std::endl;
   } else {
-    setGhostBuster(new GhostBuster());  //initialize with the default sorter
+    setGhostBuster(new GhostBuster(this->myOmtfConfig));  //initialize with the default sorter
     edm::LogVerbatim("OMTFReconstruction") << "setting GhostBuster" << std::endl;
   }
 
@@ -79,8 +79,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     int phiValue = myCand->getPhi();
     if (phiValue >= int(this->myOmtfConfig->nPhiBins()))
       phiValue -= this->myOmtfConfig->nPhiBins();
-    ///conversion factor from OMTF to uGMT scale is  5400/576 i.e. phiValue/=9.375;
-    phiValue = floor(phiValue * 437. / pow(2, 12));  // ie. use as in hw: 9.3729977
+    phiValue = this->myOmtfConfig->procPhiToGmtPhi(phiValue);
     candidate.setHwPhi(phiValue);
 
     candidate.setHwSign(myCand->getCharge() < 0 ? 1 : 0);

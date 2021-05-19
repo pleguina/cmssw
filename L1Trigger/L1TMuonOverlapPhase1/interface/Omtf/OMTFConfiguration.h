@@ -169,6 +169,12 @@ public:
 
   double procHwPhiToGlobalPhi(int procHwPhi, int procHwPhi0) const;
 
+  int procPhiToGmtPhi(int procPhi) const {
+    ///conversion factor from OMTF to uGMT scale is  5400/576 i.e. phiValue/=9.375;
+    return floor(procPhi * 437. / (1<<12) );  // ie. use as in hw: 9.3729977
+    //cannot be (procPhi * 437) >> 12, because this floor is needed
+  }
+
   ///input phi should be in the hardware scale (nPhiBins units for 2pi), can be in range  -nPhiBins ... nPhiBins,
   //is converted to range -nPhiBins/2 +1 ... nPhiBins/2, pi = nPhiBins/2
   //virtual int foldPhi(int phi) const;
