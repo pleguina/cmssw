@@ -43,7 +43,7 @@ public:
   void endJob() override;
 
 private:
-  edm::InputTag simTrackInputTag;
+  edm::InputTag simTracksTag;
   const OMTFConfiguration* omtfConfig = nullptr;
 
   std::vector<std::shared_ptr<GoldenPattern> > goldenPatterns;

@@ -30,10 +30,10 @@ EventCapture::EventCapture(const edm::ParameterSet& edmCfg,
 {
   //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" omtfConfig->nProcessors() "<<omtfConfig->nProcessors()<<std::endl;
   if (edmCfg.exists("simTracksTag"))
-    simTrackInputTag = edmCfg.getParameter<edm::InputTag>("simTracksTag");
+    simTracksTag = edmCfg.getParameter<edm::InputTag>("simTracksTag");
   else
     edm::LogImportant("OMTFReconstruction")
-    << "EventCapture::EventCapture: no InputTag simTrackInputTag found" << std::endl;
+    << "EventCapture::EventCapture: no InputTag simTracksTag found" << std::endl;
 
   if(this->candidateSimMuonMatcher)
     stubsSimHitsMatcher.reset(new StubsSimHitsMatcher(edmCfg, omtfConfig));
@@ -51,9 +51,9 @@ void EventCapture::beginRun(edm::EventSetup const& eventSetup) {
 void EventCapture::observeEventBegin(const edm::Event& event) {
   simMuons.clear();
 
-  if (!simTrackInputTag.label().empty()) {
+  if (!simTracksTag.label().empty()) {
     edm::Handle<edm::SimTrackContainer> simTraksHandle;
-    event.getByLabel(simTrackInputTag, simTraksHandle);
+    event.getByLabel(simTracksTag, simTraksHandle);
 
     for (unsigned int iSimTrack = 0; iSimTrack != simTraksHandle->size(); iSimTrack++) {
       if (abs((*simTraksHandle.product())[iSimTrack].type()) == 13)
@@ -126,7 +126,7 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
       }
     }
   }
-  else if (!simTrackInputTag.label().empty()) {
+  else if (!simTracksTag.label().empty()) {
     dump = false;
     bool wasSimMuInOmtfPos = false;
     bool wasSimMuInOmtfNeg = false;
