@@ -21,6 +21,11 @@ L1TMuonOverlapPhase2TrackProducer::L1TMuonOverlapPhase2TrackProducer(const edm::
            consumes<L1MuDTChambThContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTTh")),
            consumes<CSCCorrelatedLCTDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcCSC")),
            consumes<RPCDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcRPC"))}),
+      omtfParamsEsToken(esConsumes<L1TMuonOverlapParams, L1TMuonOverlapParamsRcd, edm::Transition::BeginRun>()),
+      muonGeometryTokens(
+          {esConsumes<RPCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
+           esConsumes<CSCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
+           esConsumes<DTGeometry, MuonGeometryRecord, edm::Transition::BeginRun>() }),
       omtfEmulation(edmParameterSet,
                     muStubsInputTokens,
                     consumes<L1Phase2MuDTPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPhPhase2"))) {
@@ -44,7 +49,7 @@ void L1TMuonOverlapPhase2TrackProducer::endJob() { omtfEmulation.endJob(); }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void L1TMuonOverlapPhase2TrackProducer::beginRun(edm::Run const& run, edm::EventSetup const& iSetup) {
-  omtfEmulation.beginRun(run, iSetup);
+  omtfEmulation.beginRun(run, iSetup, omtfParamsEsToken, muonGeometryTokens, magneticFieldEsToken, propagatorEsToken);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
