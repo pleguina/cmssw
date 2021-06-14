@@ -129,7 +129,8 @@ MuonStubMakerBase::MuonStubMakerBase(const ProcConfigurationBase* procConf) : co
 
 ///////////////////////////////////////
 ///////////////////////////////////////
-void MuonStubMakerBase::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es) {
+void MuonStubMakerBase::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es,
+    const MuonGeometryTokens& muonGeometryTokens) {
   rpcClusterization.configure(
       config->getRpcMaxClusterSize(), config->getRpcMaxClusterCnt(), config->getRpcDropAllClustersIfMoreThanMax());
 

@@ -19,11 +19,11 @@ if verbose:
                                                #'cerr',
                                                'omtfEventPrint'
                     ),
-       categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'L1T', 'OmtfUnpacker::produce'), #'OMTFReconstruction',
+       categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'L1T', 'OmtfUnpacker::produce', ''), #'OMTFReconstruction',
        omtfEventPrint = cms.untracked.PSet(    
                          filename  = cms.untracked.string('log_MuonOverlap_nn'),
                          extension = cms.untracked.string('.txt'),                
-                         threshold = cms.untracked.string('INFO'),
+                         threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
                          #INFO   =  cms.untracked.int32(0),
                          #DEBUG   = cms.untracked.int32(0),
@@ -39,7 +39,7 @@ if verbose:
 #                          #OMTFReconstruction = cms.untracked.PSet( limit = cms.untracked.int32(1000000) )
 #                        ),
        #debugModules = cms.untracked.vstring('L1MuonAnalyzerOmtfPhase1', 'simOmtfPhase1Digis') 
-       debugModules = cms.untracked.vstring('L1MuonAnalyzerOmtfHW')  #, 'simOmtfDigis'
+       debugModules = cms.untracked.vstring('omtfStage2Digis', 'L1MuonAnalyzerOmtfHW')  #, 'simOmtfDigis'
        
        #debugModules = cms.untracked.vstring('L1MuonAnalyzerOmtf', 'simOmtfPhase1Digis', 'omtfStage2Digis') 
        #debugModules = cms.untracked.vstring('*')
@@ -60,7 +60,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.load('Configuration.StandardSequences.RawToDigi_Data_cff')
-process.load('EventFilter.L1TRawToDigi.omtfStage2Digis_cfi')
+process.load('EventFilter.L1TRawToDigi.omtfStage2Digis_cfi') #unpacker
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
@@ -84,7 +84,10 @@ process.source = cms.Source('PoolSource',
  
  #fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/run2_data/Run2018D_ZeroBias_CB56F74E-F55A-B247-AB06-D1A7406AB671_1000Ev.root"),
  #fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/run2_data/Run2018D_ZeroBias_501FAD58-6212-8F46-812C-759AF2603F81_allEv.root"),
- fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/run2_data/Run2018D_ZeroBias_Run_325117_8BAB433D-F822-A64A-BB22-25E18AD5442F_allEv.root"),
+ #fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/run2_data/Run2018D_ZeroBias_Run_325117_8BAB433D-F822-A64A-BB22-25E18AD5442F_allEv.root"),
+ #fileNames = cms.untracked.vstring("/store/mc/Run3Winter20DRMiniAOD/Mu_FlatPt1to1000-pythia8-gun/GEN-SIM-RAW/NoPU_110X_mcRun3_2021_realistic_v6-v3/10000/003C515F-E4D1-404D-8921-36A3FD7361E9.root"),
+ #fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/mcRun3/Run3Winter20_Mu_FlatPt1to1000_mcRun3_2021_003C515F-E4D1-404D-8921-36A3FD7361E9_300Ev.root"),
+ fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/mcRun3/Run3Winter20_HTo2LongLivedTo4mu_MH-125_mcRun3_2021_03FD2A52-9B9A-544B-816F-8BF926F15CE8.root"),
  
         inputCommands=cms.untracked.vstring(
         'keep *',
@@ -113,6 +116,10 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 # )
 
 process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2.root'), closeFileFast = cms.untracked.bool(True) )
+                
+
+from EventFilter.L1TRawToDigi.omtfStage2Raw_cfi import *
+process.load('EventFilter.L1TRawToDigi.omtfStage2Raw_cfi') #packer
                                    
 #### new OMTF Emulator
 process.load('L1Trigger.L1TMuonOverlapPhase1.simOmtfPhase1Digis_cfi')
@@ -269,7 +276,7 @@ process.L1MuonAnalyzerOmtfHW = cms.EDAnalyzer("L1MuonAnalyzerOmtf",
 
 process.L1TMuonSeq = cms.Sequence( process.simOmtfDigis)
 
-process.L1TMuonPath = cms.Path(process.omtfStage2Digis + process.L1MuonAnalyzerOmtfHW) #process.L1TMuonSeq + + process.L1MuonAnalyzerOmtfHW
+process.L1TMuonPath = cms.Path( process.omtfStage2Digis + process.L1MuonAnalyzerOmtfHW) #process.omtfStage2Raw +  process.L1TMuonSeq + + process.L1MuonAnalyzerOmtfHW
 
 
 #process.L1TMuonPathOmtfStage2 = cms.Path(process.omtfStage2Digis + process.esProd + process.simOmtfDigis + process.L1MuonAnalyzerOmtfHW) #process.simOmtfDigis + 

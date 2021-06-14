@@ -129,7 +129,7 @@ for a in sys.argv :
     
 print "analysisType=" + analysisType
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v100_Mu_FlatPt2to100_noPU_' + analysisType + '.root'), closeFileFast = cms.untracked.bool(True) )
+process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAnalysis2_v100_Mu_FlatPt2to100_noPU_' + analysisType + '_v2.root'), closeFileFast = cms.untracked.bool(True) )
                                    
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonOverlapPhase1.simOmtfPhase1Digis_cfi')

@@ -10,12 +10,7 @@
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EventSetup.h"
-
-#include "Geometry/Records/interface/GlobalTrackingGeometryRecord.h"
-//#include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
-#include "TrackingTools/Records/interface/TrackingComponentsRecord.h"
 
 #include "DataFormats/GeometrySurface/interface/BoundCylinder.h"
 #include "DataFormats/GeometrySurface/interface/SimpleCylinderBounds.h"
@@ -42,8 +37,10 @@ double foldPhi(double phi) {
   return phi;
 }
 
-CandidateSimMuonMatcher::CandidateSimMuonMatcher(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig)
-    : omtfConfig(omtfConfig), edmCfg(edmCfg) {
+CandidateSimMuonMatcher::CandidateSimMuonMatcher(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
+                              const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
+                              const edm::ESGetToken<Propagator, TrackingComponentsRecord>&    propagatorEsToken)
+    : omtfConfig(omtfConfig), edmCfg(edmCfg), magneticFieldEsToken(magneticFieldEsToken), propagatorEsToken(propagatorEsToken) {
   std::string muonMatcherFileName = edmCfg.getParameter<edm::FileInPath>("muonMatcherFile").fullPath();
   TFile inFile(muonMatcherFileName.c_str());
   edm::LogImportant("l1tOmtfEventPrint") << " CandidateSimMuonMatcher: using muonMatcherFileName "
@@ -58,10 +55,11 @@ CandidateSimMuonMatcher::~CandidateSimMuonMatcher() {
 }
 
 void CandidateSimMuonMatcher::beginRun(const edm::EventSetup& eventSetup) {
-  eventSetup.get<GlobalTrackingGeometryRecord>().get(globalGeometry);
-  eventSetup.get<IdealMagneticFieldRecord>().get(magField);
+  //eventSetup.get<IdealMagneticFieldRecord>().get(magField);
+  //eventSetup.get<TrackingComponentsRecord>().get("SteppingHelixPropagatorAlong", propagator);
 
-  eventSetup.get<TrackingComponentsRecord>().get("SteppingHelixPropagatorAlong", propagator);
+  magField = eventSetup.getHandle(magneticFieldEsToken);
+  propagator = eventSetup.getHandle(propagatorEsToken);
 }
 
 void CandidateSimMuonMatcher::observeEventBegin(const edm::Event& event) { gbCandidates.clear(); }

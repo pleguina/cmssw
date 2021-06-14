@@ -22,7 +22,8 @@ public:
   EventCapture(const edm::ParameterSet& edmCfg,
                const OMTFConfiguration* omtfConfig,
                const std::vector<std::shared_ptr<GoldenPattern> >& gps,
-               CandidateSimMuonMatcher* candidateSimMuonMatcher);
+               CandidateSimMuonMatcher* candidateSimMuonMatcher,
+               const MuonGeometryTokens& muonGeometryTokens);
 
   ~EventCapture() override;
 

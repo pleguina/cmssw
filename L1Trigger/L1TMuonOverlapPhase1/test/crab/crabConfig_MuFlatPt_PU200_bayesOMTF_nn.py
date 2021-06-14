@@ -1,10 +1,10 @@
 from CRABClient.UserUtilities import config #, getUsernameFromSiteDB
 config = config()
 
-#type = 'omtf_nn'
-type = 'omtf_0x0006'
+type = 'omtf_nn'
+#type = 'omtf_0x0006'
 
-config.General.requestName = type + '_MC_analysis_MuFlatPt_PU200_v3_t100'
+config.General.requestName = type + '_MC_analysis_MuFlatPt_PU200_v3_t128'
 #config.General.workArea = 'crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
@@ -28,7 +28,7 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 5
 #config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
-config.Data.outputDatasetTag = 'CRAB3_' + type + 'omtf_nn_MC_analysis_MuFlatPt_PU200_v3_t100'
+config.Data.outputDatasetTag = 'CRAB3_' + type + 'omtf_nn_MC_analysis_MuFlatPt_PU200_v3_t128'
 config.Data.totalUnits = 321
 config.Data.ignoreLocality = False
 

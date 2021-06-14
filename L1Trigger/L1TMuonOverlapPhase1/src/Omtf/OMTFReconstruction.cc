@@ -17,7 +17,6 @@
 #include "DataFormats/L1Trigger/interface/BXVector.h"
 #include "DataFormats/Provenance/interface/EventID.h"
 #include "FWCore/Common/interface/EventBase.h"
-#include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EventSetupRecord.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/ParameterSet/interface/FileInPath.h"
@@ -59,7 +58,10 @@ void OMTFReconstruction::endJob() {
 
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& eventSetup) {
+void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& eventSetup, edm::ESGetToken<L1TMuonOverlapParams,
+    L1TMuonOverlapParamsRcd>& omtfParamsEsToken, const MuonGeometryTokens& muonGeometryTokens,
+    const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
+    const edm::ESGetToken<Propagator, TrackingComponentsRecord>&    propagatorEsToken) {
   const L1TMuonOverlapParams* omtfParams = nullptr;
 
   std::string processorType = "OMTFProcessor";  //GoldenPatternWithStat GoldenPattern
@@ -78,10 +80,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
   if (omtfProc == nullptr || buildPatternsFromXml == false) {
     edm::LogImportant("OMTFReconstruction") << "retrieving omtfParams from EventSetup" << std::endl;
 
-    const L1TMuonOverlapParamsRcd& omtfRcd = eventSetup.get<L1TMuonOverlapParamsRcd>();
-    edm::ESHandle<L1TMuonOverlapParams> omtfParamsHandle;
-    omtfRcd.get(omtfParamsHandle);
-    omtfParams = omtfParamsHandle.product();
+    omtfParams = &(eventSetup.getData(omtfParamsEsToken));
     if (!omtfParams) {
       edm::LogError("OMTFReconstruction") << "Could not retrieve parameters from Event Setup" << std::endl;
     }
@@ -90,7 +89,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
     //the parameters can be overwritten from the python config
     omtfConfig->configureFromEdmParameterSet(edmParameterSet);
 
-    inputMaker->initialize(edmParameterSet, eventSetup);
+    inputMaker->initialize(edmParameterSet, eventSetup, muonGeometryTokens);
 
     //patterns from the edm::EventSetup are reloaded every beginRun
     if (buildPatternsFromXml == false) {
@@ -166,7 +165,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
   }
 
   if (firstRun) {
-    addObservers();
+    addObservers(muonGeometryTokens, magneticFieldEsToken, propagatorEsToken);
     omtfProc->printInfo();
   }
 
@@ -175,7 +174,12 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
   }
 }
 
-void OMTFReconstruction::addObservers() {
+void OMTFReconstruction::addObservers(const MuonGeometryTokens& muonGeometryTokens,
+    const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
+    const edm::ESGetToken<Propagator, TrackingComponentsRecord>&    propagatorEsToken) {
+  if(observers.size()) //assuring it is done only at the first run
+    return;
+
   if (edmParameterSet.exists("dumpResultToXML")) {
     if (edmParameterSet.getParameter<bool>("dumpResultToXML"))
       observers.emplace_back(std::make_unique<XMLEventWriter>(
@@ -186,8 +190,8 @@ void OMTFReconstruction::addObservers() {
 
   if (edmParameterSet.exists("candidateSimMuonMatcher")) {
     if (edmParameterSet.getParameter<bool>("candidateSimMuonMatcher")) {
-      observers.emplace_back(std::make_unique<CandidateSimMuonMatcher>(edmParameterSet, omtfConfig.get()));
-      candidateSimMuonMatcher = static_cast<CandidateSimMuonMatcher*>(observers.back().get());
+      observers.emplace_back(std::make_unique<CandidateSimMuonMatcher>(edmParameterSet, omtfConfig.get(), magneticFieldEsToken, propagatorEsToken));
+      candidateSimMuonMatcher = static_cast<CandidateSimMuonMatcher*>(observers.back().get() );
     }
   }
 
@@ -199,8 +203,8 @@ void OMTFReconstruction::addObservers() {
   if (omtfProcGoldenPat) {
     if (edmParameterSet.exists("eventCaptureDebug"))
       if (edmParameterSet.getParameter<bool>("eventCaptureDebug")) {
-        observers.emplace_back(
-            std::make_unique<EventCapture>(edmParameterSet, omtfConfig.get(), omtfProcGoldenPat->getPatterns(), candidateSimMuonMatcher));
+        observers.emplace_back(std::make_unique<EventCapture>(
+            edmParameterSet, omtfConfig.get(), omtfProcGoldenPat->getPatterns(), candidateSimMuonMatcher, muonGeometryTokens));
       }
 
     if (edmParameterSet.exists("dumpHitsToROOT") && edmParameterSet.getParameter<bool>("dumpHitsToROOT")) {

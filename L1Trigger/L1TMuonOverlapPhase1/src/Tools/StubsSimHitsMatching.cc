@@ -8,12 +8,11 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/StubsSimHitsMatcher.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OmtfName.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/AngleConverterBase.h"
 
-#include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-#include "Geometry/Records/interface/MuonGeometryRecord.h"
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include "Geometry/DTGeometry/interface/DTGeometry.h"
 #include "Geometry/RPCGeometry/interface/RPCGeometry.h"
@@ -33,8 +32,8 @@
 
 #include <cmath>
 
-StubsSimHitsMatcher::StubsSimHitsMatcher(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig)
-    : omtfConfig(omtfConfig) {
+StubsSimHitsMatcher::StubsSimHitsMatcher(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, const MuonGeometryTokens& muonGeometryTokens)
+    : omtfConfig(omtfConfig), muonGeometryTokens(muonGeometryTokens) {
   //rpcSimHitsInputTag = edmCfg.getParameter<edm::InputTag>("MuonRPCHits");
   //rpcSimHitsInputTag = edm::InputTag("g4SimHits", "MuonRPCHits");
   rpcSimHitsInputTag = edmCfg.getParameter<edm::InputTag>("rpcSimHitsInputTag");
@@ -87,13 +86,10 @@ StubsSimHitsMatcher::~StubsSimHitsMatcher() {
 }
 
 void StubsSimHitsMatcher::beginRun(edm::EventSetup const& eventSetup) {
-  const MuonGeometryRecord& geom = eventSetup.get<MuonGeometryRecord>();
-  unsigned long long geomid = geom.cacheIdentifier();
-  if (_geom_cache_id != geomid) {
-    geom.get(_georpc);
-    geom.get(_geocsc);
-    geom.get(_geodt);
-    _geom_cache_id = geomid;
+  if(muonGeometryRecordWatcher.check(eventSetup)) {
+    _georpc = eventSetup.getHandle(muonGeometryTokens.rpcGeometryEsToken);
+    _geocsc = eventSetup.getHandle(muonGeometryTokens.cscGeometryEsToken);
+    _geodt =  eventSetup.getHandle(muonGeometryTokens.dtGeometryEsToken);
   }
 }
 

@@ -104,7 +104,8 @@ public:
 
   ~OMTFinputMaker() override;
 
-  void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es) override;
+  void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es,
+      const MuonGeometryTokens& muonGeometryTokens) override;
 
   void setFlag(int aFlag) { flag = aFlag; }
   int getFlag() const { return flag; }

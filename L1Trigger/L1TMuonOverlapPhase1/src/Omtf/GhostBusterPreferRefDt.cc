@@ -123,7 +123,7 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
     if(!muIN->isValid())
       continue;
 
-    edm::LogVerbatim("OMTFReconstruction") << "GhostBusting "<<*muIN<<" phiGMT "<<omtfConfig->procPhiToGmtPhi(muIN->getPhi())<< std::endl;
+    //edm::LogVerbatim("OMTFReconstruction") << "GhostBusting "<<*muIN<<" phiGMT "<<omtfConfig->procPhiToGmtPhi(muIN->getPhi())<< std::endl;
 
     refHitCleanCandsFixedEta.push_back(*muIN);  //FIXME to much copying here...
     auto killIt = refHitCleanCandsFixedEta.end();

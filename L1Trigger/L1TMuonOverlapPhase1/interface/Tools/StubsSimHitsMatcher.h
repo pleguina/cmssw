@@ -13,8 +13,10 @@
 
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/ESWatcher.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
+#include "Geometry/Records/interface/MuonGeometryRecord.h"
 
 #include "TH1I.h"
 #include "TH2I.h"
@@ -23,9 +25,11 @@ class RPCGeometry;
 class CSCGeometry;
 class DTGeometry;
 
+struct MuonGeometryTokens;
+
 class StubsSimHitsMatcher {
 public:
-  StubsSimHitsMatcher(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig);
+  StubsSimHitsMatcher(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, const MuonGeometryTokens& muonGeometryTokens);
   virtual ~StubsSimHitsMatcher();
 
   void beginRun(edm::EventSetup const& eventSetup);
@@ -74,6 +78,10 @@ private:
   edm::InputTag dtDigiSimLinksInputTag;
 
   edm::InputTag trackingParticleTag;
+
+  const MuonGeometryTokens& muonGeometryTokens;
+
+  edm::ESWatcher<MuonGeometryRecord> muonGeometryRecordWatcher;
 
   // pointers to the current geometry records
   unsigned long long _geom_cache_id = 0;

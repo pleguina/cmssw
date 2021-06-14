@@ -45,14 +45,21 @@ AngleConverterBase::AngleConverterBase() : _geom_cache_id(0ULL) {}
 AngleConverterBase::~AngleConverterBase() {}
 ///////////////////////////////////////
 ///////////////////////////////////////
-void AngleConverterBase::checkAndUpdateGeometry(const edm::EventSetup& es, const ProcConfigurationBase* config) {
-  const MuonGeometryRecord& geom = es.get<MuonGeometryRecord>();
+void AngleConverterBase::checkAndUpdateGeometry(const edm::EventSetup& es, const ProcConfigurationBase* config,
+    const MuonGeometryTokens& muonGeometryTokens) {
+/*  const MuonGeometryRecord& geom = es.get<MuonGeometryRecord>();
   unsigned long long geomid = geom.cacheIdentifier();
   if (_geom_cache_id != geomid) {
     geom.get(_georpc);
     geom.get(_geocsc);
     geom.get(_geodt);
     _geom_cache_id = geomid;
+  }*/
+
+  if(muonGeometryRecordWatcher.check(es)) {
+    _georpc = es.getHandle(muonGeometryTokens.rpcGeometryEsToken);
+    _geocsc = es.getHandle(muonGeometryTokens.cscGeometryEsToken);
+    _geodt =  es.getHandle(muonGeometryTokens.dtGeometryEsToken);
   }
   this->config = config;
   nPhiBins = config->nPhiBins();

@@ -16,7 +16,12 @@
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+#include "FWCore/Utilities/interface/ESGetToken.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+
+#include "Geometry/Records/interface/GlobalTrackingGeometryRecord.h"
+//#include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
+#include "TrackingTools/Records/interface/TrackingComponentsRecord.h"
 
 ///////////////////////
 // DATA FORMATS HEADERS
@@ -27,8 +32,6 @@
 // DETECTOR GEOMETRY HEADERS
 #include "MagneticField/Engine/interface/MagneticField.h"
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
-
-#include "Geometry/CommonDetUnit/interface/GlobalTrackingGeometry.h"
 
 #include "TH1D.h"
 
@@ -99,7 +102,10 @@ public:
  */
 class CandidateSimMuonMatcher : public IOMTFEmulationObserver {
 public:
-  CandidateSimMuonMatcher(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig);
+  CandidateSimMuonMatcher(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
+                          const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
+                          const edm::ESGetToken<Propagator, TrackingComponentsRecord>&    propagatorEsToken);
+
   ~CandidateSimMuonMatcher() override;
 
   void beginRun(edm::EventSetup const& eventSetup) override;
@@ -173,9 +179,10 @@ private:
   AlgoMuons gbCandidates;
   std::vector<MatchingResult> matchingResults;
 
-  edm::ESHandle<GlobalTrackingGeometry> globalGeometry;
-  edm::ESHandle<MagneticField> magField;
+  const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken;
+  const edm::ESGetToken<Propagator, TrackingComponentsRecord>&    propagatorEsToken;
 
+  edm::ESHandle<MagneticField> magField;
   edm::ESHandle<Propagator> propagator;
 
   TH1D* deltaPhiPropCandMean = nullptr;

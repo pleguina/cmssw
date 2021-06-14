@@ -21,7 +21,8 @@
 EventCapture::EventCapture(const edm::ParameterSet& edmCfg,
     const OMTFConfiguration* omtfConfig,
     const std::vector<std::shared_ptr<GoldenPattern> >& gps,
-    CandidateSimMuonMatcher* candidateSimMuonMatcher)
+    CandidateSimMuonMatcher* candidateSimMuonMatcher,
+    const MuonGeometryTokens& muonGeometryTokens)
 : omtfConfig(omtfConfig), goldenPatterns(gps),
   candidateSimMuonMatcher(candidateSimMuonMatcher),
   inputInProcs(omtfConfig->processorCnt()),
@@ -36,7 +37,7 @@ EventCapture::EventCapture(const edm::ParameterSet& edmCfg,
     << "EventCapture::EventCapture: no InputTag simTracksTag found" << std::endl;
 
   if(this->candidateSimMuonMatcher)
-    stubsSimHitsMatcher.reset(new StubsSimHitsMatcher(edmCfg, omtfConfig));
+    stubsSimHitsMatcher.reset(new StubsSimHitsMatcher(edmCfg, omtfConfig, muonGeometryTokens));
 }
 
 EventCapture::~EventCapture() {

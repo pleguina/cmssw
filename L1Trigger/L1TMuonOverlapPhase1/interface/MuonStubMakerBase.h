@@ -152,13 +152,17 @@ protected:
   const RpcClusterization* rpcClusterization;
 };
 
+//forward declaration - MuonGeometryTokens is defined and used in the AngleConverterBase
+struct MuonGeometryTokens;
+
 class MuonStubMakerBase {
 public:
   MuonStubMakerBase(const ProcConfigurationBase* procConf);
 
   virtual ~MuonStubMakerBase();
 
-  virtual void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es);
+  virtual void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es,
+      const MuonGeometryTokens& muonGeometryTokens);
 
   void loadAndFilterDigis(const edm::Event& event);
 
