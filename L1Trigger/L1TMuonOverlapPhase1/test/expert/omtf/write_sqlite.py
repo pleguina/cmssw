@@ -24,9 +24,9 @@ process.PoolDBOutputService = cms.Service("PoolDBOutputService",
 )
 
 ###OMTF CondFormats ESProducer
-process.load('L1Trigger.L1TMuonOverlap.fakeOmtfParams_cff')
+process.load('L1Trigger.L1TMuonOverlapPhase1.fakeOmtfParams_cff')
 
 ###EDAnalyzer writing the OMTFParams objects to sqlite file
-process.write_sqlite = cms.EDAnalyzer("L1MuonOverlapParamsDBProducer")
+process.write_sqlite = cms.EDAnalyzer("L1MuonOverlapPhase1ParamsDBProducer")
 
 process.p = cms.Path(process.write_sqlite)

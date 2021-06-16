@@ -9,6 +9,7 @@
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
+#include "CondFormats/DataRecord/interface/L1TMuonOverlapParamsRcd.h"
 
 class L1TMuonOverlapParams;
 
@@ -22,6 +23,8 @@ public:
   void endJob() override{};
 
 private:
+  edm::ESGetToken<L1TMuonOverlapParams, L1TMuonOverlapParamsRcd> omtfParamsEsToken;
+
   std::unique_ptr<L1TMuonOverlapParams> omtfParams, omtfPatterns;
 };
 
