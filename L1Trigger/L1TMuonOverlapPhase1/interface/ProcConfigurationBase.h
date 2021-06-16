@@ -75,7 +75,9 @@ public:
 
   virtual bool getFixCscGeometryOffset() const { return fixCscGeometryOffset; }
 
-  virtual bool setFixCscGeometryOffset(bool fixCscGeometryOffset) { return this->fixCscGeometryOffset = fixCscGeometryOffset; }
+  virtual bool setFixCscGeometryOffset(bool fixCscGeometryOffset) {
+    return this->fixCscGeometryOffset = fixCscGeometryOffset;
+  }
 
 private:
   int cscLctCentralBx_ = 8;  //CSCConstants::LCT_CENTRAL_BX;

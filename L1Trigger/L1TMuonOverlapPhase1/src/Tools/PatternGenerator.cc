@@ -249,18 +249,19 @@ void PatternGenerator::endJob() {
       gp->key().setIndexInGroup(indexInGroup);
       //indexInGroup is counted from 1
 
-      edm::LogImportant("l1tOmtfEventPrint") << "setGroup(group): group "<<group <<" indexInGroup "<<indexInGroup<< std::endl;
+      edm::LogImportant("l1tOmtfEventPrint")
+          << "setGroup(group): group " << group << " indexInGroup " << indexInGroup << std::endl;
 
-      if(gp->key().thePt <= 10 && indexInGroup == 2) { //TODO
+      if (gp->key().thePt <= 10 && indexInGroup == 2) {  //TODO
         indexInGroup = 0;
         group++;
       }
 
-      if(gp->key().thePt > 10 && indexInGroup == 4) { //TODO
+      if (gp->key().thePt > 10 && indexInGroup == 4) {  //TODO
         indexInGroup = 0;
         group++;
       }
-    } /////////////////////////////////////////////
+    }  /////////////////////////////////////////////
 
     upadatePdfs();
 
@@ -533,26 +534,25 @@ void PatternGenerator::modifyClassProb(double step) {
         //if(ptFrom > 60)
         //  newPdfVal += 1;
 
-        if(ptFrom == 0)
+        if (ptFrom == 0)
           newPdfVal += 15;
-        if(ptFrom == 3.5)
+        if (ptFrom == 3.5)
           newPdfVal += 15;
-        if(ptFrom == 4)
+        if (ptFrom == 4)
           newPdfVal += 12;
-        if(ptFrom == 4.5)
+        if (ptFrom == 4.5)
           newPdfVal += 9;
-        if(ptFrom == 5)
+        if (ptFrom == 5)
           newPdfVal += 7;
-        if(ptFrom == 6)
+        if (ptFrom == 6)
           newPdfVal += 4;
-        if(ptFrom == 7)
+        if (ptFrom == 7)
           newPdfVal += 2;
 
-        if(ptFrom == 100)
+        if (ptFrom == 100)
           newPdfVal = 16;
-        if(ptFrom == 200)
+        if (ptFrom == 200)
           newPdfVal = 22;
-
 
         gp->setPdfValue(newPdfVal, refLayerLogicNumber, iRefLayer, iPdf);
 

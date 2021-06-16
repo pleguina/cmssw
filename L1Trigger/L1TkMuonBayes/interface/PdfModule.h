@@ -46,18 +46,23 @@ public:
   virtual void init();
 
   //adds the StubResult to the algoTTMuon
-  virtual void processStubs(const MuonStubsInput& muonStubs,
-                    unsigned int layer,
-                    const TrackingTriggerTrackPtr& ttTrack,
-                    const MuonStubPtr refStub,
-                    AlgoTTMuonPtr algoTTMuon) override;
+  void processStubs(const MuonStubsInput& muonStubs,
+                            unsigned int layer,
+                            const TrackingTriggerTrackPtr& ttTrack,
+                            const MuonStubPtr refStub,
+                            AlgoTTMuonPtr algoTTMuon) override;
 
-
-  virtual float getExtrapolation(unsigned int layer, unsigned int etaBin, unsigned int refLayer, const TrackingTriggerTrackPtr& ttTrack);
+  virtual float getExtrapolation(unsigned int layer,
+                                 unsigned int etaBin,
+                                 unsigned int refLayer,
+                                 const TrackingTriggerTrackPtr& ttTrack);
 
   //refLayer = 0 means no ref layer is used, pdfBin is deltaPhi or deltaEta
-  virtual float getPdfVal(unsigned int layer, unsigned int etaBin, unsigned int refLayer,
-                          const TrackingTriggerTrackPtr& ttTrack, int pdfBin);
+  virtual float getPdfVal(unsigned int layer,
+                          unsigned int etaBin,
+                          unsigned int refLayer,
+                          const TrackingTriggerTrackPtr& ttTrack,
+                          int pdfBin);
 
   const std::vector<std::vector<std::vector<std::vector<std::vector<int> > > > >& getCoefficients() const {
     return coefficients;

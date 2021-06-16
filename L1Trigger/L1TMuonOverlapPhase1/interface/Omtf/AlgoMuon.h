@@ -57,7 +57,6 @@ public:
     return goldenPatern->key().getHwPatternNumber();
   }
 
-
   unsigned int getRefHitNumber() const { return m_rhitNumb; }
 
   void setQ(int q) { m_q = q; }

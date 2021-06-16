@@ -171,7 +171,7 @@ public:
 
   int procPhiToGmtPhi(int procPhi) const {
     ///conversion factor from OMTF to uGMT scale is  5400/576 i.e. phiValue/=9.375;
-    return floor(procPhi * 437. / (1<<12) );  // ie. use as in hw: 9.3729977
+    return floor(procPhi * 437. / (1 << 12));  // ie. use as in hw: 9.3729977
     //cannot be (procPhi * 437) >> 12, because this floor is needed
   }
 

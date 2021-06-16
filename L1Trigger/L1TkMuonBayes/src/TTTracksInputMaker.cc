@@ -89,7 +89,6 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event& event,
     //LogTrace("l1tOmtfEventPrint") << __FUNCTION__<<":"<<__LINE__ << " LTTTrackHandle->size() "<<tTTrackHandle->size() << std::endl;
 
     for (unsigned int iTTTrack = 0; iTTTrack != tTTrackHandle->size(); iTTTrack++) {
-
       edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > ttTrackPtr(tTTrackHandle, iTTTrack);
       //TODO is there bx in the ttTrackPtr? Or the emulator works only in the BX 0, thus no tracks in other BXes?
       auto ttTrack = std::make_shared<TrackingTriggerTrack>(ttTrackPtr, false);
@@ -100,9 +99,9 @@ TrackingTriggerTracks TTTracksInputMaker::loadTTTracks(const edm::Event& event,
 
       //auto ttTrackRef = tTTrackHandle.product()->at(iTTTrack);
       //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" bx "<<bx
-    		  //<<" "<<ttTrackRef.get_RinvBits() - not implemented
-    	//	  <<" adding ttTrack from TTTrack: iRinv "<<ttTrackRef.get_iRinv()<<" rInv() "<<ttTrackRef.rInv()<<" get_iphi "<<ttTrackRef.get_iphi()
-    	//	  <<"  "<<*ttTrack<<std::endl;
+      //<<" "<<ttTrackRef.get_RinvBits() - not implemented
+      //	  <<" adding ttTrack from TTTrack: iRinv "<<ttTrackRef.get_iRinv()<<" rInv() "<<ttTrackRef.rInv()<<" get_iphi "<<ttTrackRef.get_iphi()
+      //	  <<"  "<<*ttTrack<<std::endl;
     }
   }
   //cout<<__FUNCTION__<<":"<<__LINE__<<" ttTracks.size() "<<ttTracks.size()<<endl;

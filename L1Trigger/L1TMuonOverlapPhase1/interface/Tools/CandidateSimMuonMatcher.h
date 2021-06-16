@@ -102,9 +102,10 @@ public:
  */
 class CandidateSimMuonMatcher : public IOMTFEmulationObserver {
 public:
-  CandidateSimMuonMatcher(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
+  CandidateSimMuonMatcher(const edm::ParameterSet& edmCfg,
+                          const OMTFConfiguration* omtfConfig,
                           const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
-                          const edm::ESGetToken<Propagator, TrackingComponentsRecord>&    propagatorEsToken);
+                          const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken);
 
   ~CandidateSimMuonMatcher() override;
 
@@ -180,7 +181,7 @@ private:
   std::vector<MatchingResult> matchingResults;
 
   const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken;
-  const edm::ESGetToken<Propagator, TrackingComponentsRecord>&    propagatorEsToken;
+  const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken;
 
   edm::ESHandle<MagneticField> magField;
   edm::ESHandle<Propagator> propagator;

@@ -208,7 +208,7 @@ void OMTFConfiguration::configureFromEdmParameterSet(const edm::ParameterSet &ed
     edm::LogVerbatim("OMTFReconstruction") << "ghostBusterType: " << getGhostBusterType() << std::endl;
   }
 
-  setFixCscGeometryOffset(true); //for the OMTF by default is true, read from python if needed
+  setFixCscGeometryOffset(true);  //for the OMTF by default is true, read from python if needed
 }
 
 ///////////////////////////////////////////////

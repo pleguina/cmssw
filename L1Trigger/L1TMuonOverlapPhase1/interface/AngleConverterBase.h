@@ -43,7 +43,7 @@ struct EtaValue {
 struct MuonGeometryTokens {
   edm::ESGetToken<RPCGeometry, MuonGeometryRecord> rpcGeometryEsToken;
   edm::ESGetToken<CSCGeometry, MuonGeometryRecord> cscGeometryEsToken;
-  edm::ESGetToken<DTGeometry,  MuonGeometryRecord>  dtGeometryEsToken;
+  edm::ESGetToken<DTGeometry, MuonGeometryRecord> dtGeometryEsToken;
 };
 
 class AngleConverterBase {
@@ -52,8 +52,9 @@ public:
   virtual ~AngleConverterBase();
 
   ///Update the Geometry with current Event Setup
-  virtual void checkAndUpdateGeometry(const edm::EventSetup&, const ProcConfigurationBase* config,
-      const MuonGeometryTokens& muonGeometryTokens);
+  virtual void checkAndUpdateGeometry(const edm::EventSetup&,
+                                      const ProcConfigurationBase* config,
+                                      const MuonGeometryTokens& muonGeometryTokens);
 
   /// get phi of DT,CSC and RPC azimutal angle digi in processor scale, used by OMTF algorithm.
   /// in case of wrong phi returns OMTFConfiguration::instance()->nPhiBins
@@ -106,7 +107,7 @@ protected:
   unsigned long long _geom_cache_id = 0;
   edm::ESHandle<RPCGeometry> _georpc;
   edm::ESHandle<CSCGeometry> _geocsc;
-  edm::ESHandle<DTGeometry>  _geodt;
+  edm::ESHandle<DTGeometry> _geodt;
 
   edm::ESWatcher<MuonGeometryRecord> muonGeometryRecordWatcher;
 

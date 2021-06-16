@@ -37,16 +37,21 @@ void PdfModule::init() {
   }
 }
 
-float PdfModule::getPdfVal(unsigned int layer, unsigned int etaBin, unsigned int refLayer,
-                           const TrackingTriggerTrackPtr& ttTrack, int pdfBin)
-{
-  unsigned int ptBin =  ttTrack->getPtBin();
+float PdfModule::getPdfVal(unsigned int layer,
+                           unsigned int etaBin,
+                           unsigned int refLayer,
+                           const TrackingTriggerTrackPtr& ttTrack,
+                           int pdfBin) {
+  unsigned int ptBin = ttTrack->getPtBin();
   std::vector<int>& coeff = coefficients.at(layer).at(etaBin).at(refLayer).at(ptBin);
   return (-1) * ((coeff.at(2) * pdfBin * ((int64_t)pdfBin)) >> bitShift) + coeff.at(0);
 }
 
-float PdfModule::getExtrapolation(unsigned int layer, unsigned int etaBin, unsigned int refLayer, const TrackingTriggerTrackPtr& ttTrack) {
-  unsigned int ptBin =  ttTrack->getPtBin();
+float PdfModule::getExtrapolation(unsigned int layer,
+                                  unsigned int etaBin,
+                                  unsigned int refLayer,
+                                  const TrackingTriggerTrackPtr& ttTrack) {
+  unsigned int ptBin = ttTrack->getPtBin();
   return coefficients.at(layer).at(etaBin).at(refLayer).at(ptBin).at(1);
 }
 
@@ -54,8 +59,7 @@ void PdfModule::processStubs(const MuonStubsInput& muonStubs,
                              unsigned int layer,
                              const TrackingTriggerTrackPtr& ttTrack,
                              const MuonStubPtr refStub,
-                             AlgoTTMuonPtr algoTTMuon)
-{
+                             AlgoTTMuonPtr algoTTMuon) {
   int charge = -ttTrack->getCharge();
   //we inverse the charge since the positive tracks bends into negative phi direction, and we wan to to have positive values of pdfBin when the coeff.at(1) is 0
   //== positive values of coeff.at(1)
@@ -94,7 +98,7 @@ void PdfModule::processStubs(const MuonStubsInput& muonStubs,
       pdfBin = charge * config->foldPhi(stub->phiHw - refPhi) - extrapolation;
       //extrapolation is meanDistPhi, TODO check if the formula is OK
     } else if (config->isEtaLayer(layer))
-      pdfBin = stub->etaHw - ttTrack->getEtaHw() -   extrapolation;
+      pdfBin = stub->etaHw - ttTrack->getEtaHw() - extrapolation;
     //do we need for eta to extrapolate, i.e. to subtract coeff.at(1)?
     //std::cout<<__FUNCTION__<<":"<<__LINE__<<" processed stub\n"<<(*stub)<<" pdfBin "<<pdfBin<<std::endl;
     /*

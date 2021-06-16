@@ -52,9 +52,7 @@ struct Key {
 
   void setIndexInGroup(unsigned int indexInGroup) { theIndexInGroup = indexInGroup; }
 
-  unsigned int getHwPatternNumber() const {
-    return theGroup * 4 + theIndexInGroup -1;
-  }
+  unsigned int getHwPatternNumber() const { return theGroup * 4 + theIndexInGroup - 1; }
 };
 //////////////////////////////////
 // Golden Pattern

@@ -96,6 +96,8 @@ private:
   bool dumpGpResults = false;
 
   GpResultsToPt* gpResultsToPt = nullptr;  //TODO move to OmtfProcessor
+
+  std::vector<TH2*> hitVsPt;
 };
 
 #endif /* INTERFACE_TOOLS_DATAROOTDUMPER2_H_ */

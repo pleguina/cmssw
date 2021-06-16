@@ -199,7 +199,7 @@ void ProcessorBase<GoldenPatternType>::printInfo() const {
   unsigned int patNum = 0;
   for (auto& gp : theGPs) {
     edm::LogVerbatim("OMTFReconstruction")
-        <<std::setw(2)<<patNum<<" "<< gp->key() << " " << myOmtfConfig->getPatternPtRange(patNum).ptFrom << " - "
+        << std::setw(2) << patNum << " " << gp->key() << " " << myOmtfConfig->getPatternPtRange(patNum).ptFrom << " - "
         << myOmtfConfig->getPatternPtRange(patNum).ptTo << " GeV" << std::endl;
     patNum++;
   }

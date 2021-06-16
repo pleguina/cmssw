@@ -46,6 +46,7 @@ public:
                      l1t::tftype procTyp) override;
 
   static uint32_t getLayerNumber(const TkMuBayesProcConfig* config, const DTChamberId& detid, bool eta = false);
+
 private:
   const TkMuBayesProcConfig* config = nullptr;
   const AngleConverterBase* angleConverter = nullptr;
@@ -130,15 +131,16 @@ private:
 class MuonStubInputMaker : public MuonStubMakerBase {
 public:
   MuonStubInputMaker(const edm::ParameterSet& edmParameterSet,
-                         MuStubsInputTokens& muStubsInputTokens,
-                         edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2,
-                         const TkMuBayesProcConfig* config,
-                         AngleConverterBase* angleConv);
+                     MuStubsInputTokens& muStubsInputTokens,
+                     edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2,
+                     const TkMuBayesProcConfig* config,
+                     AngleConverterBase* angleConv);
 
   ~MuonStubInputMaker() override;
 
-  void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es,
-      const MuonGeometryTokens& muonGeometryTokens) override;
+  void initialize(const edm::ParameterSet& edmCfg,
+                  const edm::EventSetup& es,
+                  const MuonGeometryTokens& muonGeometryTokens) override;
 
   static void addStub(const TkMuBayesProcConfig* config,
                       MuonStubPtrs2D& muonStubsInLayers,

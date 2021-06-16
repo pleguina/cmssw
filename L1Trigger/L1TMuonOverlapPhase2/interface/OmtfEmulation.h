@@ -24,8 +24,8 @@ public:
   ~OmtfEmulation() override;
 
   void addObservers(const MuonGeometryTokens& muonGeometryTokens,
-      const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
-      const edm::ESGetToken<Propagator, TrackingComponentsRecord>&    propagatorEsToken) override;
+                    const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
+                    const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken) override;
 
 private:
   edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2;

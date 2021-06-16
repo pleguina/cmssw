@@ -5,14 +5,13 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CondCore/DBOutputService/interface/PoolDBOutputService.h"
 
-L1MuonOverlapPhase1ParamsDBProducer::L1MuonOverlapPhase1ParamsDBProducer(const edm::ParameterSet& cfg):
-  omtfParamsEsToken(esConsumes<L1TMuonOverlapParams, L1TMuonOverlapParamsRcd, edm::Transition::BeginRun>() ) {
+L1MuonOverlapPhase1ParamsDBProducer::L1MuonOverlapPhase1ParamsDBProducer(const edm::ParameterSet& cfg)
+    : omtfParamsEsToken(esConsumes<L1TMuonOverlapParams, L1TMuonOverlapParamsRcd, edm::Transition::BeginRun>()) {
   edm::LogImportant("L1MuonOverlapParamsDBProducer") << " L1MuonOverlapPhase1ParamsDBProducer() " << std::endl;
 }
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
-void L1MuonOverlapPhase1ParamsDBProducer::beginRun(edm::Run const& run, edm::EventSetup const& iSetup)
-{
+void L1MuonOverlapPhase1ParamsDBProducer::beginRun(edm::Run const& run, edm::EventSetup const& iSetup) {
   /*
   const L1TMuonOverlapParamsRcd& omtfParamsRcd = iSetup.get<L1TMuonOverlapParamsRcd>();
 
@@ -34,13 +33,13 @@ void L1MuonOverlapPhase1ParamsDBProducer::beginRun(edm::Run const& run, edm::Eve
 ///////////////////////////////////////////////////////////////
 
 void L1MuonOverlapPhase1ParamsDBProducer::analyze(const edm::Event& ev, const edm::EventSetup& es) {
-  edm::LogImportant("L1MuonOverlapParamsDBProducer") << " analyze() line "<<__LINE__ << std::endl;
+  edm::LogImportant("L1MuonOverlapParamsDBProducer") << " analyze() line " << __LINE__ << std::endl;
   std::string recordName = "L1TMuonOverlapParamsRcd";
   edm::Service<cond::service::PoolDBOutputService> poolDbService;
   if (poolDbService.isAvailable()) {
     poolDbService->writeOne(omtfParams.get(), poolDbService->currentTime(), recordName);
   }
-  edm::LogImportant("L1MuonOverlapParamsDBProducer") << " analyze() line "<<__LINE__ << std::endl;
+  edm::LogImportant("L1MuonOverlapParamsDBProducer") << " analyze() line " << __LINE__ << std::endl;
 }
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////

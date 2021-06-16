@@ -70,8 +70,7 @@ void DtDigiToStubsConverterTkMu::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
 void DtDigiToStubsConverterTkMu::addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers,
                                                const L1MuDTChambThDigi& thetaDigi,
                                                unsigned int iProcessor,
-                                               l1t::tftype procTyp) 
-{
+                                               l1t::tftype procTyp) {
   DTChamberId detid(thetaDigi.whNum(), thetaDigi.stNum(), thetaDigi.scNum() + 1);
 
   unsigned int iLayer = getLayerNumber(config, detid, true);
@@ -128,10 +127,9 @@ void DtPhase2DigiToStubsConverterTkMu::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   stub.etaSigmaHw = etaVal.etaSigma;
 
   if (stub.qualityHw >= config->getMinDtPhiBQuality())
-    stub.phiBHw = round(digi.phiBend() * 1.4 * 512 / 2048.); //FIXME check if this is correct
+    stub.phiBHw = round(digi.phiBend() * 1.4 * 512 / 2048.);  //FIXME check if this is correct
   else
     stub.phiBHw = config->nPhiBins();
-
 
   // need to shift 20-BX to roll-back the shift introduced by the DT TPs
   stub.bx = digi.bxNum() - 20;
@@ -190,8 +188,7 @@ void CscDigiToStubsConverterTkMu::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers,
                                               unsigned int rawid,
                                               const CSCCorrelatedLCTDigi& digi,
                                               unsigned int iProcessor,
-                                              l1t::tftype procTyp)
-{
+                                              l1t::tftype procTyp) {
   int bxOffset = config->cscLctCentralBx();
   CSCDetId detId(rawid);
   {
@@ -232,7 +229,7 @@ void CscDigiToStubsConverterTkMu::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers,
   }
 
   {  //adding eta stub
-    unsigned int iLayer = getLayerNumber( detId, true);
+    unsigned int iLayer = getLayerNumber(detId, true);
 
     MuonStub stub;
     stub.type = MuonStub::CSC_ETA;
@@ -336,10 +333,10 @@ void RpcDigiToStubsConverterTkMu::addRPCstub(MuonStubPtrs2D& muonStubsInLayers,
 }
 
 MuonStubInputMaker::MuonStubInputMaker(const edm::ParameterSet& edmParameterSet,
-                                               MuStubsInputTokens& muStubsInputTokens,
-                                               edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2,
-                                               const TkMuBayesProcConfig* config,
-                                               AngleConverterBase* angleConv)
+                                       MuStubsInputTokens& muStubsInputTokens,
+                                       edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2,
+                                       const TkMuBayesProcConfig* config,
+                                       AngleConverterBase* angleConv)
     : MuonStubMakerBase(config), config(config), angleConverter(angleConv) {
   if (!edmParameterSet.getParameter<bool>("dropDTPrimitives"))
     digiToStubsConverters.emplace_back(std::make_unique<DtDigiToStubsConverterTkMu>(
@@ -368,8 +365,9 @@ MuonStubInputMaker::~MuonStubInputMaker() {
   // TODO Auto-generated destructor stub
 }
 
-void MuonStubInputMaker::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es,
-    const MuonGeometryTokens& muonGeometryTokens) {
+void MuonStubInputMaker::initialize(const edm::ParameterSet& edmCfg,
+                                    const edm::EventSetup& es,
+                                    const MuonGeometryTokens& muonGeometryTokens) {
   MuonStubMakerBase::initialize(edmCfg, es, muonGeometryTokens);
   angleConverter->checkAndUpdateGeometry(es, config, muonGeometryTokens);
 }
@@ -377,9 +375,9 @@ void MuonStubInputMaker::initialize(const edm::ParameterSet& edmCfg, const edm::
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 void MuonStubInputMaker::addStub(const TkMuBayesProcConfig* config,
-                                     MuonStubPtrs2D& muonStubsInLayers,
-                                     unsigned int iLayer,
-                                     MuonStub& stub) {
+                                 MuonStubPtrs2D& muonStubsInLayers,
+                                 unsigned int iLayer,
+                                 MuonStub& stub) {
   //in principle it is possible that in the DAQ data the digis are duplicated,
   //since the same link is connected to two OMTF boards
   //in principle this dupliactes should be already reoomved in the OMTF uncpacer, but just in case...
@@ -397,7 +395,9 @@ void MuonStubInputMaker::addStub(const TkMuBayesProcConfig* config,
   //cout<<__FUNCTION__<<":"<<__LINE__<<" stub phi "<<stub.phiHw<<endl;
 }
 
-uint32_t DtDigiToStubsConverterTkMu::getLayerNumber(const TkMuBayesProcConfig* config, const DTChamberId& detid, bool eta) {
+uint32_t DtDigiToStubsConverterTkMu::getLayerNumber(const TkMuBayesProcConfig* config,
+                                                    const DTChamberId& detid,
+                                                    bool eta) {
   //station is counted from 1
   if (eta)
     return (detid.station() - 1) + config->nPhiLayers();

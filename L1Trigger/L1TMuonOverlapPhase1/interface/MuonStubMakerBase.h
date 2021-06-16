@@ -161,8 +161,9 @@ public:
 
   virtual ~MuonStubMakerBase();
 
-  virtual void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es,
-      const MuonGeometryTokens& muonGeometryTokens);
+  virtual void initialize(const edm::ParameterSet& edmCfg,
+                          const edm::EventSetup& es,
+                          const MuonGeometryTokens& muonGeometryTokens);
 
   void loadAndFilterDigis(const edm::Event& event);
 

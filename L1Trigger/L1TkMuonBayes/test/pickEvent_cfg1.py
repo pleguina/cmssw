@@ -54,8 +54,14 @@ Source_Files = cms.untracked.vstring(
          #'/store/mc/Phase2HLTTDRWinter20DIGI/DoubleMuon_gun_FlatPt-1To100/GEN-SIM-DIGI-RAW/NoPU_110X_mcRun4_realistic_v3-v2/30000/D19F8A25-CD3A-674B-B856-DFBD7B445493.root'
          #'/store/mc/Phase2HLTTDRSummer20ReRECOMiniAOD/JPsiToMuMu_Pt0to100-pythia8_TuneCP5-gun/GEN-SIM-DIGI-RAW-MINIAOD/NoPU_111X_mcRun4_realistic_T15_v1-v1/130000/4F62DC7A-60F8-524D-958C-222F583EBE88.root'
          #'/store/data/Commissioning2021/Cosmics/ALCARECO/MuAlGlobalCosmics-PromptReco-v1/000/339/579/00000/004ca602-cd10-41e4-84d1-7f3f83bb889a.root'
-         '/store/express/Commissioning2021/ExpressCosmics/FEVT/Express-v1/000/339/579/00000/0005f522-eac5-4cce-82c5-0dbdc3fcde95.root'
-         
+         #'/store/express/Commissioning2021/ExpressCosmics/FEVT/Express-v1/000/339/579/00000/0005f522-eac5-4cce-82c5-0dbdc3fcde95.root'
+         #'/store/data/Run2018D/ZeroBias/RAW/v1/000/325/117/00000/CB56F74E-F55A-B247-AB06-D1A7406AB671.root'
+         #'/store/data/Run2018D/ZeroBias/RAW/v1/000/325/117/00000/501FAD58-6212-8F46-812C-759AF2603F81.root'
+         #'/store/data/Run2018D/ZeroBias/RAW/v1/000/325/117/00000/8BAB433D-F822-A64A-BB22-25E18AD5442F.root'
+         #"/store/mc/Run3Winter20DRPremixMiniAOD/HTo2LongLivedTo4mu_MH-125_MFF-12_CTau-900mm_TuneCP5_14TeV_pythia8/GEN-SIM-RAW/110X_mcRun3_2021_realistic_v6-v2/240000/03FD2A52-9B9A-544B-816F-8BF926F15CE8.root"
+         #"/store/mc/Run3Winter20DRPremixMiniAOD/HTo2LongLivedTo4mu_MH-125_MFF-12_CTau-900mm_TuneCP5_14TeV_pythia8/GEN-SIM-RAW/110X_mcRun3_2021_realistic_v6-v2/50000/23B8E3BC-0562-B844-B81F-6C455FAB4EDF.root"
+         "/store/mc/Run3Winter20DRPremixMiniAOD/HTo2LongLivedTo4mu_MH-125_MFF-12_CTau-900mm_TuneCP5_14TeV_pythia8/GEN-SIM-RAW/110X_mcRun3_2021_realistic_v6-v2/240000/03FD2A52-9B9A-544B-816F-8BF926F15CE8.root"
+         #"/store/mc/Run3Winter20DRMiniAOD/Mu_FlatPt1to1000-pythia8-gun/GEN-SIM-RAW/NoPU_110X_mcRun3_2021_realistic_v6-v3/10000/003C515F-E4D1-404D-8921-36A3FD7361E9.root"
 )
 
 process = cms.Process("PickEvent")
@@ -92,9 +98,9 @@ process.source = cms.Source ("PoolSource",
 )
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1)
+process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1000)
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(500))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(300))
 
 #outputFileNme = '/eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_FlatPt-2to100/GEN-SIM-DIGI-RAW/L1TnoPU_93X_upgrade2023_realistic_v5-v1/00000/F4EEAE55-C937-E811-8C29-48FD8EE739D1_dump1000Events.root'
 #outputFileNme = 'HSCPppstau_M-651_TuneZ2star_13TeV_0E0D542C-A9C8-E611-981C-A0000420FE80_dump100Events.root'
@@ -102,7 +108,11 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(500))
 #outputFileNme = 'HSCPppstau_M_871_PU200_v3-v2_1ADE9D9E-8C0C-1948-A405-5DFDA1AF5172_dump100Ev.root'
 #outputFileNme = 'Nu_E10-pythia8-gun_PU200_v3-v3_FFB3195D-E113-3744-877D-44E21C060358_dump100Ev.root'
 #outputFileNme = 'Phase2HLTTDRWinter20DIGI__ZprimeToMuMu_M-6000_NoPU_CFBA4AE8-00DE-1743-9B83-7582C69FC7F7_dump100Ev.root'
-outputFileNme = 'MuAlGlobalCosmics-PromptReco-v1_Run_339579_004ca602-cd10-41e4-84d1-7f3f83bb889a.root'
+#outputFileNme = 'Run2018D_ZeroBias_CB56F74E-F55A-B247-AB06-D1A7406AB671_allEv.root'
+#outputFileNme = 'Run2018D_ZeroBias_501FAD58-6212-8F46-812C-759AF2603F81_allEv.root'
+#outputFileNme = 'Run2018D_ZeroBias_Run_325117_8BAB433D-F822-A64A-BB22-25E18AD5442F_allEv.root'
+outputFileNme = 'Run3Winter20_HTo2LongLivedTo4mu_MH-125_mcRun3_2021_03FD2A52-9B9A-544B-816F-8BF926F15CE8.root'
+#outputFileNme = 'Run3Winter20_Mu_FlatPt1to1000_mcRun3_2021_003C515F-E4D1-404D-8921-36A3FD7361E9_300Ev.root'
 
 process.Out = cms.OutputModule("PoolOutputModule",
         fileName = cms.untracked.string (outputFileNme)

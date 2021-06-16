@@ -10,7 +10,8 @@
 #include "TFitResult.h"
 #include "TF1.h"
 
-PdfModuleWithStats::PdfModuleWithStats(TkMuBayesProcConfigPtr& config) : PdfModule(config), pdfHists(config->nLayers()) {
+PdfModuleWithStats::PdfModuleWithStats(TkMuBayesProcConfigPtr& config)
+    : PdfModule(config), pdfHists(config->nLayers()) {
   TFileDirectory subDir = fs->mkdir("pdfs");
 
   for (unsigned int iLayer = 0; iLayer < coefficients.size(); ++iLayer) {
@@ -53,9 +54,11 @@ PdfModuleWithStats::~PdfModuleWithStats() {
   // TODO Auto-generated destructor stub
 }
 
-float PdfModuleWithStats::getPdfVal(unsigned int layer, unsigned int etaBin, unsigned int refLayer,
-                                    const TrackingTriggerTrackPtr& ttTrack, int pdfBin)
-{
+float PdfModuleWithStats::getPdfVal(unsigned int layer,
+                                    unsigned int etaBin,
+                                    unsigned int refLayer,
+                                    const TrackingTriggerTrackPtr& ttTrack,
+                                    int pdfBin) {
   pdfHists.at(layer).at(etaBin).at(refLayer)->Fill(ttTrack->getPtBin(), pdfBin);
   return PdfModule::getPdfVal(layer, etaBin, refLayer, ttTrack, pdfBin);
 }

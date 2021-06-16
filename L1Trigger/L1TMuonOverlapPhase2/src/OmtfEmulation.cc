@@ -29,9 +29,9 @@ void OmtfEmulation::beginJob() {
 }
 
 void OmtfEmulation::addObservers(const MuonGeometryTokens& muonGeometryTokens,
-    const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
-    const edm::ESGetToken<Propagator, TrackingComponentsRecord>&    propagatorEsToken) {
-  if(observers.size()) //assuring it is done only at the first run
+                                 const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
+                                 const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken) {
+  if (!observers.empty())  //assuring it is done only at the first run
     return;
 
   OMTFReconstruction::addObservers(muonGeometryTokens, magneticFieldEsToken, propagatorEsToken);

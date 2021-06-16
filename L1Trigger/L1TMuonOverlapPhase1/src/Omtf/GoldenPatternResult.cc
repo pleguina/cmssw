@@ -123,7 +123,7 @@ void GoldenPatternResult::finalise0() {
         pdfSum += stubResults[iLogicLayer].getPdfVal();
 
         if (omtfConfig->fwVersion() <= 4) {
-          if (!omtfConfig->getBendingLayers().count( iLogicLayer))
+          if (!omtfConfig->getBendingLayers().count(iLogicLayer))
             //in DT case, the phi and phiB layers are threaded as one, so the firedLayerCnt is increased only for the phi layer
             firedLayerCnt++;
         } else

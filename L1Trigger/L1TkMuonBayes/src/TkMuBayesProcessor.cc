@@ -9,8 +9,7 @@
 #include "L1Trigger/L1TkMuonBayes/interface/PdfModuleWithStats.h"
 #include <functional>
 
-TkMuBayesProcessor::TkMuBayesProcessor(TkMuBayesProcConfigPtr& config, std::string pdfModuleType)
-    : config(config) {
+TkMuBayesProcessor::TkMuBayesProcessor(TkMuBayesProcConfigPtr& config, std::string pdfModuleType) : config(config) {
   if (pdfModuleType == "PdfModuleWithStats")
     pdfModule = std::make_unique<PdfModuleWithStats>(config);
   else
@@ -52,8 +51,7 @@ TkMuBayesProcessor::~TkMuBayesProcessor() {
   // TODO Auto-generated destructor stub
 }
 
-AlgoTTMuons TkMuBayesProcessor::processTracks(const MuonStubsInput& muonStubs,
-                                                 const TrackingTriggerTracks& ttTracks) {
+AlgoTTMuons TkMuBayesProcessor::processTracks(const MuonStubsInput& muonStubs, const TrackingTriggerTracks& ttTracks) {
   AlgoTTMuons algoTTMuons;
 
   for (auto& ttTrack : ttTracks) {
@@ -102,7 +100,7 @@ AlgoTTMuons TkMuBayesProcessor::processTracks(const MuonStubsInput& muonStubs,
 }
 
 AlgoTTMuonPtr TkMuBayesProcessor::processTrack(const MuonStubsInput& muonStubs,
-                                                  const TrackingTriggerTrackPtr& ttTrack) {
+                                               const TrackingTriggerTrackPtr& ttTrack) {
   //Selecting stubs that fit coarsely to the ttTrack, e.g. the full chambers
   MuonStubsInput selectedMuonStubs = selectStubs(muonStubs, ttTrack);
 
@@ -116,7 +114,7 @@ AlgoTTMuonPtr TkMuBayesProcessor::processTrack(const MuonStubsInput& muonStubs,
 }
 
 AlgoTTMuonPtr TkMuBayesProcessor::processTrackUsingRefStubs(const MuonStubsInput& muonStubs,
-                                                               const TrackingTriggerTrackPtr& ttTrack) {
+                                                            const TrackingTriggerTrackPtr& ttTrack) {
   AlgoTTMuonPtr bestAlgoTTMuon;
 
   MuonStubsInput selectedMuonStubs = selectStubs(muonStubs, ttTrack);
@@ -148,7 +146,7 @@ AlgoTTMuonPtr TkMuBayesProcessor::processTrackUsingRefStubs(const MuonStubsInput
 }
 
 MuonStubsInput TkMuBayesProcessor::selectStubs(const MuonStubsInput& muonStubs,
-                                                  const TrackingTriggerTrackPtr& ttTrack) {
+                                               const TrackingTriggerTrackPtr& ttTrack) {
   MuonStubsInput selectedMuonStubs(config.get());
 
   //TODO this implementation is rather not possible in the hardware, a different approach would be needed
@@ -171,17 +169,17 @@ MuonStubsInput TkMuBayesProcessor::selectStubs(const MuonStubsInput& muonStubs,
 }
 
 MuonStubPtrs1D TkMuBayesProcessor::selectRefStubs(const MuonStubsInput& muonStubs,
-                                                     const TrackingTriggerTrackPtr& ttTrack) {
+                                                  const TrackingTriggerTrackPtr& ttTrack) {
   MuonStubPtrs1D refStubs;
   //TODO implement
   return refStubs;
 }
 
 void TkMuBayesProcessor::processStubs(const MuonStubsInput& muonStubs,
-                                         unsigned int layer,
-                                         const TrackingTriggerTrackPtr& ttTrack,
-                                         const MuonStubPtr refStub,
-                                         AlgoTTMuonPtr algoTTMuon) {
+                                      unsigned int layer,
+                                      const TrackingTriggerTrackPtr& ttTrack,
+                                      const MuonStubPtr refStub,
+                                      AlgoTTMuonPtr algoTTMuon) {
   pdfModule->processStubs(muonStubs, layer, ttTrack, refStub, algoTTMuon);
 }
 
@@ -286,7 +284,7 @@ int TkMuBayesProcessor::ghostBust4(std::shared_ptr<AlgoTTMuon> first, std::share
 ///////////////////////////////////////////////////////////////////////////////
 
 AlgoTTMuons TkMuBayesProcessor::processTracks(const StandaloneCandWithStubsVec& candsWithStubs,
-                                                 const TrackingTriggerTracks& ttTracks) {
+                                              const TrackingTriggerTracks& ttTracks) {
   AlgoTTMuons algoTTMuons;
 
   for (auto& ttTrack : ttTracks) {
@@ -323,7 +321,7 @@ AlgoTTMuons TkMuBayesProcessor::processTracks(const StandaloneCandWithStubsVec& 
 }
 
 AlgoTTMuonPtr TkMuBayesProcessor::processTrack(const StandaloneCandWithStubsVec& candsWithStubs,
-                                                  const TrackingTriggerTrackPtr& ttTrack) {
+                                               const TrackingTriggerTrackPtr& ttTrack) {
   AlgoTTMuonPtr algoTTMuon = std::make_shared<AlgoTTMuon>(ttTrack, config);
 
   StandaloneCandWithStubsVec selectedStandaloneCands = selectCandsWithStubs(candsWithStubs, ttTrack);
@@ -336,7 +334,7 @@ AlgoTTMuonPtr TkMuBayesProcessor::processTrack(const StandaloneCandWithStubsVec&
 }
 
 StandaloneCandWithStubsVec TkMuBayesProcessor::selectCandsWithStubs(const StandaloneCandWithStubsVec& candsWithStubs,
-                                                                       const TrackingTriggerTrackPtr& ttTrack) {
+                                                                    const TrackingTriggerTrackPtr& ttTrack) {
   StandaloneCandWithStubsVec selectedStandaloneCands;
 
   for (auto& candWithStubs : candsWithStubs) {
@@ -377,7 +375,7 @@ StandaloneCandWithStubsVec TkMuBayesProcessor::selectCandsWithStubs(const Standa
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
 l1t::TkMuonBayesTrackCollection TkMuBayesProcessor::getMuCorrTrackCollection(unsigned int iProcessor,
-                                                                                AlgoTTMuons& algoTTMuons) {
+                                                                             AlgoTTMuons& algoTTMuons) {
   l1t::TkMuonBayesTrackCollection candidates;
 
   for (auto& algoTTMuon : algoTTMuons) {

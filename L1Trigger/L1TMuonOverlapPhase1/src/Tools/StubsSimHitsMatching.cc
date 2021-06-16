@@ -32,7 +32,9 @@
 
 #include <cmath>
 
-StubsSimHitsMatcher::StubsSimHitsMatcher(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, const MuonGeometryTokens& muonGeometryTokens)
+StubsSimHitsMatcher::StubsSimHitsMatcher(const edm::ParameterSet& edmCfg,
+                                         const OMTFConfiguration* omtfConfig,
+                                         const MuonGeometryTokens& muonGeometryTokens)
     : omtfConfig(omtfConfig), muonGeometryTokens(muonGeometryTokens) {
   //rpcSimHitsInputTag = edmCfg.getParameter<edm::InputTag>("MuonRPCHits");
   //rpcSimHitsInputTag = edm::InputTag("g4SimHits", "MuonRPCHits");
@@ -86,10 +88,10 @@ StubsSimHitsMatcher::~StubsSimHitsMatcher() {
 }
 
 void StubsSimHitsMatcher::beginRun(edm::EventSetup const& eventSetup) {
-  if(muonGeometryRecordWatcher.check(eventSetup)) {
+  if (muonGeometryRecordWatcher.check(eventSetup)) {
     _georpc = eventSetup.getHandle(muonGeometryTokens.rpcGeometryEsToken);
     _geocsc = eventSetup.getHandle(muonGeometryTokens.cscGeometryEsToken);
-    _geodt =  eventSetup.getHandle(muonGeometryTokens.dtGeometryEsToken);
+    _geodt = eventSetup.getHandle(muonGeometryTokens.dtGeometryEsToken);
   }
 }
 

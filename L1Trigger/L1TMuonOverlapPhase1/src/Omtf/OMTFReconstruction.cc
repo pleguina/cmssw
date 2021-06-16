@@ -58,10 +58,12 @@ void OMTFReconstruction::endJob() {
 
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
-void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& eventSetup, edm::ESGetToken<L1TMuonOverlapParams,
-    L1TMuonOverlapParamsRcd>& omtfParamsEsToken, const MuonGeometryTokens& muonGeometryTokens,
-    const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
-    const edm::ESGetToken<Propagator, TrackingComponentsRecord>&    propagatorEsToken) {
+void OMTFReconstruction::beginRun(edm::Run const& run,
+                                  edm::EventSetup const& eventSetup,
+                                  edm::ESGetToken<L1TMuonOverlapParams, L1TMuonOverlapParamsRcd>& omtfParamsEsToken,
+                                  const MuonGeometryTokens& muonGeometryTokens,
+                                  const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
+                                  const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken) {
   const L1TMuonOverlapParams* omtfParams = nullptr;
 
   std::string processorType = "OMTFProcessor";  //GoldenPatternWithStat GoldenPattern
@@ -174,10 +176,11 @@ void OMTFReconstruction::beginRun(edm::Run const& run, edm::EventSetup const& ev
   }
 }
 
-void OMTFReconstruction::addObservers(const MuonGeometryTokens& muonGeometryTokens,
+void OMTFReconstruction::addObservers(
+    const MuonGeometryTokens& muonGeometryTokens,
     const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
-    const edm::ESGetToken<Propagator, TrackingComponentsRecord>&    propagatorEsToken) {
-  if(observers.size()) //assuring it is done only at the first run
+    const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken) {
+  if (!observers.empty())  //assuring it is done only at the first run
     return;
 
   if (edmParameterSet.exists("dumpResultToXML")) {
@@ -190,8 +193,9 @@ void OMTFReconstruction::addObservers(const MuonGeometryTokens& muonGeometryToke
 
   if (edmParameterSet.exists("candidateSimMuonMatcher")) {
     if (edmParameterSet.getParameter<bool>("candidateSimMuonMatcher")) {
-      observers.emplace_back(std::make_unique<CandidateSimMuonMatcher>(edmParameterSet, omtfConfig.get(), magneticFieldEsToken, propagatorEsToken));
-      candidateSimMuonMatcher = static_cast<CandidateSimMuonMatcher*>(observers.back().get() );
+      observers.emplace_back(std::make_unique<CandidateSimMuonMatcher>(
+          edmParameterSet, omtfConfig.get(), magneticFieldEsToken, propagatorEsToken));
+      candidateSimMuonMatcher = static_cast<CandidateSimMuonMatcher*>(observers.back().get());
     }
   }
 
@@ -203,8 +207,11 @@ void OMTFReconstruction::addObservers(const MuonGeometryTokens& muonGeometryToke
   if (omtfProcGoldenPat) {
     if (edmParameterSet.exists("eventCaptureDebug"))
       if (edmParameterSet.getParameter<bool>("eventCaptureDebug")) {
-        observers.emplace_back(std::make_unique<EventCapture>(
-            edmParameterSet, omtfConfig.get(), omtfProcGoldenPat->getPatterns(), candidateSimMuonMatcher, muonGeometryTokens));
+        observers.emplace_back(std::make_unique<EventCapture>(edmParameterSet,
+                                                              omtfConfig.get(),
+                                                              omtfProcGoldenPat->getPatterns(),
+                                                              candidateSimMuonMatcher,
+                                                              muonGeometryTokens));
       }
 
     if (edmParameterSet.exists("dumpHitsToROOT") && edmParameterSet.getParameter<bool>("dumpHitsToROOT")) {

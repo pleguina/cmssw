@@ -28,15 +28,14 @@ L1TMuonOverlapPhase1TrackProducer::L1TMuonOverlapPhase1TrackProducer(const edm::
            consumes<CSCCorrelatedLCTDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcCSC")),
            consumes<RPCDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcRPC"))}),
       omtfParamsEsToken(esConsumes<L1TMuonOverlapParams, L1TMuonOverlapParamsRcd, edm::Transition::BeginRun>()),
-      muonGeometryTokens(
-          {esConsumes<RPCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
-           esConsumes<CSCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
-           esConsumes<DTGeometry,  MuonGeometryRecord, edm::Transition::BeginRun>() }),
-      magneticFieldEsToken(esConsumes<MagneticField, IdealMagneticFieldRecord, edm::Transition::BeginRun>() ),
-      propagatorEsToken(esConsumes<Propagator, TrackingComponentsRecord, edm::Transition::BeginRun>(edm::ESInputTag("", "SteppingHelixPropagatorAlong"))),
+      muonGeometryTokens({esConsumes<RPCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
+                          esConsumes<CSCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
+                          esConsumes<DTGeometry, MuonGeometryRecord, edm::Transition::BeginRun>()}),
+      magneticFieldEsToken(esConsumes<MagneticField, IdealMagneticFieldRecord, edm::Transition::BeginRun>()),
+      propagatorEsToken(esConsumes<Propagator, TrackingComponentsRecord, edm::Transition::BeginRun>(
+          edm::ESInputTag("", "SteppingHelixPropagatorAlong"))),
       //propagatorEsToken(esConsumes<Propagator, TrackingComponentsRecord, edm::Transition::BeginRun>(edmParameterSet.getParameter<edm::ESInputTag>("propagatorTag"))),
-      omtfReconstruction(edmParameterSet, muStubsInputTokens)
-{
+      omtfReconstruction(edmParameterSet, muStubsInputTokens) {
   produces<l1t::RegionalMuonCandBxCollection>("OMTF");
 
   if (edmParameterSet.exists("simTracksTag"))
@@ -75,7 +74,8 @@ void L1TMuonOverlapPhase1TrackProducer::endJob() { omtfReconstruction.endJob(); 
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 void L1TMuonOverlapPhase1TrackProducer::beginRun(edm::Run const& run, edm::EventSetup const& iSetup) {
-  omtfReconstruction.beginRun(run, iSetup, omtfParamsEsToken, muonGeometryTokens, magneticFieldEsToken, propagatorEsToken);
+  omtfReconstruction.beginRun(
+      run, iSetup, omtfParamsEsToken, muonGeometryTokens, magneticFieldEsToken, propagatorEsToken);
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////

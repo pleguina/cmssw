@@ -37,10 +37,15 @@ double foldPhi(double phi) {
   return phi;
 }
 
-CandidateSimMuonMatcher::CandidateSimMuonMatcher(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig,
-                              const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
-                              const edm::ESGetToken<Propagator, TrackingComponentsRecord>&    propagatorEsToken)
-    : omtfConfig(omtfConfig), edmCfg(edmCfg), magneticFieldEsToken(magneticFieldEsToken), propagatorEsToken(propagatorEsToken) {
+CandidateSimMuonMatcher::CandidateSimMuonMatcher(
+    const edm::ParameterSet& edmCfg,
+    const OMTFConfiguration* omtfConfig,
+    const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
+    const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken)
+    : omtfConfig(omtfConfig),
+      edmCfg(edmCfg),
+      magneticFieldEsToken(magneticFieldEsToken),
+      propagatorEsToken(propagatorEsToken) {
   std::string muonMatcherFileName = edmCfg.getParameter<edm::FileInPath>("muonMatcherFile").fullPath();
   TFile inFile(muonMatcherFileName.c_str());
   edm::LogImportant("l1tOmtfEventPrint") << " CandidateSimMuonMatcher: using muonMatcherFileName "

@@ -314,8 +314,9 @@ OMTFinputMaker::OMTFinputMaker(const edm::ParameterSet& edmParameterSet,
         config, angleConverter.get(), &rpcClusterization, muStubsInputTokens.inputTokenRPC));
 }
 
-void OMTFinputMaker::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es,
-    const MuonGeometryTokens& muonGeometryTokens) {
+void OMTFinputMaker::initialize(const edm::ParameterSet& edmCfg,
+                                const edm::EventSetup& es,
+                                const MuonGeometryTokens& muonGeometryTokens) {
   MuonStubMakerBase::initialize(edmCfg, es, muonGeometryTokens);
   angleConverter->checkAndUpdateGeometry(es, config, muonGeometryTokens);
 }
@@ -437,10 +438,10 @@ void OMTFinputMaker::addStub(const OMTFConfiguration* config,
   if (muonStubsInLayers[iLayer][iInput] && muonStubsInLayers[iLayer][iInput]->phiHw == stub.phiHw &&
       muonStubsInLayers[iLayer][iInput]->phiBHw == stub.phiBHw &&
       muonStubsInLayers[iLayer][iInput]->etaHw == stub.etaHw) {
-    LogTrace("OMTFReconstruction") //
+    LogTrace("OMTFReconstruction")  //
         << "addStub: the stub with exactly the same phi, phiB and eta was already added:\n"
-        <<"incomnig stub "<< stub<<"\n"
-        <<"existing stub "<<*(muonStubsInLayers[iLayer][iInput])<<std::endl;
+        << "incomnig stub " << stub << "\n"
+        << "existing stub " << *(muonStubsInLayers[iLayer][iInput]) << std::endl;
     //return;
   }
 

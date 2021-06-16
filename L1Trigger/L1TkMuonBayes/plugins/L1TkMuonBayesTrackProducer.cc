@@ -25,12 +25,11 @@
 #include <boost/archive/text_iarchive.hpp>
 
 L1TkMuonBayesTrackProducer::L1TkMuonBayesTrackProducer(const edm::ParameterSet& cfg)
-    : edmParameterSet(cfg), config(std::make_shared<TkMuBayesProcConfig>()),
-      muonGeometryTokens(
-          {esConsumes<RPCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
-           esConsumes<CSCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
-           esConsumes<DTGeometry, MuonGeometryRecord, edm::Transition::BeginRun>() })
-{
+    : edmParameterSet(cfg),
+      config(std::make_shared<TkMuBayesProcConfig>()),
+      muonGeometryTokens({esConsumes<RPCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
+                          esConsumes<CSCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
+                          esConsumes<DTGeometry, MuonGeometryRecord, edm::Transition::BeginRun>()}) {
   produces<l1t::TkMuonBayesTrackBxCollection>(allTracksProductName);  //all tracks
 
   produces<l1t::TkMuonBayesTrackBxCollection>(muonTracksProductName);
@@ -50,7 +49,8 @@ L1TkMuonBayesTrackProducer::L1TkMuonBayesTrackProducer(const edm::ParameterSet& 
 
   edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2;
   if (edmParameterSet.exists("srcDTPhPhase2"))
-    inputTokenDTPhPhase2 = consumes<L1Phase2MuDTPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPhPhase2"));
+    inputTokenDTPhPhase2 =
+        consumes<L1Phase2MuDTPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPhPhase2"));
 
   edm::InputTag l1TrackInputTag = cfg.getParameter<edm::InputTag>("L1TrackInputTag");
   ttTrackToken = consumes<std::vector<TTTrack<Ref_Phase2TrackerDigi_> > >(l1TrackInputTag);
@@ -67,12 +67,12 @@ L1TkMuonBayesTrackProducer::L1TkMuonBayesTrackProducer(const edm::ParameterSet& 
     trackingParticleToken = mayConsume<std::vector<TrackingParticle> >(
         edmParameterSet.getParameter<edm::InputTag>("TrackingParticleInputTag"));
 
-  inputMaker = std::make_unique<MuonStubInputMaker>(
-      edmParameterSet,
-      muStubsInputTokens,
-      inputTokenDTPhPhase2,
-      config.get(),
-      new AngleConverterBase());  //MuonStubInputMaker keeps the AngleConverter
+  inputMaker =
+      std::make_unique<MuonStubInputMaker>(edmParameterSet,
+                                           muStubsInputTokens,
+                                           inputTokenDTPhPhase2,
+                                           config.get(),
+                                           new AngleConverterBase());  //MuonStubInputMaker keeps the AngleConverter
 
   ttTracksInputMaker = std::make_unique<TTTracksInputMaker>(edmParameterSet);
 
@@ -91,9 +91,9 @@ L1TkMuonBayesTrackProducer::L1TkMuonBayesTrackProducer(const edm::ParameterSet& 
   //muCorrelatorConfig->setBxToProcess(useStubsFromAdditionalBxs + 1); TODO correct, now does not compile due to const
 
   for (unsigned int ptBin = 0; ptBin < config->getPtHwBins().size(); ++ptBin) {
-    edm::LogImportant("l1tOmtfEventPrint") << "ptBin " << setw(2) << ptBin
-                                      << " range Hw: " << config->ptBinString(ptBin, 0) << " = "
-                                      << config->ptBinString(ptBin, 1) << std::endl;
+    edm::LogImportant("l1tOmtfEventPrint")
+        << "ptBin " << setw(2) << ptBin << " range Hw: " << config->ptBinString(ptBin, 0) << " = "
+        << config->ptBinString(ptBin, 1) << std::endl;
   }
 }
 /////////////////////////////////////////////////////
@@ -129,8 +129,7 @@ void L1TkMuonBayesTrackProducer::endJob() {
     }
   }
 
-  MuTimingModuleWithStat* muTimingModule =
-      dynamic_cast<MuTimingModuleWithStat*>(processor->getMuTimingModule());
+  MuTimingModuleWithStat* muTimingModule = dynamic_cast<MuTimingModuleWithStat*>(processor->getMuTimingModule());
   if (muTimingModule) {
     if (edmParameterSet.exists("generateTiming") && edmParameterSet.getParameter<bool>("generateTiming")) {
       string muTimingModuleFileName = "muTimingModule.xml";
@@ -178,16 +177,14 @@ void L1TkMuonBayesTrackProducer::beginRun(edm::Run const& run, edm::EventSetup c
     processor = std::make_unique<TkMuBayesProcessor>(config, std::move(pdfModuleUniqPtr));
 
     if (edmParameterSet.exists("generateTiming") && edmParameterSet.getParameter<bool>("generateTiming")) {
-      std::unique_ptr<MuTimingModule> muTimingModuleUniqPtr =
-          std::make_unique<MuTimingModuleWithStat>(config.get());
+      std::unique_ptr<MuTimingModule> muTimingModuleUniqPtr = std::make_unique<MuTimingModuleWithStat>(config.get());
       processor->setMuTimingModule(muTimingModuleUniqPtr);
     } else if (edmParameterSet.exists("timingModuleFile")) {
       string timingModuleFile = edmParameterSet.getParameter<edm::FileInPath>("timingModuleFile").fullPath();
       edm::LogImportant("l1tOmtfEventPrint")
           << " reading the MuTimingModule from file " << timingModuleFile << std::endl;
 
-      std::unique_ptr<MuTimingModule> muTimingModuleUniqPtr =
-          std::make_unique<MuTimingModule>(config.get());
+      std::unique_ptr<MuTimingModule> muTimingModuleUniqPtr = std::make_unique<MuTimingModule>(config.get());
       readTimingModule(muTimingModuleUniqPtr.get(), timingModuleFile);
       processor->setMuTimingModule(muTimingModuleUniqPtr);
     }
@@ -221,12 +218,11 @@ void L1TkMuonBayesTrackProducer::produce(edm::Event& iEvent, const edm::EventSet
         muonStubsInput.getMuonStubs(), 0, l1t::tftype::bmtf, bx, bx + useStubsFromAdditionalBxs);
     //std::cout<<muonStubsInput<<std::endl;
 
-
     LogTrace("l1tOmtfEventPrint") << "\n\nEvent " << iEvent.id().event() << " muonStubsInput bx " << bx << ": \n "
                                   << muonStubsInput << endl;
 
     auto ttTRacks = ttTracksInputMaker->loadTTTracks(iEvent, bx, edmParameterSet, config.get());
-    LogTrace("l1tOmtfEventPrint")<<" ttTRacks.size() " << ttTRacks.size()<< endl;
+    LogTrace("l1tOmtfEventPrint") << " ttTRacks.size() " << ttTRacks.size() << endl;
     for (auto& ttTRack : ttTRacks) {
       LogTrace("l1tOmtfEventPrint") << *ttTRack << endl;
     }
@@ -256,7 +252,7 @@ void L1TkMuonBayesTrackProducer::produce(edm::Event& iEvent, const edm::EventSet
              firedLayerBits.count() >= 5) &&
             ((muTrack.getTtTrackPtr().isNonnull() && muTrack.getTtTrackPtr()->chi2Red() < 200) ||
              muTrack.getTtTrackPtr().isNull())
-             //todo probably in firmware exactly like that will be not possible, rather cut of chi2 depending on the nStubs
+            //todo probably in firmware exactly like that will be not possible, rather cut of chi2 depending on the nStubs
         ) {
           hscpTracks->push_back(bx, muTrack);
         }
@@ -328,8 +324,7 @@ void L1TkMuonBayesTrackProducer::readTimingModule(MuTimingModule* muTimingModule
   }
 }
 
-void L1TkMuonBayesTrackProducer::writeTimingModule(const MuTimingModule* muTimingModule,
-                                                              std::string fileName) {
+void L1TkMuonBayesTrackProducer::writeTimingModule(const MuTimingModule* muTimingModule, std::string fileName) {
   std::ofstream ofs(fileName);
 
   boost::archive::xml_oarchive xmlOutArch(ofs);

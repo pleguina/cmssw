@@ -45,9 +45,10 @@ AngleConverterBase::AngleConverterBase() : _geom_cache_id(0ULL) {}
 AngleConverterBase::~AngleConverterBase() {}
 ///////////////////////////////////////
 ///////////////////////////////////////
-void AngleConverterBase::checkAndUpdateGeometry(const edm::EventSetup& es, const ProcConfigurationBase* config,
-    const MuonGeometryTokens& muonGeometryTokens) {
-/*  const MuonGeometryRecord& geom = es.get<MuonGeometryRecord>();
+void AngleConverterBase::checkAndUpdateGeometry(const edm::EventSetup& es,
+                                                const ProcConfigurationBase* config,
+                                                const MuonGeometryTokens& muonGeometryTokens) {
+  /*  const MuonGeometryRecord& geom = es.get<MuonGeometryRecord>();
   unsigned long long geomid = geom.cacheIdentifier();
   if (_geom_cache_id != geomid) {
     geom.get(_georpc);
@@ -56,10 +57,10 @@ void AngleConverterBase::checkAndUpdateGeometry(const edm::EventSetup& es, const
     _geom_cache_id = geomid;
   }*/
 
-  if(muonGeometryRecordWatcher.check(es)) {
+  if (muonGeometryRecordWatcher.check(es)) {
     _georpc = es.getHandle(muonGeometryTokens.rpcGeometryEsToken);
     _geocsc = es.getHandle(muonGeometryTokens.cscGeometryEsToken);
-    _geodt =  es.getHandle(muonGeometryTokens.dtGeometryEsToken);
+    _geodt = es.getHandle(muonGeometryTokens.dtGeometryEsToken);
   }
   this->config = config;
   nPhiBins = config->nPhiBins();
@@ -144,10 +145,8 @@ int AngleConverterBase::getProcessorPhi(int phiZero,
   // a quick fix for towards geometry changes due to global tag.
   // in case of MC tag fixOff shold be identical to offsetLoc
 
-  if(config->getFixCscGeometryOffset())
+  if (config->getFixCscGeometryOffset())
     fixOff = fixCscOffsetGeom(offsetLoc);  //TODO does not work in correlator, i.e. when phiZero is always 0. .Fix this
-
-
 
   int phi = fixOff + order * scale * halfStrip;
   //the phi conversion is done like above - and not simply converting the layer->centerOfStrip(halfStrip/2 +1).phi() - to mimic this what is done by the firmware,

@@ -82,4 +82,4 @@ private:
   int useStubsFromAdditionalBxs = 0;
 };
 
-#endif //L1TkMuonBayes_L1TkMuonBayesTrackProducer_H
+#endif  //L1TkMuonBayes_L1TkMuonBayesTrackProducer_H

@@ -43,10 +43,12 @@ std::vector<RpcCluster> RpcClusterization::getClusters(const RPCDetId& roll, std
 
   //debug printout only
   if (allClusters.size() > maxClusterCnt) {
-    LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" allClusters.size() >= maxClusterCnt "<<std::endl;
+    LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " allClusters.size() >= maxClusterCnt "
+                                  << std::endl;
     for (auto& cluster : allClusters)
-      edm::LogVerbatim("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" roll "<<roll<<" cluster: firstStrip "<<cluster.firstStrip
-                                           <<" lastStrip "<<cluster.lastStrip<<" halfStrip "<<cluster.halfStrip()<<std::endl;
+      edm::LogVerbatim("l1tOmtfEventPrint")
+          << __FUNCTION__ << ":" << __LINE__ << " roll " << roll << " cluster: firstStrip " << cluster.firstStrip
+          << " lastStrip " << cluster.lastStrip << " halfStrip " << cluster.halfStrip() << std::endl;
   }
 
   //TODO this is very simple filtering of the cluster,

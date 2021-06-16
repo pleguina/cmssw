@@ -45,7 +45,7 @@ private:
 
   ///needed by tools/CandidateSimMuonMatcher.h
   edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> magneticFieldEsToken;
-  edm::ESGetToken<Propagator, TrackingComponentsRecord>    propagatorEsToken;
+  edm::ESGetToken<Propagator, TrackingComponentsRecord> propagatorEsToken;
 
   OMTFReconstruction omtfReconstruction;
 };

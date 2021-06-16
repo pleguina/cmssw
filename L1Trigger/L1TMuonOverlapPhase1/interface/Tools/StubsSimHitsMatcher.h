@@ -29,7 +29,9 @@ struct MuonGeometryTokens;
 
 class StubsSimHitsMatcher {
 public:
-  StubsSimHitsMatcher(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, const MuonGeometryTokens& muonGeometryTokens);
+  StubsSimHitsMatcher(const edm::ParameterSet& edmCfg,
+                      const OMTFConfiguration* omtfConfig,
+                      const MuonGeometryTokens& muonGeometryTokens);
   virtual ~StubsSimHitsMatcher();
 
   void beginRun(edm::EventSetup const& eventSetup);

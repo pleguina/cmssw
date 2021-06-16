@@ -7,10 +7,10 @@
 
 namespace {
 
-struct AlgoMuonEtaFix : public AlgoMuon {
-  AlgoMuonEtaFix(const AlgoMuon& mu) : AlgoMuon(mu), fixedEta(mu.getEtaHw()) {}
-  unsigned int fixedEta;
-};
+  struct AlgoMuonEtaFix : public AlgoMuon {
+    AlgoMuonEtaFix(const AlgoMuon& mu) : AlgoMuon(mu), fixedEta(mu.getEtaHw()) {}
+    unsigned int fixedEta;
+  };
 
 }  // namespace
 
@@ -120,7 +120,7 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
   // actual GhostBusting. Overwrite eta in case of no DT info.
   std::vector<AlgoMuonEtaFix> refHitCleanCandsFixedEta;
   for (const auto& muIN : muonsIN) {
-    if(!muIN->isValid())
+    if (!muIN->isValid())
       continue;
 
     //edm::LogVerbatim("OMTFReconstruction") << "GhostBusting "<<*muIN<<" phiGMT "<<omtfConfig->procPhiToGmtPhi(muIN->getPhi())<< std::endl;
@@ -128,13 +128,12 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
     refHitCleanCandsFixedEta.push_back(*muIN);  //FIXME to much copying here...
     auto killIt = refHitCleanCandsFixedEta.end();
 
-
-
     //do not accept candidates with similar phi (any charge combination)
     //veto window 5 degree in GMT scale is 5/360*576=8 units
     for (auto it1 = refHitCleanCandsFixedEta.begin(); it1 != refHitCleanCandsFixedEta.end(); ++it1) {
       for (auto it2 = std::next(it1); it2 != refHitCleanCandsFixedEta.end(); ++it2) {
-        if (it2->isValid() && std::abs(omtfConfig->procPhiToGmtPhi(it1->getPhi()) - omtfConfig->procPhiToGmtPhi(it2->getPhi())) < 8) {
+        if (it2->isValid() &&
+            std::abs(omtfConfig->procPhiToGmtPhi(it1->getPhi()) - omtfConfig->procPhiToGmtPhi(it2->getPhi())) < 8) {
           killIt = it2;
           if ((omtfConfig->fwVersion() >= 6) &&
               ((abs(it1->getEtaHw()) == 75 || abs(it1->getEtaHw()) == 79 || abs(it1->getEtaHw()) == 92)) &&
