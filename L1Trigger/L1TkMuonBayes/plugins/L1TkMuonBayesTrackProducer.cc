@@ -25,7 +25,12 @@
 #include <boost/archive/text_iarchive.hpp>
 
 L1TkMuonBayesTrackProducer::L1TkMuonBayesTrackProducer(const edm::ParameterSet& cfg)
-    : edmParameterSet(cfg), config(std::make_shared<TkMuBayesProcConfig>()) {
+    : edmParameterSet(cfg), config(std::make_shared<TkMuBayesProcConfig>()),
+      muonGeometryTokens(
+          {esConsumes<RPCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
+           esConsumes<CSCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
+           esConsumes<DTGeometry, MuonGeometryRecord, edm::Transition::BeginRun>() })
+{
   produces<l1t::TkMuonBayesTrackBxCollection>(allTracksProductName);  //all tracks
 
   produces<l1t::TkMuonBayesTrackBxCollection>(muonTracksProductName);
@@ -192,7 +197,7 @@ void L1TkMuonBayesTrackProducer::beginRun(edm::Run const& run, edm::EventSetup c
     //the parameters can be overwritten from the python config
     config->configureFromEdmParameterSet(edmParameterSet);
 
-    inputMaker->initialize(edmParameterSet, eventSetup);
+    inputMaker->initialize(edmParameterSet, eventSetup, muonGeometryTokens);
   }
 }
 /////////////////////////////////////////////////////

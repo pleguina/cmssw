@@ -137,7 +137,8 @@ public:
 
   ~MuonStubInputMaker() override;
 
-  void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es) override;
+  void initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es,
+      const MuonGeometryTokens& muonGeometryTokens) override;
 
   static void addStub(const TkMuBayesProcConfig* config,
                       MuonStubPtrs2D& muonStubsInLayers,

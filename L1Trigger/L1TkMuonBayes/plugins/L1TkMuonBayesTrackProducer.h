@@ -7,6 +7,7 @@
 #include "L1Trigger/L1TkMuonBayes/interface/TTTracksInputMaker.h"
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubMakerBase.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/AngleConverterBase.h"
 
 #include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
@@ -64,6 +65,9 @@ private:
   bool dumpResultToXML = false;
 
   TkMuBayesProcConfigPtr config;
+
+  //needed for AngleConverterBase
+  MuonGeometryTokens muonGeometryTokens;
 
   std::unique_ptr<MuonStubInputMaker> inputMaker;
   std::unique_ptr<TkMuBayesProcessor> processor;

@@ -368,9 +368,10 @@ MuonStubInputMaker::~MuonStubInputMaker() {
   // TODO Auto-generated destructor stub
 }
 
-void MuonStubInputMaker::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es) {
-  MuonStubMakerBase::initialize(edmCfg, es);
-  angleConverter->checkAndUpdateGeometry(es, config);
+void MuonStubInputMaker::initialize(const edm::ParameterSet& edmCfg, const edm::EventSetup& es,
+    const MuonGeometryTokens& muonGeometryTokens) {
+  MuonStubMakerBase::initialize(edmCfg, es, muonGeometryTokens);
+  angleConverter->checkAndUpdateGeometry(es, config, muonGeometryTokens);
 }
 
 ////////////////////////////////////////////
