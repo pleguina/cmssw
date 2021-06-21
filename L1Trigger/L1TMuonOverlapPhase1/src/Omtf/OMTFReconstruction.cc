@@ -167,9 +167,10 @@ void OMTFReconstruction::beginRun(edm::Run const& run,
   }
 
   if (firstRun) {
-    addObservers(muonGeometryTokens, magneticFieldEsToken, propagatorEsToken);
     omtfProc->printInfo();
   }
+
+  addObservers(muonGeometryTokens, magneticFieldEsToken, propagatorEsToken);
 
   for (auto& obs : observers) {
     obs->beginRun(eventSetup);
@@ -182,6 +183,8 @@ void OMTFReconstruction::addObservers(
     const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken) {
   if (!observers.empty())  //assuring it is done only at the first run
     return;
+
+  edm::LogImportant("OMTFReconstruction")<<"OMTFReconstruction::addObservers "<<std::endl;
 
   if (edmParameterSet.exists("dumpResultToXML")) {
     if (edmParameterSet.getParameter<bool>("dumpResultToXML"))

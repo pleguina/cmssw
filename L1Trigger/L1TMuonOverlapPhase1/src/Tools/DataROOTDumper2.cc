@@ -49,6 +49,8 @@ DataROOTDumper2::DataROOTDumper2(const edm::ParameterSet& edmCfg,
         << __FUNCTION__ << ": " << __LINE__ << " writing gpResultsToPt to file " << fileName << std::endl;
     inArch >> *gpResultsToPt;
   }
+
+  edm::LogVerbatim("l1tOmtfEventPrint")  << " DataROOTDumper2 created"<<std::endl;
 }
 
 DataROOTDumper2::~DataROOTDumper2() { saveTTree(); }

@@ -76,7 +76,7 @@ public:
   ///allows to use other IGhostBuster implementation than the default one
   void setGhostBuster(IGhostBuster* ghostBuster) override { this->ghostBuster.reset(ghostBuster); }
 
-  virtual void setPtAssignment(PtAssignmentBase* ptAssignment) { this->ptAssignment.reset(ptAssignment); }
+  virtual void setPtAssignment(PtAssignmentBase* ptAssignment) { this->ptAssignment = ptAssignment; }
 
   std::vector<l1t::RegionalMuonCand> run(unsigned int iProcessor,
                                          l1t::tftype mtfType,
@@ -101,7 +101,8 @@ private:
 
   std::unique_ptr<IGhostBuster> ghostBuster;
 
-  std::unique_ptr<PtAssignmentBase> ptAssignment;
+  PtAssignmentBase* ptAssignment = nullptr;
+  //should be destroyed where it is created, i.e. by OmtfEmulation or OMTFReconstruction
 };
 
 #endif

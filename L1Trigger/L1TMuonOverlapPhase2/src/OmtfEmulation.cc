@@ -29,25 +29,25 @@ void OmtfEmulation::beginJob() {
 }
 
 void OmtfEmulation::addObservers(const MuonGeometryTokens& muonGeometryTokens,
-                                 const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
-                                 const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken) {
-  if (!observers.empty())  //assuring it is done only at the first run
-    return;
-
-  OMTFReconstruction::addObservers(muonGeometryTokens, magneticFieldEsToken, propagatorEsToken);
-
-  auto omtfProcGoldenPat = dynamic_cast<OMTFProcessor<GoldenPattern>*>(omtfProc.get());
-  if (omtfProcGoldenPat) {
-    if (edmParameterSet.exists("neuralNetworkFile")) {
-      edm::LogImportant("OMTFReconstruction") << "constructing PtAssignmentNN" << std::endl;
-      std::string neuralNetworkFile = edmParameterSet.getParameter<edm::FileInPath>("neuralNetworkFile").fullPath();
-      omtfProcGoldenPat->setPtAssignment(new PtAssignmentNN(
-          edmParameterSet, omtfConfig.get(), neuralNetworkFile));  //TODO change to dynamic_cast and check the type
-    }
-
+    const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken,
+    const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken) {
+  if (observers.empty()) { //assuring it is done only at the first run
+    OMTFReconstruction::addObservers(muonGeometryTokens, magneticFieldEsToken, propagatorEsToken);
     /*    if(edmParameterSet.exists("patternsPtAssignment") && edmParameterSet.getParameter<bool>("patternsPtAssignment")) {
       //std::string rootFileName = edmParameterSet.getParameter<std::string>("dumpHitsFileName");
       .emplace_back(std::make_unique<PatternsPtAssignment>(edmParameterSet, omtfConfig.get(), omtfProcGoldenPat->getPatterns(), ""));
     }*/
+  }
+
+  if (edmParameterSet.exists("neuralNetworkFile") && !ptAssignment) {
+    edm::LogImportant("OMTFReconstruction") << "constructing PtAssignmentNN" << std::endl;
+    std::string neuralNetworkFile = edmParameterSet.getParameter<edm::FileInPath>("neuralNetworkFile").fullPath();
+    ptAssignment.reset(new PtAssignmentNN( edmParameterSet, omtfConfig.get(), neuralNetworkFile));
+  }
+
+  auto omtfProcGoldenPat = dynamic_cast<OMTFProcessor<GoldenPattern>*>(omtfProc.get());
+  if (omtfProcGoldenPat) {
+    omtfProcGoldenPat->setPtAssignment(ptAssignment.get());
+    //omtfProcGoldenPat can be constructed from scratch each run, so ptAssignment is set herer every run
   }
 }

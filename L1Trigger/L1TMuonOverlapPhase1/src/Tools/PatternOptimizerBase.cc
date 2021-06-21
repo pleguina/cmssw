@@ -85,6 +85,9 @@ PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg,
       new TH1I("simMuFoundByOmtfPt", "simMuFoundByOmtfPt", goldenPatterns.size(), -0.5, goldenPatterns.size() - 0.5);
 
   simMuPtSpectrum = new TH1F("simMuPtSpectrum", "simMuPtSpectrum", 800, 0, 400);
+
+  if (edmCfg.exists("simTracksTag") == false)
+    edm::LogError("l1tOmtfEventPrint")  << "simTracksTag not found !!!"<<std::endl;
 }
 
 PatternOptimizerBase::~PatternOptimizerBase() {
@@ -92,17 +95,17 @@ PatternOptimizerBase::~PatternOptimizerBase() {
 }
 
 void PatternOptimizerBase::printPatterns() {
-  cout << __FUNCTION__ << ": " << __LINE__ << " called!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl;
+  edm::LogVerbatim("l1tOmtfEventPrint")  << __FUNCTION__ << ": " << __LINE__ << " called!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl;
   for (int patNum = goldenPatterns.size() - 1; patNum >= 0; patNum--) {
     double pt = omtfConfig->getPatternPtRange(patNum).ptFrom;
     if (pt > 0) {
-      cout << "cmsRun runThresholdCalc.py " << patNum << " " << (patNum + 1) << " _" << RPCConst::iptFromPt(pt) << "_";
+      edm::LogVerbatim("l1tOmtfEventPrint")  << "cmsRun runThresholdCalc.py " << patNum << " " << (patNum + 1) << " _" << RPCConst::iptFromPt(pt) << "_";
       if (goldenPatterns[patNum]->key().theCharge == -1)
-        cout << "m_";
+        edm::LogVerbatim("l1tOmtfEventPrint")  << "m_";
       else
-        cout << "p_";
+        edm::LogVerbatim("l1tOmtfEventPrint")  << "p_";
 
-      cout << " > out" << patNum << ".txt" << std::endl;
+      edm::LogVerbatim("l1tOmtfEventPrint")  << " > out" << patNum << ".txt" << std::endl;
     }
   }
 }
@@ -129,7 +132,7 @@ void PatternOptimizerBase::observeProcesorEmulation(unsigned int iProcessor,
     //int iRefHit = gbCandidate.getRefHitNumber();
     if (gbCandidate->getGoldenPatern() != nullptr &&
         gbCandidate->getGpResult().getFiredLayerCnt() > omtfCand->getGpResult().getFiredLayerCnt()) {
-      //cout<<__FUNCTION__<<":"<<__LINE__<<" gbCandidate "<<gbCandidate<<" "<<std::endl;
+      //edm::LogVerbatim("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" gbCandidate "<<gbCandidate<<" "<<std::endl;
       omtfCand = gbCandidate;
       //omtfResult = gbCandidate.getGoldenPatern()->getResults()[procIndx][iRefHit]; //TODO be carrefful, because in principle the results sored by the goldenPattern can be altered in one event. In phae I omtf this should not happened, but in OMTFProcessorTTMerger - yes
       //exptResult = exptCandGp->getResults()[procIndx][iRefHit];
@@ -148,17 +151,17 @@ void PatternOptimizerBase::observeProcesorEmulation(unsigned int iProcessor,
   /*if(found) {
     GoldenPatternWithStat* omtfCandGp = static_cast<GoldenPatternWithStat*>(omtfCand.getGoldenPatern());
     if( omtfCandGp->key().thePt > 100 && exptCandGp->key().thePt <= 15 ) {
-      //std::cout<<iEvent.id()<<std::endl;
+      //edm::LogVerbatim("l1tOmtfEventPrint") <<iEvent.id()<<std::endl;
       cout<<" ptSim "<<ptSim<<" chargeSim "<<chargeSim<<std::endl;
-      std::cout<<"iProcessor "<<iProcessor<<" exptCandGp "<<exptCandGp->key()<<std::endl;
-      std::cout<<"iProcessor "<<iProcessor<<" omtfCandGp "<<omtfCandGp->key()<<std::endl;
-      std::cout<<"omtfResult "<<std::endl<<omtfResult<<std::endl;
+      edm::LogVerbatim("l1tOmtfEventPrint") <<"iProcessor "<<iProcessor<<" exptCandGp "<<exptCandGp->key()<<std::endl;
+      edm::LogVerbatim("l1tOmtfEventPrint") <<"iProcessor "<<iProcessor<<" omtfCandGp "<<omtfCandGp->key()<<std::endl;
+      edm::LogVerbatim("l1tOmtfEventPrint") <<"omtfResult "<<std::endl<<omtfResult<<std::endl;
       int refHitNum = omtfCand.getRefHitNumber();
-      std::cout<<"other gps results"<<endl;
+      edm::LogVerbatim("l1tOmtfEventPrint") <<"other gps results"<<endl;
       for(auto& gp : goldenPatterns) {
         if(omtfResult.getFiredLayerCnt() == gp->getResults()[procIndx][iRefHit].getFiredLayerCnt() )
         {
-          cout<<gp->key()<<std::endl<<gp->getResults()[procIndx][iRefHit]<<std::endl;
+          edm::LogVerbatim("l1tOmtfEventPrint") <<gp->key()<<std::endl<<gp->getResults()[procIndx][iRefHit]<<std::endl;
         }
       }
       std::cout<<std::endl;
@@ -172,7 +175,7 @@ void PatternOptimizerBase::observeEventBegin(const edm::Event& iEvent) {
   //exptResult =  GoldenPatternResult();
 
   simMuon = findSimMuon(iEvent);
-  //cout<<__FUNCTION__<<":"<<__LINE__<<" evevt "<<iEvent.id().event()<<" simMuon pt "<<simMuon->momentum().pt()<<" GeV "<<std::endl;
+  //edm::LogVerbatim("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" evevt "<<iEvent.id().event()<<" simMuon pt "<<simMuon->momentum().pt()<<" GeV "<<std::endl;
 }
 
 void PatternOptimizerBase::observeEventEnd(const edm::Event& iEvent,
@@ -208,6 +211,7 @@ const SimTrack* PatternOptimizerBase::findSimMuon(const edm::Event& event, const
   edm::Handle<edm::SimTrackContainer> simTks;
   event.getByLabel(edmCfg.getParameter<edm::InputTag>("simTracksTag"), simTks);
 
+  //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<" simTks->size() "<<simTks->size()<<std::endl;
   for (std::vector<SimTrack>::const_iterator it = simTks->begin(); it < simTks->end(); it++) {
     const SimTrack& aTrack = *it;
     if (!(aTrack.type() == 13 || aTrack.type() == -13))
@@ -223,7 +227,7 @@ const SimTrack* PatternOptimizerBase::findSimMuon(const edm::Event& event, const
 void PatternOptimizerBase::savePatternsInRoot(std::string rootFileName) {
   gStyle->SetOptStat(111111);
   TFile outfile(rootFileName.c_str(), "RECREATE");
-  cout << __FUNCTION__ << ": " << __LINE__ << " out fileName " << rootFileName << " outfile->GetName() "
+  edm::LogVerbatim("l1tOmtfEventPrint") << __FUNCTION__ << ": " << __LINE__ << " out fileName " << rootFileName << " outfile->GetName() "
        << outfile.GetName() << " writeLayerStat " << writeLayerStat << endl;
 
   outfile.cd();
@@ -257,7 +261,7 @@ void PatternOptimizerBase::savePatternsInRoot(std::string rootFileName) {
     OMTFConfiguration::PatternPt patternPt = omtfConfig->getPatternPtRange(gp->key().theNumber);
     if (gp->key().thePt == 0)
       continue;
-    //cout<<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<std::endl;
+    //edm::LogVerbatim("l1tOmtfEventPrint") <<__FUNCTION__<<": "<<__LINE__<<" "<<gp->key()<<std::endl;
     ostrName.str("");
     ostrName << "PatNum_" << gp->key().theNumber;
     ostrTtle.str("");
@@ -277,7 +281,7 @@ void PatternOptimizerBase::savePatternsInRoot(std::string rootFileName) {
                  << " Layer " << iLayer << " meanDistPhi " << gp->meanDistPhi[iLayer][iRefLayer][0]
                  << " distPhiBitShift "
                  << gp->getDistPhiBitShift(iLayer, iRefLayer);  //"_Pt_"<<patternPt.ptFrom<<"_"<<patternPt.ptTo<<"_GeV
-        //cout<<__FUNCTION__<<": "<<__LINE__<<" creating hist "<<ostrTtle.str()<<std::endl;
+        //edm::LogVerbatim("l1tOmtfEventPrint") <<__FUNCTION__<<": "<<__LINE__<<" creating hist "<<ostrTtle.str()<<std::endl;
         TH1F* hist = new TH1F(
             ostrName.str().c_str(), ostrTtle.str().c_str(), omtfConfig->nPdfBins(), -0.5, omtfConfig->nPdfBins() - 0.5);
         for (unsigned int iPdf = 0; iPdf < gp->getPdf()[iLayer][iRefLayer].size(); iPdf++) {

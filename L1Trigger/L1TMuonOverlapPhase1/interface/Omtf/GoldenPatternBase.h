@@ -44,7 +44,7 @@ struct Key {
   unsigned int theGroup = 0;
   //the index of the patterns group, up to 4 patterns can be grouped together, they have then the same MeanDistPhi and DistPhiBitShift
 
-  unsigned int theIndexInGroup = 0;  //starts from 1, as in xml
+  unsigned int theIndexInGroup = 1;  //starts from 1, as in xml
 
   void setPt(int pt) { thePt = pt; }
 
