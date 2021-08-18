@@ -26,7 +26,7 @@ class PatternOptimizer : public PatternOptimizerBase {
 public:
   PatternOptimizer(const edm::ParameterSet& edmCfg,
                    const OMTFConfiguration* omtfConfig,
-                   std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
+                   GoldenPatternVec<GoldenPatternWithStat>& gps);
   ~PatternOptimizer() override;
 
   /*  virtual void observeProcesorEmulation(unsigned int iProcessor, l1t::tftype mtfType,  const OMTFinput &input,

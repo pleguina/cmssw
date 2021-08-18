@@ -23,7 +23,7 @@ public:
 
   //iProcessor - continuous processor index [0...11]
   virtual AlgoMuons sortResults(unsigned int procIndx,
-                                const std::vector<std::shared_ptr<GoldenPatternType> >& gPatterns,
+                                const GoldenPatternVec<GoldenPatternType>& gPatterns,
                                 int charge = 0) {
     AlgoMuons refHitCands;
     //  for(auto itRefHit: procResults) refHitCands.push_back(sortRefHitResults(itRefHit,charge));
@@ -39,7 +39,7 @@ public:
   ///as we allow two candidates with opposite charge from single 10deg region
   virtual AlgoMuons::value_type sortRefHitResults(unsigned int procIndx,
                                                   unsigned int iRefHit,
-                                                  const std::vector<std::shared_ptr<GoldenPatternType> >& gPatterns,
+                                                  const GoldenPatternVec<GoldenPatternType>& gPatterns,
                                                   int charge = 0) = 0;
 };
 

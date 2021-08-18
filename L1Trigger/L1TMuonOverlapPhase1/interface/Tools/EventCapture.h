@@ -21,9 +21,9 @@ class EventCapture : public IOMTFEmulationObserver {
 public:
   EventCapture(const edm::ParameterSet& edmCfg,
                const OMTFConfiguration* omtfConfig,
-               const std::vector<std::shared_ptr<GoldenPattern> >& gps,
                CandidateSimMuonMatcher* candidateSimMuonMatcher,
-               const MuonGeometryTokens& muonGeometryTokens);
+               const MuonGeometryTokens& muonGeometryTokens,
+               const GoldenPatternVec<GoldenPattern>* gps = nullptr);
 
   ~EventCapture() override;
 
@@ -47,7 +47,7 @@ private:
   edm::InputTag simTracksTag;
   const OMTFConfiguration* omtfConfig = nullptr;
 
-  std::vector<std::shared_ptr<GoldenPattern> > goldenPatterns;
+  const GoldenPatternVec<GoldenPattern>* goldenPatterns = nullptr;
 
   CandidateSimMuonMatcher* candidateSimMuonMatcher = nullptr;
 

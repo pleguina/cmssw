@@ -46,7 +46,7 @@ public:
   OMTFProcessor(OMTFConfiguration* omtfConfig,
                 const edm::ParameterSet& edmCfg,
                 edm::EventSetup const& evSetup,
-                const typename ProcessorBase<GoldenPatternType>::GoldenPatternVec& gps);
+                GoldenPatternVec<GoldenPatternType>&& gps);
 
   ~OMTFProcessor() override;
 

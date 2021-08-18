@@ -204,10 +204,9 @@ public:
 
   static const unsigned int patternsInGroup = 4;
 
-  ///and this based on the actual goldenPats
-  //takes the groups from the kye, it should be set during xml reading, or creating the goldenPats
+  //takes the groups from the key, it should be set during xml reading, or creating the goldenPats
   template <class GoldenPatternType>
-  vector2D getPatternGroups(const std::vector<std::shared_ptr<GoldenPatternType> >& goldenPats) const {
+  vector2D getPatternGroups(const std::vector<std::unique_ptr<GoldenPatternType> >& goldenPats) const {
     //unsigned int mergedCnt = 4;
     vector2D mergedPatterns;
     for (unsigned int iPat = 0; iPat < goldenPats.size(); iPat++) {

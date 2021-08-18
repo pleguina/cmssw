@@ -14,7 +14,7 @@ class PatternGenerator : public PatternOptimizerBase {
 public:
   PatternGenerator(const edm::ParameterSet& edmCfg,
                    const OMTFConfiguration* omtfConfig,
-                   std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps);
+                   GoldenPatternVec<GoldenPatternWithStat>& gps);
 
   ~PatternGenerator() override;
 

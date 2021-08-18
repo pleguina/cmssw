@@ -63,6 +63,7 @@ void CandidateSimMuonMatcher::beginRun(const edm::EventSetup& eventSetup) {
   //eventSetup.get<IdealMagneticFieldRecord>().get(magField);
   //eventSetup.get<TrackingComponentsRecord>().get("SteppingHelixPropagatorAlong", propagator);
 
+  //TODO use edm::ESWatcher<MagneticField> magneticFieldRecordWatcher;
   magField = eventSetup.getHandle(magneticFieldEsToken);
   propagator = eventSetup.getHandle(propagatorEsToken);
 }

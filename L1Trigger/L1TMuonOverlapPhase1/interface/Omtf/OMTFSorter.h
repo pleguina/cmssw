@@ -17,7 +17,7 @@ public:
   ///as we allow two candidates with opposite charge from single 10deg region
   AlgoMuons::value_type sortRefHitResults(unsigned int procIndx,
                                           unsigned int iRefHit,
-                                          const std::vector<std::shared_ptr<GoldenPatternType> >& gPatterns,
+                                          const GoldenPatternVec<GoldenPatternType>& gPatterns,
                                           int charge = 0) override;
 
 private:

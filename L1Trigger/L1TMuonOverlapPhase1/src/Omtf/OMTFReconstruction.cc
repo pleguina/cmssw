@@ -6,7 +6,6 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLEventWriter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/CandidateSimMuonMatcher.h"
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper2.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/EventCapture.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternGenerator.h"
@@ -126,41 +125,32 @@ void OMTFReconstruction::beginRun(edm::Run const& run,
 
     //std::cout<<__FUNCTION__<<":"<<__LINE__<<std::endl;
     if (patternType == "GoldenPattern") {
-      auto gps = xmlReader.readPatterns<GoldenPattern>(*omtfParams, patternsXMLFiles, false);
-
       if (processorType == "OMTFProcessor") {
-        omtfProc = std::make_unique<OMTFProcessor<GoldenPattern> >(omtfConfig.get(), edmParameterSet, eventSetup, gps);
+        omtfProc = std::make_unique<OMTFProcessor<GoldenPattern> >(omtfConfig.get(), edmParameterSet, eventSetup,
+            xmlReader.readPatterns<GoldenPattern>(*omtfParams, patternsXMLFiles, false) );
       }
 
       edm::LogImportant("OMTFReconstruction")
-          << "OMTFProcessor constructed. processorType " << processorType << ". GoldenPattern type: " << patternType
-          << " size: " << gps.size() << std::endl;
-    } else if (patternType == "GoldenPatternWithStat") {
-      std::cout << __FUNCTION__ << ":" << __LINE__ << std::endl;
-
-      auto gps = xmlReader.readPatterns<GoldenPatternWithStat>(*omtfParams, patternsXMLFiles, false);
-
+          << "OMTFProcessor constructed. processorType " << processorType << ". GoldenPattern type: " << patternType << std::endl;
+    }
+    else if (patternType == "GoldenPatternWithStat") {
+      //pattern generation is only possible if the processor is constructed only once per job
+      //PatternGenerator modifies the patterns!!!
       if (processorType == "OMTFProcessor") {
+        omtfProc = std::make_unique<OMTFProcessor<GoldenPatternWithStat> >(omtfConfig.get(), edmParameterSet, eventSetup,
+                xmlReader.readPatterns<GoldenPatternWithStat>(*omtfParams, patternsXMLFiles, false));
+
+        auto omtfProcGoldenPat = dynamic_cast<OMTFProcessor<GoldenPatternWithStat>*>(omtfProc.get());
+
         if (edmParameterSet.exists("optimizePatterns") && edmParameterSet.getParameter<bool>("optimizePatterns")) {
-          observers.emplace_back(std::make_unique<PatternOptimizer>(edmParameterSet, omtfConfig.get(), gps));
+          observers.emplace_back(std::make_unique<PatternOptimizer>(edmParameterSet, omtfConfig.get(), omtfProcGoldenPat->getPatterns()));
         }
 
         if (edmParameterSet.exists("generatePatterns") && edmParameterSet.getParameter<bool>("generatePatterns")) {
-          observers.emplace_back(std::make_unique<PatternGenerator>(edmParameterSet, omtfConfig.get(), gps));
+          observers.emplace_back(std::make_unique<PatternGenerator>(edmParameterSet, omtfConfig.get(), omtfProcGoldenPat->getPatterns()));
           edm::LogImportant("OMTFReconstruction") << "generatePatterns: true " << std::endl;
         }
-
-        omtfProc =
-            std::make_unique<OMTFProcessor<GoldenPatternWithStat> >(omtfConfig.get(), edmParameterSet, eventSetup, gps);
       }
-    } else if (patternType == "GoldenPatternWithThresh") {
-      std::cout << __FUNCTION__ << ":" << __LINE__ << std::endl;
-      auto gps = xmlReader.readPatterns<GoldenPatternWithThresh>(*omtfParams, patternsXMLFiles, false);
-
-      omtfProc =
-          std::make_unique<OMTFProcessor<GoldenPatternWithThresh> >(omtfConfig.get(), edmParameterSet, eventSetup, gps);
-      edm::LogImportant("OMTFReconstruction")
-          << "OMTFProcessor constructed. GoldenPattern type: " << patternType << " size: " << gps.size() << std::endl;
     } else {
       throw cms::Exception("OMTFReconstruction::beginRun: unknown GoldenPattern type: " + patternType);
     }
@@ -186,6 +176,7 @@ void OMTFReconstruction::addObservers(
 
   edm::LogImportant("OMTFReconstruction")<<"OMTFReconstruction::addObservers "<<std::endl;
 
+  //omtfConfig is created at constructor, and is not re-created at the the start of the run, so this is OK
   if (edmParameterSet.exists("dumpResultToXML")) {
     if (edmParameterSet.getParameter<bool>("dumpResultToXML"))
       observers.emplace_back(std::make_unique<XMLEventWriter>(
@@ -202,25 +193,23 @@ void OMTFReconstruction::addObservers(
     }
   }
 
-  if (edmParameterSet.exists("dumpResultToROOT"))
-    if (edmParameterSet.getParameter<bool>("dumpResultToROOT"))
-      observers.emplace_back(std::make_unique<DataROOTDumper>(edmParameterSet, omtfConfig.get()));
-
   auto omtfProcGoldenPat = dynamic_cast<OMTFProcessor<GoldenPattern>*>(omtfProc.get());
   if (omtfProcGoldenPat) {
     if (edmParameterSet.exists("eventCaptureDebug"))
       if (edmParameterSet.getParameter<bool>("eventCaptureDebug")) {
         observers.emplace_back(std::make_unique<EventCapture>(edmParameterSet,
                                                               omtfConfig.get(),
-                                                              omtfProcGoldenPat->getPatterns(),
                                                               candidateSimMuonMatcher,
-                                                              muonGeometryTokens));
+                                                              muonGeometryTokens
+                                                              //&(omtfProcGoldenPat->getPatterns() ),
+                                                              //watch out, will crash if the proc is re-constructed from the DB after L1TMuonOverlapParamsRcd change
+                                                              ));
       }
 
     if (edmParameterSet.exists("dumpHitsToROOT") && edmParameterSet.getParameter<bool>("dumpHitsToROOT")) {
       std::string rootFileName = edmParameterSet.getParameter<std::string>("dumpHitsFileName");
       observers.emplace_back(std::make_unique<DataROOTDumper2>(
-          edmParameterSet, omtfConfig.get(), omtfProcGoldenPat->getPatterns(), rootFileName));
+          edmParameterSet, omtfConfig.get(), rootFileName));
     }
   }
 }
