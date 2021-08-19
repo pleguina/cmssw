@@ -1,5 +1,5 @@
-#ifndef OMTF_OMTFProcessor_H
-#define OMTF_OMTFProcessor_H
+#ifndef L1T_OmtfP1_OMTFProcessor_H
+#define L1T_OmtfP1_OMTFProcessor_H
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h"

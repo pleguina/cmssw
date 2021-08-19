@@ -5,8 +5,8 @@
  *      Author: kbunkow
  */
 
-#ifndef OMTF_EVENTCAPTURE_H_
-#define OMTF_EVENTCAPTURE_H_
+#ifndef L1T_OmtfP1_EVENTCAPTURE_H_
+#define L1T_OmtfP1_EVENTCAPTURE_H_
 
 #include "SimDataFormats/Track/interface/SimTrack.h"
 
@@ -60,4 +60,4 @@ private:
   std::unique_ptr<StubsSimHitsMatcher> stubsSimHitsMatcher;
 };
 
-#endif /* OMTF_EVENTCAPTURE_H_ */
+#endif /* L1T_OmtfP1_EVENTCAPTURE_H_ */

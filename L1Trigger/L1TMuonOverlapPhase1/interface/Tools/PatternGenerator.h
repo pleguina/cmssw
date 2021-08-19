@@ -5,8 +5,8 @@
  *      Author: kbunkow
  */
 
-#ifndef OMTF_PATTERNGENERATOR_H_
-#define OMTF_PATTERNGENERATOR_H_
+#ifndef L1T_OmtfP1_PATTERNGENERATOR_H_
+#define L1T_OmtfP1_PATTERNGENERATOR_H_
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternOptimizerBase.h"
 
@@ -44,4 +44,4 @@ protected:
   std::vector<unsigned int> eventCntPerGp;
 };
 
-#endif /* OMTF_PATTERNGENERATOR_H_ */
+#endif /* L1T_OmtfP1_PATTERNGENERATOR_H_ */

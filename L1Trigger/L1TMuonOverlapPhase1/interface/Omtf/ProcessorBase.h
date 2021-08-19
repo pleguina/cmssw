@@ -5,8 +5,8 @@
  *      Author: kbunkow
  */
 
-#ifndef OMTF_PROCESSORBASE_H_
-#define OMTF_PROCESSORBASE_H_
+#ifndef L1T_OmtfP1_PROCESSORBASE_H_
+#define L1T_OmtfP1_PROCESSORBASE_H_
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
@@ -64,4 +64,4 @@ protected:
   std::vector<OMTFConfiguration::PatternPt> patternPts;
 };
 
-#endif /* OMTF_PROCESSORBASE_H_ */
+#endif /* L1T_OmtfP1_PROCESSORBASE_H_ */

@@ -1,5 +1,5 @@
-#ifndef OMTFProducer_H
-#define OMTFProducer_H
+#ifndef L1T_OmtfP1_L1TMuonOverlapPhase1TrackProducer_H
+#define L1T_OmtfP1_L1TMuonOverlapPhase1TrackProducer_H
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFProcessor.h"

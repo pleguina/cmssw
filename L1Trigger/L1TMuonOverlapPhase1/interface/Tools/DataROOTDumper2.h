@@ -5,8 +5,8 @@
  *      Author: kbunkow
  */
 
-#ifndef INTERFACE_TOOLS_DATAROOTDUMPER2_H_
-#define INTERFACE_TOOLS_DATAROOTDUMPER2_H_
+#ifndef L1T_OmtfP1_TOOLS_DATAROOTDUMPER2_H_
+#define L1T_OmtfP1_TOOLS_DATAROOTDUMPER2_H_
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/EmulationObserverBase.h"
 
@@ -89,4 +89,4 @@ private:
   std::vector<TH2*> hitVsPt;
 };
 
-#endif /* INTERFACE_TOOLS_DATAROOTDUMPER2_H_ */
+#endif /* L1T_OmtfP1_TOOLS_DATAROOTDUMPER2_H_ */

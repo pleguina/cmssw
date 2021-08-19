@@ -1,5 +1,5 @@
-#ifndef OMTF_XMLConfigWriter_H
-#define OMTF_XMLConfigWriter_H
+#ifndef L1T_OmtfP1_XMLConfigWriter_H
+#define L1T_OmtfP1_XMLConfigWriter_H
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OmtfName.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"

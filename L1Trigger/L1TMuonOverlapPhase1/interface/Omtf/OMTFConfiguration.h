@@ -1,5 +1,5 @@
-#ifndef OMTF_OMTFConfiguration_H
-#define OMTF_OMTFConfiguration_H
+#ifndef L1T_OmtfP1_OMTFConfiguration_H
+#define L1T_OmtfP1_OMTFConfiguration_H
 
 #include <map>
 #include <set>
@@ -7,7 +7,7 @@
 #include <ostream>
 #include <memory>
 
-#undef BOOST_DISABLE_ASSERTS  //TODO remove for production version
+//#undef BOOST_DISABLE_ASSERTS  //TODO remove for production version
 #include "boost/multi_array.hpp"
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"

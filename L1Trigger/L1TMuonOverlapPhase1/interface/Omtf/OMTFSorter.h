@@ -1,5 +1,5 @@
-#ifndef OMTF_OMTFSorter_H
-#define OMTF_OMTFSorter_H
+#ifndef L1T_OmtfP1_OMTFSorter_H
+#define L1T_OmtfP1_OMTFSorter_H
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/SorterBase.h"
 #include <vector>

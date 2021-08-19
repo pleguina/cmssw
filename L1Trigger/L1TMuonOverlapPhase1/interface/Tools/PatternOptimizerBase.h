@@ -5,8 +5,8 @@
  *      Author: kbunkow
  */
 
-#ifndef OMTF_PATTERNOPTIMIZERBASE_H_
-#define OMTF_PATTERNOPTIMIZERBASE_H_
+#ifndef L1T_OmtfP1_PATTERNOPTIMIZERBASE_H_
+#define L1T_OmtfP1_PATTERNOPTIMIZERBASE_H_
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/EmulationObserverBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
@@ -69,4 +69,4 @@ protected:
   bool writeLayerStat = false;
 };
 
-#endif /* OMTF_PATTERNOPTIMIZERBASE_H_ */
+#endif /* L1T_OmtfP1_PATTERNOPTIMIZERBASE_H_ */

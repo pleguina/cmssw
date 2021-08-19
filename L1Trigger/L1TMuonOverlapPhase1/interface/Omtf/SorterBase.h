@@ -5,8 +5,8 @@
  *      Author: kbunkow
  */
 
-#ifndef OMTF_SORTERBASE_H_
-#define OMTF_SORTERBASE_H_
+#ifndef L1T_OmtfP1_SORTERBASE_H_
+#define L1T_OmtfP1_SORTERBASE_H_
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
@@ -43,4 +43,4 @@ public:
                                                   int charge = 0) = 0;
 };
 
-#endif /* OMTF_SORTERBASE_H_ */
+#endif /* L1T_OmtfP1_SORTERBASE_H_ */
