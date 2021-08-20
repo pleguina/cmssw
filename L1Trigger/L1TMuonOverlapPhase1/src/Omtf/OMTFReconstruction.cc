@@ -72,32 +72,37 @@ void OMTFReconstruction::beginRun(edm::Run const& run,
 
   bool buildPatternsFromXml = (edmParameterSet.exists("patternsXMLFile") || edmParameterSet.exists("patternsXMLFiles"));
 
-  bool firstRun = (omtfProc == nullptr);
+  edm::LogImportant("OMTFReconstruction") << "OMTFReconstruction::beginRun "<<run.id()<< " buildPatternsFromXml: "<<buildPatternsFromXml<< std::endl;
+
 
   //if the buildPatternsFromXml == false - we are making the omtfConfig and omtfProc for every run,
   //as the configuration my change between the runs,
   //if buildPatternsFromXml == true - we assume the the entire configuration comes from phyton,
   //so we do it only for the first run
   if (omtfProc == nullptr || buildPatternsFromXml == false) {
-    edm::LogImportant("OMTFReconstruction") << "retrieving omtfParams from EventSetup" << std::endl;
+    if (omtfParamsRecordWatcher.check(eventSetup)) {
+      edm::LogImportant("OMTFReconstruction") << "retrieving omtfParams from EventSetup" << std::endl;
 
-    omtfParams = &(eventSetup.getData(omtfParamsEsToken));
-    if (!omtfParams) {
-      edm::LogError("OMTFReconstruction") << "Could not retrieve parameters from Event Setup" << std::endl;
-    }
-    omtfConfig->configure(omtfParams);
+      omtfParams = &(eventSetup.getData(omtfParamsEsToken));
+      if (!omtfParams) {
+        edm::LogError("OMTFReconstruction") << "Could not retrieve parameters from Event Setup" << std::endl;
+      }
+      omtfConfig->configure(omtfParams);
 
-    //the parameters can be overwritten from the python config
-    omtfConfig->configureFromEdmParameterSet(edmParameterSet);
+      //the parameters can be overwritten from the python config
+      omtfConfig->configureFromEdmParameterSet(edmParameterSet);
 
-    inputMaker->initialize(edmParameterSet, eventSetup, muonGeometryTokens);
+      inputMaker->initialize(edmParameterSet, eventSetup, muonGeometryTokens);
 
-    //patterns from the edm::EventSetup are reloaded every beginRun
-    if (buildPatternsFromXml == false) {
-      edm::LogImportant("OMTFReconstruction") << "getting patterns from EventSetup" << std::endl;
-      if (processorType == "OMTFProcessor")
-        omtfProc =
-            std::make_unique<OMTFProcessor<GoldenPattern> >(omtfConfig.get(), edmParameterSet, eventSetup, omtfParams);
+      //patterns from the edm::EventSetup are reloaded every beginRun
+      if (buildPatternsFromXml == false) {
+        edm::LogImportant("OMTFReconstruction") << "getting patterns from EventSetup" << std::endl;
+        if (processorType == "OMTFProcessor") {
+          omtfProc =
+              std::make_unique<OMTFProcessor<GoldenPattern> >(omtfConfig.get(), edmParameterSet, eventSetup, omtfParams);
+          omtfProc->printInfo();
+        }
+      }
     }
   }
 
@@ -154,9 +159,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run,
     } else {
       throw cms::Exception("OMTFReconstruction::beginRun: unknown GoldenPattern type: " + patternType);
     }
-  }
 
-  if (firstRun) {
     omtfProc->printInfo();
   }
 
