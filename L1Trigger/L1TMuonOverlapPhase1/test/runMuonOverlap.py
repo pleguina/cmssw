@@ -12,20 +12,31 @@ process.MessageLogger = cms.Service("MessageLogger",
         destinations=cms.untracked.vstring(
                                                # 'detailedInfo',
                                                # 'critical',
-                                               'cout',
+                                               #'cout',
                                                #'cerr',
-                                               # 'omtfEventPrint'
+                                                'omtfEventPrint'
                     ),
         categories=cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'), #, 'FwkReport'
-        cout=cms.untracked.PSet(
-                         threshold=cms.untracked.string('INFO'),
-                         default=cms.untracked.PSet(limit=cms.untracked.int32(0)),
-                         # INFO   =  cms.untracked.int32(0),
-                         # DEBUG   = cms.untracked.int32(0),
-                         l1tOmtfEventPrint=cms.untracked.PSet(limit=cms.untracked.int32(1000000000)),
-                         OMTFReconstruction=cms.untracked.PSet(limit=cms.untracked.int32(1000000000)),
-                         #FwkReport=cms.untracked.PSet(reportEvery = cms.untracked.int32(50) ),
-                       ), 
+        # cout=cms.untracked.PSet(
+        #                  threshold=cms.untracked.string('INFO'),
+        #                  default=cms.untracked.PSet(limit=cms.untracked.int32(0)),
+        #                  # INFO   =  cms.untracked.int32(0),
+        #                  # DEBUG   = cms.untracked.int32(0),
+        #                  l1tOmtfEventPrint=cms.untracked.PSet(limit=cms.untracked.int32(1000000000)),
+        #                  OMTFReconstruction=cms.untracked.PSet(limit=cms.untracked.int32(1000000000)),
+        #                  #FwkReport=cms.untracked.PSet(reportEvery = cms.untracked.int32(50) ),
+        #                ), 
+        
+        omtfEventPrint = cms.untracked.PSet(    
+                         filename  = cms.untracked.string('log_MuonOverlap_oldPats_1'),
+                         extension = cms.untracked.string('.txt'),                
+                         threshold = cms.untracked.string('INFO'),
+                         default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
+                         #INFO   =  cms.untracked.int32(0),
+                         #DEBUG   = cms.untracked.int32(0),
+                         l1tOmtfEventPrint = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) ),
+                         OMTFReconstruction = cms.untracked.PSet( limit = cms.untracked.int32(1000000000) )
+                       ),
        debugModules=cms.untracked.vstring('simOmtfPhase1Digis') 
        # debugModules = cms.untracked.vstring('*')
     )
@@ -40,11 +51,13 @@ process.source = cms.Source('PoolSource',
  #fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_15_p_1_1_qtl.root')    
  #fileNames = cms.untracked.vstring('file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root')
 # fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root")
- fileNames = cms.untracked.vstring('/store/express/Commissioning2021/ExpressCosmics/FEVT/Express-v1/000/342/094/00000/038c179a-d2ce-45f0-a7d5-8b2d40017042.root'),
+ fileNames = cms.untracked.vstring(
+     '/store/express/Commissioning2021/ExpressCosmics/FEVT/Express-v1/000/342/094/00000/038c179a-d2ce-45f0-a7d5-8b2d40017042.root',
+     '/store/express/Commissioning2021/ExpressCosmics/FEVT/Express-v1/000/344/566/00000/19ef107a-4cd9-4df0-ba93-dbfbab8df1cb.root'),
                      
  )
 	                    
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -82,9 +95,9 @@ process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonOverlapPhase1.simOmtfPhase1Digis_cfi')
 
-process.simOmtfPhase1Digis.dumpResultToXML = cms.bool(True)
+process.simOmtfPhase1Digis.dumpResultToXML = cms.bool(False)
 process.simOmtfPhase1Digis.dumpResultToROOT = cms.bool(False)
-process.simOmtfPhase1Digis.eventCaptureDebug = cms.bool(False)
+process.simOmtfPhase1Digis.eventCaptureDebug = cms.bool(True)
 
 
 #!!!!!!!!!!!!!!!!!!!!! all possible algorithm configuration parameters, if it is commented, then a defoult value is used
