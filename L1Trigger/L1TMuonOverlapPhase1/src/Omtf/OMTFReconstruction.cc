@@ -113,7 +113,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run,
     if (edmParameterSet.exists("patternsXMLFile")) {
       patternsXMLFiles.push_back(edmParameterSet.getParameter<edm::FileInPath>("patternsXMLFile").fullPath());
     } else if (edmParameterSet.exists("patternsXMLFiles")) {
-      for (auto it : edmParameterSet.getParameter<std::vector<edm::ParameterSet> >("patternsXMLFiles")) {
+      for (const auto& it : edmParameterSet.getParameter<std::vector<edm::ParameterSet> >("patternsXMLFiles")) {
         patternsXMLFiles.push_back(it.getParameter<edm::FileInPath>("patternsXMLFile").fullPath());
       }
     }

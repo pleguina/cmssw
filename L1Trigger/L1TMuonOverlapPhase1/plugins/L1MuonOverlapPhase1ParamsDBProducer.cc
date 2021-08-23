@@ -1,9 +1,11 @@
-#include <L1Trigger/L1TMuonOverlapPhase1/plugins/L1MuonOverlapPhase1ParamsDBProducer.h>
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
-#include "FWCore/Framework/interface/ESHandle.h"
-#include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
-#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/plugins/L1MuonOverlapPhase1ParamsDBProducer.h"
+
 #include "CondCore/DBOutputService/interface/PoolDBOutputService.h"
+#include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include <memory>
 
 L1MuonOverlapPhase1ParamsDBProducer::L1MuonOverlapPhase1ParamsDBProducer(const edm::ParameterSet& cfg)
     : omtfParamsEsToken(esConsumes<L1TMuonOverlapParams, L1TMuonOverlapParamsRcd, edm::Transition::BeginRun>()) {
@@ -21,7 +23,7 @@ void L1MuonOverlapPhase1ParamsDBProducer::beginRun(edm::Run const& run, edm::Eve
 
   omtfParams = std::unique_ptr<L1TMuonOverlapParams>(new L1TMuonOverlapParams(*omtfParamsHandle.product()));*/
 
-  omtfParams = std::unique_ptr<L1TMuonOverlapParams>(new L1TMuonOverlapParams(iSetup.getData(omtfParamsEsToken)));
+  omtfParams = std::make_unique<L1TMuonOverlapParams>(iSetup.getData(omtfParamsEsToken));
 
   if (!omtfParams) {
     edm::LogError("L1MuonOverlapParamsDBProducer") << "Could not retrieve parameters from Event Setup" << std::endl;
