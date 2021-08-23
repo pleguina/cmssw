@@ -72,7 +72,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run,
 
   bool buildPatternsFromXml = (edmParameterSet.exists("patternsXMLFile") || edmParameterSet.exists("patternsXMLFiles"));
 
-  edm::LogImportant("OMTFReconstruction") << "OMTFReconstruction::beginRun "<<run.id()<< " buildPatternsFromXml: "<<buildPatternsFromXml<< std::endl;
+  edm::LogVerbatim("OMTFReconstruction") << "OMTFReconstruction::beginRun "<<run.id()<< " buildPatternsFromXml: "<<buildPatternsFromXml<< std::endl;
 
 
   //if the buildPatternsFromXml == false - we are making the omtfConfig and omtfProc for every run,
@@ -81,7 +81,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run,
   //so we do it only for the first run
   if (omtfProc == nullptr || buildPatternsFromXml == false) {
     if (omtfParamsRecordWatcher.check(eventSetup)) {
-      edm::LogImportant("OMTFReconstruction") << "retrieving omtfParams from EventSetup" << std::endl;
+      edm::LogVerbatim("OMTFReconstruction") << "retrieving omtfParams from EventSetup" << std::endl;
 
       omtfParams = &(eventSetup.getData(omtfParamsEsToken));
       if (!omtfParams) {
@@ -96,7 +96,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run,
 
       //patterns from the edm::EventSetup are reloaded every beginRun
       if (buildPatternsFromXml == false) {
-        edm::LogImportant("OMTFReconstruction") << "getting patterns from EventSetup" << std::endl;
+        edm::LogVerbatim("OMTFReconstruction") << "getting patterns from EventSetup" << std::endl;
         if (processorType == "OMTFProcessor") {
           omtfProc =
               std::make_unique<OMTFProcessor<GoldenPattern> >(omtfConfig.get(), edmParameterSet, eventSetup, omtfParams);
@@ -119,7 +119,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run,
     }
 
     for (auto& patternsXMLFile : patternsXMLFiles)
-      edm::LogImportant("OMTFReconstruction") << "reading patterns from " << patternsXMLFile << std::endl;
+      edm::LogVerbatim("OMTFReconstruction") << "reading patterns from " << patternsXMLFile << std::endl;
 
     XMLConfigReader xmlReader;
 
@@ -135,7 +135,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run,
             xmlReader.readPatterns<GoldenPattern>(*omtfParams, patternsXMLFiles, false) );
       }
 
-      edm::LogImportant("OMTFReconstruction")
+      edm::LogVerbatim("OMTFReconstruction")
           << "OMTFProcessor constructed. processorType " << processorType << ". GoldenPattern type: " << patternType << std::endl;
     }
     else if (patternType == "GoldenPatternWithStat") {
@@ -153,7 +153,7 @@ void OMTFReconstruction::beginRun(edm::Run const& run,
 
         if (edmParameterSet.exists("generatePatterns") && edmParameterSet.getParameter<bool>("generatePatterns")) {
           observers.emplace_back(std::make_unique<PatternGenerator>(edmParameterSet, omtfConfig.get(), omtfProcGoldenPat->getPatterns()));
-          edm::LogImportant("OMTFReconstruction") << "generatePatterns: true " << std::endl;
+          edm::LogVerbatim("OMTFReconstruction") << "generatePatterns: true " << std::endl;
         }
       }
     } else {
@@ -177,7 +177,7 @@ void OMTFReconstruction::addObservers(
   if (!observers.empty())  //assuring it is done only at the first run
     return;
 
-  edm::LogImportant("OMTFReconstruction")<<"OMTFReconstruction::addObservers "<<std::endl;
+  edm::LogVerbatim("OMTFReconstruction")<<"OMTFReconstruction::addObservers "<<std::endl;
 
   //omtfConfig is created at constructor, and is not re-created at the the start of the run, so this is OK
   if (edmParameterSet.exists("dumpResultToXML")) {
