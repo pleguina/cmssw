@@ -3,10 +3,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("L1TMuonEmulation")
 import os
 import sys
-<<<<<<< from-CMSSW_12_1_0_pre5_v1_displMu
-=======
 #import commands
->>>>>>> 4d87be5 towards triggering on displaced muons
 import re
 from os import listdir
 from os.path import isfile, join
@@ -27,7 +24,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_Patterns_test_v3'),
+                         filename  = cms.untracked.string('log_Patterns_displaced_test'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('INFO'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -67,7 +64,11 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgradePLS3', '')
 process.GlobalTag = GlobalTag(process.GlobalTag, '103X_upgrade2023_realistic_v2', '') 
 
-path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
+#path = '/eos/user/c/cericeci/forOMTF/OMTF_Run3_FixedTiming/'
+#path = '/eos/user/c/cericeci/forOMTF/OMTF_Run3_FixedTiming_FullOutput/'
+path = '/eos/user/c/cericeci/forOMTF/OMTF_PhaseII_FixedTiming/'
+
+#path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
 #path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/' #new sample, but small and more noisy
 #path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v1/'
 
@@ -87,41 +88,14 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
-filesPerPtBin = 10 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
-
-if filesNameLike == 'allPt' :
-    for ptCode in range(31, 4, -1) : #the rigt bound of range is not included 
-        if ptCode == 5 : #5 is 3-4 GeV (maybe 3-3.5 GeV). 4 is 2-3GeV (maybe 2.5-3 GeV), very small fraction makes candidates, and even less reaches the second station
-            filesPerPtBin = 30
-        elif ptCode == 6 : #5 is 3-4 GeV (maybe 3-3.5 GeV). 4 is 2-3GeV (maybe 2.5-3 GeV), very small fraction makes candidates, and even less reaches the second station
-            filesPerPtBin = 20    
-        elif ptCode <= 7 : 
-            filesPerPtBin = 10
-        elif ptCode <= 12 :
-            filesPerPtBin = 5
-        else :    
-            filesPerPtBin = 3
-            
-        for sign in ['_m', '_p'] : #, m
-            selFilesPerPtBin = 0
-            for i in range(1, 2, 1): #TODO
-                for f in onlyfiles:
-                   if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): #TODO for 721_FullEta_v4/
-                   #if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f):  #TODO for 9_3_14_FullEta_v2
-                        #print(f)
-                        chosenFiles.append('file://' + path + f) 
-                        selFilesPerPtBin += 1
-                if(selFilesPerPtBin >= filesPerPtBin):
-                    break
-                        
-else :
-    for i in range(1, 2, 1):
-        for f in onlyfiles:
-            if (( filesNameLike + '_' + str(i) + '_') in f):  #TODO for 721_FullEta_v4/
-            #if (( filesNameLike + '_' + str(i) + '.') in f): #TODO for 9_3_14_FullEta_v2
-                print(f)
-                chosenFiles.append('file://' + path + f) 
-         
+fileCnt = 1500 
+firstFile = 1 #1001            
+for i in range(firstFile, firstFile + fileCnt, 1):
+    filePathName = path + "custom_Displaced_" + str(i) + "_numEvent5000.root"
+    if isfile(filePathName) :
+        #chosenFiles.append('file://' + path + "custom_Displaced_Run3_" + str(i) + "_numEvent1000.root") 
+        #chosenFiles.append('file://' + path + "custom_Displaced_Run3_" + str(i) + "_numEvent2000.root") 
+        chosenFiles.append('file://' + filePathName)
 
 print("chosenFiles")
 for chFile in chosenFiles:
@@ -198,7 +172,7 @@ process.simOmtfDigis.patternGenerator = cms.string("patternGen")
 
 process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfDigis.generatePatterns = cms.bool(True)
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_test_v3.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_dispalced_test.xml")
 
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
@@ -208,7 +182,7 @@ process.simOmtfDigis.minDtPhiQuality = cms.int32(4)
 process.simOmtfDigis.minDtPhiBQuality = cms.int32(4)
 
 process.simOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(3) ## is needed here , becasue it just counts the number of layers with a stub
-process.simOmtfDigis.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+process.simOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
 
 #process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
