@@ -159,13 +159,6 @@ void OMTFReconstruction::beginRun(edm::Run const& run,
         } else {  //in principle should not happen
           throw cms::Exception("OMTFReconstruction::beginRun: omtfParams is nullptr");
         }
-        auto omtfProcGoldenPat = dynamic_cast<OMTFProcessor<GoldenPatternWithStat>*>(omtfProc.get());
-
-        if (edmParameterSet.exists("generatePatterns") && edmParameterSet.getParameter<bool>("generatePatterns")) {
-          observers.emplace_back(
-              std::make_unique<PatternGenerator>(edmParameterSet, omtfConfig.get(), omtfProcGoldenPat->getPatterns()));
-          edm::LogVerbatim("OMTFReconstruction") << "generatePatterns: true " << std::endl;
-        }
       }
     } else {
       throw cms::Exception("OMTFReconstruction::beginRun: unknown GoldenPattern type: " + patternType);
@@ -221,6 +214,25 @@ void OMTFReconstruction::addObservers(
     if (edmParameterSet.exists("dumpHitsToROOT") && edmParameterSet.getParameter<bool>("dumpHitsToROOT")) {
       std::string rootFileName = edmParameterSet.getParameter<std::string>("dumpHitsFileName");
       observers.emplace_back(std::make_unique<DataROOTDumper2>(edmParameterSet, omtfConfig.get(), rootFileName));
+    }
+  }
+
+  auto omtfProcGoldenPatWithStat = dynamic_cast<OMTFProcessor<GoldenPatternWithStat>*>(omtfProc.get());
+  if(omtfProcGoldenPatWithStat) {
+    if (edmParameterSet.exists("eventCaptureDebug"))
+      if (edmParameterSet.getParameter<bool>("eventCaptureDebug")) {
+        observers.emplace_back(std::make_unique<EventCapture>(
+            edmParameterSet, omtfConfig.get(), candidateSimMuonMatcher, muonGeometryTokens
+            //&(omtfProcGoldenPat->getPatterns() ),
+            //watch out, will crash if the proc is re-constructed from the DB after L1TMuonOverlapParamsRcd change
+            ));
+      }
+
+    if (edmParameterSet.exists("generatePatterns") && edmParameterSet.getParameter<bool>("generatePatterns")) {
+      observers.emplace_back(
+          std::make_unique<PatternGenerator>(edmParameterSet, omtfConfig.get(),
+              omtfProcGoldenPatWithStat->getPatterns(), candidateSimMuonMatcher));
+      edm::LogVerbatim("OMTFReconstruction") << "generatePatterns: true " << std::endl;
     }
   }
 }

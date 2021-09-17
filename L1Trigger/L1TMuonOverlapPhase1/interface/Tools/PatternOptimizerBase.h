@@ -61,10 +61,12 @@ protected:
   //GoldenPatternResult omtfResult;
   //GoldenPatternResult exptResult;
 
-  TH1I* simMuPt;
-  TH1I* simMuFoundByOmtfPt;
+  TH1I* simMuPt = nullptr;
+  TH1I* simMuFoundByOmtfPt = nullptr;
 
-  TH1F* simMuPtSpectrum;
+  TH1F* simMuPtSpectrum = nullptr;
+  TH2I* simMuPtVsDispl = nullptr;
+  TH2I* simMuPtVsRho = nullptr;
 
   bool writeLayerStat = false;
 };

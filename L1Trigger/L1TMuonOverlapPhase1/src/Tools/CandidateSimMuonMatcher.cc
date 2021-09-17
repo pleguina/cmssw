@@ -664,6 +664,11 @@ std::vector<MatchingResult> CandidateSimMuonMatcher::match(std::vector<const l1t
       //if(muonCand->hwQual() > 1)
       {  //dropping very low quality candidates, as they are fakes usually - has no sense, then the results are not conclusive
         MatchingResult result = match(muonCand, ghostBustedProcMuons.at(iCand), simTrack, tsof);
+
+        int vtxInd = simTrack.vertIndex();
+        if (vtxInd >= 0) {
+          result.simVertex = &(simVertices->at(vtxInd));
+        }
         if (result.result == MatchingResult::ResultType::matched) {
           matchingResults.push_back(result);
           matched = true;
