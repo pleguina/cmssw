@@ -43,7 +43,7 @@ void PatternGenerator::initPatternGen() {
     gp->reset();
 
     int statBinsCnt = 1024;  //gp->getPdf()[0][0].size() * 8; //TODO should be big enough to comprise the pdf tails
-    gp->iniStatisitics(statBinsCnt, statBinsCnt);  //TODO
+    gp->iniStatisitics(statBinsCnt, 1);  //TODO statBinsCnt
   }
 
   edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::initPatternGen():" << __LINE__
@@ -341,6 +341,127 @@ void PatternGenerator::updateStatUsingMatcher() {
   }
 }
 
+void PatternGenerator::updateStatUsingMatcher2() {
+  //cout<<__FUNCTION__<<":"<<__LINE__<<" omtfCand "<<*omtfCand<<std::endl;;
+
+  std::vector<MatchingResult> matchingResults = candidateSimMuonMatcher->getMatchingResults();
+  LogTrace("l1tOmtfEventPrint") << "matchingResults.size() " << matchingResults.size() << std::endl;
+
+  //candidateSimMuonMatcher should use the  trackingParticles, because the simTracks are not stored for the pile-up events
+  for (auto& matchingResult : matchingResults) {
+    if (matchingResult.muonCand && matchingResult.simTrack) {
+        //&& matchingResult.muonCand->hwQual() >= 12 &&
+        //matchingResult.muonCand->hwPt() > 38
+
+      AlgoMuon* algoMuon = matchingResult.procMuon.get();
+      if (!algoMuon) {
+        edm::LogImportant("l1tOmtfEventPrint") << ":" << __LINE__ << " algoMuon is null" << std::endl;
+        throw runtime_error("algoMuon is null");
+      }
+
+
+      double ptSim = matchingResult.simTrack->momentum().pt();
+      int chargeSim = (abs(matchingResult.simTrack->type()) == 13) ? matchingResult.simTrack->type() / -13 : 0;
+
+      double muDxy = (-1 * matchingResult.simVertex->position().x() * matchingResult.simTrack->momentum().py()
+          + matchingResult.simVertex->position().y() * matchingResult.simTrack->momentum().px()) / matchingResult.simTrack->momentum().pt();;
+
+
+      simMuPtVsDispl->Fill(matchingResult.simTrack->momentum().pt(), muDxy);
+      simMuPtVsRho->Fill(matchingResult.simTrack->momentum().pt(), matchingResult.simVertex->position().rho() );
+
+      unsigned int exptPatNum = omtfConfig->getPatternNum(ptSim, chargeSim);
+      GoldenPatternWithStat* exptCandGp = goldenPatterns.at(exptPatNum).get();  // expected pattern
+
+      eventCntPerGp[exptPatNum]++;
+
+      candProcIndx = omtfConfig->getProcIndx(matchingResult.muonCand->processor(), matchingResult.muonCand->trackFinderType());
+
+      //edm::LogImportant("l1tOmtfEventPrint")<<"\n" <<__FUNCTION__<<": "<<__LINE__<<" exptCandGp "<<exptCandGp->key()<<" candProcIndx "<<candProcIndx<<" ptSim "<<ptSim<<" chargeSim "<<chargeSim<<std::endl;
+      /*
+  unsigned int iCharge = omtfCand->getCharge();
+  if (iCharge != 1)
+    iCharge = 0;*/
+
+      int pdfMiddle = 1 << (omtfConfig->nPdfAddrBits() - 1);
+
+      //iRefHit is the index of the hit
+      for (unsigned int iRefHit = 0; iRefHit < exptCandGp->getResults()[candProcIndx].size(); ++iRefHit) {
+        auto& gpResult = exptCandGp->getResults()[candProcIndx][iRefHit];
+        //unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefHit];
+
+        unsigned int refLayer = gpResult.getRefLayer();
+
+        //cout<<gpResult;
+        if (gpResult.getFiredLayerCnt() >= 3) {
+          LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" updating statistic: candProcIndx "<<candProcIndx
+              <<" iRefHit "<<iRefHit<<" refLayer "<<refLayer<<" exptPatNum "<<exptPatNum
+              <<" ptSim "<< ptSim <<" chargeSim "<<chargeSim<<" muDxy "<<muDxy
+              <<" muRho "<<matchingResult.simVertex->position().rho()
+              <<" x "<<matchingResult.simVertex->position().x()
+              <<" y "<<matchingResult.simVertex->position().y()
+              <<" z "<<matchingResult.simVertex->position().z()<<std::endl;
+
+          int refPhiB = gpResult.getStubResults()[refLayer].getMuonStub()->phiBHw;
+
+          int refPhiBShifted = refPhiB + exptCandGp->getStatistics()[0][refLayer][0].size()/2;
+          if(refPhiBShifted < 0 || refPhiBShifted >= (int)exptCandGp->getStatistics()[0][refLayer][0].size() ) {
+            edm::LogImportant("l1tOmtfEventPrint")<<"\n" <<__FUNCTION__<<": "<<__LINE__<<" wrong refPhiB "<<refPhiB;
+            continue;
+          }
+
+
+          for (unsigned int iLayer = 0; iLayer < gpResult.getStubResults().size(); iLayer++) {
+            //updating statistic for the gp which should have fired
+
+            bool fired = false;
+            if (gpResult.getStubResults()[iLayer].getMuonStub()) {
+              if (omtfConfig->isBendingLayer(iLayer)) {
+                if (gpResult.getStubResults()[iLayer].getMuonStub()->qualityHw >= 4)  //TODO change quality cut if needed
+                  fired = true;
+              } else
+                fired = true;
+            }
+
+            if (fired) {  //the result is not empty
+              int meanDistPhi = exptCandGp->meanDistPhiValue(iLayer, refLayer, refPhiB); //should be 0 here
+
+              int phiDist = gpResult.getStubResults()[iLayer].getPdfBin() + meanDistPhi - pdfMiddle;
+              //removing the shift applied in the GoldenPatternBase::process1Layer1RefLayer
+
+              /*
+          if(ptDeltaPhiHists[iCharge][iLayer] != nullptr &&
+              (iLayer == refLayerLogicNum || omtfConfig->getLogicToLogic().at(iLayer) == (int)refLayerLogicNum) )
+            ptDeltaPhiHists[iCharge][iLayer]->Fill(ttAlgoMuon->getPt(), phiDist); //TODO correct
+               */
+
+              int lutMiddle = exptCandGp->getStatistics()[iLayer][refLayer].size() / 2;
+
+              LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" refLayer "<<refLayer<<" iLayer "<<iLayer<<" phiDist "<<phiDist
+                  <<" getPdfBin "<<gpResult.getStubResults()[iLayer].getPdfBin()<<" phiMean "<<meanDistPhi<<" refPhiB "<<refPhiB <<std::endl;
+
+              //updating statistic for the gp which found the candidate
+              //edm::LogImportant("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" updating statistic "<<std::endl;
+
+
+              int phiDistCorr = phiDist + lutMiddle;
+
+              if (phiDistCorr > 0 && phiDistCorr < (int)(exptCandGp->getStatistics()[iLayer][refLayer].size())) {
+                LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" phiDistCorr + lutMiddle "<<phiDistCorr + lutMiddle<<std::endl;
+                exptCandGp->updateStat(iLayer, refLayer, phiDistCorr, refPhiBShifted, 1);
+              }
+            } else {  //if there is no hit at all in a given layer, the bin = 0 is filled
+              int phiDist = 0;
+              exptCandGp->updateStat(iLayer, refLayer, phiDist, refPhiBShifted, 1);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
 void PatternGenerator::observeEventEnd(const edm::Event& iEvent,
                                        std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
   if (simMuon == nullptr || omtfCand->getGoldenPatern() == nullptr)  //no sim muon or empty candidate
@@ -351,8 +472,8 @@ void PatternGenerator::observeEventEnd(const edm::Event& iEvent,
 
   PatternOptimizerBase::observeEventEnd(iEvent, finalCandidates);
 
-  //updateStat();
-  updateStatUsingMatcher();
+  updateStat();
+  //updateStatUsingMatcher2();
 }
 
 void PatternGenerator::endJob() {

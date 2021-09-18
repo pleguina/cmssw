@@ -220,7 +220,7 @@ void PatternOptimizerBase::savePatternsInRoot(std::string rootFileName) {
 
         /////////////////////// histLayerStat
         if (writeLayerStat) {
-          bool saveTh2 = true;
+          bool saveTh2 = false; //TODO - take it from somewhere
           outfile.cd("layerStats");
 
           string histName = "histLayerStat_" + ostrName.str();

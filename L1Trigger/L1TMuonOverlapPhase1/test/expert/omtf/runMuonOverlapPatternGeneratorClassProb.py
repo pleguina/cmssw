@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("L1TMuonEmulation")
 import os
 import sys
-import commands
+#import commands
 import re
 from os import listdir
 from os.path import isfile, join
@@ -24,7 +24,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('Patterns_0x00012_oldSample_3_30Files_grouped1_classProb17_recalib2'),
+                         filename  = cms.untracked.string('Patterns_layerStat_withExtrInpL0_DtHighQ_v5'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -43,13 +43,18 @@ if not verbose:
     process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False), 
                                          #SkipEvent = cms.untracked.vstring('ProductNotFound') 
                                      )
+    
+# PostLS1 geometry used
+process.load('Configuration.Geometry.GeometryExtended2015Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2015_cff')    
+    
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
-process.load('Configuration.Geometry.GeometryExtended2026D41Reco_cff')
-process.load('Configuration.Geometry.GeometryExtended2026D41_cff')
+#process.load('Configuration.Geometry.GeometryExtended2026D41Reco_cff')
+#process.load('Configuration.Geometry.GeometryExtended2026D41_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 #process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
@@ -67,7 +72,7 @@ path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sampl
 #path = '/afs/cern.ch/work/k/kbunkow/public/data/SingleMuFullEta/721_FullEta_v4/'
 
 onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
-#print onlyfiles
+#print(onlyfiles)
 
 filesNameLike = sys.argv[2]
 #chosenFiles = ['file://' + path + f for f in onlyfiles if (('_p_10_' in f) or ('_m_10_' in f))]
@@ -75,7 +80,7 @@ filesNameLike = sys.argv[2]
 #chosenFiles = ['file://' + path + f for f in onlyfiles if (re.match('.*_._p_10.*', f))]
 #chosenFiles = ['file://' + path + f for f in onlyfiles if ((filesNameLike in f))]
 
-#print onlyfiles
+#print(onlyfiles)
 
 chosenFiles = []
 
@@ -96,7 +101,7 @@ if filesNameLike == 'allPt' :
                 for f in onlyfiles:
                    if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): #TODO for 721_FullEta_v4/
                    #if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f):  #TODO for 9_3_14_FullEta_v2
-                        #print f
+                        #print(f)
                         chosenFiles.append('file://' + path + f) 
                         selFilesPerPtBin += 1
                 if(selFilesPerPtBin >= filesPerPtBin):
@@ -107,16 +112,16 @@ else :
         for f in onlyfiles:
             if (( filesNameLike + '_' + str(i) + '_') in f):  #TODO for 721_FullEta_v4/
             #if (( filesNameLike + '_' + str(i) + '.') in f): #TODO for 9_3_14_FullEta_v2
-                print f
+                print(f)
                 chosenFiles.append('file://' + path + f) 
          
 
-print "chosenFiles"
+print("chosenFiles")
 for chFile in chosenFiles:
-    print chFile
+    print(chFile)
 
 if len(chosenFiles) == 0 :
-    print "no files selected!!!!!!!!!!!!!!!"
+    print("no files selected!!!!!!!!!!!!!!!")
     exit
 
 firstEv = 0#40000
@@ -143,7 +148,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1))
 
 ####Event Setup Producer
 process.load('L1Trigger.L1TMuonOverlapPhase1.fakeOmtfParams_cff')
-#process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen.xml"),
+process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen.xml")
 
 process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
    toGet = cms.VPSet(
@@ -181,12 +186,14 @@ process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapP
 #process.simOmtfDigis.patternGenerator = cms.string("groupPatterns")
 process.simOmtfDigis.patternGenerator = cms.string("patternGenFromStat")
 #process.simOmtfDigis.patternGenerator = cms.string("") #does nothing except storing the patterns in the root file
-process.simOmtfDigis.patternsROOTFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x00011_oldSample_3_30Files_layerStat.root")
+#process.simOmtfDigis.patternsROOTFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x00011_oldSample_3_30Files_layerStat.root")
+process.simOmtfDigis.patternsROOTFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_layerStat_withExtrInpL0_DtHighQ_v5.root")
 
 process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfDigis.generatePatterns = cms.bool(True)
 #process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x0009_oldSample_3_10Files_classProb3.xml")
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x00012_oldSample_3_30Files_grouped1_classProb17_recalib2.xml")
+#process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x00012_oldSample_3_30Files_grouped1_classProb17_recalib2.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_withExtrInpL0_DtHighQ_v5.xml")
 #process.simOmtfDigis.optimisedPatsXmlFile = cms.string("PatternsDisplaced_0x0007_p.xml")
 
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(3)

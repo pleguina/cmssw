@@ -88,7 +88,7 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
-fileCnt = 1500 
+fileCnt = 15 
 firstFile = 1 #1001            
 for i in range(firstFile, firstFile + fileCnt, 1):
     filePathName = path + "custom_Displaced_" + str(i) + "_numEvent5000.root"

@@ -24,7 +24,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_Patterns_test_v3'),
+                         filename  = cms.untracked.string('log_Patterns_test_v4'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('INFO'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -101,7 +101,7 @@ if filesNameLike == 'allPt' :
             
         for sign in ['_m', '_p'] : #, m
             selFilesPerPtBin = 0
-            for i in range(1, 2, 1): #TODO
+            for i in range(1, 50, 1): #TODO
                 for f in onlyfiles:
                    if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): #TODO for 721_FullEta_v4/
                    #if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f):  #TODO for 9_3_14_FullEta_v2
@@ -153,7 +153,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 
 ####Event Setup Producer
 process.load('L1Trigger.L1TMuonOverlapPhase1.fakeOmtfParams_cff')
-process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen_displ.xml")
+process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen.xml")
 
 process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
    toGet = cms.VPSet(
@@ -195,7 +195,7 @@ process.simOmtfDigis.patternGenerator = cms.string("patternGen")
 
 process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfDigis.generatePatterns = cms.bool(True)
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_test_v3.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_test_v4.xml")
 
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
