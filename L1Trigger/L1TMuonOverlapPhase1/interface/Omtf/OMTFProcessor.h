@@ -54,6 +54,8 @@ public:
     return ProcessorBase<GoldenPatternType>::configure(omtfParams, omtfPatterns);
   }*/
 
+  static int extrapolateDtPhiB(const MuonStubPtr& refStub, const MuonStubPtr& targetStub, unsigned int iLayer, const OMTFConfiguration* omtfConfig);
+
   ///Process input data from a single event
   ///Input data is represented by hits in logic layers expressed in local coordinates
   void processInput(unsigned int iProcessor, l1t::tftype mtfType, const OMTFinput& aInput) override;

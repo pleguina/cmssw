@@ -7,7 +7,7 @@
 #include <ostream>
 #include <memory>
 
-//#undef BOOST_DISABLE_ASSERTS  //TODO remove for production version
+#undef BOOST_DISABLE_ASSERTS  //TODO remove for production version
 #include "boost/multi_array.hpp"
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
@@ -253,6 +253,11 @@ public:
 
   void setGhostBusterType(const std::string& ghostBusterType = "") { this->ghostBusterType = ghostBusterType; }
 
+
+  bool getUsePhiBExtrapolation() const {
+    return this->usePhiBExtrapolation;
+  }
+
   void printConfig() const;
 
 private:
@@ -309,11 +314,15 @@ private:
 
   int goldenPatternResultFinalizeFunction = 0;
 
+  //likelihood of "no hit" in the pdf
   bool noHitValueInPdf = false;
 
   int sorterType = 0;
 
   std::string ghostBusterType = "";
+
+  //if true,  in the OMTFProcessor<GoldenPatternType>::processInput the phiB extrapolation is used
+  bool usePhiBExtrapolation = true;
 };
 
 #endif

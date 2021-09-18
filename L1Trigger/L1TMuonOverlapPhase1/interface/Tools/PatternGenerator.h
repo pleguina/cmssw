@@ -31,6 +31,7 @@ protected:
   void updateStat();
 
   void updateStatUsingMatcher();
+  void updateStatUsingMatcher2();
 
   void upadatePdfs();
 
