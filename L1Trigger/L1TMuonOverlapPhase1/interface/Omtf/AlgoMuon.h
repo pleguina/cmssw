@@ -14,7 +14,7 @@ public:
       : AlgoMuonBase(gp->getConfig()),
         gpResult(gpResult),
         goldenPatern(gp),
-        m_q(gpResult.getFiredLayerCnt()),  //initial value of quality, can be altered later
+        //m_q(gpResult.getFiredLayerCnt()),  //initial value of quality, can be altered later
         m_bx(bx),
         m_rhitNumb(refHitNumber) {}
 
@@ -29,7 +29,7 @@ public:
   int getEtaHw() const override { return gpResult.getEta(); }
   int getRefLayer() const { return gpResult.getRefLayer(); }
   unsigned int getFiredLayerBits() const { return gpResult.getFiredLayerBits(); }
-  int getQ() const { return m_q; }
+  int getQ() const;// { return m_q; }
   int getBx() const { return m_bx; }
 
   int getPt() const {
@@ -59,7 +59,7 @@ public:
 
   unsigned int getRefHitNumber() const { return m_rhitNumb; }
 
-  void setQ(int q) { m_q = q; }
+  //void setQ(int q) { m_q = q; }
   void setEta(int eta) { gpResult.setEta(eta); }
 
   /*  void setDisc(omtfPdfValueType disc) { m_disc = disc; }
@@ -105,14 +105,36 @@ public:
 
   friend std::ostream& operator<<(std::ostream& out, const AlgoMuon& o);
 
+  const GoldenPatternResult& getGpResultUpt() const {
+    return gpResultUpt;
+  }
+
+  void setGpResultUpt(const GoldenPatternResult& gpResultUpt) {
+    this->gpResultUpt = gpResultUpt;
+  }
+
+  const GoldenPatternBase* getGoldenPaternUpt() const {
+    return goldenPaternUpt;
+  }
+
+  void setGoldenPaternUpt(const GoldenPatternBase* goldenPaternUpt) {
+    this->goldenPaternUpt = goldenPaternUpt;
+  }
+
 private:
-  ///gpResult stored in the goldenPatern can be updated more then once in one event (many ttTracks in one event in one processor!),
-  ///so gpResult cannot be a reference or pointer but a copy
+  //TODO make it pointer
   GoldenPatternResult gpResult;
+
+  //GoldenPatternResult without vertex constraint (unconstrained pt)
+  //TODO make it pointer
+  GoldenPatternResult gpResultUpt;
 
   GoldenPatternBase* goldenPatern = nullptr;
 
-  int m_q = -1;
+  //GoldenPattern without vertex constraint (unconstrained pt)
+  const GoldenPatternBase* goldenPaternUpt = nullptr;
+
+  //int m_q = -1;
   int m_bx = 0;
 
   /*  omtfPdfValueType m_disc;
