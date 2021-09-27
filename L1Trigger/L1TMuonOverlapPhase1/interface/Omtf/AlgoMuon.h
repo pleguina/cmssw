@@ -116,7 +116,7 @@ public:
     return goldenPaternUpt;
   }
 
-  void setGoldenPaternUpt(const GoldenPatternBase* goldenPaternUpt) {
+  void setGoldenPaternUpt(GoldenPatternBase* goldenPaternUpt) {
     this->goldenPaternUpt = goldenPaternUpt;
   }
 
