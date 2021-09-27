@@ -253,9 +253,28 @@ public:
 
   void setGhostBusterType(const std::string& ghostBusterType = "") { this->ghostBusterType = ghostBusterType; }
 
+  bool getUsePhiBExtrapolationMB1() const {
+    return this->usePhiBExtrapolationFromMB1;
+  }
 
-  bool getUsePhiBExtrapolation() const {
-    return this->usePhiBExtrapolation;
+  bool getUsePhiBExtrapolationMB2() const {
+    return this->usePhiBExtrapolationFromMB2;
+  }
+
+  void setUsePhiBExtrapolationFromMB1(bool usePhiBExtrapolationFromMb1 = true) {
+    usePhiBExtrapolationFromMB1 = usePhiBExtrapolationFromMb1;
+  }
+
+  void setUsePhiBExtrapolationFromMB2(bool usePhiBExtrapolationFromMb2 = true) {
+    usePhiBExtrapolationFromMB2 = usePhiBExtrapolationFromMb2;
+  }
+
+  int getDtRefHitMinQuality() const {
+    return dtRefHitMinQuality;
+  }
+
+  void setDtRefHitMinQuality(int dtRefHitMinQuality = 2) {
+    this->dtRefHitMinQuality = dtRefHitMinQuality;
   }
 
   void printConfig() const;
@@ -321,8 +340,15 @@ private:
 
   std::string ghostBusterType = "";
 
-  //if true,  in the OMTFProcessor<GoldenPatternType>::processInput the phiB extrapolation is used
-  bool usePhiBExtrapolation = true;
+  //if true, in the OMTFProcessor<GoldenPatternType>::processInput the phiB extrapolation is used for the refHit of the MB1, i.e. logicLayer 0 and 1
+  bool usePhiBExtrapolationFromMB1 = false;
+
+  //if true, in the OMTFProcessor<GoldenPatternType>::processInput the phiB extrapolation is used for the refHit of the MB2, i.e. logicLayer 2 and 3
+  bool usePhiBExtrapolationFromMB2 = false;
+
+  //min quality of the DT phi hit used as the reference hit
+  //Remember that it is on the top of the minDtPhiQuality
+  int dtRefHitMinQuality = 2;
 };
 
 #endif

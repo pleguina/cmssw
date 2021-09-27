@@ -88,7 +88,7 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
-fileCnt = 15 
+fileCnt = 50 
 firstFile = 1 #1001            
 for i in range(firstFile, firstFile + fileCnt, 1):
     filePathName = path + "custom_Displaced_" + str(i) + "_numEvent5000.root"
@@ -130,7 +130,9 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 
 ####Event Setup Producer
 process.load('L1Trigger.L1TMuonOverlapPhase1.fakeOmtfParams_cff')
-process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen_displ.xml")
+#process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen_displ.xml")
+process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen_displ_ref_0_and_2.xml")
+
 
 process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
    toGet = cms.VPSet(
@@ -172,7 +174,7 @@ process.simOmtfDigis.patternGenerator = cms.string("patternGen")
 
 process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfDigis.generatePatterns = cms.bool(True)
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_dispalced_test.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_dispalced_test_v1.xml")
 
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
@@ -181,8 +183,14 @@ process.simOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 process.simOmtfDigis.minDtPhiQuality = cms.int32(4)
 process.simOmtfDigis.minDtPhiBQuality = cms.int32(4)
 
+process.simOmtfDigis.dtRefHitMinQuality =  cms.int32(4)
+
+process.simOmtfDigis.usePhiBExtrapolationFromMB1 = cms.bool(True)
+process.simOmtfDigis.usePhiBExtrapolationFromMB2 = cms.bool(False)
+
 process.simOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(3) ## is needed here , becasue it just counts the number of layers with a stub
 process.simOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+
 
 
 #process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")

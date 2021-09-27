@@ -42,8 +42,14 @@ void PatternGenerator::initPatternGen() {
 
     gp->reset();
 
-    int statBinsCnt = 1024;  //gp->getPdf()[0][0].size() * 8; //TODO should be big enough to comprise the pdf tails
-    gp->iniStatisitics(statBinsCnt, 1);  //TODO statBinsCnt
+    int statBinsCnt1 = 1024; //TODO should be big enough to comprise the pdf tails
+
+    //int statBinsCnt2 = 1; //for normal pattern gerneration
+    int statBinsCnt2 = 1; //for 2D distribution, phiB vs phiDist, but if done for 8 ref layers, consumes too much memory
+    if(statBinsCnt2 > 10 && omtfConfig->nRefLayers() > 2)
+      throw cms::Exception("PatternGenerator::initPatternGen(): statBinsCnt2 and omtfConfig->nRefLayers() too big, will consume too much memory");
+
+    gp->iniStatisitics(statBinsCnt1, statBinsCnt2);
   }
 
   edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::initPatternGen():" << __LINE__
@@ -408,11 +414,7 @@ void PatternGenerator::updateStatUsingMatcher2() {
 
             bool fired = false;
             if (gpResult.getStubResults()[iLayer].getMuonStub()) {
-              if (omtfConfig->isBendingLayer(iLayer)) {
-                if (gpResult.getStubResults()[iLayer].getMuonStub()->qualityHw >= 4)  //TODO change quality cut if needed
-                  fired = true;
-              } else
-                fired = true;
+              fired = true;
             }
 
             if (fired) {  //the result is not empty
