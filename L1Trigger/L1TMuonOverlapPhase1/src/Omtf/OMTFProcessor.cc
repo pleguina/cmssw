@@ -441,7 +441,13 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       }
 
       unsigned int refHitNumber = this->myOmtfConfig->nTestRefHits() - nTestedRefHits - 1;
-      int phiExtrp = extrapolateDtPhiB(aRefHitDef.iRefLayer, phiRef, refStub->phiBHw, 2, 0, 6, 0, this->myOmtfConfig);
+
+      int phiExtrp = 0;
+      if( (this->myOmtfConfig->getUsePhiBExtrapolationMB1() && aRefHitDef.iRefLayer == 0) ||
+          (this->myOmtfConfig->getUsePhiBExtrapolationMB2() && aRefHitDef.iRefLayer == 2)    ){
+        phiExtrp = extrapolateDtPhiB(aRefHitDef.iRefLayer, phiRef, refStub->phiBHw, 2, 0, 6, 0, this->myOmtfConfig);
+      }
+
       for (auto& itGP : this->theGPs) {
         if (itGP->key().thePt == 0)  //empty pattern
           continue;

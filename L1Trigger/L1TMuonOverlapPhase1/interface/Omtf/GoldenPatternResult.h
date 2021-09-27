@@ -23,10 +23,14 @@ private:
   int eta = 0;
 
   ///Sum of pdfValues
-  //omtfPdfValueType
   double pdfSum = 0;
 
   ///Number of fired layers - excluding bending layers
+  ///Sum of pdfValues without vertex constraint (unconstrained pt)
+  //i.e. not counting the pdfValue of the phiB of the refLayer
+  double pdfSumUpt = 0;
+
+  ///Number of fired layers
   unsigned int firedLayerCnt = 0;
 
   ///bits representing fired logicLayers (including bending layers),
@@ -79,6 +83,8 @@ public:
    * if finalise2() it is product of the pdfValues
    */
   PdfValueType getPdfSum() const { return pdfSum; }
+
+  PdfValueType getPdfSumUpt() const { return pdfSumUpt; }
 
   const StubResults& getStubResults() const { return stubResults; }
 

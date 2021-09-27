@@ -23,6 +23,15 @@ bool AlgoMuon::operator<(const AlgoMuon &o) const {
     return true;
 }
 
+
+int AlgoMuon::getQ() const {
+  //if the gpResultUpt was not set, the getFiredLayerCnt() is 0, so no other checks are needed here
+  if(gpResultUpt.getFiredLayerCnt() > gpResult.getFiredLayerCnt() )
+    return gpResultUpt.getFiredLayerCnt();
+
+  return gpResult.getFiredLayerCnt();
+}
+
 std::ostream &operator<<(std::ostream &out, const AlgoMuon &o) {
   out << "AlgoMuon: ";
   out << " pt: " << o.getPt() << ", phi: " << o.getPhi() << ", eta: " << o.getEtaHw()

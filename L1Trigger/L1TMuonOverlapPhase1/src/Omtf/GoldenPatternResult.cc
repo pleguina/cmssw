@@ -94,6 +94,7 @@ void GoldenPatternResult::reset() {
   phi = 0;
   eta = 0;
   pdfSum = 0;
+  pdfSumUpt = 0;
   firedLayerCnt = 0;
   firedLayerBits = 0;
   refHitPhi = 0;
@@ -311,6 +312,15 @@ void GoldenPatternResult::finalise9() {
       }
     }
   }
+
+  if( (omtfConfig->getUsePhiBExtrapolationMB1() && refLayer == 0) ||
+      (omtfConfig->getUsePhiBExtrapolationMB2() && refLayer == 2)    ) {
+    auto refLayerLogicNumber = omtfConfig->getRefToLogicNumber()[refLayer];
+    //Unconstrained pt is obtained by not including the pdfValue from the phiB of the refHit
+    pdfSumUpt = pdfSum - stubResults[refLayerLogicNumber].getPdfVal();
+  }
+  else
+    pdfSumUpt = pdfSum;
 
   valid = true;
   //by default result becomes valid here, but can be overwritten later
