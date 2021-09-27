@@ -85,6 +85,8 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     candidate.setHwSign(myCand->getCharge() < 0 ? 1 : 0);
     candidate.setHwSignValid(1);
 
+    candidate.setHwPtUnconstrained(myCand->getPtUnconstrained());
+
     unsigned int quality = 12;
     if (this->myOmtfConfig->fwVersion() <= 6)
       quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3) : 0 | (1 << 2);

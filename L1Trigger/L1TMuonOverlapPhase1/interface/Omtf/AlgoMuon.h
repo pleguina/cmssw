@@ -38,6 +38,12 @@ public:
     return goldenPatern->key().thePt;
   }
 
+  int getPtUnconstrained() const {
+    if (goldenPaternUpt == nullptr)
+      return -1;
+    return goldenPaternUpt->key().thePt;
+  }
+
   int getCharge() const {
     if (goldenPatern == nullptr)
       return 0;
@@ -117,7 +123,7 @@ public:
     return goldenPaternUpt;
   }
 
-  void setGoldenPaternUpt(const GoldenPatternBase* goldenPaternUpt) {
+  void setGoldenPaternUpt(GoldenPatternBase* goldenPaternUpt) {
     this->goldenPaternUpt = goldenPaternUpt;
   }
 
@@ -132,7 +138,7 @@ private:
   GoldenPatternBase* goldenPatern = nullptr;
 
   //GoldenPattern without vertex constraint (unconstrained pt)
-  const GoldenPatternBase* goldenPaternUpt = nullptr;
+  GoldenPatternBase* goldenPaternUpt = nullptr;
 
   //int m_q = -1;
   int m_bx = 0;
