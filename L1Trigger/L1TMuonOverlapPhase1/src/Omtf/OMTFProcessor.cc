@@ -54,7 +54,9 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
   //initialize with the default sorter
 
   if (this->myOmtfConfig->getGhostBusterType() == "GhostBusterPreferRefDt" ||
-      this->myOmtfConfig->getGhostBusterType() == "byLLH") {
+      this->myOmtfConfig->getGhostBusterType() == "byLLH" ||
+      this->myOmtfConfig->getGhostBusterType() == "byFPLLH"  ||
+      this->myOmtfConfig->getGhostBusterType() == "byRefLayer" ) {
     setGhostBuster(new GhostBusterPreferRefDt(this->myOmtfConfig));
     edm::LogVerbatim("OMTFReconstruction") << "setting " << this->myOmtfConfig->getGhostBusterType() << std::endl;
   } else {
@@ -85,13 +87,16 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     candidate.setHwSign(myCand->getCharge() < 0 ? 1 : 0);
     candidate.setHwSignValid(1);
 
-    candidate.setHwPtUnconstrained(myCand->getPtUnconstrained());
+    if(myCand->getPtUnconstrained() >= 0) //empty PtUnconstrained is -1, maybe should be corrected on the source
+      candidate.setHwPtUnconstrained(myCand->getPtUnconstrained());
+    else
+      candidate.setHwPtUnconstrained(0);
 
     unsigned int quality = 12;
     if (this->myOmtfConfig->fwVersion() <= 6)
-      quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3) : 0 | (1 << 2);
+      quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3) : 0 | (1 << 2); //12 : 4
 
-    if (abs(myCand->getEtaHw()) == 115 &&
+    if (abs(myCand->getEtaHw()) == 115 && //115 is eta 1.25
         (static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001110000000").to_ulong() ||
          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000001110000000").to_ulong() ||
          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000110000000").to_ulong() ||
@@ -230,6 +235,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     trackAddr[0] = myCand->getFiredLayerBits();
     trackAddr[1] = myCand->getRefLayer();
     trackAddr[2] = myCand->getDisc();
+    trackAddr[3] = myCand->getGpResultUpt().getPdfSumUpt();
     if (candidate.hwPt() > 0) {
       if (ptAssignment) {
         auto pts = ptAssignment->getPts(myCand);
@@ -293,9 +299,6 @@ template <class GoldenPatternType>
 int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const int& refLogicLayer, const int& refPhi, const int& refPhiB, unsigned int targetLayer, const int& targetStubPhi, const int& targetStubQuality,  const int& targetStubR, const OMTFConfiguration* omtfConfig) {
 
   LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" refLogicLayer "<<refLogicLayer <<" targetLayer "<<targetLayer<<std::endl;
-
-  //updating statistic for the gp which found the candidate
-  //edm::LogImportant("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" updating statistic "<<std::endl;
 
   double hsPhiPitch = 2 * M_PI / omtfConfig->nPhiBins(); //rad/halfStrip
 

@@ -27,7 +27,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_Patterns_test_v5'),
+                         filename  = cms.untracked.string('Patterns_layerStat_ExtraplMB1nadMB2_t10'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('INFO'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -115,7 +115,7 @@ if filesNameLike == 'allPt' :
                     break
                         
 else :
-    for i in range(1, 3, 1):
+    for i in range(1, 2, 1):
         for f in onlyfiles:
             if (( filesNameLike + '_' + str(i) + '_') in f):  #TODO for 721_FullEta_v4/
             #if (( filesNameLike + '_' + str(i) + '.') in f): #TODO for 9_3_14_FullEta_v2
@@ -176,10 +176,10 @@ process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAl
 #process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorOpposite_cfi")
 #process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 
-process.simOmtfDigis.candidateSimMuonMatcher = cms.bool(True)
+#process.simOmtfDigis.candidateSimMuonMatcher = cms.bool(True)
 process.simOmtfDigis.simTracksTag = cms.InputTag('g4SimHits')
-process.simOmtfDigis.simVertexesTag = cms.InputTag('g4SimHits')
-process.simOmtfDigis.muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev_withOvf.root")
+#process.simOmtfDigis.simVertexesTag = cms.InputTag('g4SimHits')
+#process.simOmtfDigis.muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev_withOvf.root")
 
 
 process.simOmtfDigis.bxMin = cms.int32(0)
@@ -198,13 +198,13 @@ process.simOmtfDigis.patternGenerator = cms.string("patternGen")
 
 process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfDigis.generatePatterns = cms.bool(True)
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_test_v5.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_ExtraplMB1nadMB2_t10.xml")
 
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
 process.simOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simOmtfDigis.minDtPhiQuality = cms.int32(4)
+process.simOmtfDigis.minDtPhiQuality = cms.int32(2)
 process.simOmtfDigis.minDtPhiBQuality = cms.int32(4)
 
 process.simOmtfDigis.dtRefHitMinQuality =  cms.int32(4)

@@ -86,6 +86,9 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
 
   auto customLessByReLayer = [&](const AlgoMuons::value_type& a, const AlgoMuons::value_type& b) -> bool {
     if (!a->isValid()) {
+
+  auto customByRefLayer = [&](const AlgoMuons::value_type& a, const AlgoMuons::value_type& b)->bool {
+    if(!a->isValid()) {
       return true;
     }
     if (!b->isValid()) {
@@ -119,6 +122,8 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
     std::sort(muonsIN.rbegin(), muonsIN.rend(), customLessByFPLLH);
   else if (omtfConfig->getGhostBusterType() == "byReLayer")
     std::sort(muonsIN.rbegin(), muonsIN.rend(), customLessByReLayer);
+  else if (omtfConfig->getGhostBusterType() == "byRefLayer")
+    std::sort(muonsIN.rbegin(), muonsIN.rend(), customByRefLayer);
   else
     std::sort(muonsIN.rbegin(), muonsIN.rend(), customLess);
 

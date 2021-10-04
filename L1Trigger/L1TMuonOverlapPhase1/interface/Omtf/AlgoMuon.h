@@ -34,13 +34,13 @@ public:
 
   int getPt() const {
     if (goldenPatern == nullptr)
-      return -1;
+      return -1; //TODO maybe it should be 0?
     return goldenPatern->key().thePt;
   }
 
   int getPtUnconstrained() const {
     if (goldenPaternUpt == nullptr)
-      return -1;
+      return -1; //TODO maybe it should be 0?
     return goldenPaternUpt->key().thePt;
   }
 
@@ -96,7 +96,7 @@ public:
     this->gpResultUpt = gpResultUpt;
   }
 
-  const GoldenPatternBase* getGoldenPaternUpt() const {
+  GoldenPatternBase* getGoldenPaternUpt() const {
     return goldenPaternUpt;
   }
 

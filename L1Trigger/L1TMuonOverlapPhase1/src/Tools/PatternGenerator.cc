@@ -24,6 +24,9 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg,
   if (edmCfg.getParameter<string>("patternGenerator") == "patternGen")
     initPatternGen();
 
+  if (edmCfg.exists("simTracksTag") == false)
+    throw cms::Exception("PatternGenerator::PatternGenerator(): no simTracksTag !!!!!!!!!!!!!!!!!");
+
   if(!candidateSimMuonMatcher) {
     edm::LogImportant("l1tOmtfEventPrint")<<"PatternGenerator: candidateSimMuonMatcher is null!!!!!!"<<std::endl;
   }
