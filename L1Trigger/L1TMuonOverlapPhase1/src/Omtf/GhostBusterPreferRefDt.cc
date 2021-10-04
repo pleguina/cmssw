@@ -84,8 +84,8 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
       return true;
   };
 
-  /*
-  auto customLess = [&](const AlgoMuons::value_type& a, const AlgoMuons::value_type& b)->bool {
+
+  auto customByRefLayer = [&](const AlgoMuons::value_type& a, const AlgoMuons::value_type& b)->bool {
     if(!a->isValid()) {
       return true;
     }
@@ -108,12 +108,14 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
       return false;
     else
       return true;
-  };*/
+  };
 
   if (omtfConfig->getGhostBusterType() == "byLLH")
     std::sort(muonsIN.rbegin(), muonsIN.rend(), customLessByLLH);
   else if (omtfConfig->getGhostBusterType() == "byFPLLH")
     std::sort(muonsIN.rbegin(), muonsIN.rend(), customLessByFPLLH);
+  else if (omtfConfig->getGhostBusterType() == "byRefLayer")
+    std::sort(muonsIN.rbegin(), muonsIN.rend(), customByRefLayer);
   else
     std::sort(muonsIN.rbegin(), muonsIN.rend(), customLess);
 

@@ -125,6 +125,8 @@ public:
   void finalise8();
 
   void finalise9();
+
+  void finalise10();
   //bool empty() const;
 
   friend std::ostream& operator<<(std::ostream& out, const GoldenPatternResult& aResult);

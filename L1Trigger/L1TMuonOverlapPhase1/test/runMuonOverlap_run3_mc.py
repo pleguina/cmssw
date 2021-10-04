@@ -155,7 +155,7 @@ process.simOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(9) #valid v
 process.simOmtfDigis.noHitValueInPdf = cms.bool(True) #!!!!!!!!!!!!!! cab be true only of the patterns has the noHitValues in the bin 0 of the PDFs
 
 process.simOmtfDigis.minDtPhiQuality = cms.int32(2)
-process.simOmtfDigis.minDtPhiBQuality = cms.int32(2)
+process.simOmtfDigis.minDtPhiBQuality = cms.int32(4)
 
 
 process.simOmtfDigis.lctCentralBx = cms.int32(8)#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6

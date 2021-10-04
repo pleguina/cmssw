@@ -219,7 +219,9 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
       std::bitset<18> layerHitBits(layerHits);
 
       edm::LogVerbatim("l1tOmtfEventPrint")
-          << " bx " << bx << " hwPt " << finalCandidate.hwPt() << " hwSign " << finalCandidate.hwSign() << " hwQual "
+          << " bx " << bx << " hwPt " << finalCandidate.hwPt()
+          << " hwUPt " << finalCandidate.hwPtUnconstrained()
+          << " hwSign " << finalCandidate.hwSign() << " hwQual "
           << finalCandidate.hwQual() << " hwEta " << std::setw(4) << finalCandidate.hwEta() << std::setw(4) << " hwPhi "
           << finalCandidate.hwPhi() << "    eta " << std::setw(9) << (finalCandidate.hwEta() * 0.010875) << " phi "
           << std::setw(9) << globalPhi << " " << layerHitBits << " processor "
@@ -274,7 +276,9 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
         if (algoMuon->isValid()) {
           edm::LogVerbatim("l1tOmtfEventPrint")
               << board.name() << " " << *algoMuon << " RefHitNum " << algoMuon->getRefHitNumber() << std::endl;
-          edm::LogVerbatim("l1tOmtfEventPrint") << algoMuon->getGpResult() << std::endl;
+          edm::LogVerbatim("l1tOmtfEventPrint") << algoMuon->getGpResult();
+          if(algoMuon->getGpResultUpt().isValid() )
+            edm::LogVerbatim("l1tOmtfEventPrint") <<"GpResultUpt "<< algoMuon->getGoldenPaternUpt()->key()<<"\n"<< algoMuon->getGpResultUpt()<< std::endl;
 
           if (goldenPatterns)  //watch out with the golden patterns
             for (auto& gp : *goldenPatterns) {

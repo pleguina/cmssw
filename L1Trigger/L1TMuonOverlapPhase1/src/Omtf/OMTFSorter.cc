@@ -48,9 +48,10 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(
 
 
     if (bestGpUpt == nullptr) {
-      bestGpUpt = itGP.get();
+      if(itGP->getResults()[procIndx][iRefHit].getPdfSumUpt() > 0)
+        bestGpUpt = itGP.get();
     } else if (myType == 0 && itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() >
-                                  bestGpUpt->getResults()[procIndx][iRefHit].getFiredLayerCnt()) {
+                              bestGpUpt->getResults()[procIndx][iRefHit].getFiredLayerCnt()) {
       bestGpUpt = itGP.get();
     } else if (myType == 1 || (itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() ==
                                bestGpUpt->getResults()[procIndx][iRefHit].getFiredLayerCnt())) {
@@ -60,13 +61,17 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(
       }
     }
 
+    LogTrace("OMTFReconstruction") << itGP->key()<<" getFiredLayer "<< itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt()
+    <<" PdfSum "<< itGP->getResults()[procIndx][iRefHit].getPdfSum()
+    <<" PdfSumUpt "<< itGP->getResults()[procIndx][iRefHit].getPdfSumUpt()<< std::endl;
   }
   if (bestGP) {
     AlgoMuons::value_type candidate(new AlgoMuon(bestGP->getResults()[procIndx][iRefHit], bestGP, iRefHit));
 
-    //if there is bestGP, there must be bestGpUpt as well, so the below is OK
-    candidate->setGpResultUpt(bestGpUpt->getResults()[procIndx][iRefHit]);
-    candidate->setGoldenPaternUpt(bestGpUpt);
+    if(bestGpUpt) {
+      candidate->setGpResultUpt(bestGpUpt->getResults()[procIndx][iRefHit]);
+      candidate->setGoldenPaternUpt(bestGpUpt);
+    }
 
     //std::cout<<__FUNCTION__<<" line "<<__LINE__ <<" return: " << *candidate << std::endl;
     return candidate;
