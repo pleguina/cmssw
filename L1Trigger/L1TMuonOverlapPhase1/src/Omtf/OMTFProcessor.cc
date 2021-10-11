@@ -323,6 +323,7 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const int& refLogicLayer
     else if(targetLayer == 12) rTargetLayer = 494.975; //RB2in
     else if(targetLayer == 13) rTargetLayer = 529.975; //RB2out
     else if(targetLayer == 14) rTargetLayer = 602.150; //RB3
+    //for the CSC and endcap RPC the r is taken from the hit coordinates
 
     if(targetLayer ==  0 || targetLayer ==  2 || targetLayer ==  4) {
       if(targetStubQuality == 2)

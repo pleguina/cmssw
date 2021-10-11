@@ -100,12 +100,14 @@ filesPerPtBin = 5 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_Ful
 
 if filesNameLike == 'allPt' :
     for ptCode in range(31, 4, -1) :
-#         if ptCode <= 7 :
-#             filesPerPtBin = 10
-#         elif ptCode <= 12 :
-#             filesPerPtBin = 5
-#         else :    
-#             filesPerPtBin = 3
+        if ptCode <= 7 :
+            filesPerPtBin = 50
+        elif ptCode <= 12 :
+            filesPerPtBin = 25
+        else :    
+            filesPerPtBin = 15
+        
+        filesPerPtBin = 100 # all files     <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,
             
         for sign in ['_m', '_p'] : #, m
             selFilesPerPtBin = 0
@@ -156,7 +158,7 @@ fileNames = cms.untracked.vstring(
 )
 	                    
 if(runDebug == "DEBUG") :
-    process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(200))
+    process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1)) ###TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 else :
     process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 
@@ -197,8 +199,8 @@ else :
 #process.simOmtfDigis.simTracksTag = cms.InputTag('g4SimHits')
 
 process.simOmtfDigis.sorterType = cms.string("byLLH")
-#process.simOmtfDigis.ghostBusterType = cms.string("byRefLayer") # byLLH byRefLayer GhostBusterPreferRefDt
-process.simOmtfDigis.ghostBusterType = cms.string("GhostBusterPreferRefDt")
+process.simOmtfDigis.ghostBusterType = cms.string("byRefLayer") # byLLH byRefLayer GhostBusterPreferRefDt
+#process.simOmtfDigis.ghostBusterType = cms.string("GhostBusterPreferRefDt")
 
 #process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files.xml")
 #process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x0009_oldSample_3_10Files_classProb1.xml")
