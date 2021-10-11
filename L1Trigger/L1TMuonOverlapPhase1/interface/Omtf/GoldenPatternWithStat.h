@@ -17,7 +17,7 @@ class OMTFConfiguration;
 class GoldenPatternWithStat : public GoldenPatternWithThresh {
 public:
   static const unsigned int STAT_BINS = 1;  //TODO change to 4!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  typedef boost::multi_array<int, 4> StatArrayType;
+  typedef boost::multi_array<unsigned short, 4> StatArrayType;
   //GoldenPatternWithStat(const Key & aKey) : GoldenPattern(aKey) {}
 
   GoldenPatternWithStat(const Key& aKey, unsigned int nLayers, unsigned int nRefLayers, unsigned int nPdfAddrBits);

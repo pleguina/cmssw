@@ -12,6 +12,8 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
 
+filesNameLike = sys.argv[2]
+
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
        #suppressInfo       = cms.untracked.vstring('AfterSource', 'PostModule'),
@@ -24,7 +26,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('log_Patterns_displaced_test'),
+                         filename  = cms.untracked.string("log_Patterns_dispalced_test_" + filesNameLike + "_t10"),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('INFO'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -66,19 +68,16 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '103X_upgrade2023_realistic_v2'
 
 #path = '/eos/user/c/cericeci/forOMTF/OMTF_Run3_FixedTiming/'
 #path = '/eos/user/c/cericeci/forOMTF/OMTF_Run3_FixedTiming_FullOutput/'
-path = '/eos/user/c/cericeci/forOMTF/OMTF_PhaseII_FixedTiming/'
 
-#path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
+
 #path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/' #new sample, but small and more noisy
 #path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v1/'
 
 #path = '/afs/cern.ch/work/a/akalinow/public/MuCorrelator/Data/SingleMu/9_3_14_FullEta_v1/'
 #path = '/afs/cern.ch/work/k/kbunkow/public/data/SingleMuFullEta/721_FullEta_v4/'
 
-onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
 #print(onlyfiles)
 
-filesNameLike = sys.argv[2]
 #chosenFiles = ['file://' + path + f for f in onlyfiles if (('_p_10_' in f) or ('_m_10_' in f))]
 #chosenFiles = ['file://' + path + f for f in onlyfiles if (('_10_p_10_' in f))]
 #chosenFiles = ['file://' + path + f for f in onlyfiles if (re.match('.*_._p_10.*', f))]
@@ -88,25 +87,73 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
-fileCnt = 50 
-firstFile = 1 #1001            
-for i in range(firstFile, firstFile + fileCnt, 1):
-    filePathName = path + "custom_Displaced_" + str(i) + "_numEvent5000.root"
-    if isfile(filePathName) :
-        #chosenFiles.append('file://' + path + "custom_Displaced_Run3_" + str(i) + "_numEvent1000.root") 
-        #chosenFiles.append('file://' + path + "custom_Displaced_Run3_" + str(i) + "_numEvent2000.root") 
-        chosenFiles.append('file://' + filePathName)
+cscBx = 8
 
-print("chosenFiles")
-for chFile in chosenFiles:
-    print(chFile)
+if filesNameLike == 'displHighPt' : # displaced muon sample
+    cscBx = 8
+    path = '/eos/user/c/cericeci/forOMTF/OMTF_PhaseII_FixedTiming/'
+    fileCnt = 200 
+    firstFile = 1 #1001            
+    for i in range(firstFile, firstFile + fileCnt, 1):
+        filePathName = path + "custom_Displaced_" + str(i) + "_numEvent5000.root"
+        if isfile(filePathName) :
+            #chosenFiles.append('file://' + path + "custom_Displaced_Run3_" + str(i) + "_numEvent1000.root") 
+            #chosenFiles.append('file://' + path + "custom_Displaced_Run3_" + str(i) + "_numEvent2000.root") 
+            chosenFiles.append('file://' + filePathName)
+    
+    print("chosenFiles")
+    for chFile in chosenFiles:
+        print(chFile)
+    
+    if len(chosenFiles) == 0 :
+        print("no files selected!!!!!!!!!!!!!!! (argumetn should be e.g. 20_p")
+        exit
 
-if len(chosenFiles) == 0 :
-    print("no files selected!!!!!!!!!!!!!!! (argumetn should be e.g. 20_p")
-    exit
+elif filesNameLike == 'allPt' : # promt muon sample
+    cscBx = 6
+    path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
+    onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
+    
+    filesPerPtBin = 10 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
+    
+    for ptCode in range(31, 4, -1) : #the rigt bound of range is not included 
+        if ptCode == 5 : #5 is 3-4 GeV (maybe 3-3.5 GeV). 4 is 2-3GeV (maybe 2.5-3 GeV), very small fraction makes candidates, and even less reaches the second station
+            filesPerPtBin = 30
+        elif ptCode == 6 : #5 is 3-4 GeV (maybe 3-3.5 GeV). 4 is 2-3GeV (maybe 2.5-3 GeV), very small fraction makes candidates, and even less reaches the second station
+            filesPerPtBin = 20    
+        elif ptCode <= 7 : 
+            filesPerPtBin = 10
+        elif ptCode <= 12 :
+            filesPerPtBin = 5
+        else :    
+            filesPerPtBin = 3
+            
+        filesPerPtBin = 1 # TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
+            
+        for sign in ['_m', '_p'] : #, m
+            selFilesPerPtBin = 0
+            for i in range(1, 50, 1): #TODO
+                for f in onlyfiles:
+                   if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): #TODO for 721_FullEta_v4/
+                   #if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f):  #TODO for 9_3_14_FullEta_v2
+                        #print(f)
+                        chosenFiles.append('file://' + path + f) 
+                        selFilesPerPtBin += 1
+                if(selFilesPerPtBin >= filesPerPtBin):
+                    break
+                        
+else :
+    cscBx = 6
+    path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
+    onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
+    
+    for i in range(1, 4, 1):
+        for f in onlyfiles:
+            if (( filesNameLike + '_' + str(i) + '_') in f):  #TODO for 721_FullEta_v4/
+            #if (( filesNameLike + '_' + str(i) + '.') in f): #TODO for 9_3_14_FullEta_v2
+                print(f)
+                chosenFiles.append('file://' + path + f) 
 
-firstEv = 0#40000
-#nEvents = 1000
 
 # input files (up to 255 files accepted)
 process.source = cms.Source('PoolSource',
@@ -130,8 +177,9 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 
 ####Event Setup Producer
 process.load('L1Trigger.L1TMuonOverlapPhase1.fakeOmtfParams_cff')
-#process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen_displ.xml")
-process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen_displ_ref_0_and_2.xml")
+process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen.xml")
+#process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen_displ_ref_0_and_2.xml")
+#process.omtfParams.patternsXMLFiles = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_template.xml")
 
 
 process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
@@ -174,22 +222,22 @@ process.simOmtfDigis.patternGenerator = cms.string("patternGen")
 
 process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfDigis.generatePatterns = cms.bool(True)
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_dispalced_test_v1.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_dispalced_test_" + filesNameLike + "_t10.xml")
 
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
 process.simOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
-process.simOmtfDigis.minDtPhiQuality = cms.int32(4)
+process.simOmtfDigis.minDtPhiQuality = cms.int32(2)
 process.simOmtfDigis.minDtPhiBQuality = cms.int32(4)
 
 process.simOmtfDigis.dtRefHitMinQuality =  cms.int32(4)
 
 process.simOmtfDigis.usePhiBExtrapolationFromMB1 = cms.bool(True)
-process.simOmtfDigis.usePhiBExtrapolationFromMB2 = cms.bool(False)
+process.simOmtfDigis.usePhiBExtrapolationFromMB2 = cms.bool(True)
 
 process.simOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(3) ## is needed here , becasue it just counts the number of layers with a stub
-process.simOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+process.simOmtfDigis.lctCentralBx = cms.int32(cscBx);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
 
 

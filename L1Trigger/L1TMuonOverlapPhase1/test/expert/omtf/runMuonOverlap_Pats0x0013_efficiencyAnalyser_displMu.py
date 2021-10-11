@@ -11,7 +11,7 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-version = 't10_displ_test'
+version = 't10_displ_test_1files_test'
 
 runDebug = "INFO" # or "INFO" DEBUG
 useExtraploationAlgo = True;
@@ -79,15 +79,15 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '103X_upgrade2023_realistic_v2'
 #path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
 #path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/' #new sample, but small and more noisy
 #path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v1/'
-path = '/eos/user/c/cericeci/forOMTF/OMTF_PhaseII_FixedTiming/'
+
 
 #path = '/afs/cern.ch/work/a/akalinow/public/MuCorrelator/Data/SingleMu/9_3_14_FullEta_v1/'
 #path = '/afs/cern.ch/work/k/kbunkow/public/data/SingleMuFullEta/721_FullEta_v4/'
 
-onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
+#onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
 #print(onlyfiles)
 
-filesNameLike = sys.argv[2]
+#filesNameLike = sys.argv[2]
 #chosenFiles = ['file://' + path + f for f in onlyfiles if (('_p_10_' in f) or ('_m_10_' in f))]
 #chosenFiles = ['file://' + path + f for f in onlyfiles if (('_10_p_10_' in f))]
 #chosenFiles = ['file://' + path + f for f in onlyfiles if (re.match('.*_._p_10.*', f))]
@@ -97,17 +97,34 @@ filesNameLike = sys.argv[2]
 
 chosenFiles = []
 
-fileCnt = 100 
+fileCnt = 1 
 if(runDebug == "DEBUG") :
     fileCnt = 1;
     
-firstFile = 1 #1001            
-for i in range(firstFile, firstFile + fileCnt, 1):
-    filePathName = path + "custom_Displaced_" + str(i) + "_numEvent5000.root"
-    if isfile(filePathName) :
+if False :    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    path = '/eos/user/c/cericeci/forOMTF/OMTF_PhaseII_FixedTiming/'    
+    firstFile = 1 #1001            
+    for i in range(firstFile, firstFile + fileCnt, 1):
+        filePathName = path + "custom_Displaced_" + str(i) + "_numEvent5000.root"
+        if isfile(filePathName) :
+            chosenFiles.append('file://' + filePathName)
+        else :
+            print("file not found!!!!!!!: " + filePathName) 
+
+
+# low pt
+if True :
+    path = '/eos/user/c/cericeci/forOMTF/OMTF_Run3_FixedTiming_FullOutput/'
+    firstFile = 1001            
+    for i in range(firstFile, firstFile + fileCnt, 1):
+        #filePathName = path + "custom_Displaced_" + str(i) + "_numEvent5000.root"
         #chosenFiles.append('file://' + path + "custom_Displaced_Run3_" + str(i) + "_numEvent1000.root") 
-        #chosenFiles.append('file://' + path + "custom_Displaced_Run3_" + str(i) + "_numEvent2000.root") 
-        chosenFiles.append('file://' + filePathName)
+        filePathName = path + "custom_Displaced_Run3_" + str(i) + "_numEvent2000.root" 
+        if isfile(filePathName) :
+            chosenFiles.append('file://' + filePathName)
+        else :
+            print("file not found!!!!!!!: " + filePathName)    
+
 
 print("chosenFiles")
 for chFile in chosenFiles:

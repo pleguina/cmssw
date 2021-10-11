@@ -72,14 +72,13 @@ void CandidateSimMuonMatcher::observeProcesorEmulation(unsigned int iProcessor,
                                                        const AlgoMuons& gbCandidates,
                                                        const std::vector<l1t::RegionalMuonCand>& candMuons) {
   //debug
-  /*
   unsigned int procIndx = omtfConfig->getProcIndx(iProcessor, mtfType);
   for (auto& gbCandidate : gbCandidates) {
     if (gbCandidate->getPt() > 0) {
-      LogTrace("l1tOmtfEventPrint") << "CandidateSimMuonMatcher::observeProcesorEmulation procIndx" << procIndx<" "<< *gbCandidate << endl;
+      LogTrace("l1tOmtfEventPrint") << "CandidateSimMuonMatcher::observeProcesorEmulation procIndx" << procIndx<<" "<< *gbCandidate << std::endl;
       this->gbCandidates.emplace_back(gbCandidate);
     }
-  }*/
+  }
 }
 
 bool simTrackIsMuonInOmtf(const SimTrack& simTrack) {
@@ -205,15 +204,19 @@ void CandidateSimMuonMatcher::endJob() {}
 
 std::vector<const l1t::RegionalMuonCand*> CandidateSimMuonMatcher::ghostBust(
     const l1t::RegionalMuonCandBxCollection* mtfCands, const AlgoMuons& gbCandidates, AlgoMuons& ghostBustedProcMuons) {
-  if (gbCandidates.size() != mtfCands->size()) {
+  if (gbCandidates.size() != mtfCands->size(0)) {
     edm::LogError("l1tOmtfEventPrint") << "CandidateSimMuonMatcher::ghostBust(): gbCandidates.size() "
-                                       << gbCandidates.size() << " != resultGbCandidates.size() " << mtfCands->size();
-    throw cms::Exception("gbCandidates.size() != mtfCands->size()");
+                                       << gbCandidates.size() << " != mtfCands.size() " << mtfCands->size();
+    //throw cms::Exception("gbCandidates.size() != mtfCands->size()");
   }
 
   boost::dynamic_bitset<> isKilled(mtfCands->size(0), false);
 
   for (unsigned int i1 = 0; i1 < mtfCands->size(0); ++i1) {
+    LogTrace("l1tOmtfEventPrint")
+            << "CandidateSimMuonMatcher::ghostBust\n  regionalCand pt " << std::setw(3) << mtfCands->at(0, i1).hwPt()
+            << " qual " << std::setw(2) << mtfCands->at(0, i1).hwQual() << " proc " << std::setw(2)
+            << mtfCands->at(0, i1).processor();
     for (unsigned int i2 = i1 + 1; i2 < mtfCands->size(0); ++i2) {
       auto& mtfCand1 = mtfCands->at(0, i1);
       auto& mtfCand2 = mtfCands->at(0, i2);
@@ -270,6 +273,7 @@ std::vector<const l1t::RegionalMuonCand*> CandidateSimMuonMatcher::ghostBust(
 }
 
 TrajectoryStateOnSurface CandidateSimMuonMatcher::atStation2(FreeTrajectoryState ftsStart, float eta) const {
+  eta = 0; //fix me!!!!! in case of displaced muon the vertex eta has no sense
   ReferenceCountingPointer<Surface> rpc;
   if (eta < -1.24)  //negative endcap, RE2
     rpc = ReferenceCountingPointer<Surface>(
@@ -351,7 +355,8 @@ MatchingResult CandidateSimMuonMatcher::match(const l1t::RegionalMuonCand* muonC
   MatchingResult result(simTrack);
 
   double candGloablEta = muonCand->hwEta() * 0.010875;
-  if (abs(simTrack.momentum().eta() - candGloablEta) < 0.3) {
+  //if (abs(simTrack.momentum().eta() - candGloablEta) < 0.3) //has no sense for displaced muons
+  {
     double candGlobalPhi = l1t::MicroGMTConfiguration::calcGlobalPhi(
         muonCand->hwPhi(), muonCand->trackFinderType(), muonCand->processor());
     candGlobalPhi = hwGmtPhiToGlobalPhi(candGlobalPhi);
@@ -410,7 +415,8 @@ MatchingResult CandidateSimMuonMatcher::match(const l1t::RegionalMuonCand* muonC
   MatchingResult result(trackingParticle);
 
   double candGloablEta = muonCand->hwEta() * 0.010875;
-  if (abs(trackingParticle.momentum().eta() - candGloablEta) < 0.3) {
+  //if (abs(trackingParticle.momentum().eta() - candGloablEta) < 0.3)  //has no sense for displaced muons
+  {
     double candGlobalPhi = l1t::MicroGMTConfiguration::calcGlobalPhi(
         muonCand->hwPhi(), muonCand->trackFinderType(), muonCand->processor());
     candGlobalPhi = hwGmtPhiToGlobalPhi(candGlobalPhi);
@@ -445,7 +451,7 @@ MatchingResult CandidateSimMuonMatcher::match(const l1t::RegionalMuonCand* muonC
     if (trackingParticle.pt() > 100)
       treshold = 20. * sigma;
 
-    if (abs(result.deltaPhi - mean) < treshold)
+    if (abs(result.deltaPhi - mean) < treshold && abs(result.deltaEta) < 0.3)
       result.result = MatchingResult::ResultType::matched;
 
     LogTrace("l1tOmtfEventPrint") << "CandidateSimMuonMatcher::match: simTrack type " << trackingParticle.pdgId()

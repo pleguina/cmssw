@@ -48,11 +48,14 @@ void PatternGenerator::initPatternGen() {
     int statBinsCnt1 = 1024; //TODO should be big enough to comprise the pdf tails
 
     //int statBinsCnt2 = 1; //for normal pattern gerneration
-    int statBinsCnt2 = 1; //for 2D distribution, phiB vs phiDist, but if done for 8 ref layers, consumes too much memory
-    if(statBinsCnt2 > 10 && omtfConfig->nRefLayers() > 2)
-      throw cms::Exception("PatternGenerator::initPatternGen(): statBinsCnt2 and omtfConfig->nRefLayers() too big, will consume too much memory");
+    int statBinsCnt2 = 1024; //for 2D distribution, phiB vs phiDist, but if done for 8 ref layers, consumes too much memory
+    //if(statBinsCnt2 > 10 && omtfConfig->nRefLayers() > 2)
+    //  throw cms::Exception("PatternGenerator::initPatternGen(): statBinsCnt2 and omtfConfig->nRefLayers() too big, will consume too much memory");
 
     gp->iniStatisitics(statBinsCnt1, statBinsCnt2);
+
+    if(statBinsCnt2 < 10 && sizeof(gp->getStatistics()[0][0][0][0]) < 32)
+      throw cms::Exception("PatternGenerator::initPatternGen(): getStatistics type is short!!!!");
   }
 
   edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::initPatternGen():" << __LINE__
@@ -397,11 +400,10 @@ void PatternGenerator::updateStatUsingMatcher2() {
       //iRefHit is the index of the hit
       for (unsigned int iRefHit = 0; iRefHit < exptCandGp->getResults()[candProcIndx].size(); ++iRefHit) {
         auto& gpResult = exptCandGp->getResults()[candProcIndx][iRefHit];
-        //unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[iRefHit];
 
         unsigned int refLayer = gpResult.getRefLayer();
+        unsigned int refLayerLogicNumber = omtfConfig->getRefToLogicNumber()[refLayer];
 
-        //cout<<gpResult;
         if (gpResult.getFiredLayerCnt() >= 3) {
           LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" updating statistic: candProcIndx "<<candProcIndx
               <<" iRefHit "<<iRefHit<<" refLayer "<<refLayer<<" exptPatNum "<<exptPatNum
@@ -411,7 +413,12 @@ void PatternGenerator::updateStatUsingMatcher2() {
               <<" y "<<matchingResult.simVertex->position().y()
               <<" z "<<matchingResult.simVertex->position().z()<<std::endl;
 
-          int refPhiB = gpResult.getStubResults()[refLayer].getMuonStub()->phiBHw;
+
+          int refPhiB = 0;
+
+          if(omtfConfig->isBendingLayer(refLayerLogicNumber+1))
+          //if(refLayerLogicNumber < 5)
+            refPhiB = gpResult.getStubResults()[refLayer].getMuonStub()->phiBHw;
 
           int refPhiBShifted = refPhiB + exptCandGp->getStatistics()[0][refLayer][0].size()/2;
           if(refPhiBShifted < 0 || refPhiBShifted >= (int)exptCandGp->getStatistics()[0][refLayer][0].size() ) {
@@ -477,8 +484,8 @@ void PatternGenerator::observeEventEnd(const edm::Event& iEvent,
 
   PatternOptimizerBase::observeEventEnd(iEvent, finalCandidates);
 
-  updateStat();
-  //updateStatUsingMatcher2();
+  //updateStat();
+  updateStatUsingMatcher2();
 }
 
 void PatternGenerator::endJob() {
