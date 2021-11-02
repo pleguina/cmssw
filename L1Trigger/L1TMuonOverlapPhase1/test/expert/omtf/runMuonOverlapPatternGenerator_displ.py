@@ -26,7 +26,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string("log_Patterns_dispalced_test_" + filesNameLike + "_t10"),
+                         filename  = cms.untracked.string("log_Patterns_dispalced_test_" + filesNameLike + "_t11"),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('INFO'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -147,7 +147,7 @@ else :
     path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
     onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
     
-    for i in range(1, 4, 1):
+    for i in range(1, 2, 1):
         for f in onlyfiles:
             if (( filesNameLike + '_' + str(i) + '_') in f):  #TODO for 721_FullEta_v4/
             #if (( filesNameLike + '_' + str(i) + '.') in f): #TODO for 9_3_14_FullEta_v2
@@ -178,8 +178,15 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 ####Event Setup Producer
 process.load('L1Trigger.L1TMuonOverlapPhase1.fakeOmtfParams_cff')
 process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen.xml")
-#process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen_displ_ref_0_and_2.xml")
-#process.omtfParams.patternsXMLFiles = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_template.xml")
+
+process.omtfParams.patternsXMLFiles = cms.VPSet(
+        #cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")),
+        #cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0009_oldSample_3_10Files_classProb1.xml") ),
+        cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_template.xml")),
+        #cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00012_oldSample_3_30Files_grouped1_classProb17_recalib2.xml")),
+        #cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2.xml")),
+    )
+
 
 
 process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
@@ -218,11 +225,13 @@ process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapP
 #                                                       cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/GPs_parametrised_minus_v1.xml"))
 #)
 
-process.simOmtfDigis.patternGenerator = cms.string("patternGen")
+#process.simOmtfDigis.patternGenerator = cms.string("patternGen")
+process.simOmtfDigis.patternGenerator = cms.string("2DHists")
+
 
 process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfDigis.generatePatterns = cms.bool(True)
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_dispalced_test_" + filesNameLike + "_t10.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_dispalced_test_" + filesNameLike + "_t11.xml")
 
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfDigis.rpcMaxClusterCnt = cms.int32(2)

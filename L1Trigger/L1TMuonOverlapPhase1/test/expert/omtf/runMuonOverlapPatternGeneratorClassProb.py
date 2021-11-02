@@ -71,50 +71,11 @@ path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sampl
 #path = '/afs/cern.ch/work/a/akalinow/public/MuCorrelator/Data/SingleMu/9_3_14_FullEta_v1/'
 #path = '/afs/cern.ch/work/k/kbunkow/public/data/SingleMuFullEta/721_FullEta_v4/'
 
-onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
-#print(onlyfiles)
-
-filesNameLike = sys.argv[2]
-#chosenFiles = ['file://' + path + f for f in onlyfiles if (('_p_10_' in f) or ('_m_10_' in f))]
-#chosenFiles = ['file://' + path + f for f in onlyfiles if (('_10_p_10_' in f))]
-#chosenFiles = ['file://' + path + f for f in onlyfiles if (re.match('.*_._p_10.*', f))]
-#chosenFiles = ['file://' + path + f for f in onlyfiles if ((filesNameLike in f))]
-
-#print(onlyfiles)
-
 chosenFiles = []
 
-filesPerPtBin = 1 #TODO max is 200 for the 721_FullEta_v4 and 100 for 9_3_14_FullEta_v2
+#chosenFiles = ['file://' + path + f for f in onlyfiles if (('_p_10_' in f) or ('_m_10_' in f))]
+chosenFiles.append('file://' + path + "SingleMu_18_p_1_1_rD8.root")
 
-if filesNameLike == 'allPt' :
-    for ptCode in range(31, 3, -1) :
-        if ptCode <= 7 :
-            filesPerPtBin = 10
-        elif ptCode <= 12 :
-            filesPerPtBin = 5
-        else :    
-            filesPerPtBin = 3
-            
-        for sign in ['_m', '_p'] : #, m
-            selFilesPerPtBin = 0
-            for i in range(1, 201, 1): #TODO
-                for f in onlyfiles:
-                   if (( '_' + str(ptCode) + sign + '_' + str(i) + '_') in f): #TODO for 721_FullEta_v4/
-                   #if (( '_' + str(ptCode) + sign + '_' + str(i) + ".") in f):  #TODO for 9_3_14_FullEta_v2
-                        #print(f)
-                        chosenFiles.append('file://' + path + f) 
-                        selFilesPerPtBin += 1
-                if(selFilesPerPtBin >= filesPerPtBin):
-                    break
-                        
-else :
-    for i in range(1, 2, 1):
-        for f in onlyfiles:
-            if (( filesNameLike + '_' + str(i) + '_') in f):  #TODO for 721_FullEta_v4/
-            #if (( filesNameLike + '_' + str(i) + '.') in f): #TODO for 9_3_14_FullEta_v2
-                print(f)
-                chosenFiles.append('file://' + path + f) 
-         
 
 print("chosenFiles")
 for chFile in chosenFiles:
@@ -149,6 +110,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1))
 ####Event Setup Producer
 process.load('L1Trigger.L1TMuonOverlapPhase1.fakeOmtfParams_cff')
 process.omtfParams.configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0008_patGen.xml")
+process.omtfParams.patternsXMLFiles = cms.VPSet(
+        cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_template.xml")), )
 
 process.esProd = cms.EDAnalyzer("EventSetupRecordDataGetter",
    toGet = cms.VPSet(
@@ -193,7 +156,7 @@ process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfDigis.generatePatterns = cms.bool(True)
 #process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x0009_oldSample_3_10Files_classProb3.xml")
 #process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x00012_oldSample_3_30Files_grouped1_classProb17_recalib2.xml")
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2_test.xml")
 #process.simOmtfDigis.optimisedPatsXmlFile = cms.string("PatternsDisplaced_0x0007_p.xml")
 
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(3)
