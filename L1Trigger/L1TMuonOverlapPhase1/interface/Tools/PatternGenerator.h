@@ -30,8 +30,9 @@ protected:
 
   void updateStat();
 
-  void updateStatUsingMatcher();
   void updateStatUsingMatcher2();
+
+  std::function<void()> updateStatFunction;
 
   void upadatePdfs();
 
