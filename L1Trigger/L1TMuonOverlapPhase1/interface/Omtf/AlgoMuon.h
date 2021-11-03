@@ -104,22 +104,6 @@ public:
     this->goldenPaternUpt = goldenPaternUpt;
   }
 
-  const GoldenPatternResult& getGpResultUpt() const {
-    return gpResultUpt;
-  }
-
-  void setGpResultUpt(const GoldenPatternResult& gpResultUpt) {
-    this->gpResultUpt = gpResultUpt;
-  }
-
-  const GoldenPatternBase* getGoldenPaternUpt() const {
-    return goldenPaternUpt;
-  }
-
-  void setGoldenPaternUpt(GoldenPatternBase* goldenPaternUpt) {
-    this->goldenPaternUpt = goldenPaternUpt;
-  }
-
 private:
   ///FIXME maybe the gpResult cannot be a reference or pointer, ad not a copy
   GoldenPatternResult gpResult;

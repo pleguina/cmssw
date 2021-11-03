@@ -3,10 +3,6 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("L1TMuonEmulation")
 import os
 import sys
-<<<<<<< from-CMSSW_12_1_0_pre5_v1_displMu
-=======
-#import commands
->>>>>>> a06083c Patterns_layerStat_withExtrInpL0_DtHighQ_displ_t1.xml
 import re
 from os import listdir
 from os.path import isfile, join

@@ -430,22 +430,6 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
         }
       }
 
-      std::vector<int> extrapolatedPhi(restrictedLayerStubs.size(), 0);
-
-      //TODO make sure the that the iRefLayer numbers used here corresponds to this in the hwToLogicLayer_0x000X.xml
-      if( (this->myOmtfConfig->getUsePhiBExtrapolationMB1() && aRefHitDef.iRefLayer == 0) ||
-          (this->myOmtfConfig->getUsePhiBExtrapolationMB2() && aRefHitDef.iRefLayer == 2)    ){
-        if((iLayer != refLayerLogicNum) && (iLayer != refLayerLogicNum +1)) {
-          LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" extrapolating from layer "<<refLayerLogicNum<<" - iRefLayer "<<aRefHitDef.iRefLayer<<std::endl;
-          unsigned int iStub = 0;
-          for(auto& targetStub : restrictedLayerStubs) {
-            if(targetStub)
-              extrapolatedPhi[iStub] = extrapolateDtPhiB(refStub, targetStub, iLayer, this->myOmtfConfig);
-            iStub++;
-          }
-        }
-      }
-
       unsigned int refHitNumber = this->myOmtfConfig->nTestRefHits() - nTestedRefHits - 1;
 
       int phiExtrp = 0;
@@ -461,15 +445,12 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
         StubResult stubResult =
             itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer, restrictedLayerStubs, extrapolatedPhi, refStub);
 
-        //fixme this unnecessary repeated  for every layer - but in this layout of loops must be like that
-        int phiRefSt2 = itGP->propagateRefPhi(phiRef, etaRef, aRefHitDef.iRefLayer);
         //fixme this unnecessary repeated  for every layer
 
         int phiRefSt2 = itGP->propagateRefPhi(phiRef + phiExtrp, etaRef, aRefHitDef.iRefLayer);
         //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" layerResult: valid"<<layerResult.valid<<" pdfVal "<<layerResult.pdfVal<<std::endl;
         itGP->getResults()[procIndx][refHitNumber].setStubResult(iLayer, stubResult);
         //fixme this unnecessary repeated  for every layer - but in this layout of loops must be like that
-        itGP->getResults()[procIndx][refHitNumber].set(aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef);
         itGP->getResults()[procIndx][refHitNumber].set(aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef);
         //fixme this unnecessary repeated  for every layer
       }

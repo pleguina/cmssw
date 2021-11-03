@@ -61,8 +61,11 @@ void PatternGenerator::initPatternGen() {
 
     gp->iniStatisitics(statBinsCnt1, statBinsCnt2);
 
-    if(statBinsCnt2 < 10 && sizeof(gp->getStatistics()[0][0][0][0]) < 32)
+    if(statBinsCnt2 < 10 && sizeof(gp->getStatistics()[0][0][0][0]) < 4) {
+      edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::initPatternGen():" << __LINE__
+          <<"sizeof gp statistics "<<sizeof(gp->getStatistics()[0][0][0][0])<<std::endl;
       throw cms::Exception("PatternGenerator::initPatternGen(): getStatistics type is short!!!!");
+    }
   }
 
   edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::initPatternGen():" << __LINE__

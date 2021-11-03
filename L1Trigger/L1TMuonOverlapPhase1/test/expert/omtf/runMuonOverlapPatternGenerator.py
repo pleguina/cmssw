@@ -3,10 +3,6 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("L1TMuonEmulation")
 import os
 import sys
-<<<<<<< from-CMSSW_12_1_0_pre5_v1_displMu
-=======
-#import commands
->>>>>>> 4d87be5 towards triggering on displaced muons
 import re
 from os import listdir
 from os.path import isfile, join
