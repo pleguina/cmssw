@@ -10,6 +10,12 @@
 #include "DataFormats/L1TMuonPhase2/interface/TrackerMuon.h"
 #include "L1Trigger/Phase2L1GMT/interface/Node.h"
 
+#include "L1Trigger/Phase2L1GMT/interface/DataDumper.h"
+
+#include "SimTracker/TrackTriggerAssociation/interface/TTTrackAssociationMap.h"
+
+#include <iostream>
+
 //
 // class declaration
 //
@@ -36,6 +42,11 @@ private:
   int minTrackStubs_;
   int bxMin_;
   int bxMax_;
+
+  edm::EDGetTokenT< TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > > ttTrackMCTruthToken_;
+  edm::EDGetTokenT< std::vector< TrackingParticle > > trackingParticleToken_;
+
+  DataDumper dataDumper;
 };
 
 Phase2L1TGMTProducer::Phase2L1TGMTProducer(const edm::ParameterSet& iConfig)
@@ -47,10 +58,14 @@ Phase2L1TGMTProducer::Phase2L1TGMTProducer(const edm::ParameterSet& iConfig)
       omtfTracks_(consumes<BXVector<RegionalMuonCand> >(iConfig.getParameter<edm::InputTag>("srcOMTF"))),
       minTrackStubs_(iConfig.getParameter<int>("minTrackStubs")),
       bxMin_(iConfig.getParameter<int>("muonBXMin")),
-      bxMax_(iConfig.getParameter<int>("muonBXMax"))
-
+      bxMax_(iConfig.getParameter<int>("muonBXMax")),
+      ttTrackMCTruthToken_(consumes< TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > >(iConfig.getParameter<edm::InputTag>("mcTruthTrackInputTag"))),
+      trackingParticleToken_(consumes< std::vector< TrackingParticle > >(iConfig.getParameter<edm::InputTag>("trackingParticleInputTag"))),
+      dataDumper(ttTrackMCTruthToken_, trackingParticleToken_, iConfig.getParameter<std::string>("dataDumpRootFile") )
 {
   produces<std::vector<l1t::TrackerMuon> >();
+
+  node_->setPreTrackMatchedMuonProcessor(&dataDumper);
 }
 
 Phase2L1TGMTProducer::~Phase2L1TGMTProducer() {
@@ -112,6 +127,8 @@ void Phase2L1TGMTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
         muonTracks.push_back(bx, muon);
       }
   }
+
+  dataDumper.getHandles(iEvent);
 
   std::vector<l1t::TrackerMuon> out = node_->processEvent(tracks, muonTracks, stubs);
   std::unique_ptr<std::vector<l1t::TrackerMuon> > out1 = std::make_unique<std::vector<l1t::TrackerMuon> >(out);

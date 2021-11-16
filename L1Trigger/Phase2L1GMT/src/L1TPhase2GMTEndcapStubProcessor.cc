@@ -102,6 +102,8 @@ l1t::MuonStub L1TPhase2GMTEndcapStubProcessor::buildRPCOnlyStub(const RPCDetId& 
 
   l1t::MuonStub stub(wheel, sector, station, tfLayer, 0, phi2, tag, bx, quality, 0, eta2, 2, 0);
   stub.setOfflineQuantities(gp.phi().value(), gp.phi().value(), gp.eta(), gp.eta());
+
+  stub.setTime(digi.time()); //TODO use the timing in the hardware scale.
   return stub;
 }
 
@@ -116,6 +118,7 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
   //clean ME11 ambiguities
   l1t::MuonStubCollection allCSC = cscStubs;
 
+  //TODO: these operations might be difficult to do in the firmware ( Korol Bunkowski)
   while (!allCSC.empty()) {
     l1t::MuonStub stub = allCSC[0];
     l1t::MuonStubCollection freeCSC;
@@ -145,6 +148,8 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
         continue;
       if (fabs(deltaPhi(csc.offline_coord1(), rpc.offline_coord2())) < phiMatch_ &&
           fabs(csc.offline_eta1() - rpc.offline_eta2()) < etaMatch_ && csc.bxNum() == rpc.bxNum()) {
+        //TODO the RPC and CSC BX can different even for hits from the same muon, so something better should be done here
+        //on the other hand, if the RPC stub is not mathed here, it will be added as not-mathced
         phiF += rpc.offline_coord2();
         etaF += rpc.offline_eta2();
         phi += rpc.coord2();
@@ -153,7 +158,7 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
         usedRPC.push_back(rpc);
       }
     }
-
+//TODO looks that RPC clusterization is done here, but in the clusterization should be done in the RPC backend
     int finalRPCPhi = 0;
     int finalRPCEta = 0;
     double offline_finalRPCPhi = 0;
@@ -177,6 +182,7 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
                          3,
                          0);
       stub.setOfflineQuantities(csc.offline_coord1(), offline_finalRPCPhi, csc.offline_eta1(), offline_finalRPCEta);
+      stub.setTime(usedRPC.back().time()); //just taking the time of the last one added to this "cluster"
       out.push_back(stub);
     } else {
       out.push_back(csc);
@@ -234,6 +240,7 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
                        2,
                        0);
     stub.setOfflineQuantities(phiF / nRPC, phiF / nRPC, etaF / nRPC, etaF / nRPC);
+    stub.setTime(cleanedRPC[0].time());
     out.push_back(stub);
     cleanedRPC = freeRPC;
   };

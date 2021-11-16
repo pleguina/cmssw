@@ -7,6 +7,8 @@
 #include "L1Trigger/Phase2L1GMT/interface/Isolation.h"
 #include "L1Trigger/Phase2L1GMT/interface/Tauto3Mu.h"
 
+#include "L1Trigger/Phase2L1GMT/interface/DataDumper.h"
+
 namespace Phase2L1GMT {
 
   class Node {
@@ -106,6 +108,9 @@ namespace Phase2L1GMT {
       std::copy(muCleaned7.begin(), muCleaned7.end(), std::back_inserter(muCleaned));
       std::copy(muCleaned8.begin(), muCleaned8.end(), std::back_inserter(muCleaned));
 
+      for(auto& preTrackMatchedMuon : muCleaned) {
+        preTrackMatchedMuonProcessor->process(preTrackMatchedMuon);
+      }
       std::vector<l1t::TrackerMuon> trackMatchedMuonsNoIso = track_mu_match_->convert(muCleaned, 32);
 
       //Isolation and tau3mu will read those muons and all 9 collections of convertedTracks*
@@ -131,6 +136,10 @@ namespace Phase2L1GMT {
       return sortedTrackMuonsNoIso;  //when we add more collections like tau3mu etc we change that
     }
 
+    void setPreTrackMatchedMuonProcessor(PreTrackMatchedMuonProcessor* preTrackMatchedMuonProcessor) {
+      this->preTrackMatchedMuonProcessor = preTrackMatchedMuonProcessor;
+    }
+
   private:
     int verbose_;
     std::unique_ptr<TrackConverter> tt_track_converter_;
@@ -138,6 +147,8 @@ namespace Phase2L1GMT {
     std::unique_ptr<TrackMuonMatchAlgorithm> track_mu_match_;
     std::unique_ptr<Isolation> isolation_;
     std::unique_ptr<Tauto3Mu> tauto3mu_;
+
+    PreTrackMatchedMuonProcessor* preTrackMatchedMuonProcessor = nullptr;
 
     std::vector<edm::Ptr<l1t::TrackerMuon::L1TTTrackType> > associateTracksWithNonant(
         const std::vector<edm::Ptr<l1t::TrackerMuon::L1TTTrackType> >& tracks, uint processor) {

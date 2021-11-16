@@ -39,6 +39,8 @@ namespace Phase2L1GMT {
     l1t::RegionalMuonCandRef muRef;
     l1t::MuonStubRef stubRef;
 
+    ap_uint<BITSSIGMACOORD + 1> deltaCoord1;
+    ap_uint<BITSSIGMACOORD + 1> deltaCoord2;
   } match_t;
 
   class TrackMuonMatchAlgorithm {
@@ -49,6 +51,14 @@ namespace Phase2L1GMT {
 
     std::vector<PreTrackMatchedMuon> processNonant(const std::vector<ConvertedTTTrack>& convertedTracks,
                                                    const std::vector<MuonROI>& rois) {
+      LogTrace("phase2L1GMT")<<"processNonant: rois.size(): "<<rois.size();
+      for(auto& roi : rois) {
+        LogTrace("phase2L1GMT")<<" roi ";
+        for(auto& stub : roi.stubs()) {
+          stub->print();
+        }
+      }
+
       std::vector<PreTrackMatchedMuon> preMuons;
       for (const auto& track : convertedTracks) {
         PreTrackMatchedMuon mu = processTrack(track, rois);
@@ -272,7 +282,7 @@ namespace Phase2L1GMT {
 
       if (verbose_ == 1)
 
-        printf("Propagating to layer %d:is barrel=%d  coords=%d+-%d , %d +-%d etas = %d +- %d +-%d\n",
+        printf("\nPropagating to layer %d:is barrel=%d  coords=%d+-%d , %d +-%d etas = %d +- %d +-%d\n",
                int(layer),
                out.is_barrel.to_int(),
                out.coord1.to_int(),
@@ -319,10 +329,11 @@ namespace Phase2L1GMT {
         coord1Matched = 0;
       }
       if (verbose_ == 1)
-        printf("Coord1 matched=%d delta=%d res=%d\n",
+        printf("Coord1 matched=%d delta=%d res=%d quality=%d\n",
                coord1Matched.to_int(),
                deltaCoord1.to_int(),
-               prop.sigma_coord1.to_int());
+               prop.sigma_coord1.to_int(),
+               stub->quality() );
 
       //Matching of Coord2
       ap_uint<1> coord2Matched;
@@ -374,6 +385,9 @@ namespace Phase2L1GMT {
       if (verbose_ == 1)
         printf("eta2 matched=%d delta=%d res=%d\n", eta2Matched.to_int(), deltaEta2.to_int(), prop.sigma_eta2.to_int());
 
+      out.deltaCoord1 = 0;
+      out.deltaCoord2 = 0;
+
       //if barrel, coord1 has to always be matched, coord2 maybe and eta1 is needed if etaQ=0 or then the one that depends on eta quality
       if (prop.is_barrel) {
         out.valid = (coord1Matched == 1 && (eta1Matched == 1 || eta2Matched == 1));
@@ -383,6 +397,24 @@ namespace Phase2L1GMT {
           out.quality = 32 - deltaCoord1;
           if (coord2Matched == 1)
             out.quality += 32 - deltaCoord2;
+
+          //out.deltaCoord1 and deltaCoord2 is unsigned, 0 means the stub was not matched
+          //16 means the deltaCoord1 is 0. We need the sign of the deltaCoord1, as it is can be important information
+          //overflows are not possible, because coord1Matched = deltaCoord1 <= prop.sigma_coord1
+          if(prop.coord1 >= stub->coord1())
+            out.deltaCoord1 = 16 + deltaCoord1;
+          else
+            out.deltaCoord1 = 16 - deltaCoord1;
+
+          if (coord2Matched == 1) {
+            if(prop.coord2 >= stub->coord2())
+              out.deltaCoord2 = 16 + deltaCoord2;
+            else
+              out.deltaCoord2 = 16 - deltaCoord2;
+          }
+          if (verbose_ == 1)
+            printf("out.deltaCoord1=%d %s out.deltaCoord2=%d %s\n", out.deltaCoord1.to_int(), out.deltaCoord1.to_string().c_str(),
+              out.deltaCoord2.to_int(), out.deltaCoord2.to_string().c_str());
         }
       }
       //if endcap each coordinate is independent except the case where phiQuality=1 and etaQuality==3
@@ -400,6 +432,27 @@ namespace Phase2L1GMT {
             out.quality += 32 - deltaCoord1;
           if (match2)
             out.quality += 32 - deltaCoord2;
+
+
+          //out.deltaCoord1 and deltaCoord2 is unsigned, 0 means the stub was not matched
+          //16 means the deltaCoord1 is 0. We need the sign of the deltaCoord1, as it is can be important information
+          //overflows are not possible, because coord1Matched = deltaCoord1 <= prop.sigma_coord1
+          if (match1 || match3) {
+            if(prop.coord1 >= stub->coord1())
+              out.deltaCoord1 = 16 + deltaCoord1;
+            else
+              out.deltaCoord1 = 16 - deltaCoord1;
+          }
+
+          if (match2) {
+            if(prop.coord2 >= stub->coord2())
+              out.deltaCoord2 = 16 + deltaCoord2;
+            else
+              out.deltaCoord2 = 16 - deltaCoord2;
+          }
+          if (verbose_ == 1)
+            printf("out.deltaCoord1=%d %s out.deltaCoord2=%d %s\n", out.deltaCoord1.to_int(), out.deltaCoord1.to_string().c_str(),
+              out.deltaCoord2.to_int(), out.deltaCoord2.to_string().c_str());
         }
       }
       if (verbose_ == 1)
@@ -434,6 +487,10 @@ namespace Phase2L1GMT {
         printf("-----------processing new track----------");
         track.print();
       }
+
+      LogTrace("phase2L1GMT")<<"processTrack: ";
+      track.print();
+
       for (const auto& roi : rois) {
         if (verbose_ == 1) {
           printf("New ROI with %d stubs \n", int(roi.stubs().size()));
@@ -471,6 +528,9 @@ namespace Phase2L1GMT {
         match_t b = getBest(matchInfo0);
         if (b.valid) {
           muon.addStub(b.stubRef);
+          muon.getDeltaCoords1()[0] = b.deltaCoord1;
+          muon.getDeltaCoords2()[0] = b.deltaCoord2;
+
           if (b.isGlobal)
             muon.addMuonRef(b.muRef);
           quality += b.quality;
@@ -480,6 +540,8 @@ namespace Phase2L1GMT {
         match_t b = getBest(matchInfo1);
         if (b.valid) {
           muon.addStub(b.stubRef);
+          muon.getDeltaCoords1()[1] = b.deltaCoord1;
+          muon.getDeltaCoords2()[1] = b.deltaCoord2;
           if (b.isGlobal)
             muon.addMuonRef(b.muRef);
           quality += b.quality;
@@ -487,6 +549,8 @@ namespace Phase2L1GMT {
       }
       if (!matchInfo2.empty()) {
         match_t b = getBest(matchInfo2);
+        muon.getDeltaCoords1()[2] = b.deltaCoord1;
+        muon.getDeltaCoords2()[2] = b.deltaCoord2;
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
@@ -496,6 +560,8 @@ namespace Phase2L1GMT {
       }
       if (!matchInfo3.empty()) {
         match_t b = getBest(matchInfo3);
+        muon.getDeltaCoords1()[3] = b.deltaCoord1;
+        muon.getDeltaCoords2()[3] = b.deltaCoord2;
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
@@ -505,6 +571,8 @@ namespace Phase2L1GMT {
       }
       if (!matchInfo4.empty()) {
         match_t b = getBest(matchInfo4);
+        muon.getDeltaCoords1()[4] = b.deltaCoord1;
+        muon.getDeltaCoords2()[4] = b.deltaCoord2;
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)

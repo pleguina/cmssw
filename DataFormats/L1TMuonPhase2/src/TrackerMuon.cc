@@ -21,7 +21,7 @@ TrackerMuon::TrackerMuon(
 TrackerMuon::~TrackerMuon() {}
 
 void TrackerMuon::print() const {
-  LogDebug("TrackerMuon") << "Tracker Muon : charge=" << hwCharge_ << " pt=" << hwPt() << "," << p4().pt()
+  LogTrace("TrackerMuon") << "Tracker Muon : charge=" << hwCharge_ << " pt=" << hwPt() << "," << p4().pt()
                           << " eta=" << hwEta() << "," << p4().eta() << " phi=" << hwPhi() << "," << p4().phi()
                           << " z0=" << hwZ0_ << " d0=" << hwD0_ << " isolation=" << hwIso() << " beta=" << hwBeta_
                           << " quality=" << hwQual();
