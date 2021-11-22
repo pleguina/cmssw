@@ -37,6 +37,9 @@ std::vector<RpcCluster> RpcClusterization::getClusters(const RPCDetId& roll, std
 
   std::vector<RpcCluster> filteredClusters;
 
+  std::vector<RpcCluster> emptyResult;
+
+  //modification in the FW from Nov 2021
   if (dropAllClustersIfMoreThanMax)
     if (allClusters.size() > maxClusterCnt)
       return filteredClusters;
@@ -46,17 +49,23 @@ std::vector<RpcCluster> RpcClusterization::getClusters(const RPCDetId& roll, std
     LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " allClusters.size() >= maxClusterCnt "
                                   << std::endl;
     for (auto& cluster : allClusters)
-      edm::LogVerbatim("l1tOmtfEventPrint")
+      LogTrace("l1tOmtfEventPrint")
           << __FUNCTION__ << ":" << __LINE__ << " roll " << roll << " cluster: firstStrip " << cluster.firstStrip
           << " lastStrip " << cluster.lastStrip << " halfStrip " << cluster.halfStrip() << std::endl;
   }
 
-  //TODO this is very simple filtering of the cluster,
-  //unfortunately the in firmware it is more complicated and cannot be easily emulated from digi
-  //(in principle would required raws, because in the firmware the clusterizaton is based on the 8-bit strip partitions
+  //this is very simple filtering of the clusters,
+  //till Nov 2021: unfortunately in the firmware it was more complicated and cannot be easily emulated from digi
+  //(in principle would required raws, because in the firmware the clusterizaton is based on the 8-bit strip partitions)
+  //the FW from from Nov 2021 solved this problem - option dropAllClustersIfMoreThanMax (above and below)
+  //beside betterdata-to-emulator agreement it provides better eff for high pt muons
   for (auto& cluster : allClusters) {
     if (cluster.size() <= maxClusterSize)
       filteredClusters.emplace_back(cluster);
+    else if (dropAllClustersIfMoreThanMax)
+      return emptyResult;
+      //modification in the FW from Nov 2021:
+      //if a cluster is bigger then 3 strips - all clusters are dropped
 
     if (filteredClusters.size() >= maxClusterCnt)
       break;
