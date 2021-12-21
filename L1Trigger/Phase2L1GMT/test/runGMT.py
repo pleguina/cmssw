@@ -3,6 +3,7 @@
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
 # with command line options: step1 --conditions 111X_mcRun4_realistic_T15_v3 -n 2 --era Phase2C9 --eventcontent FEVTDEBUGHLT --runUnscheduled file:/eos/cms/store/relval/CMSSW_11_0_0/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v3_2026D49PU200-v2/10000/01054EE2-1B51-C449-91A2-5202A60D16A3.root -s RAW2DIGI,L1TrackTrigger,L1 --datatier FEVTDEBUGHLT --customise SLHCUpgradeSimulations/Configuration/aging.customise_aging_1000,L1Trigger/Configuration/customisePhase2TTNoMC.customisePhase2TTNoMC,Configuration/DataProcessing/Utils.addMonitoring --geometry Extended2026D49 --fileout file:/tmp/step1_Reprocess_TrackTrigger_L1.root --no_exec --nThreads 8 --python step1_L1_ProdLike.py --filein das:/TT_TuneCP5_14TeV-powheg-pythia8/Phase2HLTTDRWinter20DIGI-PU200_110X_mcRun4_realistic_v3-v2/GEN-SIM-DIGI-RAW
+import sys
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.Eras.Era_Phase2C9_cff import Phase2C9
@@ -37,18 +38,19 @@ if verbose:
                                                #'cerr',
                                                'muCorrelatorEventPrint'
                     ),
-       categories        = cms.untracked.vstring('gmtDataDumper', 'phase2L1GMT', 'MuonStub', "TrackerMuon", 'ConvertedTTTrack'), #, "l1tMuBayesEventPrint"
+       #categories        = cms.untracked.vstring('gmtDataDumper', 'phase2L1GMT', 'MuonStub', "TrackerMuon", 'ConvertedTTTrack'), #, "l1tMuBayesEventPrint"
+       categories        = cms.untracked.vstring("TrackerMuon"), #, "l1tMuBayesEventPrint"
        muCorrelatorEventPrint = cms.untracked.PSet(    
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
                          #INFO   =  cms.untracked.int32(0),
                          #DEBUG   = cms.untracked.int32(0),
-                         gmtDataDumper = cms.untracked.PSet( limit = cms.untracked.int32(100000000) ),
-                         phase2L1GMT = cms.untracked.PSet( limit = cms.untracked.int32(100000000) ),
-                         MuonStub = cms.untracked.PSet( limit = cms.untracked.int32(100000000) ),
+                         # gmtDataDumper = cms.untracked.PSet( limit = cms.untracked.int32(100000000) ),
+                         # phase2L1GMT = cms.untracked.PSet( limit = cms.untracked.int32(100000000) ),
+                         # MuonStub = cms.untracked.PSet( limit = cms.untracked.int32(100000000) ),
+                         # ConvertedTTTrack = cms.untracked.PSet( limit = cms.untracked.int32(100000000) ),
                          TrackerMuon = cms.untracked.PSet( limit = cms.untracked.int32(100000000) ),
-                         ConvertedTTTrack = cms.untracked.PSet( limit = cms.untracked.int32(100000000) ),
                          
                        ),
        #debugModules = cms.untracked.vstring('gmtMuons', 'gmtMuons.trackMatching', 'trackMatching', 'Phase2L1TGMTProducer:gmtMuons', 'Phase2L1TGMTProducer') 
@@ -85,7 +87,11 @@ process.source = cms.Source("PoolSource",
           #'file:///eos/user/k/kbunkow/cms_data/mc/Phase2HLTTDRWinter20/Phase2HLTTDRWinter20DIGI_DoubleMuon_gun_FlatPt-1To100_NoPU_3FD40D17-5C29-804C-B49A-029CC02B63DC_dump1016Ev.root'
           'file:///afs/cern.ch/work/k/kbunkow/public/CMSSW/cmssw_11_x_x_l1tOfflinePhase2/CMSSW_11_1_7/src/L1Trigger/Phase2L1GMT/test/Phase2HLTTDRSummer20_DYToLL_M-50_noPU_0018FD1C-F75F-9E4A-A329-1E671A1CA267_1000Ev.root'
           #"file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/HSCPppstau_M_871_PU200_v3-v2_1ADE9D9E-8C0C-1948-A405-5DFDA1AF5172_dump100Ev.root"
-
+          #"file:///afs/cern.ch/user/f/folguera//public/forKarol/HSCPs/GEN-SIM-DIGI-RAW.root"
+          #"file:///afs/cern.ch/user/f/folguera//public/forKarol/HSCPs/GEN-SIM-DIGI-RAW_10evt.root"
+          #"file:///afs/cern.ch/user/f/folguera//public/forKarol/HSCPs/L1T-PhaseIITDRSpring19GS-00169-fragment_py_GEN_SIM_DIGI_DIGI2RAW_HLT_RAW2DIGI_L1TrackTrigger_L1.root"
+          #"file:///afs/cern.ch/user/f/folguera/public/forKarol/HSCPs/L1T-PhaseIITDRSpring19GS-00169-fragment_py_GEN_SIM_DIGI_DIGI2RAW_HLT_RAW2DIGI_L1TrackTrigger_L1.root"
+          #"file:///afs/cern.ch/user/f/folguera/public/forKarol/HSCPs/HSCP_withTT_vfinal.root"
      ) ),
     secondaryFileNames = cms.untracked.vstring()
 #                            skipEvents=cms.untracked.uint32(36)
@@ -166,6 +172,8 @@ process.load("L1Trigger.Phase2L1GMT.gmt_cff")
 process.gmtMuons.trackMatching.verbose=0
 process.gmtMuons.verbose=0
 process.gmtMuons.trackConverter.verbose=0
+process.gmtMuons.isolation.IsodumpForHLS = 0
+
 process.gmtMuons.trackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth")
 process.gmtMuons.mcTruthTrackInputTag = cms.InputTag("TTTrackAssociatorFromPixelDigis", "Level1TTTracks")
 process.gmtMuons.dataDumpRootFile = cms.string("dataDump.root")
@@ -205,8 +213,8 @@ process.FEVTDEBUGHLToutput_step = cms.EndPath(process.FEVTDEBUGHLToutput)
 
 # Schedule definition 
 #process.L1TrackTrigger_step, process.raw2digi_step,
-process.schedule = cms.Schedule(process.testpath,process.endjob_step,process.FEVTDEBUGHLToutput_step)
-from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
+process.schedule = cms.Schedule(process.testpath,process.endjob_step, process.FEVTDEBUGHLToutput_step) #
+from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask 
 associatePatAlgosToolsTask(process)
 
 #Setup FWK for multithreaded

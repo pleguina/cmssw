@@ -133,6 +133,10 @@ void Phase2L1TGMTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
   std::vector<l1t::TrackerMuon> out = node_->processEvent(tracks, muonTracks, stubs);
   std::unique_ptr<std::vector<l1t::TrackerMuon> > out1 = std::make_unique<std::vector<l1t::TrackerMuon> >(out);
   iEvent.put(std::move(out1));
+
+  for(auto& muonCAnd : out) {
+    muonCAnd.print();
+  }
 }
 
 // ------------ method called once each stream before processing any runs, lumis or events  ------------

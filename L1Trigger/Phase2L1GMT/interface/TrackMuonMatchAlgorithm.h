@@ -1,6 +1,7 @@
 #ifndef PHASE2GMT_TRACKMUONMATCHALGO
 #define PHASE2GMT_TRACKMUONMATCHALGO
 
+#include "L1Trigger/Phase2L1GMT/interface/ApSignAbsInt.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTrack_TrackWord.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
@@ -13,6 +14,7 @@
 #include "L1Trigger/Phase2L1GMT/interface/PreTrackMatchedMuon.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "L1Trigger/Phase2L1GMT/interface/Constants.h"
+
 
 namespace Phase2L1GMT {
 
@@ -39,8 +41,15 @@ namespace Phase2L1GMT {
     l1t::RegionalMuonCandRef muRef;
     l1t::MuonStubRef stubRef;
 
-    ap_uint<BITSSIGMACOORD + 1> deltaCoord1;
-    ap_uint<BITSSIGMACOORD + 1> deltaCoord2;
+    //ap_uint<BITSSIGMACOORD + 1> deltaCoord1;
+    //ap_uint<BITSSIGMACOORD + 1> deltaCoord2;
+
+    ApSignAbsInt<BITSSIGMACOORD> deltaCoord1;
+    ApSignAbsInt<BITSSIGMACOORD> deltaCoord2;
+
+    ApSignAbsInt<BITSSIGMAETA> deltaEta1;
+    ApSignAbsInt<BITSSIGMAETA> deltaEta2;
+
   } match_t;
 
   class TrackMuonMatchAlgorithm {
@@ -62,16 +71,16 @@ namespace Phase2L1GMT {
       std::vector<PreTrackMatchedMuon> preMuons;
       for (const auto& track : convertedTracks) {
         PreTrackMatchedMuon mu = processTrack(track, rois);
-        if (mu.valid() && preMuons.size() < 16)
+        if (mu.valid() && preMuons.size() < MATCHER_OUT_BUFFER_SIZE)
           preMuons.push_back(mu);
       }
       std::vector<PreTrackMatchedMuon> cleanedMuons = clean(preMuons);
       return cleanedMuons;
     }
 
-    std::vector<PreTrackMatchedMuon> cleanNeighbor(const std::vector<PreTrackMatchedMuon>& muons,
-                                                   const std::vector<PreTrackMatchedMuon>& muonsPrevious,
-                                                   const std::vector<PreTrackMatchedMuon>& muonsNext,
+    std::vector<PreTrackMatchedMuon> cleanNeighbor(std::vector<PreTrackMatchedMuon>& muons,
+                                                   std::vector<PreTrackMatchedMuon>& muonsPrevious,
+                                                   std::vector<PreTrackMatchedMuon>& muonsNext,
                                                    bool equality) {
       std::vector<PreTrackMatchedMuon> out;
 
@@ -83,11 +92,11 @@ namespace Phase2L1GMT {
         printf("Before:\n");
       }
 
+      LogTrace("phase2L1GMT")<<"\ncleanNeighbor";
       for (uint i = 0; i < muons.size(); ++i) {
-        if (verbose_ == 1) {
-          muons[i].print();
-        }
-        ap_uint<5> mask = 0x1f;
+        LogTrace("phase2L1GMT")<<"cleanNeighbor for "<<muons[i];
+
+        ap_uint<10> mask = 0x3ff; //TODO use constant
         for (uint j = 0; j < muonsPrevious.size(); ++j) {
           mask = mask & cleanMuon(muons[i], muonsPrevious[j], equality);
         }
@@ -95,12 +104,10 @@ namespace Phase2L1GMT {
           mask = mask & cleanMuon(muons[i], muonsNext[j], equality);
         }
         if (mask) {
-          if (verbose_ == 1)
-            printf("kept\n");
+          LogTrace("phase2L1GMT")<<"alive";
           out.push_back(muons[i]);
         } else {
-          if (verbose_ == 1)
-            printf("discarded\n");
+          LogTrace("phase2L1GMT")<<"killed";
         }
       }
       return out;
@@ -120,6 +127,7 @@ namespace Phase2L1GMT {
           printf("Final Muon:");
           muon.print();
         }
+        //LogTrace("phase2L1GMT")<<"\mconvert ";
       }
       return out;
     }
@@ -178,7 +186,8 @@ namespace Phase2L1GMT {
       ap_uint<BITSPROPSIGMAETA_A> res0_eta2 = 0;
       ap_uint<1> is_barrel = 0;
 
-      uint reducedAbsEta = track.abseta() / 8;
+      uint reducedAbsEta = track.abseta() / 8; //looks good here
+      //abseta_ is 3138 for eta 2.40676 so 12 bits, track.eta is 13 bits
 
       if (layer == 0) {
         prop_coord1 = lt_prop_coord1_0[reducedAbsEta];
@@ -190,7 +199,7 @@ namespace Phase2L1GMT {
         res0_eta1 = lt_res0_eta1_0[reducedAbsEta];
         res1_eta = lt_res1_eta_0[reducedAbsEta];
         res0_eta2 = lt_res0_eta2_0[reducedAbsEta];
-        is_barrel = reducedAbsEta < barrelLimit0_ ? 1 : 0;
+        is_barrel = reducedAbsEta < barrelLimit0_ ? 1 : 0; //so barrelLimit*_ are not good
       } else if (layer == 1) {
         prop_coord1 = lt_prop_coord1_1[reducedAbsEta];
         prop_coord2 = lt_prop_coord2_1[reducedAbsEta];
@@ -247,7 +256,7 @@ namespace Phase2L1GMT {
       ap_int<BITSPROPCOORD + BITSTTCURV - 10> c1k = (c1kFull) / 1024;
       ap_int<BITSPHI> coord1 = phi - c1k;
 
-      out.coord1 = coord1 / PHIDIVIDER;
+      out.coord1 = coord1 / PHIDIVIDER; //PHIDIVIDER is 2^5 = 32
 
       ap_int<BITSPROPCOORD + BITSTTCURV> c2kFull = prop_coord2 * curvature;
 
@@ -258,18 +267,20 @@ namespace Phase2L1GMT {
         out.coord2 = (phi - c2k) / PHIDIVIDER;
 
       ap_int<BITSETA> eta = track.eta();
-      out.eta = eta / ETADIVIDER;
+      out.eta = eta / ETADIVIDER; //ETADIVIDER = 32
 
       ap_uint<2 * BITSTTCURV - 2> curvature2All = curvature * curvature;
       ap_uint<BITSTTCURV2> curvature2 = curvature2All / 2;
 
+      ap_ufixed<3, 2, AP_TRN_ZERO, AP_SAT_SYM> sigmaFactor(SIGMA_FACTOR);
+
       //Remember to change emulator with new k2
       ap_uint<BITSPROPSIGMACOORD_B + BITSTTCURV2> rescoord1k = (res1_coord1 * curvature2) >> 23;
-      ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord1 = res0_coord1 + rescoord1k;
+      ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord1 = (res0_coord1 + rescoord1k) * sigmaFactor; //TODO<<<<<<<<<<<<<<
       out.sigma_coord1 = ap_uint<BITSSIGMACOORD>(sigma_coord1);
 
       ap_uint<BITSPROPSIGMACOORD_B + BITSTTCURV2> rescoord2k = (res1_coord2 * curvature2) >> 23;
-      ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord2 = res0_coord2 + rescoord2k;
+      ap_ufixed<BITSSIGMACOORD, BITSSIGMACOORD, AP_TRN_ZERO, AP_SAT_SYM> sigma_coord2 = (res0_coord2 + rescoord2k) * sigmaFactor; //TODO<<<<<<<<<<<<<<
       out.sigma_coord2 = ap_uint<BITSSIGMACOORD>(sigma_coord2);
 
       ap_uint<BITSPROPSIGMAETA_B + BITSTTCURV2> resetak = (res1_eta * curvature2) >> 23;
@@ -280,18 +291,16 @@ namespace Phase2L1GMT {
       out.valid = 1;
       out.is_barrel = is_barrel;
 
-      if (verbose_ == 1)
-
-        printf("\nPropagating to layer %d:is barrel=%d  coords=%d+-%d , %d +-%d etas = %d +- %d +-%d\n",
-               int(layer),
-               out.is_barrel.to_int(),
-               out.coord1.to_int(),
-               out.sigma_coord1.to_int(),
-               out.coord2.to_int(),
-               out.sigma_coord2.to_int(),
-               out.eta.to_int(),
-               out.sigma_eta1.to_int(),
-               out.sigma_eta2.to_int());
+      LogTrace("phase2L1GMT")<<"\n\nTrackMuonMatchAlgorithm::propagate: "
+          <<" layer "<<layer
+          <<" is_barrel "<<out.is_barrel.to_int()
+          <<" coord1 "<<out.coord1.to_int()
+          <<" sigma_coord1 "<<out.sigma_coord1.to_int()
+          <<" coord2 "<<out.coord2.to_int()
+          <<" sigma_coord2 "<<out.sigma_coord2.to_int()
+          <<" eta "<< out.eta.to_int()
+          <<" sigma_eta1 "<< out.sigma_eta1.to_int()
+          <<" sigma_eta2 "<< out.sigma_eta2.to_int();
 
       return out;
     }
@@ -305,7 +314,18 @@ namespace Phase2L1GMT {
     }
 
     ap_uint<BITSSIGMACOORD + 1> deltaCoord(const ap_int<BITSSTUBCOORD>& phi1, const ap_int<BITSSTUBCOORD>& phi2) {
+      //dPhiRoll has the same width as  phi1 and phi2 on purpose,
+      //because its overflowing provides folding of dPhi in around the +-180deg
       ap_int<BITSSTUBCOORD> dPhiRoll = phi1 - phi2;
+
+     /* ap_int<BITSSTUBCOORD+1> dPhiRoll_test= phi1 - phi2;
+      if(dPhiRoll != dPhiRoll_test) {
+        edm::LogError("gmtDataDumper")<<__FUNCTION__<<":"<<__LINE__
+            <<"dPhiRoll overflow! dPhiRoll: "
+            <<dPhiRoll<<" = "<<(dPhiRoll * 2. /256.*180.)<<" dPhiRoll_test "<<dPhiRoll_test<<" = "<<(dPhiRoll_test * 2. /256.*180.)
+            <<" phi1 "<<phi1<<" = "<<(phi1 * 2. /256.*180.)<<" deg phi2 "<<phi2<<" = "<<(phi2 * 2. /256.*180.);
+      }*/
+
       ap_ufixed<BITSSIGMACOORD + 1, BITSSIGMACOORD + 1, AP_TRN_ZERO, AP_SAT_SYM> dPhi;
       if (dPhiRoll < 0)
         dPhi = ap_ufixed<BITSSIGMACOORD + 1, BITSSIGMACOORD + 1, AP_TRN_ZERO, AP_SAT_SYM>(-dPhiRoll);
@@ -316,10 +336,9 @@ namespace Phase2L1GMT {
     }
 
     match_t match(const propagation_t prop, const l1t::MuonStubRef& stub) {
-      if (verbose_ == 1) {
-        printf("Matching to ");
-        stub->print();
-      }
+      LogTrace("phase2L1GMT")<<"\nTrackMuonMatchAlgorithm::match: Matching to ";
+      stub->print();
+
       //Matching of Coord1
       ap_uint<1> coord1Matched;
       ap_uint<BITSSIGMACOORD + 1> deltaCoord1 = deltaCoord(prop.coord1, stub->coord1());
@@ -328,12 +347,12 @@ namespace Phase2L1GMT {
       } else {
         coord1Matched = 0;
       }
-      if (verbose_ == 1)
-        printf("Coord1 matched=%d delta=%d res=%d quality=%d\n",
-               coord1Matched.to_int(),
-               deltaCoord1.to_int(),
-               prop.sigma_coord1.to_int(),
-               stub->quality() );
+
+      LogTrace("phase2L1GMT")<<"TrackMuonMatchAlgorithm::match:"
+          <<" coord1Matched "<<coord1Matched.to_int()
+          <<" deltaCoord1 "<<deltaCoord1.to_int()
+          <<" prop.sigma_coord1 "<<prop.sigma_coord1.to_int()
+          <<" stub->quality "<<stub->quality() ;
 
       //Matching of Coord2
       ap_uint<1> coord2Matched;
@@ -343,12 +362,11 @@ namespace Phase2L1GMT {
       } else {
         coord2Matched = 0;
       }
-      if (verbose_ == 1)
-        printf("Coord2 matched=%d delta=%d res=%d\n",
-               coord2Matched.to_int(),
-               deltaCoord2.to_int(),
-               prop.sigma_coord2.to_int());
 
+      LogTrace("phase2L1GMT")<<"TrackMuonMatchAlgorithm::match "
+          <<" coord2Matched "<<coord2Matched.to_int()
+          <<" deltaCoord2 "<<deltaCoord2.to_int()
+          <<" prop.sigma_coord2 "<<prop.sigma_coord2.to_int();
       //Matching of Eta1
 
       ap_uint<1> eta1Matched;
@@ -356,11 +374,16 @@ namespace Phase2L1GMT {
       //if we have really bad quality[Barrel no eta]
       //increase the resolution
       ap_ufixed<BITSSIGMAETA, BITSSIGMAETA, AP_TRN_ZERO, AP_SAT_SYM> prop_sigma_eta1;
-      if (stub->etaQuality() == 0)
-        prop_sigma_eta1 = prop.sigma_eta1 + 6;
+      if (stub->etaQuality() == 0) {
+        prop_sigma_eta1 = prop.sigma_eta1 + 6; //TODO check how saturation here impact the performance
+      }
       else
         prop_sigma_eta1 = prop.sigma_eta1;
 
+      //Eta Quality encoding:
+      //0 - no ete measurement, the coarseEta* is given (middle of the chamber)
+      //1 - first eta measurement is present
+      //3 - first and second eta measurement are present
       ap_uint<BITSSIGMAETA + 1> deltaEta1 = deltaEta(prop.eta, stub->eta1());
       if (deltaEta1 <= prop_sigma_eta1 && (stub->etaQuality() == 0 || (stub->etaQuality() & 0x1)))
         eta1Matched = 1;
@@ -370,6 +393,10 @@ namespace Phase2L1GMT {
       if (verbose_ == 1)
         printf("eta1 matched=%d delta=%d res=%d\n", eta1Matched.to_int(), deltaEta1.to_int(), prop_sigma_eta1.to_int());
 
+      LogTrace("phase2L1GMT")<<"TrackMuonMatchAlgorithm::match:"
+          <<" eta1Matched "<<eta1Matched.to_int()
+          <<" deltaEta1 "<<deltaEta1.to_int()
+          <<" prop.prop_sigma_eta1 "<<prop_sigma_eta1.to_int();
       //Matching of Eta2
 
       ap_uint<1> eta2Matched;
@@ -385,8 +412,24 @@ namespace Phase2L1GMT {
       if (verbose_ == 1)
         printf("eta2 matched=%d delta=%d res=%d\n", eta2Matched.to_int(), deltaEta2.to_int(), prop.sigma_eta2.to_int());
 
-      out.deltaCoord1 = 0;
-      out.deltaCoord2 = 0;
+      LogTrace("phase2L1GMT")<<"TrackMuonMatchAlgorithm::match:"
+          <<" eta2Matched "<<eta2Matched.to_int()
+          <<" deltaEta2 "<<deltaEta2.to_int()
+          <<" prop.prop_sigma_eta2 "<<prop.sigma_eta2.to_int();
+
+      //absValue = 0 and sign = 0 means no match
+      //absValue = 0 and sign = 1 means matched with delta = 0
+      out.deltaCoord1.absValue = 0;
+      out.deltaCoord1.sign = 0;
+      out.deltaCoord2.absValue = 0;
+      out.deltaCoord2.sign = 0;
+
+      out.deltaEta1.absValue = 0;
+      out.deltaEta1.sign = 0;
+      out.deltaEta2.absValue = 0;
+      out.deltaEta2.sign = 0;
+
+      unsigned int maxQuality = 1 << (BITSSIGMACOORD + 1);
 
       //if barrel, coord1 has to always be matched, coord2 maybe and eta1 is needed if etaQ=0 or then the one that depends on eta quality
       if (prop.is_barrel) {
@@ -394,65 +437,112 @@ namespace Phase2L1GMT {
         if (out.valid == 0) {
           out.quality = 0;
         } else {
-          out.quality = 32 - deltaCoord1;
+          out.quality = maxQuality - deltaCoord1;
           if (coord2Matched == 1)
-            out.quality += 32 - deltaCoord2;
+            out.quality += maxQuality - deltaCoord2;
+          //fixme KB. out.quality is 7 bits, deltaCoord1 is 5 bits, so it looks that 7 bits for the quality is one bit too much
 
-          //out.deltaCoord1 and deltaCoord2 is unsigned, 0 means the stub was not matched
-          //16 means the deltaCoord1 is 0. We need the sign of the deltaCoord1, as it is can be important information
-          //overflows are not possible, because coord1Matched = deltaCoord1 <= prop.sigma_coord1
+          //out.deltaCoord1 overflows are not possible, because coord1Matched = deltaCoord1 <= prop.sigma_coord1
+
+          /*
           if(prop.coord1 >= stub->coord1())
-            out.deltaCoord1 = 16 + deltaCoord1;
+            out.deltaCoord1 = deltaCoord1Middle + deltaCoord1;
           else
-            out.deltaCoord1 = 16 - deltaCoord1;
+            out.deltaCoord1 = deltaCoord1Middle - deltaCoord1;
 
           if (coord2Matched == 1) {
             if(prop.coord2 >= stub->coord2())
-              out.deltaCoord2 = 16 + deltaCoord2;
+              out.deltaCoord2 = deltaCoord1Middle + deltaCoord2;
             else
-              out.deltaCoord2 = 16 - deltaCoord2;
+              out.deltaCoord2 = deltaCoord1Middle - deltaCoord2;
+          }*/
+
+          out.deltaCoord1.absValue = deltaCoord1;
+          out.deltaCoord1.sign = (prop.coord1 >= stub->coord1());  //sign is minus if prop.coord1 >= stub->coord1()
+
+          if (coord2Matched == 1) {
+            out.deltaCoord2.absValue = deltaCoord2;
+            out.deltaCoord2.sign = (prop.coord2 >= stub->coord2() ? 1 : 0);  //sign is minus if prop.coord1 >= stub->coord2()
           }
-          if (verbose_ == 1)
-            printf("out.deltaCoord1=%d %s out.deltaCoord2=%d %s\n", out.deltaCoord1.to_int(), out.deltaCoord1.to_string().c_str(),
-              out.deltaCoord2.to_int(), out.deltaCoord2.to_string().c_str());
+
+          if(eta1Matched == 1) {
+            if(stub->etaQuality() == 0) { //no eta hit, just the chamber is matched
+              out.deltaEta1.absValue = (1 << out.deltaEta1.absValue.width) -1 ; //max possible value
+              out.deltaEta1.sign = 1;
+            }
+            else {
+              out.deltaEta1.absValue = deltaEta1;
+              out.deltaEta1.sign = (prop.eta >= stub->eta1() ? 1 : 0);  //sign is minus if prop.coord1 >= stub->coord2()
+            }
+          }
+
+          if(eta2Matched == 1) {
+            out.deltaEta2.absValue = deltaEta2;
+            out.deltaEta2.sign = (prop.eta >= stub->eta2() ? 1 : 0);  //sign is minus if prop.coord1 >= stub->coord2()
+          }
+          if(stub->type() == 0)
+            LogTrace("phase2L1GMT")<<" prop.is_barrel but stub.type() == 0 !!!!!!!!!!!!!!!!!!!!!!";
+          LogTrace("phase2L1GMT")<<"TrackMuonMatchAlgorithm::match barrel: "
+              <<"out.deltaCoord1 "<<std::setw(3)<<out.deltaCoord1.to_int()<<" sign-abs: "<<out.deltaCoord1.toRaw().to_string()<<" sign "<<out.deltaCoord1.sign.to_int()<<" absVal "<<out.deltaCoord1.absValue.to_int()<<" "
+              <<"out.deltaCoord2 "<<std::setw(3)<<out.deltaCoord2.to_int()<<" sign-abs: "<<out.deltaCoord2.toRaw().to_string()<<" sign "<<out.deltaCoord2.sign.to_int()<<" absVal "<<out.deltaCoord2.absValue.to_int()
+              <<" deltaEta1 "<<out.deltaEta1.to_int() <<" deltaEta2 "<<out.deltaEta2.to_int();
         }
       }
       //if endcap each coordinate is independent except the case where phiQuality=1 and etaQuality==3
-      else {
+      //KB but phiQuality=1 and etaQuality==3 is not possible???
+      else { //endcap
         bool match1 = (coord1Matched == 1 && eta1Matched == 1);
         bool match2 = (coord2Matched == 1 && eta2Matched == 1);
         bool match3 =
             (coord1Matched == 1 && (eta1Matched || eta2Matched) && stub->etaQuality() == 3 && stub->quality() == 1);
+        //etaQuality = 3 - first and second eta measurement are present
+        //stub->quality() == 1 - CSCOnlyStub <<<<
+        //stub->quality() == 2 - RPCOnlyStub
+        //stub->quality() == 3 - CSC and RPC stub
+
+        LogTrace("phase2L1GMT")<<"TrackMuonMatchAlgorithm::match endcap: match1 "<< match1<<" match2 "<< match2<<" match3 "<<match3<<endl;
+
         out.valid = match1 || match2 || match3;
         if (out.valid == 0)
           out.quality = 0;
         else {
           out.quality = 0;
           if (match1 || match3)
-            out.quality += 32 - deltaCoord1;
+            out.quality += maxQuality - deltaCoord1;
           if (match2)
-            out.quality += 32 - deltaCoord2;
+            out.quality += maxQuality - deltaCoord2;
 
-
-          //out.deltaCoord1 and deltaCoord2 is unsigned, 0 means the stub was not matched
-          //16 means the deltaCoord1 is 0. We need the sign of the deltaCoord1, as it is can be important information
-          //overflows are not possible, because coord1Matched = deltaCoord1 <= prop.sigma_coord1
           if (match1 || match3) {
-            if(prop.coord1 >= stub->coord1())
-              out.deltaCoord1 = 16 + deltaCoord1;
-            else
-              out.deltaCoord1 = 16 - deltaCoord1;
+            out.deltaCoord1.absValue = deltaCoord1;
+            out.deltaCoord1.sign = (prop.coord1 >= stub->coord1());  //sign is minus if prop.coord1 >= stub->coord1()
+
+            if(eta1Matched == 1) {
+              out.deltaEta1.absValue = deltaEta1;
+              out.deltaEta1.sign = (prop.eta >= stub->eta1() ? 1 : 0);  //sign is minus if prop.coord1 >= stub->coord2()
+            }
+            else if(eta1Matched == 2) {
+              //in some rare cases, if match3 the two etas are little different, and then  one can be matched, and the other no
+              //this case should be removed in the L1TPhase2GMTEndcapStubProcessor
+              //but for the moment we take the deltaEta2 and put into the out.deltaEta1
+              out.deltaEta1.absValue = deltaEta2;
+              out.deltaEta1.sign = (prop.eta >= stub->eta2() ? 1 : 0);  //sign is minus if prop.coord1 >= stub->coord2()
+            }
           }
 
           if (match2) {
-            if(prop.coord2 >= stub->coord2())
-              out.deltaCoord2 = 16 + deltaCoord2;
-            else
-              out.deltaCoord2 = 16 - deltaCoord2;
+            out.deltaCoord2.absValue = deltaCoord2;
+            out.deltaCoord2.sign = (prop.coord2 >= stub->coord2() ? 1 : 0);  //sign is minus if prop.coord1 >= stub->coord2()
+
+            out.deltaEta2.absValue = deltaEta2;
+            out.deltaEta2.sign = (prop.eta >= stub->eta1() ? 1 : 0);  //sign is minus if prop.coord1 >= stub->coord2()
           }
-          if (verbose_ == 1)
-            printf("out.deltaCoord1=%d %s out.deltaCoord2=%d %s\n", out.deltaCoord1.to_int(), out.deltaCoord1.to_string().c_str(),
-              out.deltaCoord2.to_int(), out.deltaCoord2.to_string().c_str());
+
+          if(stub->type() == 1)
+            LogTrace("phase2L1GMT")<<" prop.is_endcap but stub.type() == 1 !!!!!!!!!!!!!!!!!!!!!!";
+          LogTrace("phase2L1GMT")<<"TrackMuonMatchAlgorithm::match endcap: "
+              <<"out.deltaCoord1 "<<std::setw(3)<<out.deltaCoord1.to_int()<<" sign_abs: "<<out.deltaCoord1.toRaw().to_string()<<" "
+              <<"out.deltaCoord2 "<<std::setw(3)<<out.deltaCoord2.to_int()<<" sign_abs: "<<out.deltaCoord2.toRaw().to_string()
+              <<" deltaEta1 "<<out.deltaEta1.to_int() <<" deltaEta2 "<<out.deltaEta2.to_int();
         }
       }
       if (verbose_ == 1)
@@ -466,14 +556,14 @@ namespace Phase2L1GMT {
       return match(prop, stub);
     }
 
-    match_t getBest(const std::vector<match_t> matches) {
-      match_t best = matches[0];
+    match_t getBest(const std::vector<match_t>& matches) {
+      auto* best = &(matches[0]); //using pointer to avoid copying
       for (const auto& m : matches) {
-        if (m.quality > best.quality)
-          best = m;
+        if (m.quality > best->quality)
+          best = &m;
       }
 
-      return best;
+      return *best;
     }
 
     PreTrackMatchedMuon processTrack(const ConvertedTTTrack& track, const std::vector<MuonROI>& rois) {
@@ -483,13 +573,8 @@ namespace Phase2L1GMT {
       std::vector<match_t> matchInfo3;
       std::vector<match_t> matchInfo4;
 
-      if (verbose_ == 1 && !rois.empty()) {
-        printf("-----------processing new track----------");
-        track.print();
-      }
-
-      LogTrace("phase2L1GMT")<<"processTrack: ";
-      track.print();
+      LogTrace("phase2L1GMT")<<"\nprocessTrack: -----------------";
+      LogTrace("phase2L1GMT")<<track;
 
       for (const auto& roi : rois) {
         if (verbose_ == 1) {
@@ -522,7 +607,7 @@ namespace Phase2L1GMT {
       ap_ufixed<6, 6, AP_TRN_ZERO, AP_SAT_SYM> ptPenalty = ap_ufixed<6, 6, AP_TRN_ZERO, AP_SAT_SYM>(track.pt() / 32);
 
       ap_uint<BITSMATCHQUALITY> quality = 0;
-      PreTrackMatchedMuon muon(track.charge(), track.pt(), track.eta(), track.phi(), track.z0(), track.d0());
+      PreTrackMatchedMuon muon(track.curvature(), track.charge(), track.pt(), track.eta(), track.phi(), track.z0(), track.d0());
 
       if (!matchInfo0.empty()) {
         match_t b = getBest(matchInfo0);
@@ -530,6 +615,9 @@ namespace Phase2L1GMT {
           muon.addStub(b.stubRef);
           muon.getDeltaCoords1()[0] = b.deltaCoord1;
           muon.getDeltaCoords2()[0] = b.deltaCoord2;
+
+          muon.getDeltaEtas1()[0] = b.deltaEta1;
+          muon.getDeltaEtas2()[0] = b.deltaEta2;
 
           if (b.isGlobal)
             muon.addMuonRef(b.muRef);
@@ -542,6 +630,10 @@ namespace Phase2L1GMT {
           muon.addStub(b.stubRef);
           muon.getDeltaCoords1()[1] = b.deltaCoord1;
           muon.getDeltaCoords2()[1] = b.deltaCoord2;
+
+          muon.getDeltaEtas1()[1] = b.deltaEta1;
+          muon.getDeltaEtas2()[1] = b.deltaEta2;
+
           if (b.isGlobal)
             muon.addMuonRef(b.muRef);
           quality += b.quality;
@@ -551,6 +643,10 @@ namespace Phase2L1GMT {
         match_t b = getBest(matchInfo2);
         muon.getDeltaCoords1()[2] = b.deltaCoord1;
         muon.getDeltaCoords2()[2] = b.deltaCoord2;
+
+        muon.getDeltaEtas1()[2] = b.deltaEta1;
+        muon.getDeltaEtas2()[2] = b.deltaEta2;
+
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
@@ -562,6 +658,10 @@ namespace Phase2L1GMT {
         match_t b = getBest(matchInfo3);
         muon.getDeltaCoords1()[3] = b.deltaCoord1;
         muon.getDeltaCoords2()[3] = b.deltaCoord2;
+
+        muon.getDeltaEtas1()[3] = b.deltaEta1;
+        muon.getDeltaEtas2()[3] = b.deltaEta2;
+
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
@@ -573,6 +673,10 @@ namespace Phase2L1GMT {
         match_t b = getBest(matchInfo4);
         muon.getDeltaCoords1()[4] = b.deltaCoord1;
         muon.getDeltaCoords2()[4] = b.deltaCoord2;
+
+        muon.getDeltaEtas1()[4] = b.deltaEta1;
+        muon.getDeltaEtas2()[4] = b.deltaEta2;
+
         if (b.valid) {
           muon.addStub(b.stubRef);
           if (b.isGlobal)
@@ -589,7 +693,7 @@ namespace Phase2L1GMT {
       ap_uint<8> addr = ptAddr | (etaAddr << 4);
       ap_uint<8> qualityCut = lt_tpsID[addr];
 
-      if (quality >= qualityCut) {
+      if (quality >= (qualityCut - QUALITY_CUT_MOD)) { //TODO changing quality cut to looser!!!!!!!!!!!!!!!!!!!!!!!111
         muon.setValid(true);
         muon.setQuality(quality + ptPenalty);
       } else {
@@ -597,8 +701,6 @@ namespace Phase2L1GMT {
         muon.setQuality(0);
         muon.resetGlobal();
       }
-      if (verbose_ == 1)
-        muon.print();
 
       if (verbose_ == 1 && !rois.empty()) {  //patterns for HLS
 
@@ -623,7 +725,8 @@ namespace Phase2L1GMT {
       return muon;
     }
 
-    ap_uint<5> cleanMuon(const PreTrackMatchedMuon& mu, const PreTrackMatchedMuon& other, bool eq) {
+//original cleanMuon
+    ap_uint<5> cleanMuonV0(const PreTrackMatchedMuon& mu, const PreTrackMatchedMuon& other, bool eq) {
       ap_uint<5> valid = 0;
       ap_uint<5> overlap = 0;
       if (mu.stubID0() != 511) {
@@ -658,32 +761,84 @@ namespace Phase2L1GMT {
         return valid;
     }
 
+    /*
+     * TODO
+     * this method leaves littl bit more duplicates when cleanin between the nonants
+     * because the duplicated ttTracks sometimes have little bit different pt, eta or phi
+     * and then the deltaCoords are not exactly equal
+     * TODO
+     * would be better to clean the cross nonant duplicated just comparing pt eta and phi
+     * all with appropriate margins that must be found from simulation
+     */
+    ap_uint<10> cleanMuonV1(PreTrackMatchedMuon& mu, PreTrackMatchedMuon& other, bool eq) {
+      ap_uint<10> valid = 0;
+
+      LogTrace("phase2L1GMT")<<"other    muon: "<<other;
+      for(unsigned int layer = 0 ; layer < 5; layer++) {
+        LogTrace("phase2L1GMT")<<"layer "<<layer<<" this  stubID "<<std::setw(3)<<mu.stubID(layer)
+                <<" deltaCoords1 "<<std::setw(3)<<mu.getDeltaCoords1()[layer].to_int()<<" sign "<<mu.getDeltaCoords1()[layer].sign
+                <<" deltaCoords2 "<<std::setw(3)<<mu.getDeltaCoords2()[layer].to_int()<<" sign "<<mu.getDeltaCoords2()[layer].sign;
+        LogTrace("phase2L1GMT")<<"layer "<<layer<<" other stubID "<<std::setw(3)<<other.stubID(layer)
+                <<" deltaCoords1 "<<std::setw(3)<<other.getDeltaCoords1()[layer].to_int()<<" sign "<<mu.getDeltaCoords1()[layer].sign
+                <<" deltaCoords2 "<<std::setw(3)<<other.getDeltaCoords2()[layer].to_int()<<" sign "<<mu.getDeltaCoords2()[layer].sign<<"\n";
+
+        if (mu.stubID(layer) != 511) {
+          unsigned int coord1Idx = 2 * layer;
+          unsigned int coord2Idx = coord1Idx + 1;
+
+          //absValue = 0 and sign = 0 means no match, so then valid = 0
+          if( !(mu.getDeltaCoords1()[layer].absValue == 0 && mu.getDeltaCoords1()[layer].sign == 0) )
+            valid = valid | (1 << coord1Idx);
+
+          if( !(mu.getDeltaCoords2()[layer].absValue == 0 && mu.getDeltaCoords2()[layer].sign == 0) )
+            valid = valid | (1 << coord2Idx);
+
+          if (mu.stubID(layer) == other.stubID(layer)) {
+            bool otherIsValid1 = !(other.getDeltaCoords1()[layer].absValue == 0 && other.getDeltaCoords1()[layer].sign == 0);
+            if( (!eq && (otherIsValid1 && mu.getDeltaCoords1()[layer].absValue >  other.getDeltaCoords1()[layer].absValue)) ||
+                ( eq && (otherIsValid1 && mu.getDeltaCoords1()[layer].absValue >= other.getDeltaCoords1()[layer].absValue))   ) {
+              valid = valid & ~(1 << coord1Idx);
+            }
+
+            bool otherIsValid2 = !(other.getDeltaCoords2()[layer].absValue == 0 && other.getDeltaCoords2()[layer].sign == 0);
+            if( (!eq && (otherIsValid2 && mu.getDeltaCoords2()[layer].absValue >  other.getDeltaCoords2()[layer].absValue)) ||
+                ( eq && (otherIsValid2 && mu.getDeltaCoords2()[layer].absValue >= other.getDeltaCoords2()[layer].absValue))    ) {
+              valid = valid & ~(1 << coord2Idx);
+            }
+          }
+        }
+      }
+
+      LogTrace("phase2L1GMT")<<"valid "<<valid.to_string();
+
+      return valid;
+    }
+
+    ap_uint<10> cleanMuon(PreTrackMatchedMuon& mu, PreTrackMatchedMuon& other, bool eq) {
+      if(CLEANMUON_VERSION == 1)
+        return cleanMuonV1(mu, other, eq) ;
+
+      return cleanMuonV0(mu, other, eq) ;
+    }
+
     std::vector<PreTrackMatchedMuon> clean(std::vector<PreTrackMatchedMuon>& muons) {
       std::vector<PreTrackMatchedMuon> out;
       if (muons.empty())
         return out;
-      if (verbose_ == 1) {
-        printf("-----Cleaning Up Muons in the same Nonant\n");
-        printf("Before:\n");
-      }
-      for (uint i = 0; i < muons.size(); ++i) {
-        if (verbose_ == 1)
-          muons[i].print();
 
-        ap_uint<5> mask = 0x1f;
+      LogTrace("phase2L1GMT")<<"\nclean: ";
+      for (uint i = 0; i < muons.size(); ++i) {
+        ap_uint<10> mask = 0x3ff;
+        LogTrace("phase2L1GMT")<<"cleaning muon: "<<muons[i];
         for (uint j = 0; j < muons.size(); ++j) {
           if (i == j)
             continue;
           mask = mask & cleanMuon(muons[i], muons[j], false);
         }
         if (mask) {
-          if (verbose_ == 1)
-            printf("kept\n");
           out.push_back(muons[i]);
-        } else {
-          if (verbose_ == 1)
-            printf("discarded\n");
         }
+        LogTrace("phase2L1GMT")<<"final mask : "<<mask.to_string()<<" = "<<(mask == 0 ? "killed" : "alive")<<"\n";
       }
       return out;
     }

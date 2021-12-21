@@ -78,6 +78,7 @@ namespace Phase2L1GMT {
 
       l1t::MuonStubRefVector cleanedStubs = clean(stubs, usedStubs);
 
+      //so looks that roi is just a set of the random stubs, with at most one stub per layer
       while (!cleanedStubs.empty()) {
         MuonROI roi(bx, 0, 0, 0);
         roi.addStub(cleanedStubs[0]);

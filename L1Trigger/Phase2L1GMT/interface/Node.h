@@ -26,6 +26,7 @@ namespace Phase2L1GMT {
     std::vector<l1t::TrackerMuon> processEvent(const std::vector<edm::Ptr<l1t::TrackerMuon::L1TTTrackType> >& tracks,
                                                const l1t::ObjectRefBxCollection<l1t::RegionalMuonCand>& muonTracks,
                                                const l1t::MuonStubRefVector& stubs) {
+      LogTrace("phase2L1GMT")<<"\n ------------- Node::processEvent -------------------";
       //Split tracks to the links as they come
       std::vector<edm::Ptr<l1t::TrackerMuon::L1TTTrackType> > tracks0 = associateTracksWithNonant(tracks, 0);
       std::vector<edm::Ptr<l1t::TrackerMuon::L1TTTrackType> > tracks1 = associateTracksWithNonant(tracks, 1);
@@ -95,8 +96,7 @@ namespace Phase2L1GMT {
       std::vector<PreTrackMatchedMuon> muCleaned5 = track_mu_match_->cleanNeighbor(mu5, mu4, mu6, false);
       std::vector<PreTrackMatchedMuon> muCleaned6 = track_mu_match_->cleanNeighbor(mu6, mu5, mu7, true);
       std::vector<PreTrackMatchedMuon> muCleaned7 = track_mu_match_->cleanNeighbor(mu7, mu6, mu8, false);
-      std::vector<PreTrackMatchedMuon> muCleaned8 =
-          track_mu_match_->cleanNeighbor(mu8, mu7, mu0, false);  //ARGH! 9 sectors - so some duplicates very rarely
+      std::vector<PreTrackMatchedMuon> muCleaned8 = track_mu_match_->cleanNeighbor(mu8, mu7, mu0, false);  //ARGH! 9 sectors - so some duplicates very rarely
 
       //merge all the collections
       std::copy(muCleaned1.begin(), muCleaned1.end(), std::back_inserter(muCleaned));

@@ -78,8 +78,10 @@ namespace Phase2L1GMT {
 
       ConvertedTTTrack convertedTrack(charge, curvature, absEta, pt, eta, phiCorrected.to_int(), z0, d0, quality, word);
       convertedTrack.setOfflineQuantities(track->momentum().transverse(), track->eta(), track->phi());
-      if (verbose_)
-        convertedTrack.print();
+
+      LogTrace("phase2L1GMT")<<convertedTrack;
+      LogTrace("phase2L1GMT")<<"track->tanL() "<<track->tanL()<<" tanLambda "<<tanLambda
+          <<" etaLookup(absTanL) "<<etaLookup(absTanL)<<" absEta "<<absEta;
       convertedTrack.setTrkPtr(track);
       return convertedTrack;
     }

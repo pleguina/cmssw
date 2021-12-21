@@ -43,7 +43,16 @@ namespace Phase2L1GMT {
 
   //Track Muon Match
   const int BITSSIGMAETA = 4;
-  const int BITSSIGMACOORD = 4;
+
+  const int BITSSIGMACOORD = 4 ;// //TODO +1 is to have larger matching window, KB
+
+  const float SIGMA_FACTOR = 1; //1.5; //TODO
+  const int QUALITY_CUT_MOD = 0; //10 //TOD change together with SIGMA_FACTOR!!!!!!!
+
+  const int MATCHER_OUT_BUFFER_SIZE = 16; //TODO 16 is too small in some cases, increase if needed
+
+  const int CLEANMUON_VERSION = 1; //0 is the original algorithm
+
   const int BITSPROPCOORD = 9;
   const int BITSPROPSIGMACOORD_A = 5;
   const int BITSPROPSIGMACOORD_B = 5;
@@ -70,10 +79,10 @@ namespace Phase2L1GMT {
   const float maxTanl_ = 8.0;
   const float maxZ0_ = 30.;
   const float maxD0_ = 15.4;
-  const int barrelLimit0_ = 181 / 4;
-  const int barrelLimit1_ = 160 / 4;
-  const int barrelLimit2_ = 140 / 4;
-  const int barrelLimit3_ = 110 / 4;
+  const int barrelLimit0_ = 1.4  / 0.00076699039 / 8;//181 / 4;
+  const int barrelLimit1_ = 1.1  / 0.00076699039 / 8;//160 / 4;
+  const int barrelLimit2_ = 0.95 / 0.00076699039 / 8;//140 / 4;
+  const int barrelLimit3_ = 0.95 / 0.00076699039 / 8;//110 / 4;
   const int barrelLimit4_ = 0;
 
   // LSB

@@ -1,5 +1,6 @@
 #include "L1Trigger/Phase2L1GMT/interface/L1TPhase2GMTEndcapStubProcessor.h"
 #include "L1Trigger/L1TMuon/interface/MuonTriggerPrimitive.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -63,7 +64,10 @@ l1t::MuonStub L1TPhase2GMTEndcapStubProcessor::buildCSCOnlyStub(const CSCDetId& 
   else if (station == 4)  //ME4/2
     tfLayer = 3;
 
-  l1t::MuonStub stub(wheel, sector, station, tfLayer, phi, 0, 0, bx, quality, eta1, 0, 1, 0);
+  l1t::MuonStub stub(wheel, sector, station, tfLayer, phi, 0, 0, bx, quality, eta1, 0, 1, 0); //quality = 1; etaQuality = 1
+
+  LogTrace("gmtDataDumper")<<"\nbuildCSCOnlyStub() "<<detid<<" "<<detid.chamberName()<<" ";
+  stub.print();
 
   stub.setOfflineQuantities(gp.phi().value(), 0.0, gp.eta(), 0.0);
   return stub;
@@ -104,6 +108,10 @@ l1t::MuonStub L1TPhase2GMTEndcapStubProcessor::buildRPCOnlyStub(const RPCDetId& 
   stub.setOfflineQuantities(gp.phi().value(), gp.phi().value(), gp.eta(), gp.eta());
 
   stub.setTime(digi.time()); //TODO use the timing in the hardware scale.
+
+  LogTrace("gmtDataDumper")<<"\nbuildRPCOnlyStub() "<<detid;
+  stub.print();
+
   return stub;
 }
 
@@ -119,6 +127,9 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
   l1t::MuonStubCollection allCSC = cscStubs;
 
   //TODO: these operations might be difficult to do in the firmware ( Korol Bunkowski)
+  //cleaning duplicated CSC stubs
+  //the stubs can be duplicated because some CSC chambers are staggered, then the duplicate are from the neighbor chambers.
+  //but also from the same chamber sometimes there are two exactly the same stubs
   while (!allCSC.empty()) {
     l1t::MuonStub stub = allCSC[0];
     l1t::MuonStubCollection freeCSC;
@@ -126,7 +137,7 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
       if ((stub.etaRegion() == allCSC[i].etaRegion()) && (stub.depthRegion() == allCSC[i].depthRegion()) &&
           (fabs(deltaPhi(stub.offline_coord1(), allCSC[i].offline_coord1())) < 0.001)) {
         if (fabs(stub.offline_eta1() - allCSC[i].offline_eta1()) > 0.001) {
-          stub.setEta(stub.eta1(), allCSC[i].eta1(), 3);
+          stub.setEta(stub.eta1(), allCSC[i].eta1(), 3); //Kb.B. setting eta2 in this caseraher has no sense...
           stub.setOfflineQuantities(stub.offline_coord1(), 0.0, stub.offline_eta1(), allCSC[i].offline_eta1());
         }
       } else {
@@ -176,10 +187,10 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
                          finalRPCPhi,
                          0,
                          csc.bxNum(),
-                         3,
+                         3, //quality
                          csc.eta1(),
                          finalRPCEta,
-                         3,
+                         3, //eta quality
                          0);
       stub.setOfflineQuantities(csc.offline_coord1(), offline_finalRPCPhi, csc.offline_eta1(), offline_finalRPCEta);
       stub.setTime(usedRPC.back().time()); //just taking the time of the last one added to this "cluster"
@@ -234,16 +245,22 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
                        phi / nRPC,
                        0,
                        cleanedRPC[0].bxNum(),
-                       2,
+                       2, //quality
                        0,
                        eta / nRPC,
-                       2,
+                       2, //etaQuality
                        0);
     stub.setOfflineQuantities(phiF / nRPC, phiF / nRPC, etaF / nRPC, etaF / nRPC);
     stub.setTime(cleanedRPC[0].time());
     out.push_back(stub);
     cleanedRPC = freeRPC;
   };
+
+  LogTrace("gmtDataDumper")<<"\ncombined Stubs() ";
+  for(auto& stub : out) {
+    stub.print();
+  }
+
   return out;
 }
 
@@ -251,7 +268,10 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::makeStubs(
     const MuonDigiCollection<CSCDetId, CSCCorrelatedLCTDigi>& csc,
     const MuonDigiCollection<RPCDetId, RPCDigi>& cleaned,
     const L1TMuon::GeometryTranslator* t,
-    const edm::EventSetup& iSetup) {
+    const edm::EventSetup& iSetup)
+{
+  LogTrace("gmtDataDumper")<<"\nL1TPhase2GMTEndcapStubProcessor::makeStubs";
+
   l1t::MuonStubCollection cscStubs;
   auto chamber = csc.begin();
   auto chend = csc.end();

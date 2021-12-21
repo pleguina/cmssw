@@ -55,11 +55,13 @@ namespace Phase2L1GMT {
       offline_phi_ = phi;
     }
 
-    void print() const {
-      LogTrace("ConvertedTTTrack") << "converted track : charge=" << charge_ << " curvature=" << curvature_
-                                   << " pt=" << offline_pt_ << "," << pt_ << " eta=" << offline_eta_ << "," << eta_
-                                   << " phi=" << offline_phi_ << "," << phi_ << " z0=" << z0_ << " d0=" << d0_
-                                   << " quality=" << quality_;
+    friend std::ostream& operator<<(std::ostream& out, const ConvertedTTTrack& track) {
+      out << "converted track : charge " << track.charge_ << " curvature " << track.curvature_
+          << " pt=" << track.offline_pt_ << " GeV = " << track.pt_ << " eta " << track.offline_eta_ << " = " << track.eta_
+          << " phi=" << track.offline_phi_ << " = " << track.phi_ << " z0 " << track.z0_ << " d0 " << track.d0_
+          << " quality " << track.quality_<<" abseta_ "<<track.abseta_;
+
+      return out;
     }
 
     void printWord() const {
@@ -83,9 +85,9 @@ namespace Phase2L1GMT {
     int z0_;
     int d0_;
     uint quality_;
-    float offline_pt_;
-    float offline_eta_;
-    float offline_phi_;
+    float offline_pt_ = 0;
+    float offline_eta_ = 0;
+    float offline_phi_ = 0;
     ap_uint<96> word_;
 
     edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > trkPtr_;

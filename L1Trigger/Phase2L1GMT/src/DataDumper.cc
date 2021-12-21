@@ -44,12 +44,15 @@ void DataDumper::initializeTTree(std::string rootFileName) {
 
   rootTree->Branch("tpPt", &record.tpPt);
   rootTree->Branch("tpEta", &record.tpEta);
-  rootTree->Branch("tpEta", &record.tpEta);
+  rootTree->Branch("tpPhi", &record.tpPhi);
+  rootTree->Branch("tpBeta", &record.tpBeta);
+
   //rootTree->Branch("tpCharge", &record.tpCharge); charge is in type
-  rootTree->Branch("type", &record.type);
+  rootTree->Branch("tpType", &record.tpType);
 
   rootTree->Branch("matching", &record.matching);
 
+  rootTree->Branch("tttCurvature", &record.tttCurvature);
   rootTree->Branch("tttCharge", &record.tttCharge);
   rootTree->Branch("tttPt", &record.tttPt);
   rootTree->Branch("tttEta", &record.tttEta);
@@ -58,7 +61,7 @@ void DataDumper::initializeTTree(std::string rootFileName) {
   rootTree->Branch("tttZ0", &record.tttZ0);
   rootTree->Branch("tttD0", &record.tttD0);
 
-  rootTree->Branch("beta", &record.beta);
+  rootTree->Branch("gmtBeta", &record.gmtBeta);
 
   rootTree->Branch("isGlobal", &record.isGlobal);
 
@@ -66,6 +69,15 @@ void DataDumper::initializeTTree(std::string rootFileName) {
 
   rootTree->Branch("deltaCoords1", &record.deltaCoords1);
   rootTree->Branch("deltaCoords2", &record.deltaCoords2);
+
+  rootTree->Branch("deltaEtas1", &record.deltaEtas1);
+  rootTree->Branch("deltaEtas2", &record.deltaEtas2);
+
+
+  rootTree->Branch("stubTiming", &record.stubTiming);
+
+  rootTree->Branch("stubType", &record.stubType);
+
 }
 
 void DataDumper::getHandles(const edm::Event& event) {
@@ -89,6 +101,7 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
     return;
 
   //from ttTrack
+  record.tttCurvature = preTrackMatchedMuon.curvature();
   record.tttCharge = preTrackMatchedMuon.charge();
   record.tttPt = preTrackMatchedMuon.pt();
   record.tttEta = preTrackMatchedMuon.eta();
@@ -98,7 +111,7 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
 
   LogTrace("gmtDataDumper")<<"DataDumper::process(): preTrackMatchedMuon pt: "<<record.tttPt<<" eta "<<record.tttEta<<" phi "<<record.tttPhi;
   //from GMT
-  record.beta = preTrackMatchedMuon.beta();
+  record.gmtBeta = preTrackMatchedMuon.beta();
   record.isGlobal =  preTrackMatchedMuon.isGlobalMuon();
   record.quality = preTrackMatchedMuon.quality();
 
@@ -151,40 +164,50 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
   }
 
   if(tpMatchedToL1MuCand.isNonnull() ) {
-    if(abs(tpMatchedToL1MuCand->pdgId()) == 13 || abs(tpMatchedToL1MuCand->pdgId()) == 1000015) {
-      record.type = tpMatchedToL1MuCand->pdgId();
-      record.tpPt = tpMatchedToL1MuCand->pt();
-      record.tpEta = tpMatchedToL1MuCand->momentum().eta();
-      record.tpPhi = tpMatchedToL1MuCand->momentum().phi();
+    //if(abs(tpMatchedToL1MuCand->pdgId()) == 13 || abs(tpMatchedToL1MuCand->pdgId()) == 1000015) {
+    record.tpType = tpMatchedToL1MuCand->pdgId();
+    record.tpPt = tpMatchedToL1MuCand->pt();
+    record.tpEta = tpMatchedToL1MuCand->eta();
+    record.tpPhi = tpMatchedToL1MuCand->phi();
+    record.tpBeta = tpMatchedToL1MuCand->p4().Beta();
 
-      LogTrace("gmtDataDumper")<<"ttTrack matched to the TrackingParticle";
-      LogTrace("gmtDataDumper")<<" TrackingParticle type"<<(int)record.type<<" tpPt "<<record.tpPt<<" tpEta "<<record.tpEta<<" tpPhi "<<record.tpPhi ;
-    }
-    else {
-      record.type = 0;
-      record.tpPt = 0;
-      record.tpEta = 0;
-      record.tpPhi = 0;
+    LogTrace("gmtDataDumper")<<"ttTrack matched to the TrackingParticle";
+    LogTrace("gmtDataDumper")<<" TrackingParticle type"<<(int)record.tpType<<" tpPt "<<record.tpPt<<" tpEta "<<record.tpEta<<" tpPhi "<<record.tpPhi ;
 
-      record.matching = 0;
-    }
+  }
+  else {
+    record.tpType = 0;
+    record.tpPt = 0;
+    record.tpEta = 0;
+    record.tpPhi = 0;
+
+    record.matching = 0;
   }
 
+
+  LogTrace("gmtDataDumper")<<"gmtDataDumper preTrackMatchedMuon.getDeltaCoords1().size "<<preTrackMatchedMuon.getDeltaCoords1().size()
+      <<" preTrackMatchedMuon.getDeltaCoords1().size "<<preTrackMatchedMuon.getDeltaCoords1().size();
   for (const auto& stub : preTrackMatchedMuon.stubs()) {
-    record.deltaCoords1.at(stub->tfLayer()) = preTrackMatchedMuon.getDeltaCoords1().at(stub->tfLayer());
-    record.deltaCoords2.at(stub->tfLayer()) = preTrackMatchedMuon.getDeltaCoords2().at(stub->tfLayer());
-
-/*    if(stub->time() > 16)
-      edm::LogError("gmtDataDumper")<<"DataDumper::process: stub->time() > 16. stub->time(): "<<stub->time();
-    else
-      record.stubTiming.at(stub->tfLayer()) = stub->bxNum()<<4 | stub->time();*/
-
+    LogTrace("gmtDataDumper")<<"gmtDataDumper stub: tfLayer "<<stub->tfLayer()<<" time() "<<stub->time()<<" type " <<stub->type();
     record.stubTiming.at(stub->tfLayer()) = stub->time();
+    record.stubType.at(stub->tfLayer()) = stub->type();
 
-    LogTrace("gmtDataDumper")<<"gmtDataDumper record: tfLayer "<<stub->tfLayer()
-        <<" deltaCoords1 "<<(int)record.deltaCoords1.at(stub->tfLayer())
-        <<" deltaCoords2 "<<(int)record.deltaCoords2.at(stub->tfLayer())
-        <<" stubTiming "<<(int)record.stubTiming.at(stub->tfLayer())<<" ";
+  }
+
+  for(unsigned int iLayer = 0; iLayer < preTrackMatchedMuon.getDeltaCoords1().size(); iLayer++) {
+    record.deltaCoords1.at(iLayer) = preTrackMatchedMuon.getDeltaCoords1().at(iLayer).toRaw();
+    record.deltaCoords2.at(iLayer) = preTrackMatchedMuon.getDeltaCoords2().at(iLayer).toRaw();
+
+    record.deltaEtas1.at(iLayer) = preTrackMatchedMuon.getDeltaEtas1().at(iLayer).toRaw();
+    record.deltaEtas2.at(iLayer) = preTrackMatchedMuon.getDeltaEtas2().at(iLayer).toRaw();
+
+    LogTrace("gmtDataDumper")<<"gmtDataDumper record: tfLayer "<<iLayer
+        <<" deltaCoords1 "<<(int)record.deltaCoords1.at(iLayer)
+        <<" deltaCoords2 "<<(int)record.deltaCoords2.at(iLayer)
+        <<" deltaEtas1 "<<(int)record.deltaEtas1.at(iLayer)
+        <<" deltaEtas2 "<<(int)record.deltaEtas2.at(iLayer)
+        <<" stubTiming "<<(int)record.stubTiming.at(iLayer)
+        <<" stubType "<<(int)record.stubType.at(iLayer) ;
   }
 
   rootTree->Fill();

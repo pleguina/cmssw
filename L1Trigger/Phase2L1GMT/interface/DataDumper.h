@@ -22,33 +22,43 @@ namespace Phase2L1GMT {
 const unsigned int tfLayersCnt = 5;
 struct TrackMatchedMuonRecord {
   //from trackingParticle
-  float tpPt = 0, tpEta = 0, tpPhi = 0;
+  float tpPt = 0, tpEta = 0, tpPhi = 0, tpBeta = 0;
   short tpCharge = 0;
-  char type = 0;
+  char tpType = 0;
 
   //0 - no match, 1 - very loose, 2 - loose , 3
   char matching = 0;
 
   //from ttTrack
-  uint tttCharge = 0;
-  uint tttPt = 0;
-  int tttEta = 0;
-  int tttPhi = 0;
-  int tttZ0 = 0;
-  int tttD0 = 0;
+  short tttCurvature = 0;
+  char tttCharge = 0;
+  unsigned short tttPt = 0;
+  short tttEta = 0;
+  short tttPhi = 0;
+  short tttZ0 = 0;
+  short tttD0 = 0;
 
   //from GMT
-  uint beta = 0;
+  uint gmtBeta = 0;
   bool isGlobal = 0;
   uint quality = 0;
 
   std::vector<unsigned char> deltaCoords1;
   std::vector<unsigned char> deltaCoords2;
 
+  std::vector<unsigned char> deltaEtas1;
+  std::vector<unsigned char> deltaEtas2;
+
   std::vector<char> stubTiming;
+  std::vector<char> stubType;
+
+
   //std::vector<unsigned char> stubTiming2;
 
-  TrackMatchedMuonRecord(): deltaCoords1(tfLayersCnt), deltaCoords2(tfLayersCnt), stubTiming(tfLayersCnt) {}
+  TrackMatchedMuonRecord():
+    deltaCoords1(tfLayersCnt), deltaCoords2(tfLayersCnt),
+    deltaEtas1(tfLayersCnt), deltaEtas2(tfLayersCnt),
+    stubTiming(tfLayersCnt), stubType(tfLayersCnt) {}
 };
 
 
