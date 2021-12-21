@@ -85,5 +85,5 @@ void MuonStub::print() const {
   LogTrace("MuonStub") << " MuonStub : BX=" << bxNum_ <<std::setw(3)<<" time "<<time_<< " etaRegion=" << etaRegion_ << " phiRegion=" << phiRegion_
                        << " depth=" << depthRegion_ << " ID=" << id_ << " coord1=" << coord1_ << " coord2=" << coord2_
                        << " quality=" << quality_ << " eta1=" << eta1_ << " eta2=" << eta2_
-                       << " etaQuality=" << etaQuality_ << " type=" << type_;
+                       << " etaQuality=" << etaQuality_ << " type=" << type_<<" tfLayer="<<tfLayer_;
 }
