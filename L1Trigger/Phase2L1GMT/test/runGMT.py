@@ -190,6 +190,7 @@ process.gmtMuons.dataDumpRootFile = cms.string("dataDump.root")
 
 #process.schedule = cms.Schedule(process.L1TrackTrigger_step,process.pL1TMuonTPS,process.endjob_step,process.e) # Adding MuonTPS
 
+process.TFileService = cms.Service("TFileService", fileName = cms.string('muCorrelatorTTAnalysis1.root'), closeFileFast = cms.untracked.bool(True))
 
 # Path and EndPath definitions
 process.raw2digi_step = cms.Path(process.RawToDigi)

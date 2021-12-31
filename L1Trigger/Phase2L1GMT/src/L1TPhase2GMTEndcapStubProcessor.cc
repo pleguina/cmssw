@@ -66,6 +66,8 @@ l1t::MuonStub L1TPhase2GMTEndcapStubProcessor::buildCSCOnlyStub(const CSCDetId& 
 
   l1t::MuonStub stub(wheel, sector, station, tfLayer, phi, 0, 0, bx, quality, eta1, 0, 1, 0); //quality = 1; etaQuality = 1
 
+  stub.setTime(bx * 25); //TODO use the timing in the hardware scale. //so we set the time in the ns
+
   LogTrace("gmtDataDumper")<<"\nbuildCSCOnlyStub() "<<detid<<" "<<detid.chamberName()<<" ";
   stub.print();
 
@@ -107,7 +109,7 @@ l1t::MuonStub L1TPhase2GMTEndcapStubProcessor::buildRPCOnlyStub(const RPCDetId& 
   l1t::MuonStub stub(wheel, sector, station, tfLayer, 0, phi2, tag, bx, quality, 0, eta2, 2, 0);
   stub.setOfflineQuantities(gp.phi().value(), gp.phi().value(), gp.eta(), gp.eta());
 
-  stub.setTime(digi.time()); //TODO use the timing in the hardware scale.
+  stub.setTime(round(digi.time())); //TODO use the timing in the hardware scale.
 
   LogTrace("gmtDataDumper")<<"\nbuildRPCOnlyStub() "<<detid;
   stub.print();
@@ -126,9 +128,9 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
   //clean ME11 ambiguities
   l1t::MuonStubCollection allCSC = cscStubs;
 
-  //TODO: these operations might be difficult to do in the firmware ( Korol Bunkowski)
+  //TODO: these operations might be difficult to do in the firmware ( Karol Bunkowski)
   //cleaning duplicated CSC stubs
-  //the stubs can be duplicated because some CSC chambers are staggered, then the duplicate are from the neighbor chambers.
+  //the stubs can be duplicated because some CSC chambers are staggered, then the duplicates are from the neighbor chambers.
   //but also from the same chamber sometimes there are two exactly the same stubs
   while (!allCSC.empty()) {
     l1t::MuonStub stub = allCSC[0];
@@ -137,7 +139,7 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
       if ((stub.etaRegion() == allCSC[i].etaRegion()) && (stub.depthRegion() == allCSC[i].depthRegion()) &&
           (fabs(deltaPhi(stub.offline_coord1(), allCSC[i].offline_coord1())) < 0.001)) {
         if (fabs(stub.offline_eta1() - allCSC[i].offline_eta1()) > 0.001) {
-          stub.setEta(stub.eta1(), allCSC[i].eta1(), 3); //Kb.B. setting eta2 in this caseraher has no sense...
+          stub.setEta(stub.eta1(), allCSC[i].eta1(), 3); //Kb.B. setting eta2 in this case rather has no sense...
           stub.setOfflineQuantities(stub.offline_coord1(), 0.0, stub.offline_eta1(), allCSC[i].offline_eta1());
         }
       } else {
@@ -160,7 +162,7 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
       if (fabs(deltaPhi(csc.offline_coord1(), rpc.offline_coord2())) < phiMatch_ &&
           fabs(csc.offline_eta1() - rpc.offline_eta2()) < etaMatch_ && csc.bxNum() == rpc.bxNum()) {
         //TODO the RPC and CSC BX can different even for hits from the same muon, so something better should be done here
-        //on the other hand, if the RPC stub is not mathed here, it will be added as not-mathced
+        //on the other hand, if the RPC stub is not matched here, it will be added as not-mathced
         phiF += rpc.offline_coord2();
         etaF += rpc.offline_eta2();
         phi += rpc.coord2();
@@ -169,7 +171,7 @@ l1t::MuonStubCollection L1TPhase2GMTEndcapStubProcessor::combineStubs(const l1t:
         usedRPC.push_back(rpc);
       }
     }
-//TODO looks that RPC clusterization is done here, but in the clusterization should be done in the RPC backend
+//TODO looks that RPC clusterization is done here, but in the hardware clusterization should be done in the RPC backend
     int finalRPCPhi = 0;
     int finalRPCEta = 0;
     double offline_finalRPCPhi = 0;

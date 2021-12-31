@@ -108,6 +108,8 @@ namespace Phase2L1GMT {
       std::copy(muCleaned7.begin(), muCleaned7.end(), std::back_inserter(muCleaned));
       std::copy(muCleaned8.begin(), muCleaned8.end(), std::back_inserter(muCleaned));
 
+      preTrackMatchedMuonProcessor->eventBegin();
+
       for(auto& preTrackMatchedMuon : muCleaned) {
         preTrackMatchedMuonProcessor->process(preTrackMatchedMuon);
       }

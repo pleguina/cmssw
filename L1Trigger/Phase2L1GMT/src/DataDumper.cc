@@ -18,6 +18,9 @@
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+
 #include <iostream>
 
 namespace Phase2L1GMT {
@@ -31,17 +34,26 @@ DataDumper::DataDumper(const edm::EDGetTokenT< TTTrackAssociationMap< Ref_Phase2
 }
 
 DataDumper::~DataDumper() {
-  rootFile->Write();
+  //rootFile->Write();
 
-  delete rootTree;
-  delete rootFile;
+  //delete rootTree;
+  //delete rootFile;
 }
 
 
 void DataDumper::initializeTTree(std::string rootFileName) {
-  rootFile = new TFile(rootFileName.c_str(), "RECREATE");
-  rootTree = new TTree("GmtMuonTree", "");
+  //rootFile = new TFile(rootFileName.c_str(), "RECREATE");
 
+  edm::Service<TFileService> fs;
+
+  TFileDirectory subDir = fs->mkdir("GmtDataDumper");
+
+  rootTree = subDir.make<TTree>("GmtMuonTree", "");
+
+  //rootTree = new TTree("GmtMuonTree", "");
+
+  rootTree->Branch("eventNum", &record.eventNum);
+  rootTree->Branch("tpEvent", &record.tpEvent);
   rootTree->Branch("tpPt", &record.tpPt);
   rootTree->Branch("tpEta", &record.tpEta);
   rootTree->Branch("tpPhi", &record.tpPhi);
@@ -163,7 +175,10 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
     }
   }
 
+  record.eventNum = evntCnt;
+
   if(tpMatchedToL1MuCand.isNonnull() ) {
+    record.tpEvent = tpMatchedToL1MuCand->eventId().event();
     //if(abs(tpMatchedToL1MuCand->pdgId()) == 13 || abs(tpMatchedToL1MuCand->pdgId()) == 1000015) {
     record.tpType = tpMatchedToL1MuCand->pdgId();
     record.tpPt = tpMatchedToL1MuCand->pt();
@@ -172,7 +187,7 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
     record.tpBeta = tpMatchedToL1MuCand->p4().Beta();
 
     LogTrace("gmtDataDumper")<<"ttTrack matched to the TrackingParticle";
-    LogTrace("gmtDataDumper")<<" TrackingParticle type"<<(int)record.tpType<<" tpPt "<<record.tpPt<<" tpEta "<<record.tpEta<<" tpPhi "<<record.tpPhi ;
+    LogTrace("gmtDataDumper")<<" TrackingParticle event "<<record.tpEvent<<" type"<<(int)record.tpType<<" tpPt "<<record.tpPt<<" tpEta "<<record.tpEta<<" tpPhi "<<record.tpPhi ;
 
   }
   else {
@@ -211,7 +226,7 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
   }
 
   rootTree->Fill();
-  evntCnt++;
+  //evntCnt++;
 }
 
 } /* namespace Phase2L1GMT */

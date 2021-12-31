@@ -22,6 +22,8 @@ namespace Phase2L1GMT {
 const unsigned int tfLayersCnt = 5;
 struct TrackMatchedMuonRecord {
   //from trackingParticle
+  unsigned int eventNum = 0;
+  short tpEvent = -1;
   float tpPt = 0, tpEta = 0, tpPhi = 0, tpBeta = 0;
   short tpCharge = 0;
   char tpType = 0;
@@ -67,6 +69,8 @@ public:
   PreTrackMatchedMuonProcessor() {};
   virtual ~PreTrackMatchedMuonProcessor() {};
 
+  virtual void eventBegin() = 0;
+
   virtual void process(PreTrackMatchedMuon& preTrackMatchedMuon) = 0;
 };
 
@@ -78,6 +82,10 @@ public:
   virtual ~DataDumper();
 
   void getHandles(const edm::Event& event);
+
+  void eventBegin() override {
+    evntCnt++;
+  }
 
   void process(PreTrackMatchedMuon& preTrackMatchedMuon) override;
 
