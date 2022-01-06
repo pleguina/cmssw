@@ -103,7 +103,7 @@ namespace Phase2L1GMT {
         for (uint j = 0; j < muonsNext.size(); ++j) {
           mask = mask & cleanMuon(muons[i], muonsNext[j], equality);
         }
-        if (mask) {
+        if (muons[i].getHitsValid()) {//TODO fix such that it also works with cleanMuonV0, which returns mask
           LogTrace("phase2L1GMT")<<"alive";
           out.push_back(muons[i]);
         } else {
@@ -609,7 +609,41 @@ namespace Phase2L1GMT {
       ap_uint<BITSMATCHQUALITY> quality = 0;
       PreTrackMatchedMuon muon(track.curvature(), track.charge(), track.pt(), track.eta(), track.phi(), track.z0(), track.d0());
 
-      if (!matchInfo0.empty()) {
+      auto processLayer = [&muon, &quality, this](int tfLayer, std::vector<match_t>& matchInfo) {
+        if (!matchInfo.empty()) {
+          match_t b = this->getBest(matchInfo);
+          if (b.valid) {
+            muon.addStub(b.stubRef);
+            muon.getDeltaCoords1()[tfLayer] = b.deltaCoord1;
+            muon.getDeltaCoords2()[tfLayer] = b.deltaCoord2;
+
+            muon.getDeltaEtas1()[tfLayer] = b.deltaEta1;
+            muon.getDeltaEtas2()[tfLayer] = b.deltaEta2;
+
+            unsigned int coord1Idx = 2 * tfLayer;
+            unsigned int coord2Idx = coord1Idx + 1;
+
+            //absValue = 0 and sign = 0 means no match, so then valid = 0
+            if( !(muon.getDeltaCoords1()[tfLayer].absValue == 0 && muon.getDeltaCoords1()[tfLayer].sign == 0) )
+              muon.setHitsValid(coord1Idx, true);
+
+            if( !(muon.getDeltaCoords2()[tfLayer].absValue == 0 && muon.getDeltaCoords2()[tfLayer].sign == 0) )
+              muon.setHitsValid(coord2Idx, true);
+
+            if (b.isGlobal)
+              muon.addMuonRef(b.muRef);
+            quality += b.quality;
+          }
+        }
+      };
+
+      processLayer(0, matchInfo0);
+      processLayer(1, matchInfo1);
+      processLayer(2, matchInfo2);
+      processLayer(3, matchInfo3);
+      processLayer(4, matchInfo4);
+
+/*      if (!matchInfo0.empty()) {
         match_t b = getBest(matchInfo0);
         if (b.valid) {
           muon.addStub(b.stubRef);
@@ -683,7 +717,7 @@ namespace Phase2L1GMT {
             muon.addMuonRef(b.muRef);
           quality += b.quality;
         }
-      }
+      }*/
 
       muon.setOfflineQuantities(track.offline_pt(), track.offline_eta(), track.offline_phi());
       muon.setTrkPtr(track.trkPtr());
@@ -763,7 +797,7 @@ namespace Phase2L1GMT {
 
     /*
      * TODO
-     * this method leaves littl bit more duplicates when cleanin between the nonants
+     * this method leaves little bit more duplicates when cleaning between the nonants
      * because the duplicated ttTracks sometimes have little bit different pt, eta or phi
      * and then the deltaCoords are not exactly equal
      * TODO
@@ -786,29 +820,23 @@ namespace Phase2L1GMT {
           unsigned int coord1Idx = 2 * layer;
           unsigned int coord2Idx = coord1Idx + 1;
 
-          //absValue = 0 and sign = 0 means no match, so then valid = 0
-          if( !(mu.getDeltaCoords1()[layer].absValue == 0 && mu.getDeltaCoords1()[layer].sign == 0) )
-            valid = valid | (1 << coord1Idx);
-
-          if( !(mu.getDeltaCoords2()[layer].absValue == 0 && mu.getDeltaCoords2()[layer].sign == 0) )
-            valid = valid | (1 << coord2Idx);
-
           if (mu.stubID(layer) == other.stubID(layer)) {
             bool otherIsValid1 = !(other.getDeltaCoords1()[layer].absValue == 0 && other.getDeltaCoords1()[layer].sign == 0);
             if( (!eq && (otherIsValid1 && mu.getDeltaCoords1()[layer].absValue >  other.getDeltaCoords1()[layer].absValue)) ||
                 ( eq && (otherIsValid1 && mu.getDeltaCoords1()[layer].absValue >= other.getDeltaCoords1()[layer].absValue))   ) {
-              valid = valid & ~(1 << coord1Idx);
+              mu.setHitsValid(coord1Idx, false);
             }
 
             bool otherIsValid2 = !(other.getDeltaCoords2()[layer].absValue == 0 && other.getDeltaCoords2()[layer].sign == 0);
             if( (!eq && (otherIsValid2 && mu.getDeltaCoords2()[layer].absValue >  other.getDeltaCoords2()[layer].absValue)) ||
                 ( eq && (otherIsValid2 && mu.getDeltaCoords2()[layer].absValue >= other.getDeltaCoords2()[layer].absValue))    ) {
-              valid = valid & ~(1 << coord2Idx);
+              mu.setHitsValid(coord2Idx, false);
             }
           }
         }
       }
 
+      valid = mu.getHitsValid();
       LogTrace("phase2L1GMT")<<"valid "<<valid.to_string();
 
       return valid;
@@ -835,9 +863,10 @@ namespace Phase2L1GMT {
             continue;
           mask = mask & cleanMuon(muons[i], muons[j], false);
         }
-        if (mask) {
+        if (muons[i].getHitsValid()) { //TODO fix such that it works also with cleanMuonV0!!!!!!!!!!!!!
           out.push_back(muons[i]);
         }
+        mask = muons[i].getHitsValid();
         LogTrace("phase2L1GMT")<<"final mask : "<<mask.to_string()<<" = "<<(mask == 0 ? "killed" : "alive")<<"\n";
       }
       return out;

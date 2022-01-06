@@ -73,11 +73,21 @@ void DataDumper::initializeTTree(std::string rootFileName) {
   rootTree->Branch("tttZ0", &record.tttZ0);
   rootTree->Branch("tttD0", &record.tttD0);
 
+  rootTree->Branch("tttChi2rphi", &record.tttChi2rphi);
+  rootTree->Branch("tttChi2rz", &record.tttChi2rz);
+  rootTree->Branch("tttBendChi2", &record.tttBendChi2);
+  //rootTree->Branch("tttQualityMVA", &record.tttQualityMVA); lokks that is not set in the tracking trigger
+  //rootTree->Branch("tttOtherMVA", &record.tttOtherMVA); is not set in the tracking trigger
+
+
   rootTree->Branch("gmtBeta", &record.gmtBeta);
 
   rootTree->Branch("isGlobal", &record.isGlobal);
 
   rootTree->Branch("quality", &record.quality);
+
+
+  rootTree->Branch("hitsValid", &record.hitsValid);
 
   rootTree->Branch("deltaCoords1", &record.deltaCoords1);
   rootTree->Branch("deltaCoords2", &record.deltaCoords2);
@@ -115,17 +125,25 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
   //from ttTrack
   record.tttCurvature = preTrackMatchedMuon.curvature();
   record.tttCharge = preTrackMatchedMuon.charge();
-  record.tttPt = preTrackMatchedMuon.pt();
+  record.tttPt = preTrackMatchedMuon.pt(); //loks that this pt is pt in GeV i.e. ttTrackPtrpt momentum().perp() * 32
   record.tttEta = preTrackMatchedMuon.eta();
   record.tttPhi = preTrackMatchedMuon.phi();
   record.tttZ0 = preTrackMatchedMuon.z0();
   record.tttD0 = preTrackMatchedMuon.d0();
 
   LogTrace("gmtDataDumper")<<"DataDumper::process(): preTrackMatchedMuon pt: "<<record.tttPt<<" eta "<<record.tttEta<<" phi "<<record.tttPhi;
+  LogTrace("gmtDataDumper")<<"ttTrackPtrpt momentum().perp() "<<ttTrackPtr->momentum().perp();
+
   //from GMT
   record.gmtBeta = preTrackMatchedMuon.beta();
   record.isGlobal =  preTrackMatchedMuon.isGlobalMuon();
   record.quality = preTrackMatchedMuon.quality();
+
+  record.tttChi2rphi = ttTrackPtr->getChi2RPhiBits();
+  record.tttChi2rz = ttTrackPtr->getChi2RZBits();
+  record.tttBendChi2 = ttTrackPtr->getBendChi2Bits();
+  record.tttQualityMVA = ttTrackPtr->getMVAQualityBits();
+  record.tttOtherMVA = ttTrackPtr->getMVAOtherBits();
 
   edm::Ptr< TrackingParticle > tpMatchedToL1MuCand = mcTruthTTTrackHandle->findTrackingParticlePtr(ttTrackPtr);
 
@@ -187,7 +205,7 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
     record.tpBeta = tpMatchedToL1MuCand->p4().Beta();
 
     LogTrace("gmtDataDumper")<<"ttTrack matched to the TrackingParticle";
-    LogTrace("gmtDataDumper")<<" TrackingParticle event "<<record.tpEvent<<" type"<<(int)record.tpType<<" tpPt "<<record.tpPt<<" tpEta "<<record.tpEta<<" tpPhi "<<record.tpPhi ;
+    LogTrace("gmtDataDumper")<<" TrackingParticle event "<<record.tpEvent<<" type "<<record.tpType<<" tpPt "<<record.tpPt<<" tpEta "<<record.tpEta<<" tpPhi "<<record.tpPhi ;
 
   }
   else {
@@ -199,6 +217,7 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
     record.matching = 0;
   }
 
+  record.hitsValid =  preTrackMatchedMuon.getHitsValid();
 
   LogTrace("gmtDataDumper")<<"gmtDataDumper preTrackMatchedMuon.getDeltaCoords1().size "<<preTrackMatchedMuon.getDeltaCoords1().size()
       <<" preTrackMatchedMuon.getDeltaCoords1().size "<<preTrackMatchedMuon.getDeltaCoords1().size();

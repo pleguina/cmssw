@@ -26,7 +26,7 @@ struct TrackMatchedMuonRecord {
   short tpEvent = -1;
   float tpPt = 0, tpEta = 0, tpPhi = 0, tpBeta = 0;
   short tpCharge = 0;
-  char tpType = 0;
+  int tpType = 0;
 
   //0 - no match, 1 - very loose, 2 - loose , 3
   char matching = 0;
@@ -40,17 +40,26 @@ struct TrackMatchedMuonRecord {
   short tttZ0 = 0;
   short tttD0 = 0;
 
+  //from TTTrack_TrackWord
+  char tttChi2rphi = 0; //4 bits
+  char tttChi2rz = 0; //4 bits
+  char tttBendChi2 = 0; //3 bits
+  char tttQualityMVA = 0; //3 bits
+  char tttOtherMVA = 0; //6 bits
+
   //from GMT
   uint gmtBeta = 0;
   bool isGlobal = 0;
   uint quality = 0;
+
+  unsigned short hitsValid = 0;
 
   std::vector<unsigned char> deltaCoords1;
   std::vector<unsigned char> deltaCoords2;
 
   std::vector<unsigned char> deltaEtas1;
   std::vector<unsigned char> deltaEtas2;
-
+  
   std::vector<char> stubTiming;
   std::vector<char> stubType;
 

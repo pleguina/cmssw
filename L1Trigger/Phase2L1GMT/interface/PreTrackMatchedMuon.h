@@ -130,6 +130,18 @@ namespace Phase2L1GMT {
       return deltaEtas2;
     }
 
+    //each bit denotes one phi coordinate in the combined stub, i.e. bit 0 is deltaCoords1[layer=0], bit 1 deltaCoords2[layer=0], etc.
+    unsigned short getHitsValid() const {
+      return hitsValid;
+    }
+
+    void setHitsValid(unsigned int coordIdx, bool valid) {
+      if(valid)
+        hitsValid = hitsValid | (1 << coordIdx);
+      else
+        hitsValid = hitsValid & ~(1 << coordIdx);
+    }
+
     friend std::ostream& operator<<(std::ostream& out, const PreTrackMatchedMuon& mu) {
       out<< "reconstructed muon : charge=" << mu.charge_ << " pt=" << mu.offline_pt_ << ","
                                            << mu.pt_ << " eta=" << mu.offline_eta_ << "," << mu.eta_ << " phi=" << mu.offline_phi_ << ","
@@ -171,8 +183,6 @@ namespace Phase2L1GMT {
                                       << (long long unsigned int)((lsb() | (msb() << 62)) & 0xffffffffffffffff);
     }
 
-
-
   private:
     int curvature_ = 0;
     uint charge_;
@@ -203,6 +213,8 @@ namespace Phase2L1GMT {
 
     std::vector<ApSignAbsInt<BITSSIGMAETA> > deltaEtas1;
     std::vector<ApSignAbsInt<BITSSIGMAETA> > deltaEtas2;
+
+    unsigned short hitsValid = 0;
   };
 }  // namespace Phase2L1GMT
 
