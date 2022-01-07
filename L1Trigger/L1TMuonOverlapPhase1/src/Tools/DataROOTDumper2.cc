@@ -76,7 +76,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
                                       std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
   int muonCharge = 0;
   if (simMuon) {
-    if (abs(simMuon->momentum().eta()) < 0.8 || abs(simMuon->momentum().eta()) > 1.24)
+    if (fabs(simMuon->momentum().eta()) < 0.8 || fabs(simMuon->momentum().eta()) > 1.24)
       return;
 
     muonCharge = (abs(simMuon->type()) == 13) ? simMuon->type() / -13 : 0;
@@ -93,7 +93,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
   omtfEvent.muonEta = simMuon->momentum().eta();
 
   //TODO add cut on ete if needed
-  /*  if(abs(event.muonEta) < 0.8 || abs(event.muonEta) > 1.24)
+  /*  if(fabs(event.muonEta) < 0.8 || fabs(event.muonEta) > 1.24)
     return;*/
 
   omtfEvent.muonPhi = simMuon->momentum().phi();

@@ -111,7 +111,7 @@ const std::vector<const reco::GenParticle*> EmulationObserverBase::findGenMuon(c
     const reco::GenParticle& genPart = (*genParticles)[i];
 
     if( abs(genPart.pdgId() )== 13 ) {
-      if( abs (genPart.momentum().eta() ) >= etaCutFrom && abs (genPart.momentum().eta() ) <= etaCutTo) {
+      if( fabs (genPart.momentum().eta() ) >= etaCutFrom && fabs (genPart.momentum().eta() ) <= etaCutTo) {
         genPart.momentum().eta();
 
         muons.push_back( &genPart);

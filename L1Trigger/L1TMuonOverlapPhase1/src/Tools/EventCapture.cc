@@ -145,8 +145,8 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
     bool wasSimMuInOmtfNeg = false;
     for (auto& simMuon : simMuons) {
       //TODO choose a condition, to print the desired events
-      if (simMuon->eventId().event() == 0 && abs(simMuon->momentum().eta()) > 0.82 &&
-          abs(simMuon->momentum().eta()) < 1.24 && simMuon->momentum().pt() >= 3.) {
+      if (simMuon->eventId().event() == 0 && fabs(simMuon->momentum().eta()) > 0.82 &&
+          fabs(simMuon->momentum().eta()) < 1.24 && simMuon->momentum().pt() >= 3.) {
         ostr << "SimMuon: eventId " << simMuon->eventId().event() << " pdgId " << std::setw(3) << simMuon->type()
              << " pt " << std::setw(9) << simMuon->momentum().pt()  //<<" Beta "<<simMuon->momentum().Beta()
              << " eta " << std::setw(9) << simMuon->momentum().eta() << " phi " << std::setw(9)
