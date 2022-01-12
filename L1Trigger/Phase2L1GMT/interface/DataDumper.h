@@ -19,7 +19,6 @@
 
 namespace Phase2L1GMT {
 
-const unsigned int tfLayersCnt = 5;
 struct TrackMatchedMuonRecord {
   //from trackingParticle
   unsigned int eventNum = 0;
@@ -67,9 +66,9 @@ struct TrackMatchedMuonRecord {
   //std::vector<unsigned char> stubTiming2;
 
   TrackMatchedMuonRecord():
-    deltaCoords1(tfLayersCnt), deltaCoords2(tfLayersCnt),
-    deltaEtas1(tfLayersCnt), deltaEtas2(tfLayersCnt),
-    stubTiming(tfLayersCnt), stubType(tfLayersCnt) {}
+    deltaCoords1(TF_LAYER_CNT), deltaCoords2(TF_LAYER_CNT),
+    deltaEtas1(TF_LAYER_CNT), deltaEtas2(TF_LAYER_CNT),
+    stubTiming(TF_LAYER_CNT), stubType(TF_LAYER_CNT) {}
 };
 
 

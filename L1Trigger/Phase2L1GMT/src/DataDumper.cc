@@ -229,6 +229,19 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
     record.deltaEtas1.at(iLayer) = preTrackMatchedMuon.getDeltaEtas1().at(iLayer).toRaw();
     record.deltaEtas2.at(iLayer) = preTrackMatchedMuon.getDeltaEtas2().at(iLayer).toRaw();
 
+    //reseting here as in the next loop only these for which stub exists are set
+    record.stubTiming.at(iLayer) = std::numeric_limits<decltype(record.stubTiming)::value_type>::min();
+    record.stubType.at(iLayer) = 0xff; //-1
+  }
+
+  for (const auto& stub : preTrackMatchedMuon.stubs()) {
+    LogTrace("gmtDataDumper")<<"gmtDataDumper stub: tfLayer "<<stub->tfLayer()<<" time() "<<stub->time()<<" type " <<stub->type();
+    record.stubTiming.at(stub->tfLayer()) = stub->time();
+    record.stubType.at(stub->tfLayer()) = stub->type();
+  }
+
+  //debug printout
+  for(unsigned int iLayer = 0; iLayer < preTrackMatchedMuon.getDeltaCoords1().size(); iLayer++) {
     LogTrace("gmtDataDumper")<<"gmtDataDumper record: tfLayer "<<iLayer
         <<" deltaCoords1 "<<(int)record.deltaCoords1.at(iLayer)
         <<" deltaCoords2 "<<(int)record.deltaCoords2.at(iLayer)
@@ -236,16 +249,6 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
         <<" deltaEtas2 "<<(int)record.deltaEtas2.at(iLayer)
         <<" stubTiming "<<(int)record.stubTiming.at(iLayer)
         <<" stubType "<<(int)record.stubType.at(iLayer) ;
-
-    //reseting here as in the next loop only these for which stub exists are set
-    record.stubTiming.at(iLayer) = 0xff;
-    record.stubType.at(iLayer) = 0xff;
-  }
-
-  for (const auto& stub : preTrackMatchedMuon.stubs()) {
-    LogTrace("gmtDataDumper")<<"gmtDataDumper stub: tfLayer "<<stub->tfLayer()<<" time() "<<stub->time()<<" type " <<stub->type();
-    record.stubTiming.at(stub->tfLayer()) = stub->time();
-    record.stubType.at(stub->tfLayer()) = stub->type();
   }
 
   rootTree->Fill();

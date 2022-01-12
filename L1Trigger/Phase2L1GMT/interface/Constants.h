@@ -4,6 +4,7 @@
 #include "ap_int.h"
 
 namespace Phase2L1GMT {
+  const unsigned int TF_LAYER_CNT = 5;
 
   // INPUT Dataformat
   // Track
@@ -47,7 +48,7 @@ namespace Phase2L1GMT {
   const int BITSSIGMACOORD = 4 ;// //TODO +1 is to have larger matching window, KB
 
   const float SIGMA_FACTOR = 1; //1.5; //TODO
-  const int QUALITY_CUT_MOD = 0; //10 //TOD change together with SIGMA_FACTOR!!!!!!!
+  const int QUALITY_CUT_MOD = 0; //10 //TODO change together with SIGMA_FACTOR!!!!!!!
 
   const int MATCHER_OUT_BUFFER_SIZE = 16; //TODO 16 is too small in some cases, increase if needed
 
