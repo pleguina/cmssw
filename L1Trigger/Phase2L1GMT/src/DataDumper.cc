@@ -221,12 +221,6 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
 
   LogTrace("gmtDataDumper")<<"gmtDataDumper preTrackMatchedMuon.getDeltaCoords1().size "<<preTrackMatchedMuon.getDeltaCoords1().size()
       <<" preTrackMatchedMuon.getDeltaCoords1().size "<<preTrackMatchedMuon.getDeltaCoords1().size();
-  for (const auto& stub : preTrackMatchedMuon.stubs()) {
-    LogTrace("gmtDataDumper")<<"gmtDataDumper stub: tfLayer "<<stub->tfLayer()<<" time() "<<stub->time()<<" type " <<stub->type();
-    record.stubTiming.at(stub->tfLayer()) = stub->time();
-    record.stubType.at(stub->tfLayer()) = stub->type();
-
-  }
 
   for(unsigned int iLayer = 0; iLayer < preTrackMatchedMuon.getDeltaCoords1().size(); iLayer++) {
     record.deltaCoords1.at(iLayer) = preTrackMatchedMuon.getDeltaCoords1().at(iLayer).toRaw();
@@ -242,6 +236,16 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
         <<" deltaEtas2 "<<(int)record.deltaEtas2.at(iLayer)
         <<" stubTiming "<<(int)record.stubTiming.at(iLayer)
         <<" stubType "<<(int)record.stubType.at(iLayer) ;
+
+    //reseting here as in the next loop only these for which stub exists are set
+    record.stubTiming.at(iLayer) = 0xff;
+    record.stubType.at(iLayer) = 0xff;
+  }
+
+  for (const auto& stub : preTrackMatchedMuon.stubs()) {
+    LogTrace("gmtDataDumper")<<"gmtDataDumper stub: tfLayer "<<stub->tfLayer()<<" time() "<<stub->time()<<" type " <<stub->type();
+    record.stubTiming.at(stub->tfLayer()) = stub->time();
+    record.stubType.at(stub->tfLayer()) = stub->type();
   }
 
   rootTree->Fill();
