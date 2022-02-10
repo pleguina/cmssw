@@ -88,6 +88,10 @@ public:
 
   friend std::ostream& operator<<(std::ostream& out, const AlgoMuon& o);
 
+  std::vector<std::shared_ptr<AlgoMuon> >& getKilledMuons() {
+    return killedMuons;
+  }
+  
   const GoldenPatternResult& getGpResultUpt() const {
     return gpResultUpt;
   }
@@ -125,6 +129,8 @@ private:
   bool killed = false;
 
   unsigned int index = 0;
+
+  std::vector<std::shared_ptr<AlgoMuon>> killedMuons;
 };
 
 typedef std::shared_ptr<AlgoMuon> AlgoMuonPtr;
