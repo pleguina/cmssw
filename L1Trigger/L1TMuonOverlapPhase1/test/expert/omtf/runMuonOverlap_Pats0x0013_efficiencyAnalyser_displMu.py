@@ -11,9 +11,9 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-version = 't10_displ_test_1files_test'
+version = 't13_displ_test_1files_test'
 
-runDebug = "INFO" # or "INFO" DEBUG
+runDebug = "DEBUG" # or "INFO" DEBUG
 useExtraploationAlgo = True;
 
 if verbose: 
@@ -101,7 +101,7 @@ fileCnt = 1
 if(runDebug == "DEBUG") :
     fileCnt = 1;
     
-if False :    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+if True :    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     path = '/eos/user/c/cericeci/forOMTF/OMTF_PhaseII_FixedTiming/'    
     firstFile = 1 #1001            
     for i in range(firstFile, firstFile + fileCnt, 1):
@@ -113,7 +113,7 @@ if False :    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 # low pt
-if True :
+if False :
     path = '/eos/user/c/cericeci/forOMTF/OMTF_Run3_FixedTiming_FullOutput/'
     firstFile = 1001            
     for i in range(firstFile, firstFile + fileCnt, 1):

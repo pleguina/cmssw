@@ -11,9 +11,9 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-version = 't10_test'
+version = 't13_test'
 
-runDebug = "INFO" # or "INFO" DEBUG
+runDebug = "DEBUG" # or "INFO" DEBUG
 useExtraploationAlgo = True;
 
 if verbose: 
@@ -158,7 +158,7 @@ fileNames = cms.untracked.vstring(
 )
 	                    
 if(runDebug == "DEBUG") :
-    process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1)) ###TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000)) ###TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 else :
     process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 
