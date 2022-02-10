@@ -96,7 +96,7 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
 
   if (candidateSimMuonMatcher) {
     std::vector<MatchingResult> matchingResults = candidateSimMuonMatcher->getMatchingResults();
-    edm::LogVerbatim("l1tOmtfEventPrint") << "matchingResults.size() " << matchingResults.size() << std::endl;
+    LogTrace("l1tOmtfEventPrint") << "matchingResults.size() " << matchingResults.size() << std::endl;
 
     //candidateSimMuonMatcher should use the  trackingParticles, because the simTracks are not stored for the pile-up events
     for (auto& matchingResult : matchingResults) {
@@ -113,7 +113,15 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
                << std::setw(9) << trackingParticle->pt()  //<<" Beta "<<simMuon->momentum().Beta()
                << " eta " << std::setw(9) << trackingParticle->momentum().eta() << " phi " << std::setw(9)
                << trackingParticle->momentum().phi() << std::endl;
-        } else {
+        }
+        else if (matchingResult.simTrack) {
+          runStubsSimHitsMatcher = true;
+          ostr << "SimMuon: eventId " << matchingResult.simTrack->eventId().event() << " pdgId " << std::setw(3) << matchingResult.simTrack->type()
+               << " pt " << std::setw(9) << matchingResult.simTrack->momentum().pt()  //<<" Beta "<<simMuon->momentum().Beta()
+               << " eta " << std::setw(9) << matchingResult.simTrack->momentum().eta() << " phi " << std::setw(9)
+               << matchingResult.simTrack->momentum().phi() << std::endl;
+        }
+        else {
           ostr << "no simMuon ";
           runStubsSimHitsMatcher = true;
         }
@@ -124,7 +132,7 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
              << " hwPhi " << finalCandidate->hwPhi() << "    eta " << std::setw(9)
              << (finalCandidate->hwEta() * 0.010875) << " phi " << std::endl;
 
-        if (runStubsSimHitsMatcher)
+        if (stubsSimHitsMatcher && runStubsSimHitsMatcher)
           stubsSimHitsMatcher->match(iEvent, matchingResult.muonCand, matchingResult.procMuon, ostr);
       }
     }
@@ -134,8 +142,8 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
     bool wasSimMuInOmtfNeg = false;
     for (auto& simMuon : simMuons) {
       //TODO choose a condition, to print the desired events
-      if (simMuon->eventId().event() == 0 && abs(simMuon->momentum().eta()) > 0.82 &&
-          abs(simMuon->momentum().eta()) < 1.24 && simMuon->momentum().pt() >= 3.) {
+      if (simMuon->eventId().event() == 0 && fabs(simMuon->momentum().eta()) > 0.82 &&
+          fabs(simMuon->momentum().eta()) < 1.24 && simMuon->momentum().pt() >= 3.) {
         ostr << "SimMuon: eventId " << simMuon->eventId().event() << " pdgId " << std::setw(3) << simMuon->type()
              << " pt " << std::setw(9) << simMuon->momentum().pt()  //<<" Beta "<<simMuon->momentum().Beta()
              << " eta " << std::setw(9) << simMuon->momentum().eta() << " phi " << std::setw(9)

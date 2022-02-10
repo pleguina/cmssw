@@ -217,8 +217,8 @@ void OMTFReconstruction::addObservers(
       }
 
     if (edmParameterSet.exists("dumpHitsToROOT") && edmParameterSet.getParameter<bool>("dumpHitsToROOT")) {
-      std::string rootFileName = edmParameterSet.getParameter<std::string>("dumpHitsFileName");
-      observers.emplace_back(std::make_unique<DataROOTDumper2>(edmParameterSet, omtfConfig.get(), rootFileName));
+      //std::string rootFileName = edmParameterSet.getParameter<std::string>("dumpHitsFileName");
+      observers.emplace_back(std::make_unique<DataROOTDumper2>(edmParameterSet, omtfConfig.get(), candidateSimMuonMatcher));
     }
   }
 }
