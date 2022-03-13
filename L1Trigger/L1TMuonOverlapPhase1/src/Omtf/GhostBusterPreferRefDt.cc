@@ -88,7 +88,6 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
       return true;
   };
 
-
   auto customByRefLayer = [&](const AlgoMuons::value_type& a, const AlgoMuons::value_type& b)->bool {
     if(!a->isValid()) {
       return true;
@@ -105,7 +104,7 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
     }
     // if(a->getQ() > b->getQ())
     //   return false;
-    else if (aRefLayerLogicNum == bRefLayerLogicNum && a->getDisc() > b->getDisc())
+    else if (aRefLayerLogicNum == bRefLayerLogicNum && a->getDisc() > b->getDisc()) //TODO how about getPdfSumUpt ????
       return false;
     else if (aRefLayerLogicNum == bRefLayerLogicNum && a->getDisc() == b->getDisc() &&
              a->getPatternNumber() > b->getPatternNumber())

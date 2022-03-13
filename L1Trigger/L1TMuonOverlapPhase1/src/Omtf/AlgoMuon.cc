@@ -23,6 +23,17 @@ bool AlgoMuon::operator<(const AlgoMuon &o) const {
     return true;
 }
 
+PdfValueType AlgoMuon::getDisc() const {
+  return (gpResultUpt.getPdfSumUpt() > gpResult.getPdfSum() ? gpResultUpt.getPdfSumUpt() : gpResult.getPdfSum() );
+}
+
+int AlgoMuon::getPhi() const {
+  return (gpResultUpt.getPdfSumUpt() > gpResult.getPdfSum() ? gpResultUpt.getPhi() : gpResult.getPhi() );
+}
+
+unsigned int AlgoMuon::getFiredLayerBits() const {
+  return (gpResultUpt.getPdfSumUpt() > gpResult.getPdfSum() ? gpResultUpt.getFiredLayerBits() : gpResult.getFiredLayerBits() );
+}
 
 int AlgoMuon::getQ() const {
   //if the gpResultUpt was not set, the getFiredLayerCnt() is 0, so no other checks are needed here

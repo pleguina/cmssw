@@ -24,11 +24,11 @@ public:
 
   const GoldenPatternResult& getGpResult() const { return gpResult; }
 
-  PdfValueType getDisc() const { return gpResult.getPdfSum(); }
-  int getPhi() const { return gpResult.getPhi(); }
+  PdfValueType getDisc() const;
+  int getPhi() const;
   int getEtaHw() const override { return gpResult.getEta(); }
   int getRefLayer() const { return gpResult.getRefLayer(); }
-  unsigned int getFiredLayerBits() const { return gpResult.getFiredLayerBits(); }
+  unsigned int getFiredLayerBits() const;
   int getQ() const;// { return m_q; }
   int getBx() const { return m_bx; }
 
@@ -44,6 +44,7 @@ public:
     return goldenPaternUpt->key().thePt;
   }
 
+  //TODO how about charge Unconstrained?
   int getCharge() const {
     if (goldenPatern == nullptr)
       return 0;
@@ -51,12 +52,14 @@ public:
   }
   int getPhiRHit() const { return gpResult.getRefHitPhi(); }
 
+  //TODO how about goldenPaternUpt?
   unsigned int getPatternNumber() const {
     if (goldenPatern == nullptr)
       return 0;
     return goldenPatern->key().theNumber;
   }
 
+  //TODO how about goldenPaternUpt?
   unsigned int getHwPatternNumber() const {
     if (goldenPatern == nullptr)
       return 0;

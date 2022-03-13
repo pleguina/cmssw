@@ -11,9 +11,9 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-version = 't13_displ_test_1files_test'
+version = 't15_displ_test_allfiles'
 
-runDebug = "DEBUG" # or "INFO" DEBUG
+runDebug = "INFO" # or "INFO" DEBUG
 useExtraploationAlgo = True;
 
 if verbose: 
@@ -97,7 +97,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '103X_upgrade2023_realistic_v2'
 
 chosenFiles = []
 
-fileCnt = 1 
+fileCnt = 1000 #1000 
 if(runDebug == "DEBUG") :
     fileCnt = 1;
     
@@ -211,7 +211,7 @@ process.simOmtfDigis.ghostBusterType = cms.string("byRefLayer") # byLLH byRefLay
 #)
 
 if useExtraploationAlgo :
-    process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2.xml")
+    process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2_test.xml")
 else :
     process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00012_oldSample_3_30Files_grouped1_classProb17_recalib2.xml")
 
