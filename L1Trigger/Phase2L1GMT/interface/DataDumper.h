@@ -9,6 +9,8 @@
 #define INTERFACE_DATADUMPER_H_
 
 #include "L1Trigger/Phase2L1GMT/interface/PreTrackMatchedMuon.h"
+#include "L1Trigger/Phase2L1GMT/interface/ConvertedTTTrack.h"
+#include "L1Trigger/Phase2L1GMT/interface/MuonROI.h"
 
 #include "SimTracker/TrackTriggerAssociation/interface/TTTrackAssociationMap.h"
 #include "FWCore/Utilities/interface/EDGetToken.h"
@@ -17,7 +19,158 @@
 #include "TTree.h"
 #include "TFile.h"
 
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/vector.hpp>
+
+#include <boost/serialization/nvp.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+
+
+namespace l1t {
+
+template<class Archive>
+void serialize(Archive & ar, MuonStub& stub, const unsigned int version) {
+  //only saves the data, will not load them - but this is not needed
+  auto etaRegion = stub.etaRegion();
+  ar & BOOST_SERIALIZATION_NVP(etaRegion);
+
+  auto phiRegion = stub.phiRegion();
+  ar & BOOST_SERIALIZATION_NVP(phiRegion);
+
+  auto depthRegion = stub.depthRegion();
+  ar & BOOST_SERIALIZATION_NVP(depthRegion);
+
+  auto coord1 = stub.coord1();
+  ar & BOOST_SERIALIZATION_NVP(coord1);
+
+  auto coord2 = stub.coord2();
+  ar & BOOST_SERIALIZATION_NVP(coord2);
+
+  auto id = stub.id();
+  ar & BOOST_SERIALIZATION_NVP(id);
+
+  auto quality = stub.quality();
+  ar & BOOST_SERIALIZATION_NVP(quality);
+
+  auto bxNum = stub.bxNum();
+  ar & BOOST_SERIALIZATION_NVP(bxNum);
+
+  auto eta1 = stub.eta1();
+  ar & BOOST_SERIALIZATION_NVP(eta1);
+
+  auto eta2 = stub.eta2();
+  ar & BOOST_SERIALIZATION_NVP(eta2);
+
+  auto etaQuality = stub.etaQuality();
+  ar & BOOST_SERIALIZATION_NVP(etaQuality);
+
+  auto type = stub.type();
+  ar & BOOST_SERIALIZATION_NVP(type);
+}
+
+};
+
+BOOST_CLASS_VERSION(l1t::MuonStub, 1);
+
 namespace Phase2L1GMT {
+
+template<class Archive>
+void serialize(Archive & ar, ConvertedTTTrack& mu, const unsigned int version) {
+  auto charge = mu.charge();
+  ar & BOOST_SERIALIZATION_NVP(charge);
+
+  auto curvature = mu.curvature();
+  ar & BOOST_SERIALIZATION_NVP(curvature);
+
+  auto abseta = mu.abseta();
+  ar & BOOST_SERIALIZATION_NVP(abseta);
+
+  auto pt = mu.pt();
+  ar & BOOST_SERIALIZATION_NVP(pt);
+
+  auto eta = mu.eta();
+  ar & BOOST_SERIALIZATION_NVP(eta);
+
+  auto phi = mu.phi();
+  ar & BOOST_SERIALIZATION_NVP(phi);
+
+  auto z0 = mu.z0();
+  ar & BOOST_SERIALIZATION_NVP(z0);
+
+  auto d0 = mu.d0();
+  ar & BOOST_SERIALIZATION_NVP(d0);
+
+  auto quality = mu.quality();
+  ar & BOOST_SERIALIZATION_NVP(quality);
+
+/*  auto offline_pt = mu.offline_pt();
+  ar & BOOST_SERIALIZATION_NVP(offline_pt);
+
+  auto offline_eta = mu.offline_eta();
+  ar & BOOST_SERIALIZATION_NVP(offline_eta);
+
+  auto offline_phi = mu.offline_phi();
+  ar & BOOST_SERIALIZATION_NVP(offline_phi);*/
+}
+
+template<class Archive>
+void serialize(Archive & ar, PreTrackMatchedMuon& mu, const unsigned int version) {
+
+  //only saves the data, will not load them - but this is not needed
+  auto curvature = mu.curvature();
+  ar & BOOST_SERIALIZATION_NVP(curvature);
+
+  auto charge = mu.charge();
+  ar & BOOST_SERIALIZATION_NVP(charge);
+
+  auto pt = mu.pt();
+  ar & BOOST_SERIALIZATION_NVP(pt);
+
+  auto eta = mu.eta();
+  ar & BOOST_SERIALIZATION_NVP(eta);
+
+  auto phi = mu.phi();
+  ar & BOOST_SERIALIZATION_NVP(phi);
+
+  auto z0 = mu.z0();
+  ar & BOOST_SERIALIZATION_NVP(z0);
+
+  auto d0 = mu.d0();
+  ar & BOOST_SERIALIZATION_NVP(d0);
+
+  auto beta = mu.beta();
+  ar & BOOST_SERIALIZATION_NVP(beta);
+
+  auto isGlobalMuon = mu.isGlobalMuon();
+  ar & BOOST_SERIALIZATION_NVP(isGlobalMuon);
+
+  auto quality = mu.quality();
+  ar & BOOST_SERIALIZATION_NVP(quality);
+
+/*  auto offline_pt = mu.offline_pt();
+  ar & BOOST_SERIALIZATION_NVP(offline_pt);
+
+  auto offline_eta = mu.offline_eta();
+  ar & BOOST_SERIALIZATION_NVP(offline_eta);
+
+  auto offline_phi = mu.offline_phi();
+  ar & BOOST_SERIALIZATION_NVP(offline_phi);*/
+
+  auto stubID0 = mu.stubID0();
+  ar & BOOST_SERIALIZATION_NVP(stubID0);
+
+  auto stubID1 = mu.stubID1();
+  ar & BOOST_SERIALIZATION_NVP(stubID1);
+
+  auto stubID2 = mu.stubID2();
+  ar & BOOST_SERIALIZATION_NVP(stubID2);
+
+  auto stubID3 = mu.stubID3();
+  ar & BOOST_SERIALIZATION_NVP(stubID3);
+
+  auto stubID4 = mu.stubID4();
+  ar & BOOST_SERIALIZATION_NVP(stubID4);
+}
 
 struct TrackMatchedMuonRecord {
   //from trackingParticle
@@ -58,7 +211,7 @@ struct TrackMatchedMuonRecord {
 
   std::vector<unsigned char> deltaEtas1;
   std::vector<unsigned char> deltaEtas2;
-  
+
   std::vector<char> stubTiming;
   std::vector<char> stubType;
 
@@ -79,13 +232,20 @@ public:
 
   virtual void eventBegin() = 0;
 
+  virtual void collectNonant(int nonant, std::vector<MuonROI>& rois,
+      std::vector<ConvertedTTTrack>& convertedTracks,
+      std::vector<PreTrackMatchedMuon>& muons,
+      std::vector<PreTrackMatchedMuon>& muCleaned) = 0;
+
   virtual void process(PreTrackMatchedMuon& preTrackMatchedMuon) = 0;
+
+  virtual void writeToXml() = 0;
 };
 
 class DataDumper: public PreTrackMatchedMuonProcessor {
 public:
   DataDumper(const edm::EDGetTokenT< TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > >& ttTrackMCTruthToken,
-             const edm::EDGetTokenT< std::vector< TrackingParticle > >& trackingParticleToken, std::string rootFileName);
+      const edm::EDGetTokenT< std::vector< TrackingParticle > >& trackingParticleToken, std::string rootFileName);
 
   virtual ~DataDumper();
 
@@ -93,9 +253,17 @@ public:
 
   void eventBegin() override {
     evntCnt++;
+    eventXml.clear();
   }
 
   void process(PreTrackMatchedMuon& preTrackMatchedMuon) override;
+
+  void collectNonant(int nonant, std::vector<MuonROI>& rois,
+      std::vector<ConvertedTTTrack>& convertedTracks,
+      std::vector<PreTrackMatchedMuon>& muons,
+      std::vector<PreTrackMatchedMuon>& muCleaned) override;
+
+  void writeToXml() override;
 
 private:
   void initializeTTree(std::string rootFileName);
@@ -119,8 +287,63 @@ private:
 
   //TH1I* ptGenPos = nullptr;
   //TH1I* ptGenNeg = nullptr;
+
+  class NonantXml {
+  public:
+    NonantXml() {
+    }
+
+    std::vector<std::vector<l1t::MuonStub> > rois; //[[roiIndex][stubIndex]
+
+    std::vector<ConvertedTTTrack> convertedTracks;
+
+    std::vector<PreTrackMatchedMuon> muons;
+
+    std::vector<PreTrackMatchedMuon> muCleaned;
+
+  private:
+    friend class boost::serialization::access;
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & BOOST_SERIALIZATION_NVP(rois);
+      ar & BOOST_SERIALIZATION_NVP(convertedTracks);
+      ar & BOOST_SERIALIZATION_NVP(muons);
+      ar & BOOST_SERIALIZATION_NVP(muCleaned);
+    }
+  };
+
+  class EventXml {
+  public:
+    EventXml() : nonants(9) {
+
+    }
+
+    std::vector<NonantXml > nonants; //[nonant]
+
+    void clear() {
+      nonants.clear();
+      nonants.resize(9);
+      empty = true;
+    }
+
+    bool empty = true;
+  private:
+    friend class boost::serialization::access;
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+      ar & BOOST_SERIALIZATION_NVP(nonants);
+    }
+  };
+
+  EventXml eventXml;
 };
 
+
 } /* namespace Phase2L1GMT */
+
 
 #endif /* INTERFACE_DATADUMPER_H_ */

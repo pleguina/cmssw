@@ -79,6 +79,8 @@ Phase2L1TGMTProducer::~Phase2L1TGMTProducer() {
 
 // ------------ method called to produce the data  ------------
 void Phase2L1TGMTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  dataDumper.getHandles(iEvent);
+
   using namespace edm;
   Handle<l1t::TrackerMuon::L1TTTrackCollection> trackHandle;
   iEvent.getByToken(srcTracks_, trackHandle);
@@ -128,7 +130,7 @@ void Phase2L1TGMTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
       }
   }
 
-  dataDumper.getHandles(iEvent);
+
 
   std::vector<l1t::TrackerMuon> out = node_->processEvent(tracks, muonTracks, stubs);
   std::unique_ptr<std::vector<l1t::TrackerMuon> > out1 = std::make_unique<std::vector<l1t::TrackerMuon> >(out);
@@ -137,6 +139,8 @@ void Phase2L1TGMTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
   for(auto& muonCAnd : out) {
     muonCAnd.print();
   }
+
+  dataDumper.writeToXml();
 }
 
 // ------------ method called once each stream before processing any runs, lumis or events  ------------

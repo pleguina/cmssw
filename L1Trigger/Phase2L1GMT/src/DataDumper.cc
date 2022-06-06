@@ -21,7 +21,10 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
+
 #include <iostream>
+#include <fstream>
+
 
 namespace Phase2L1GMT {
 
@@ -253,6 +256,40 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
 
   rootTree->Fill();
   //evntCnt++;
+}
+
+void DataDumper::collectNonant(int nonant, std::vector<MuonROI>& rois,
+    std::vector<ConvertedTTTrack>& convertedTracks,
+    std::vector<PreTrackMatchedMuon>& muons,
+    std::vector<PreTrackMatchedMuon>& muCleaned) {
+  eventXml.nonants.at(nonant).rois.clear();
+
+  for(auto& roi : rois) {
+    auto stubInRoi =  std::vector<l1t::MuonStub>();
+    for(auto& stub : roi.stubs()) {
+      stubInRoi.push_back(*stub);
+      eventXml.empty = false;
+    }
+    eventXml.nonants.at(nonant).rois.push_back(stubInRoi);
+  }
+
+  eventXml.nonants[nonant].convertedTracks = convertedTracks;
+  eventXml.nonants[nonant].muons = muons;
+  eventXml.nonants[nonant].muCleaned = muCleaned;
+}
+
+void DataDumper::writeToXml() {
+  if(eventXml.empty == false) {
+    // create and open a character archive for output
+    std::ofstream ofs("event" + std::to_string(evntCnt) + ".xml");
+    // save data to archive
+    {
+      boost::archive::xml_oarchive oa(ofs);
+      // write class instance to archive
+      oa << BOOST_SERIALIZATION_NVP(eventXml);
+      // archive and stream closed when destructors are called
+    }
+  }
 }
 
 } /* namespace Phase2L1GMT */
