@@ -4,6 +4,7 @@
 #include "ap_int.h"
 
 namespace Phase2L1GMT {
+  const unsigned int TF_LAYER_CNT = 5;
 
   // INPUT Dataformat
   // Track
@@ -50,6 +51,9 @@ namespace Phase2L1GMT {
   const int BITSPROPSIGMAETA_A = 5;
   const int BITSPROPSIGMAETA_B = 5;
 
+  const int MATCHER_OUT_BUFFER_SIZE = 16; //TODO 16 is too small in some cases, increase if needed
+  const int CLEANMUON_VERSION = 0; //0 is the original algorithm cleanMuonV0, 1 is improved cleanMuonV1
+  
   // OUTPUT Dataformat
   // Bitwidth for standalone muons to CL1 and GT
   const int BITSSAZ0 = 5;
@@ -70,10 +74,10 @@ namespace Phase2L1GMT {
   const float maxTanl_ = 8.0;
   const float maxZ0_ = 30.;
   const float maxD0_ = 15.4;
-  const int barrelLimit0_ = 181 / 4;
-  const int barrelLimit1_ = 160 / 4;
-  const int barrelLimit2_ = 140 / 4;
-  const int barrelLimit3_ = 110 / 4;
+  const int barrelLimit0_ = 1.4  / 0.00076699039 / 8;//181 / 4;
+  const int barrelLimit1_ = 1.1  / 0.00076699039 / 8;//160 / 4;
+  const int barrelLimit2_ = 0.95 / 0.00076699039 / 8;//140 / 4;
+  const int barrelLimit3_ = 0.95 / 0.00076699039 / 8;//110 / 4;
   const int barrelLimit4_ = 0;
 
   // LSB

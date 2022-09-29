@@ -83,9 +83,9 @@ namespace Phase2L1GMT {
     int z0_;
     int d0_;
     uint quality_;
-    float offline_pt_;
-    float offline_eta_;
-    float offline_phi_;
+    float offline_pt_ = 0;
+    float offline_eta_ = 0;
+    float offline_phi_ = 0;
     ap_uint<96> word_;
 
     edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > trkPtr_;

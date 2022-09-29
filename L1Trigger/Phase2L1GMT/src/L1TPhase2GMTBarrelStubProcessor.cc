@@ -66,6 +66,10 @@ l1t::MuonStub L1TPhase2GMTBarrelStubProcessor::buildStub(const L1Phase2MuDTPhDig
   }
 
   return stub;
+  //Eta quality encoding:
+  //0 - no ete measurement, the coarseEta* is given (middle of the chamber)
+  //1 - first eta measurement is present
+  //3 - first and second eta measurement are present
 }
 
 l1t::MuonStub L1TPhase2GMTBarrelStubProcessor::buildStubNoEta(const L1Phase2MuDTPhDigi& phiS) {
@@ -75,13 +79,17 @@ l1t::MuonStub L1TPhase2GMTBarrelStubProcessor::buildStubNoEta(const L1Phase2MuDT
   int sector = phiS.scNum();
   int station = phiS.stNum();
   double globalPhi = (sector * 30) + phiS.phi() * 30. / 65535.;
+
+  //converting to -180...+180 deg
   if (globalPhi < -180)
     globalPhi += 360;
   if (globalPhi > 180)
     globalPhi -= 360;
   globalPhi = globalPhi * M_PI / 180.;
-  int phi = int(globalPhi / phiLSB_) + phiOffset_[station - 1];
-  int phiB = phiS.phiBend() / phiBFactor_;
+
+  //phiLSB_ = 0.00076660156*32 i.e. 2*pi/2^13 * 2^5 = 2*pi / 2^8
+  int phi = int(globalPhi / phiLSB_) + phiOffset_[station - 1]; //phiOffset_ can be from geometry
+  int phiB = phiS.phiBend() / phiBFactor_; //phiBFactor_ is 16
   uint tag = phiS.index();
   int bx = phiS.bxNum() - 20;
   int quality = 3;
@@ -104,6 +112,7 @@ l1t::MuonStub L1TPhase2GMTBarrelStubProcessor::buildStubNoEta(const L1Phase2MuDT
 
   eta = eta * sign;
   l1t::MuonStub stub(wheel, sector, station, tfLayer, phi, phiB, tag, bx, quality, eta, 0, 0, 1);
+  stub.setTime(phiS.t0() - 25 *20); //TODO check
   stub.setOfflineQuantities(globalPhi, float(phiB), eta* etaLSB_, 0.0);
   return stub;
 }
