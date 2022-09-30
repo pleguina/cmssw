@@ -27,6 +27,8 @@ namespace Phase2L1GMT {
     std::vector<l1t::TrackerMuon> processEvent(const std::vector<edm::Ptr<l1t::TrackerMuon::L1TTTrackType> >& tracks,
                                                const l1t::ObjectRefBxCollection<l1t::RegionalMuonCand>& muonTracks,
                                                const l1t::MuonStubRefVector& stubs) {
+      preTrackMatchedMuonProcessor->eventBegin();
+      
       //Split tracks to the links as they come
       std::vector<edm::Ptr<l1t::TrackerMuon::L1TTTrackType> > tracks0 = associateTracksWithNonant(tracks, 0);
       std::vector<edm::Ptr<l1t::TrackerMuon::L1TTTrackType> > tracks1 = associateTracksWithNonant(tracks, 1);

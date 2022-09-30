@@ -242,10 +242,15 @@ public:
   virtual void writeToXml() = 0;
 };
 
+/*
+ * if dumpToRoot == true the data are dumped to root file opened by the the edm::Service<TFileService> fs,
+ * so it must be opened in the python
+ * if dumpToXml == true it produces xml files that are useful for testing the firmware
+ */
 class DataDumper: public PreTrackMatchedMuonProcessor {
 public:
   DataDumper(const edm::EDGetTokenT< TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > >& ttTrackMCTruthToken,
-      const edm::EDGetTokenT< std::vector< TrackingParticle > >& trackingParticleToken, std::string rootFileName);
+      const edm::EDGetTokenT< std::vector< TrackingParticle > >& trackingParticleToken, bool dumpToRoot, bool dumpToXml);
 
   virtual ~DataDumper();
 
@@ -266,8 +271,7 @@ public:
   void writeToXml() override;
 
 private:
-  void initializeTTree(std::string rootFileName);
-  void saveTTree();
+  void initializeTTree();
 
   edm::EDGetTokenT< TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > > ttTrackMCTruthToken;
   edm::Handle< TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > > mcTruthTTTrackHandle;
@@ -275,10 +279,12 @@ private:
   edm::EDGetTokenT< std::vector< TrackingParticle > > trackingParticleToken;
   edm::Handle< std::vector< TrackingParticle > > trackingParticleHandle;
 
+  bool dumpToRoot = false;
+  bool dumpToXml = false;
+
   std::vector<edm::Ptr< TrackingParticle > > muonTrackingParticles;
   bool muonTrackingParticlesFilled = false;
 
-  TFile* rootFile = nullptr;
   TTree* rootTree = nullptr;
 
   TrackMatchedMuonRecord record;

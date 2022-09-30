@@ -61,7 +61,9 @@ Phase2L1TGMTProducer::Phase2L1TGMTProducer(const edm::ParameterSet& iConfig)
       bxMax_(iConfig.getParameter<int>("muonBXMax")),
       ttTrackMCTruthToken_(consumes< TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > >(iConfig.getParameter<edm::InputTag>("mcTruthTrackInputTag"))),
       trackingParticleToken_(consumes< std::vector< TrackingParticle > >(iConfig.getParameter<edm::InputTag>("trackingParticleInputTag"))),
-      dataDumper(ttTrackMCTruthToken_, trackingParticleToken_, iConfig.getParameter<std::string>("dataDumpRootFile") )
+      dataDumper(ttTrackMCTruthToken_, trackingParticleToken_,
+      iConfig.exists("dumpToRoot") ? iConfig.getParameter<bool>("dumpToRoot") : false,
+      iConfig.exists("dumpToXml") ? iConfig.getParameter<bool>("dumpToXml") : false)
 {
   produces<std::vector<l1t::TrackerMuon> >();
 

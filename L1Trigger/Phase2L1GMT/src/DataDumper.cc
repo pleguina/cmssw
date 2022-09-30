@@ -30,10 +30,11 @@ namespace Phase2L1GMT {
 
 DataDumper::DataDumper(const edm::EDGetTokenT< TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > >& ttTrackMCTruthToken,
     const edm::EDGetTokenT< std::vector< TrackingParticle > >& trackingParticleToken,
-    std::string rootFileName) :
-    ttTrackMCTruthToken(ttTrackMCTruthToken), trackingParticleToken(trackingParticleToken)
+	bool dumpToRoot, bool dumpToXml) :
+    ttTrackMCTruthToken(ttTrackMCTruthToken), trackingParticleToken(trackingParticleToken), dumpToRoot(dumpToRoot), dumpToXml(dumpToXml)
 {
-  initializeTTree(rootFileName);
+  if(dumpToRoot)
+	  initializeTTree();
 }
 
 DataDumper::~DataDumper() {
@@ -44,8 +45,7 @@ DataDumper::~DataDumper() {
 }
 
 
-void DataDumper::initializeTTree(std::string rootFileName) {
-  //rootFile = new TFile(rootFileName.c_str(), "RECREATE");
+void DataDumper::initializeTTree() {
 
   edm::Service<TFileService> fs;
 
@@ -119,7 +119,18 @@ void DataDumper::getHandles(const edm::Event& event) {
   muonTrackingParticles.clear();
 }
 
+/*
+ * TODO
+ * this DataDumper does not collect the muonTrackingPart the were not matched to the ttTrack
+ * - so it is not possible to calculate the tracking trigger efficiency from the collected data
+ * also it does not collect the muon ttTracks that were not tagged by the GMT as muons, a
+ * - so it is not possible to calculate the GMT efficiency.
+ * In principle this can be achieved but would require rewriting this DataDumper
+ */
 void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
+  if(!dumpToRoot)
+    return;
+
   auto& ttTrackPtr = preTrackMatchedMuon.trkPtr();
 
   if(ttTrackPtr.isNull())
@@ -176,7 +187,7 @@ void DataDumper::process(PreTrackMatchedMuon& preTrackMatchedMuon) {
 
     bool isVeryLoose = false;
     for(auto& muonTrackingPart : muonTrackingParticles) {
-      //here we have ttTracks tagged as muon by correlator that have no matching genuine/loose genuine tracking particle
+      //here we have ttTracks tagged as muon by GMT that have no matching genuine/loose genuine tracking particle
       //so we go over all muonTrackingParticles and check if muonTrackingParticle has given ttTrack matched,
       //here, "match" means ttTracks that can be associated to a TrackingParticle with at least one hit of at least one of its clusters - so it is very loose match
       std::vector< edm::Ptr< TTTrack< Ref_Phase2TrackerDigi_ > > > matchedTracks = mcTruthTTTrackHandle->findTTTrackPtrs(muonTrackingPart);
@@ -262,6 +273,9 @@ void DataDumper::collectNonant(int nonant, std::vector<MuonROI>& rois,
     std::vector<ConvertedTTTrack>& convertedTracks,
     std::vector<PreTrackMatchedMuon>& muons,
     std::vector<PreTrackMatchedMuon>& muCleaned) {
+  if(!dumpToXml)
+    return;
+
   eventXml.nonants.at(nonant).rois.clear();
 
   for(auto& roi : rois) {
@@ -279,6 +293,9 @@ void DataDumper::collectNonant(int nonant, std::vector<MuonROI>& rois,
 }
 
 void DataDumper::writeToXml() {
+  if(!dumpToXml)
+    return;
+
   if(eventXml.empty == false) {
     // create and open a character archive for output
     std::ofstream ofs("event" + std::to_string(evntCnt) + ".xml");
