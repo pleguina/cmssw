@@ -54,7 +54,9 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
   //initialize with the default sorter
 
   if (this->myOmtfConfig->getGhostBusterType() == "GhostBusterPreferRefDt" ||
-      this->myOmtfConfig->getGhostBusterType() == "byLLH") {
+      this->myOmtfConfig->getGhostBusterType() == "byLLH" ||
+      this->myOmtfConfig->getGhostBusterType() == "byFPLLH"  ||
+      this->myOmtfConfig->getGhostBusterType() == "byRefLayer" ) {
     setGhostBuster(new GhostBusterPreferRefDt(this->myOmtfConfig));
     edm::LogVerbatim("OMTFReconstruction") << "setting " << this->myOmtfConfig->getGhostBusterType() << std::endl;
   } else {
@@ -85,11 +87,16 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     candidate.setHwSign(myCand->getCharge() < 0 ? 1 : 0);
     candidate.setHwSignValid(1);
 
+    if(myCand->getPtUnconstrained() >= 0) //empty PtUnconstrained is -1, maybe should be corrected on the source
+      candidate.setHwPtUnconstrained(myCand->getPtUnconstrained());
+    else
+      candidate.setHwPtUnconstrained(0);
+
     unsigned int quality = 12;
     if (this->myOmtfConfig->fwVersion() <= 6)
-      quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3) : 0 | (1 << 2);
+      quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3) : 0 | (1 << 2); //12 : 4
 
-    if (abs(myCand->getEtaHw()) == 115 &&
+    if (abs(myCand->getEtaHw()) == 115 && //115 is eta 1.25
         (static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001110000000").to_ulong() ||
          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000001110000000").to_ulong() ||
          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000110000000").to_ulong() ||
@@ -228,6 +235,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     trackAddr[0] = myCand->getFiredLayerBits();
     trackAddr[1] = myCand->getRefLayer();
     trackAddr[2] = myCand->getDisc();
+    trackAddr[3] = myCand->getGpResultUpt().getPdfSumUpt();
     if (candidate.hwPt() > 0) {
       if (ptAssignment) {
         auto pts = ptAssignment->getPts(myCand);
@@ -286,6 +294,72 @@ AlgoMuons OMTFProcessor<GoldenPatternType>::sortResults(unsigned int iProcessor,
   unsigned int procIndx = this->myOmtfConfig->getProcIndx(iProcessor, mtfType);
   return sorter->sortResults(procIndx, this->getPatterns(), charge);
 }
+
+template <class GoldenPatternType>
+int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const int& refLogicLayer, const int& refPhi, const int& refPhiB, unsigned int targetLayer, const int& targetStubPhi, const int& targetStubQuality,  const int& targetStubR, const OMTFConfiguration* omtfConfig) {
+
+  LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" refLogicLayer "<<refLogicLayer <<" targetLayer "<<targetLayer<<std::endl;
+
+  double hsPhiPitch = 2 * M_PI / omtfConfig->nPhiBins(); //rad/halfStrip
+
+  int phiExtr = 0; //delta phi extrapolated
+
+  float rRefLayer = 431.133; //MB1 i.e. refLogicLayer = 0
+  if(refLogicLayer == 2)
+    rRefLayer = 512.401; //MB2
+  else if(refLogicLayer != 0) {
+    return 0;
+    //throw cms::Exception("OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB: wrong refStubLogicLayer " + std::to_string(refLogicLayer) );
+  }
+
+  if(targetLayer ==  0 || targetLayer ==  2 || targetLayer ==  4 || (targetLayer >= 10 && targetLayer <= 14)) {
+    float rTargetLayer = 512.401; //MB2
+
+    if(targetLayer == 0)       rTargetLayer = 431.133; //MB1
+    else if(targetLayer == 4)  rTargetLayer = 617.946; //MB3
+
+    else if(targetLayer == 10) rTargetLayer = 413.675; //RB1in
+    else if(targetLayer == 11) rTargetLayer = 448.675; //RB1out
+    else if(targetLayer == 12) rTargetLayer = 494.975; //RB2in
+    else if(targetLayer == 13) rTargetLayer = 529.975; //RB2out
+    else if(targetLayer == 14) rTargetLayer = 602.150; //RB3
+    //for the CSC and endcap RPC the r is taken from the hit coordinates
+
+    if(targetLayer ==  0 || targetLayer ==  2 || targetLayer ==  4) {
+      if(targetStubQuality == 2)
+        rTargetLayer = rTargetLayer - 23.5/2; //inner superlayer
+      else if(targetStubQuality == 3)
+        rTargetLayer = rTargetLayer + 23.5/2; //outer superlayer
+    }
+
+    float d = rTargetLayer - rRefLayer;
+    float deltaPhiExtr = d/rTargetLayer * refPhiB / 512.; //[rad]
+    phiExtr = round(deltaPhiExtr / hsPhiPitch); //[halfStrip] //TODO do math as in firmware
+    LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" deltaPhiExtr "<<deltaPhiExtr<<" phiExtr "<<phiExtr<<std::endl;
+  }
+  else if(targetLayer ==  1 || targetLayer ==  3 || targetLayer ==  5) {
+    int deltaPhi = targetStubPhi - refPhi; //[halfStrip]
+
+    deltaPhi = round(deltaPhi * hsPhiPitch * 512.);
+    phiExtr = refPhiB - deltaPhi;
+    LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" deltaPhi "<<deltaPhi<<" phiExtr "<<phiExtr<<std::endl;
+  }
+  else if( (targetLayer >= 6 && targetLayer <= 9) || (targetLayer >= 15 && targetLayer <= 17) ) {
+    float rME = targetStubR;
+
+    float d = rME - rRefLayer;
+    float deltaPhiExtr = d/rME * refPhiB / 512.; //[rad]
+    phiExtr = round(deltaPhiExtr / hsPhiPitch); //[halfStrip]
+  }
+//TODO restrict the range of the phiExtr and refPhiB !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  return phiExtr;
+}
+
+template <class GoldenPatternType>
+int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const MuonStubPtr& refStub, const MuonStubPtr& targetStub, unsigned int targetLayer, const OMTFConfiguration* omtfConfig) {
+  return OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(refStub->logicLayer, refStub->phiHw, refStub->phiBHw, targetLayer, targetStub->phiHw, targetStub->qualityHw, targetStub->etaSigmaHw, omtfConfig); //TODO do not use etaSigmaHw!!!!!!
+}
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 //const std::vector<OMTFProcessor::resultsMap> &
@@ -314,8 +388,9 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
     }*/
     ///Number of reference hits to be checked.
     unsigned int nTestedRefHits = this->myOmtfConfig->nTestRefHits();
-    for (unsigned int iRefHit = 0; iRefHit < this->myOmtfConfig->nRefHits();
-         ++iRefHit) {  //loop over all possible refHits, i.e. 128
+
+    //loop over all possible refHits, i.e. 128
+    for (unsigned int iRefHit = 0; iRefHit < this->myOmtfConfig->nRefHits(); ++iRefHit) {
       if (!refHitsBits[iRefHit])
         continue;
       if (nTestedRefHits-- == 0)
@@ -339,21 +414,45 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       //LogTrace("l1tOmtfEventPrint")<<"iLayer "<<iLayer<<" refHitNum "<<myOmtfConfig->nTestRefHits()-nTestedRefHits-1<<" iRefHit "<<iRefHit;
       //LogTrace("l1tOmtfEventPrint")<<" nTestedRefHits "<<nTestedRefHits<<" aRefHitDef "<<aRefHitDef<<std::endl;
 
+      std::vector<int> extrapolatedPhi(restrictedLayerStubs.size(), 0);
+
+      //TODO make sure the that the iRefLayer numbers used here corresponds to this in the hwToLogicLayer_0x000X.xml
+      if( (this->myOmtfConfig->getUsePhiBExtrapolationMB1() && aRefHitDef.iRefLayer == 0) ||
+          (this->myOmtfConfig->getUsePhiBExtrapolationMB2() && aRefHitDef.iRefLayer == 2)    ){
+        if((iLayer != refLayerLogicNum) && (iLayer != refLayerLogicNum +1)) {
+          LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" extrapolating from layer "<<refLayerLogicNum<<" - iRefLayer "<<aRefHitDef.iRefLayer<<std::endl;
+          unsigned int iStub = 0;
+          for(auto& targetStub : restrictedLayerStubs) {
+            if(targetStub)
+              extrapolatedPhi[iStub] = extrapolateDtPhiB(refStub, targetStub, iLayer, this->myOmtfConfig);
+            iStub++;
+          }
+        }
+      }
+
       unsigned int refHitNumber = this->myOmtfConfig->nTestRefHits() - nTestedRefHits - 1;
+
+      int phiExtrp = 0;
+      if( (this->myOmtfConfig->getUsePhiBExtrapolationMB1() && aRefHitDef.iRefLayer == 0) ||
+          (this->myOmtfConfig->getUsePhiBExtrapolationMB2() && aRefHitDef.iRefLayer == 2)    ){
+        phiExtrp = extrapolateDtPhiB(aRefHitDef.iRefLayer, phiRef, refStub->phiBHw, 2, 0, 6, 0, this->myOmtfConfig);
+      }
+
       for (auto& itGP : this->theGPs) {
         if (itGP->key().thePt == 0)  //empty pattern
           continue;
 
         StubResult stubResult =
-            itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer, restrictedLayerStubs, refStub);
+            itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer, restrictedLayerStubs, extrapolatedPhi, refStub);
 
-        //fixme this unnecessary repeated  for every layer - but in this layout of loops must be like that
-        int phiRefSt2 = itGP->propagateRefPhi(phiRef, etaRef, aRefHitDef.iRefLayer);
+        //fixme this unnecessary repeated  for every layer
 
+        int phiRefSt2 = itGP->propagateRefPhi(phiRef + phiExtrp, etaRef, aRefHitDef.iRefLayer);
         //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" layerResult: valid"<<layerResult.valid<<" pdfVal "<<layerResult.pdfVal<<std::endl;
         itGP->getResults()[procIndx][refHitNumber].setStubResult(iLayer, stubResult);
         //fixme this unnecessary repeated  for every layer - but in this layout of loops must be like that
         itGP->getResults()[procIndx][refHitNumber].set(aRefHitDef.iRefLayer, phiRefSt2, etaRef, phiRef);
+        //fixme this unnecessary repeated  for every layer
       }
     }
   }
