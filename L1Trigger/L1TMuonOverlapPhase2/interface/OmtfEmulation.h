@@ -5,8 +5,8 @@
  *      Author: kbunkow
  */
 
-#ifndef L1TMUONOVERLAPPHASE1_OMTFEMULATION_H_
-#define L1TMUONOVERLAPPHASE1_OMTFEMULATION_H_
+#ifndef L1TMUONOVERLAPPHASE2_OMTFEMULATION_H_
+#define L1TMUONOVERLAPPHASE2_OMTFEMULATION_H_
 
 #include "DataFormats/L1DTTrackFinder/interface/L1Phase2MuDTPhContainer.h"
 #include "FWCore/Utilities/interface/EDGetToken.h"
@@ -33,4 +33,4 @@ private:
   unique_ptr<PtAssignmentBase>  ptAssignment;
 };
 
-#endif /* L1TMUONOVERLAPPHASE1_OMTFEMULATION_H_ */
+#endif /* L1TMUONOVERLAPPHASE2_OMTFEMULATION_H_ */
