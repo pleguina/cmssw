@@ -111,6 +111,22 @@ public:
     this->goldenPaternUpt = goldenPaternUpt;
   }
 
+  int getChargeNN() const {
+    return chargeNN;
+  }
+
+  void setChargeNN(int chargeNn = 0) {
+    chargeNN = chargeNn;
+  }
+
+  int getPtNN() const {
+    return ptNN;
+  }
+
+  void setPtNN(int ptNn = 0) {
+    ptNN = ptNn;
+  }
+
 private:
   ///FIXME maybe the gpResult cannot be a reference or pointer, ad not a copy
   GoldenPatternResult gpResult;
@@ -134,6 +150,9 @@ private:
   unsigned int index = 0;
 
   std::vector<std::shared_ptr<AlgoMuon>> killedMuons;
+
+  int ptNN = 0;
+  int chargeNN = 0;
 };
 
 typedef std::shared_ptr<AlgoMuon> AlgoMuonPtr;

@@ -75,7 +75,16 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
 
   for (auto& myCand : algoCands) {
     l1t::RegionalMuonCand candidate;
-    candidate.setHwPt(myCand->getPt());
+
+    if(ptAssignment) {
+      candidate.setHwPt(myCand->getPtNN());
+       candidate.setHwSign(myCand->getChargeNN() < 0 ? 1 : 0);
+    }
+    else {
+      candidate.setHwPt(myCand->getPt());
+      candidate.setHwSign(myCand->getCharge() < 0 ? 1 : 0);
+    }
+
     candidate.setHwEta(myCand->getEtaHw());
 
     int phiValue = myCand->getPhi();
@@ -84,7 +93,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     phiValue = this->myOmtfConfig->procPhiToGmtPhi(phiValue);
     candidate.setHwPhi(phiValue);
 
-    candidate.setHwSign(myCand->getCharge() < 0 ? 1 : 0);
+
     candidate.setHwSignValid(1);
 
     if(myCand->getPtUnconstrained() >= 0) //empty PtUnconstrained is -1, maybe should be corrected on the source
@@ -237,13 +246,6 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     trackAddr[2] = myCand->getDisc();
     trackAddr[3] = myCand->getGpResultUpt().getPdfSumUpt();
     if (candidate.hwPt() > 0) {
-      if (ptAssignment) {
-        auto pts = ptAssignment->getPts(myCand);
-        for (unsigned int i = 0; i < pts.size(); i++) {
-          trackAddr[10 + i] = this->myOmtfConfig->ptGevToHw(pts[i]);
-        }
-      }
-
       candidate.setTrackAddress(trackAddr);
       candidate.setTFIdentifiers(iProcessor, mtfType);
       result.push_back(candidate);
@@ -485,6 +487,9 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::run(
   //uncomment if you want to check execution time of each method
   //boost::timer::auto_cpu_timer t("%ws wall, %us user in getProcessorCandidates\n");
 
+  for (auto& obs : observers)
+    obs->observeProcesorBegin(iProcessor, mtfType);
+
   //input is shared_ptr because the observers may need them after the run() method execution is finished
   std::shared_ptr<OMTFinput> input = std::make_shared<OMTFinput>(this->myOmtfConfig);
   inputMaker->buildInputForProcessor(input->getMuonStubs(), iProcessor, mtfType, bx, bx);
@@ -494,6 +499,17 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::run(
 
   //LogTrace("l1tOmtfEventPrint")<<"processInput       "; t.report();
   AlgoMuons algoCandidates = sortResults(iProcessor, mtfType);
+
+  if (ptAssignment) {
+    for (auto& myCand : algoCandidates) {
+      if (myCand->isValid()) {
+        auto pts = ptAssignment->getPts(myCand, observers);
+        /*for (unsigned int i = 0; i < pts.size(); i++) {
+        trackAddr[10 + i] = this->myOmtfConfig->ptGevToHw(pts[i]);
+      }*/
+      }
+    }
+  }
 
   //LogTrace("l1tOmtfEventPrint")<<"sortResults        "; t.report();
   // perform GB
