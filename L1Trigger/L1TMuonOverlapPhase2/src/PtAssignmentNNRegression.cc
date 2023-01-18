@@ -21,38 +21,51 @@
 
 PtAssignmentNNRegression::PtAssignmentNNRegression(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::string networkFile): PtAssignmentBase(omtfConfig) {
   std::ifstream ifs(networkFile);
-  edm::LogImportant("OMTFReconstruction") <<" "<<__FUNCTION__<<":"<<__LINE__<<" networkFile "<<networkFile<<std::endl;
-  lutNetworkFP.load(networkFile);
-  edm::LogImportant("OMTFReconstruction") <<" "<<__FUNCTION__<<":"<<__LINE__<<std::endl;
+  {
+    static const int input_I = 10;
+    static const int input_F = 4;
+    static const std::size_t networkInputSize = 18;
 
-  /*
-  if(edmCfg.exists("nn_pThresholds") ) {
-    auto nn_pThresholds = edmCfg.getParameter<vector<double> >("nn_pThresholds");
+    static const int layer1_neurons = 16;
+    static const int layer1_lut_I = 3;
+    static const int layer1_lut_F = 13;
 
-    TFile* ptCalibrationFile =  nullptr;
-    if(edmCfg.exists("ptCalibrationFileName") ) {
-      auto ptCalibrationFileName = edmCfg.getParameter<edm::FileInPath>("ptCalibrationFileName").fullPath();
-      ptCalibrationFile =  new TFile(ptCalibrationFileName.c_str());
-      edm::LogImportant("OMTFReconstruction") <<" using ptCalibrationFile "<<ptCalibrationFileName<<std::endl;
-    }
+    static const int layer1_output_I = 4;
+    //4 bits are for the count of the noHit layers which goes to the input of the layer2
+    static const int layer2_input_I = 8;
 
-    if(ptCalibrationFile ==  nullptr) {
-      edm::LogImportant("OMTFReconstruction") <<" no ptCalibrationFile!!!!!!"<<std::endl;
-    }
+    static const int layer2_neurons = 9;
+    static const int layer2_lut_I = 5;
+    static const int layer2_lut_F = 11;
 
-    classifierToRegressions.reserve(nn_pThresholds.size() );
-    for(auto& nn_pThreshold : nn_pThresholds) {
-      std::ostringstream name;
-      name<<"ptCalibrationPSumInter"<<nn_pThreshold;
-      std::string nameStr = boost::replace_all_copy(name.str(), ".", "");
-      lutNN::PtCalibration* ptCalibration = new lutNN::PtCalibration(ptCalibrationFile, nameStr);
+    static const int layer3_input_I = 5;
 
-      classifierToRegressions.emplace_back(make_unique<lutNN::ClassifierToRegressionPSum>(ptBins, nn_pThreshold, ptCalibration));
-      edm::LogImportant("OMTFReconstruction") <<" adding classifierToRegression, nn_pThreshold "<<nn_pThreshold<<std::endl;
-    }
+    static const int layer3_0_inputCnt = 8;
+    static const int layer3_0_lut_I = 5;
+    static const int layer3_0_lut_F = 11;
+    static const int output0_I = 8;
+    static const int output0_F = 2;
+
+    static const int layer3_1_inputCnt = 1;
+    static const int layer3_1_lut_I = 4;
+    static const int layer3_1_lut_F = 11;
+    static const int output1_I = 8;
+    static const int output1_F = 8;
+
+    lutNetworkFP.reset(new lutNN::LutNetworkFixedPointRegression2Outputs<input_I,  input_F,  networkInputSize,
+                         layer1_lut_I, layer1_lut_F, layer1_neurons,        //layer1_lutSize = 2 ^ input_I
+                         layer1_output_I,
+                         layer2_input_I,
+                         layer2_lut_I, layer2_lut_F, layer2_neurons,
+                         layer3_input_I,
+                         layer3_0_inputCnt, layer3_0_lut_I, layer3_0_lut_F, output0_I, output0_F,
+                         layer3_1_inputCnt, layer3_1_lut_I, layer3_1_lut_F, output1_I, output1_F>() );
+
+    edm::LogImportant("OMTFReconstruction") <<" "<<__FUNCTION__<<":"<<__LINE__<<" networkFile "<<networkFile<<std::endl;
+    lutNetworkFP->load(networkFile);
+    edm::LogImportant("OMTFReconstruction") <<" "<<__FUNCTION__<<":"<<__LINE__<<std::endl;
   }
-  edm::LogImportant("OMTFReconstruction") <<" PtAssignmentNN created, networkFile "<<networkFile<<" classifierToRegressions.size() "<<classifierToRegressions.size()<<std::endl;
-*/
+
 }
 
 struct OmtfHit {
@@ -136,12 +149,15 @@ PtAssignmentNNRegression::~PtAssignmentNNRegression() {
 }
 
 
-std::vector<float> PtAssignmentNNRegression::getPts(const AlgoMuons::value_type& algoMuon) {
+std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoMuon,
+    std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+  LogTrace("l1tOmtfEventPrint") <<" "<<__FUNCTION__<<":"<<__LINE__<<std::endl;
   auto& gpResult = algoMuon->getGpResult();
   //int pdfMiddle = 1<<(omtfConfig->nPdfAddrBits()-1);
 
+  LogTrace("l1tOmtfEventPrint") <<" "<<__FUNCTION__<<":"<<__LINE__<<std::endl;
 /*
-  edm::LogVerbatim("l1tMuBayesEventPrint")<<"DataROOTDumper2:;observeEventEnd muonPt "<<event.muonPt<<" muonCharge "<<event.muonCharge
+  edm::LogVerbatim("l1tOmtfEventPrint")<<"DataROOTDumper2:;observeEventEnd muonPt "<<event.muonPt<<" muonCharge "<<event.muonCharge
       <<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer<<" omtfPtCont "<<event.omtfPtCont
       <<std::endl;
 */
@@ -153,7 +169,7 @@ std::vector<float> PtAssignmentNNRegression::getPts(const AlgoMuons::value_type&
   //edm::LogImportant("OMTFReconstruction") <<"\n----------------------"<<endl;
   //edm::LogImportant("OMTFReconstruction") <<(*algoMuon)<<std::endl;
 
-  std::vector<float> inputs;
+  std::vector<float> inputs(inputCnt, noHitVal);
 
   for(unsigned int iLogicLayer = 0; iLogicLayer < gpResult.getStubResults().size(); ++iLogicLayer) {
     auto& stubResult = gpResult.getStubResults()[iLogicLayer];
@@ -177,14 +193,15 @@ std::vector<float> PtAssignmentNNRegression::getPts(const AlgoMuons::value_type&
       //phiDist = hitPhi - phiRefHit;
       hit.phiDist = hitPhi - phiRefHit;
 
-     /* edm::LogVerbatim("l1tMuBayesEventPrint")<<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
+      /*
+      LogTrace("l1tOmtfEventPrint") <<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
           <<" layer "<<int(hit.layer)<<" PdfBin "<<stubResult.getPdfBin()<<" hit.phiDist "<<hit.phiDist<<" valid "<<stubResult.getValid()<<" " //<<" phiDist "<<phiDist
           <<" getDistPhiBitShift "<<omtfCand->getGoldenPatern()->getDistPhiBitShift(iLogicLayer, omtfCand->getRefLayer())
           <<" meanDistPhiValue   "<<omtfCand->getGoldenPatern()->meanDistPhiValue(iLogicLayer, omtfCand->getRefLayer())//<<(phiDist != hit.phiDist? "!!!!!!!<<<<<" : "")
           <<endl;*/
 
       if(hit.phiDist > 504 || hit.phiDist < -512 ) {
-        edm::LogVerbatim("l1tMuBayesEventPrint")
+        edm::LogVerbatim("l1tOmtfEventPrint")
         //<<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
             <<" layer "<<int(hit.layer)<<" hit.phiDist "<<hit.phiDist<<" valid "<<stubResult.getValid()<<" !!!!!!!!!!!!!!!!!!!!!!!!"<<std::endl;
       }
@@ -197,17 +214,48 @@ std::vector<float> PtAssignmentNNRegression::getPts(const AlgoMuons::value_type&
         hit.z = cscId.chamber() % 2;
       }
 
+      LogTrace("l1tOmtfEventPrint")<<"hit: layer "<<(int)hit.layer<<" quality "<<(int)hit.quality<<" eta "<<(int)hit.eta
+          <<" valid "<<(int)hit.valid<<" phiDist "<<(int)hit.phiDist<<" z "<<(int)hit.z<<std::endl;
+
       omtfHitToEventInput(hit, inputs, algoMuon->getRefLayer(), false);
     }
   }
 
-  std::vector<double> nnResult;
-  lutNetworkFP.run(inputs, noHitVal, nnResult);
+
+  LogTrace("l1tOmtfEventPrint") <<" "<<__FUNCTION__<<":"<<__LINE__<<std::endl;
+
+  std::vector<double> nnResult(outputCnt);
+  lutNetworkFP->run(inputs, noHitVal, nnResult);
+
+  LogTrace("l1tOmtfEventPrint") <<" "<<__FUNCTION__<<":"<<__LINE__<<std::endl;
 
   double pt = std::copysign(nnResult.at(0), nnResult.at(1));
 
+  LogTrace("l1tOmtfEventPrint") <<" "<<__FUNCTION__<<":"<<__LINE__<<" nnResult.at(0) "<<nnResult.at(0)
+      <<" nnResult.at(1) "<<nnResult.at(1)<<" pt "<<pt<<std::endl;
+
   std::vector<float> pts;
   pts.emplace_back(pt);
+
+  //algoMuon->setPtNN(omtfConfig->ptGevToHw(nnResult.at(0)));
+  algoMuon->setPtNN(lutNetworkFP->getCalibratedHwPt());
+
+  algoMuon->setChargeNN(nnResult[1] >= 0 ? 1 : -1);
+
+	//TODO add some if here, such that the property_tree i sfilled only when needed
+  boost::property_tree::ptree procDataTree;
+  for(unsigned int i = 0; i < inputs.size(); i++) {
+    auto& inputTree = procDataTree.add("input", "");
+    inputTree.add("<xmlattr>.num", i);
+    inputTree.add("<xmlattr>.val", inputs[i]);
+  }
+
+  procDataTree.add("output0.<xmlattr>.val", std::to_string(nnResult.at(0)));
+  procDataTree.add("output1.<xmlattr>.val", std::to_string(nnResult.at(1)));
+
+  for (auto& obs : observers)
+    obs->addProcesorData("regressionNN", procDataTree);
+
   return pts;
 
   //event.print();

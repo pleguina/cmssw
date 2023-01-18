@@ -10,11 +10,14 @@
 
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/LutNeuronLayerFixedPoint.h"
 
+#include "ap_int.h"
+
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
 #include <cmath>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-#include <boost/foreach.hpp>
 
 namespace lutNN {
 
@@ -27,11 +30,11 @@ template<int input_I,  int input_F,  std::size_t inputSize,
          int layer2_input_I,
          int layer2_lut_I, int layer2_lut_F, int layer2_neurons,
          int layer3_input_I,
-         int layer3_0_inputCnt, int layer3_0_lut_I, int layer3_0_lut_F, int output0_I,
-         int layer3_1_inputCnt, int layer3_1_lut_I, int layer3_1_lut_F, int output1_I>
-class LutNetworkFixedPointRegression2Outputs {
+         int layer3_0_inputCnt, int layer3_0_lut_I, int layer3_0_lut_F, int output0_I, int output0_F,
+         int layer3_1_inputCnt, int layer3_1_lut_I, int layer3_1_lut_F, int output1_I, int output1_F>
+class LutNetworkFixedPointRegression2Outputs: public LutNetworkFixedPointRegressionBase {
 public:
-    LutNetworkFixedPointRegression2Outputs(){
+    LutNetworkFixedPointRegression2Outputs() {
         static_assert(layer2_neurons == (layer3_0_inputCnt + layer3_1_inputCnt));
 
         std::cout<<"LutNetworkFixedPoint"<<std::endl;
@@ -86,8 +89,7 @@ public:
     }
 
 
-    template <typename InputType>
-    void run(std::vector<InputType>& inputs, InputType noHitVal, std::vector<double>& nnResult) {
+    void run(std::vector<float>& inputs, float noHitVal, std::vector<double>& nnResult) override {
         unsigned int noHitsCnt = 0;
         for(unsigned int iInput = 0; iInput < inputs.size(); iInput++) {
             inputArray[iInput] = inputs[iInput];
@@ -105,16 +107,29 @@ public:
 
         runWithInterpolation();
 
-        auto& layer3_0_out = lutLayer3_0.getLutOutSum();
-        auto& layer3_1_out = lutLayer3_1.getLutOutSum();
+        //output0_I goes to the declaration of the lutLayer3_0, but it does not matter, as it is used only for the outputArray
+        //TODO maybe use the layer offset to convert to the unsigned pt?
+        auto layer3_0_out = ap_ufixed<output0_I+output0_F, output0_I, AP_RND_CONV, AP_SAT>(lutLayer3_0.getLutOutSum()[0]); //TODO should be AP_RND_CONV rather, but it affect the rate
+        auto layer3_1_out = ap_fixed <output1_I+output1_F, output1_I, AP_RND_CONV, AP_SAT>(lutLayer3_1.getLutOutSum()[0]); //here layer3_0_out has size 1
+        //auto layer3_0_out = lutLayer3_0.getLutOutSum()[0]; //here layer3_0_out has size 1
+        //auto layer3_1_out = lutLayer3_1.getLutOutSum()[0]; //here layer3_0_out has size 1
 
         //std::cout<<"layer3_0_out[0] "<<layer3_0_out[0]<<" layer3_1_out[0] "<<layer3_1_out[0]<<std::endl;
 
-        nnResult[0] = layer3_0_out[0]; //here layer3_0_out has size 1
-        nnResult[1] = layer3_1_out[0];
+        nnResult[0] = layer3_0_out.to_float();
+        nnResult[1] = layer3_1_out.to_float();
+        LogTrace("l1tOmtfEventPrint")<<"layer3_0_out[0] "<<layer3_0_out[0]<<" layer3_1_out[0] "<<layer3_1_out[0]<<std::endl;
     }
 
-    void save(const std::string &filename) {
+    //pt in the hardware scale, ptGeV = (ptHw -1) / 2
+    int getCalibratedHwPt() override {
+        auto lutAddr = ap_ufixed<output0_I+output0_F+output0_F, output0_I+output0_F, AP_RND_CONV, AP_SAT>(lutLayer3_0.getLutOutSum()[0]);
+        lutAddr = lutAddr<<output0_F;
+        //std::cout<<"lutLayer3_0.getLutOutSum()[0] "<<lutLayer3_0.getLutOutSum()[0]<<" lutAddr.to_uint() "<<lutAddr.to_uint()<<" ptCalibrationArray[lutAddr] "<<ptCalibrationArray[lutAddr.to_uint()]<<std::endl;
+        return ptCalibrationArray[lutAddr.to_uint()].to_uint();
+    }
+
+    void save(const std::string &filename) override {
         // Create an empty property tree object.
         boost::property_tree::ptree tree;
 
@@ -123,10 +138,20 @@ public:
         lutLayer3_0.save(tree, "LutNetworkFixedPointRegression2Outputs");
         lutLayer3_1.save(tree, "LutNetworkFixedPointRegression2Outputs");
 
+        int size = ptCalibrationArray.size();
+        std::string key = "LutNetworkFixedPointRegression2Outputs.ptCalibrationArray";
+        PUT_VAR(tree, key, size)
+        std::ostringstream ostr;
+        for(auto& a : ptCalibrationArray) {
+            //ostr<<std::hex<<a.to_uint()<<", ";
+            ostr<<a.to_uint()<<", ";
+        }
+        tree.put(key + ".values", ostr.str());
+
         boost::property_tree::write_xml(filename, tree, std::locale(), boost::property_tree::xml_parser::xml_writer_make_settings<std::string>(' ', 2));
     }
 
-    void load(const std::string &filename) {
+    void load(const std::string &filename) override {
         // Create an empty property tree object.
         boost::property_tree::ptree tree;
 
@@ -136,12 +161,39 @@ public:
         lutLayer2.load(tree, "LutNetworkFixedPointRegression2Outputs");
         lutLayer3_0.load(tree, "LutNetworkFixedPointRegression2Outputs");
         lutLayer3_1.load(tree, "LutNetworkFixedPointRegression2Outputs");
+
+
+        std::string key = "LutNetworkFixedPointRegression2Outputs.ptCalibrationArray";
+        int size = ptCalibrationArray.size();
+        CHECK_VAR(tree, key, size)
+
+        auto str = tree.get<std::string>(key + ".values");
+
+        std::stringstream ss(str);
+        std::string item;
+
+        for(auto& a : ptCalibrationArray) {
+            if(std::getline(ss, item, ',') ) {
+                //a = std::stoul(item, NULL, 16);
+                a = std::stoul(item, NULL, 10);
+            }
+            else {
+                throw std::runtime_error("LutNetworkFixedPointRegression2Outputs::read: number of items get from file is smaller than lut size");
+            }
+        }
     }
 
+    auto& getPtCalibrationArray() {
+        return ptCalibrationArray;
+    }
 
 private:
     std::array<ap_ufixed<LutLayer1::input_W, input_I, AP_TRN, AP_SAT> , inputSize> inputArray;
     ap_uint<layer2_input_I> layer1Bias;
+
+    //ptCalibrationArray size should be 1024, the LSB of the input 0.25 GeV,
+    //the output is int, with range 0...511, the LSB of output 0.5 GeV
+    std::array<ap_uint<9>, 1<<(output0_I+output0_F)> ptCalibrationArray;
 };
 
 } /* namespace lutNN */

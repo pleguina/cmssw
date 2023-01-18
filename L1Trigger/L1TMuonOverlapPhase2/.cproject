@@ -86,6 +86,14 @@
 				<useDefaultCommand>false</useDefaultCommand>
 				<runAllBuilders>true</runAllBuilders>
 			</target>
+			<target name="scram b debug" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>scram</buildCommand>
+				<buildArguments>b USER_CXXFLAGS="-DEDM_ML_DEBUG"</buildArguments>
+				<buildTarget/>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
 		</buildTargets>
 	</storageModule>
 </cproject>

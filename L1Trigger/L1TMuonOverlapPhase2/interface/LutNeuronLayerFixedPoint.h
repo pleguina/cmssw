@@ -17,6 +17,7 @@
 
 #include <boost/property_tree/ptree.hpp>
 
+#include "L1Trigger/L1TMuonOverlapPhase2/interface/LutNetworkFixedPointCommon.h"
 //#include "L1Trigger/L1TMuonOverlapPhase2/interface/LutLayerFixedPoint.h"
 
 namespace lutNN {
@@ -41,7 +42,7 @@ public:
 
     typedef std::array<ap_ufixed<input_W, input_I, AP_TRN, AP_SAT> , inputSize> inputArrayType;
 
-    typedef std::array<ap_fixed<lutOutSum_W, lutOutSum_I> , neurons> outputArrayType;
+    typedef std::array<ap_fixed<lutOutSum_W, lutOutSum_I> , neurons> lutSumArrayType;
 
     LutNeuronLayerFixedPoint()  { //FIXME initialise name(name)
         //static_assert(lut_I <= (output_I - ceil(log2(inputSize)) ), "not correct lut_I, output_I  and inputSize"); //TODO
@@ -79,8 +80,6 @@ public:
         this->lutArray = lutArray;
     }
 
-    #define PUT_VAR(tree, keyPath, var) tree.put( (keyPath) + "." + #var, (var) );
-
     void save(boost::property_tree::ptree& tree, std::string keyPath) {
         PUT_VAR(tree, keyPath + "." + name, input_I)
         PUT_VAR(tree, keyPath + "." + name, input_F)
@@ -101,8 +100,6 @@ public:
             }
         }
     }
-
-    #define CHECK_VAR(tree, keyPath, var) if( (var) != tree.get<int>( (keyPath) + "." + #var) ) throw std::runtime_error( (keyPath) + "." + #var + " has different value in the file then given");
 
     void load(boost::property_tree::ptree& tree, std::string keyPath) {
         CHECK_VAR(tree, keyPath + "." + name, input_I)
@@ -133,10 +130,11 @@ public:
         }
     }
 
-    outputArrayType&
+    lutSumArrayType&
     runWithInterpolation(const inputArrayType& inputArray) {
         for(unsigned int iNeuron = 0; iNeuron < lutOutSumArray.size(); iNeuron++) {
-            ap_fixed<output_W, output_I> lutOutSum = 0; //should not overflow.
+            auto& lutOutSum = lutOutSumArray.at(iNeuron);
+            lutOutSum = 0;
             for(unsigned int iInput = 0; iInput < inputArray.size(); iInput++) {
                 auto address = inputArray.at(iInput).to_uint(); //address in principle is unsigned
                 auto& lut = lutArray.at(iInput).at(iNeuron);
@@ -151,7 +149,7 @@ public:
                 ap_ufixed<input_W-input_I, 0> fractionalPart = inputArray.at(iInput);
 
                 auto result = lut.at(address) + fractionalPart * derivative;
-                lutOutSum += result; //the left side can be only >= 0
+                lutOutSum += result;
 
                 /*std::cout<<__FUNCTION__<<":"<<__LINE__<<name<<" "<<" iNeuron "<<std::setw(3)<<iNeuron<<" iInput "<<std::setw(8)<<iInput<<" input "<<std::setw(6)<<inputArray.at(iInput)<<" address "<<std::setw(5)<<address
                          //<<" fractionalPart "<<std::setw(8)<<fractionalPart//<<" width "<<fractionalPart.width<<" iwidth "<<fractionalPart.iwidth
@@ -193,7 +191,7 @@ public:
     }
 
 private:
-    outputArrayType lutOutSumArray;
+    lutSumArrayType lutOutSumArray;
     std::array<ap_ufixed<output_W, output_I, AP_TRN, AP_SAT> , neurons> outputArray;
 
     ap_uint<output_I> outOffset = 1 << (output_I-1);
