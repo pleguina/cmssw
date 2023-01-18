@@ -26,7 +26,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string("log_Patterns_dispalced_test_" + filesNameLike + "_t12_1"),
+                         filename  = cms.untracked.string("log_Patterns_dispalced_test_" + filesNameLike + "_t13"),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('INFO'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -47,8 +47,8 @@ if not verbose:
                                      )
     
 # PostLS1 geometry used
-process.load('Configuration.Geometry.GeometryExtended2015Reco_cff')
-process.load('Configuration.Geometry.GeometryExtended2015_cff')    
+process.load('Configuration.Geometry.GeometryExtended2026D86Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2026D86_cff')  
     
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -141,7 +141,12 @@ elif filesNameLike == 'allPt' : # promt muon sample
                         selFilesPerPtBin += 1
                 if(selFilesPerPtBin >= filesPerPtBin):
                     break
-                        
+
+elif filesNameLike == 'mcWaw2022' :
+    cscBx = 8
+    path = '/eos/user/k/kbunkow/cms_data/mc/mcWaw2022/'
+    chosenFiles.append('file://' + path + "DoubleMuPt1to100Eta24_1kevents.root") 
+                            
 else :
     cscBx = 6
     path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
@@ -174,6 +179,18 @@ fileNames = cms.untracked.vstring(
 	                    
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 
+
+
+#Calibrate Digis
+process.load("L1Trigger.DTTriggerPhase2.CalibratedDigis_cfi")
+process.CalibratedDigis.dtDigiTag = "simMuonDTDigis" 
+process.CalibratedDigis.scenario = 0
+
+#DTTriggerPhase2
+process.load("L1Trigger.DTTriggerPhase2.dtTriggerPhase2PrimitiveDigis_cfi")
+process.dtTriggerPhase2PrimitiveDigis.debug = False
+process.dtTriggerPhase2PrimitiveDigis.dump = False
+process.dtTriggerPhase2PrimitiveDigis.scenario = 0
 
 ####Event Setup Producer
 process.load('L1Trigger.L1TMuonOverlapPhase1.fakeOmtfParams_cff')
@@ -231,7 +248,7 @@ process.simOmtfDigis.patternGenerator = cms.string("2DHists")
 
 process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfDigis.generatePatterns = cms.bool(True)
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_dispalced_test_" + filesNameLike + "_t12_1.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_dispalced_test_" + filesNameLike + "_t13.xml")
 
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfDigis.rpcMaxClusterCnt = cms.int32(2)

@@ -105,7 +105,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     if (this->myOmtfConfig->fwVersion() <= 6)
       quality = checkHitPatternValidity(myCand->getFiredLayerBits()) ? 0 | (1 << 2) | (1 << 3) : 0 | (1 << 2); //12 : 4
 
-    if (abs(myCand->getEtaHw()) == 115 && //115 is eta 1.25
+    if (abs(myCand->getEtaHw()) == 115 && //115 is eta 1.25                         rrrrrrrrccccdddddd
         (static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000001110000000").to_ulong() ||
          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000001110000000").to_ulong() ||
          static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000110000000").to_ulong() ||
@@ -143,7 +143,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
           static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("010000000000110000").to_ulong() ||
           static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("100000000000110000").to_ulong())
         quality = 1;
-    } else if (this->myOmtfConfig->fwVersion() >= 8) {  //TODO fix the fwVersion
+    } else if (this->myOmtfConfig->fwVersion() >= 8) {  //TODO fix the fwVersion     rrrrrrrrccccdddddd
       if (static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000110000000011").to_ulong() ||
           static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000100000000011").to_ulong() ||
           static_cast<unsigned int>(myCand->getFiredLayerBits()) == std::bitset<18>("000000010000000011").to_ulong() ||
@@ -347,7 +347,24 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const int& refLogicLayer
     LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" deltaPhi "<<deltaPhi<<" phiExtr "<<phiExtr<<std::endl;
   }
   else if( (targetLayer >= 6 && targetLayer <= 9) || (targetLayer >= 15 && targetLayer <= 17) ) {
+    bool useEndcapStubsR = false;
+
     float rME = targetStubR;
+    if(!useEndcapStubsR) {
+      if     (targetLayer == 6 || targetLayer == 15)  rME = 600.; //ME1/3, RE1/3,
+      else if(targetLayer == 7 || targetLayer == 15)  { //ME2/2, RE2/3,
+        if(refLogicLayer == 0) rME = 600.;
+        else                   rME = 640.;
+      }
+      else if(targetLayer == 8 || rME == 16)  { //ME3/2, RE3/3,
+        if(refLogicLayer == 0) rME = 620.;
+        else                   rME = 680.;
+      }
+      else if(targetLayer == 9 ) {
+        rME = 460.; //for the refLogicLayer = 1. refLogicLayer = 2 is impossible
+      }
+
+    }
 
     float d = rME - rRefLayer;
     float deltaPhiExtr = d/rME * refPhiB / 512.; //[rad]

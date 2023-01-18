@@ -200,7 +200,9 @@ void CandidateSimMuonMatcher::observeEventEnd(const edm::Event& event,
 
     edm::Handle<edm::SimVertexContainer> simVertices;
     event.getByLabel(edmCfg.getParameter<edm::InputTag>("simVertexesTag"), simVertices);
+
     LogTrace("l1tOmtfEventPrint") << "simTraksHandle size " << simTraksHandle.product()->size() << std::endl;
+    LogTrace("l1tOmtfEventPrint") << "simVertices size " << simVertices.product()->size() << std::endl;
 
     //TODO  use other simTrackFilter if needed  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     //we dont want to check the eta of the generated muon, as it is on the vertex,
@@ -624,7 +626,7 @@ std::vector<MatchingResult> CandidateSimMuonMatcher::match(std::vector<const l1t
 
         int vtxInd = simTrack.vertIndex();
         if (vtxInd >= 0) {
-          //result.simVertex = &(simVertices->at(vtxInd)); TODO ??????
+          result.simVertex = &(simVertices->at(vtxInd)); //TODO ?????? something strange is here, was commented in the previous version
         }
         if (result.result == MatchingResult::ResultType::matched) {
           matchingResults.push_back(result);

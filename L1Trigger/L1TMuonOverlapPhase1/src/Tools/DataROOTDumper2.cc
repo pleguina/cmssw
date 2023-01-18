@@ -155,7 +155,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
                  << " eta " << std::setw(9) << trackingParticle->momentum().eta() << " phi " << std::setw(9)
                  << trackingParticle->momentum().phi() << std::endl;
 
-      if(fabs(omtfEvent.muonEta) > 0.85 && fabs(omtfEvent.muonEta) <1.24) {
+      if(fabs(omtfEvent.muonEta) > 0.80 && fabs(omtfEvent.muonEta) <1.24) {
         if (omtfEvent.muonCharge > 0)
           ptGenPos->Fill(omtfEvent.muonPt);
         else

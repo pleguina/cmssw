@@ -236,7 +236,7 @@ void PatternGenerator::updateStatUsingMatcher2() {
     iCharge = 0;*/
 
       int pdfMiddle = 1 << (omtfConfig->nPdfAddrBits() - 1);
-
+      LogTrace("l1tOmtfEventPrint") <<"updateStatUsingMatcher2 "<<__LINE__<<std::endl;
       //iRefHit is the index of the hit
       for (unsigned int iRefHit = 0; iRefHit < exptCandGp->getResults()[candProcIndx].size(); ++iRefHit) {
         auto& gpResult = exptCandGp->getResults()[candProcIndx][iRefHit];
