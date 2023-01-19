@@ -23,7 +23,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('Patterns_layerStat_ExtraplMB1nadMB2_t10'),
+                         filename  = cms.untracked.string('Patterns_layerStat_ExtraplMB1nadMB2_t14'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('INFO'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -44,8 +44,8 @@ if not verbose:
                                      )
     
 # PostLS1 geometry used
-process.load('Configuration.Geometry.GeometryExtended2015Reco_cff')
-process.load('Configuration.Geometry.GeometryExtended2015_cff')    
+process.load('Configuration.Geometry.GeometryExtended2026D86Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2026D86_cff')  
     
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -196,7 +196,7 @@ process.simOmtfDigis.patternGenerator = cms.string("patternGen")
 
 process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfDigis.generatePatterns = cms.bool(True)
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_ExtraplMB1nadMB2_t10.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_ExtraplMB1nadMB2_t14.xml")
 
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfDigis.rpcMaxClusterCnt = cms.int32(2)

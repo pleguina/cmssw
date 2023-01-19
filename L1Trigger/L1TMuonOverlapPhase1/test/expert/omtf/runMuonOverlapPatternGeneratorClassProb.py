@@ -23,7 +23,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2'),
+                         filename  = cms.untracked.string('Patterns_ExtraplMB1nadMB2_t14_classProb17_recalib2'),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('DEBUG'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -149,13 +149,13 @@ process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapP
 process.simOmtfDigis.patternGenerator = cms.string("patternGenFromStat")
 #process.simOmtfDigis.patternGenerator = cms.string("") #does nothing except storing the patterns in the root file
 #process.simOmtfDigis.patternsROOTFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_0x00011_oldSample_3_30Files_layerStat.root")
-process.simOmtfDigis.patternsROOTFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_layerStat_ExtraplMB1nadMB2_t10.root")
+process.simOmtfDigis.patternsROOTFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_layerStat_ExtraplMB1nadMB2_t14.root")
 
 process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfDigis.generatePatterns = cms.bool(True)
 #process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x0009_oldSample_3_10Files_classProb3.xml")
 #process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_0x00012_oldSample_3_30Files_grouped1_classProb17_recalib2.xml")
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2_test.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_ExtraplMB1nadMB2_t14_classProb17_recalib2.xml")
 #process.simOmtfDigis.optimisedPatsXmlFile = cms.string("PatternsDisplaced_0x0007_p.xml")
 
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(3)

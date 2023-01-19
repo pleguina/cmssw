@@ -61,9 +61,9 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(
       }
     }
 
-    LogTrace("OMTFReconstruction") << itGP->key()<<" getFiredLayer "<< itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt()
-    <<" PdfSum "<< itGP->getResults()[procIndx][iRefHit].getPdfSum()
-    <<" PdfSumUpt "<< itGP->getResults()[procIndx][iRefHit].getPdfSumUpt()<< std::endl;
+//    LogTrace("OMTFReconstruction")<<"OMTFSorter::sortRefHitResults() " << itGP->key()<<" getFiredLayer "<< itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt()
+//    <<" PdfSum "<< itGP->getResults()[procIndx][iRefHit].getPdfSum()
+//    <<" PdfSumUpt "<< itGP->getResults()[procIndx][iRefHit].getPdfSumUpt()<< std::endl;
   }
   if (bestGP) {
     AlgoMuons::value_type candidate(new AlgoMuon(bestGP->getResults()[procIndx][iRefHit], bestGP, iRefHit));

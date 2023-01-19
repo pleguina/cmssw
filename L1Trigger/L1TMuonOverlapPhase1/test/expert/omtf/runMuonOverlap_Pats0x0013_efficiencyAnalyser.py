@@ -13,7 +13,7 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 verbose = True
 version = 't15_allFiles'
 
-runDebug = "INFO" # or "INFO" DEBUG
+runDebug = "DEBUG" # or "INFO" DEBUG
 useExtraploationAlgo = True;
 
 if verbose: 

@@ -300,7 +300,9 @@ AlgoMuons OMTFProcessor<GoldenPatternType>::sortResults(unsigned int iProcessor,
 template <class GoldenPatternType>
 int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const int& refLogicLayer, const int& refPhi, const int& refPhiB, unsigned int targetLayer, const int& targetStubPhi, const int& targetStubQuality,  const int& targetStubR, const OMTFConfiguration* omtfConfig) {
 
-  LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" refLogicLayer "<<refLogicLayer <<" targetLayer "<<targetLayer<<std::endl;
+  LogTrace("l1tOmtfEventPrint")<<"\n"<<__FUNCTION__<<":"<<__LINE__<<" refLogicLayer "<<refLogicLayer <<" targetLayer "<<targetLayer<<std::endl;
+  LogTrace("l1tOmtfEventPrint")<<"refPhi "<<refPhi<<" refPhiB "<<refPhiB<<" targetStubPhi "<<targetStubPhi<<" targetStubQuality "<<targetStubQuality<<std::endl;
+
 
   double hsPhiPitch = 2 * M_PI / omtfConfig->nPhiBins(); //rad/halfStrip
 
@@ -325,13 +327,14 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const int& refLogicLayer
     else if(targetLayer == 12) rTargetLayer = 494.975; //RB2in
     else if(targetLayer == 13) rTargetLayer = 529.975; //RB2out
     else if(targetLayer == 14) rTargetLayer = 602.150; //RB3
-    //for the CSC and endcap RPC the r is taken from the hit coordinates
 
-    if(targetLayer ==  0 || targetLayer ==  2 || targetLayer ==  4) {
-      if(targetStubQuality == 2)
-        rTargetLayer = rTargetLayer - 23.5/2; //inner superlayer
-      else if(targetStubQuality == 3)
-        rTargetLayer = rTargetLayer + 23.5/2; //outer superlayer
+    if(false) {
+      if(targetLayer ==  0 || targetLayer ==  2 || targetLayer ==  4) {
+        if(targetStubQuality == 2)
+          rTargetLayer = rTargetLayer - 23.5/2; //inner superlayer
+        else if(targetStubQuality == 3)
+          rTargetLayer = rTargetLayer + 23.5/2; //outer superlayer
+      }
     }
 
     float d = rTargetLayer - rRefLayer;
@@ -342,11 +345,12 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const int& refLogicLayer
   else if(targetLayer ==  1 || targetLayer ==  3 || targetLayer ==  5) {
     int deltaPhi = targetStubPhi - refPhi; //[halfStrip]
 
-    deltaPhi = round(deltaPhi * hsPhiPitch * 512.);
-    phiExtr = refPhiB - deltaPhi;
+    deltaPhi = round(deltaPhi * hsPhiPitch * 512.); //deltaPhi is in phi_b hw scale
+    phiExtr = refPhiB - deltaPhi; //phiExtr is also in phi_b hw scale
     LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" deltaPhi "<<deltaPhi<<" phiExtr "<<phiExtr<<std::endl;
   }
   else if( (targetLayer >= 6 && targetLayer <= 9) || (targetLayer >= 15 && targetLayer <= 17) ) {
+    //if true, for the CSC and endcap RPC the R is taken from the hit coordinates
     bool useEndcapStubsR = false;
 
     float rME = targetStubR;
@@ -363,12 +367,15 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const int& refLogicLayer
       else if(targetLayer == 9 ) {
         rME = 460.; //for the refLogicLayer = 1. refLogicLayer = 2 is impossible
       }
-
     }
 
     float d = rME - rRefLayer;
     float deltaPhiExtr = d/rME * refPhiB / 512.; //[rad]
     phiExtr = round(deltaPhiExtr / hsPhiPitch); //[halfStrip]
+
+
+    LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" targetLayer "<<targetLayer<<" targetStubR "<<targetStubR
+        <<" rRefLayer "<<rRefLayer<<" d "<<d<<" deltaPhiExtr "<<deltaPhiExtr<<std::endl;
   }
 //TODO restrict the range of the phiExtr and refPhiB !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
