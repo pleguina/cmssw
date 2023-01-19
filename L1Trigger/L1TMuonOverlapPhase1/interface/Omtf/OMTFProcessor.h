@@ -54,6 +54,11 @@ public:
     return ProcessorBase<GoldenPatternType>::configure(omtfParams, omtfPatterns);
   }*/
 
+  //targetStubQuality matters only for the barrel stubs,
+  //targetStubR - radial distance from the z axis (beam), matters only for the endcap stubs
+  static int extrapolateDtPhiB(const int& refLogicLayer, const int& refPhi, const int& refPhiB, unsigned int targetLayer, const int& targetStubPhi, const int& targetStubQuality, const int& targetStubR, const OMTFConfiguration* omtfConfig);
+  static int extrapolateDtPhiB(const MuonStubPtr& refStub, const MuonStubPtr& targetStub, unsigned int targetLayer, const OMTFConfiguration* omtfConfig);
+
   ///Process input data from a single event
   ///Input data is represented by hits in logic layers expressed in local coordinates
   void processInput(unsigned int iProcessor, l1t::tftype mtfType, const OMTFinput& aInput) override;
