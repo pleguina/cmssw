@@ -11,7 +11,7 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-version = 't15_displ_test_allfiles'
+version = 't14_extrapolSimpl_displ_allfiles'
 
 runDebug = "INFO" # or "INFO" DEBUG
 useExtraploationAlgo = True;
@@ -102,7 +102,8 @@ if(runDebug == "DEBUG") :
     fileCnt = 1;
     
 if True :    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    path = '/eos/user/c/cericeci/forOMTF/OMTF_PhaseII_FixedTiming/'    
+    #path = '/eos/user/c/cericeci/forOMTF/OMTF_PhaseII_FixedTiming/'    
+    path =  '/eos/user/a/asotorod/Samples/OMTF-L1/OMTF_fixedTiming/'
     firstFile = 1 #1001            
     for i in range(firstFile, firstFile + fileCnt, 1):
         filePathName = path + "custom_Displaced_" + str(i) + "_numEvent5000.root"
@@ -110,8 +111,6 @@ if True :    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!
             chosenFiles.append('file://' + filePathName)
         else :
             print("file not found!!!!!!!: " + filePathName) 
-
-
 # low pt
 if False :
     path = '/eos/user/c/cericeci/forOMTF/OMTF_Run3_FixedTiming_FullOutput/'
@@ -211,7 +210,8 @@ process.simOmtfDigis.ghostBusterType = cms.string("byRefLayer") # byLLH byRefLay
 #)
 
 if useExtraploationAlgo :
-    process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2_test.xml")
+    #process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2_test.xml")
+    process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_ExtraplMB1nadMB2Simplified_t14_classProb17_recalib2.xml")
 else :
     process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00012_oldSample_3_30Files_grouped1_classProb17_recalib2.xml")
 

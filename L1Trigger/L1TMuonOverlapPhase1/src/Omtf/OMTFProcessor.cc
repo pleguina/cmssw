@@ -328,7 +328,7 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const int& refLogicLayer
     else if(targetLayer == 13) rTargetLayer = 529.975; //RB2out
     else if(targetLayer == 14) rTargetLayer = 602.150; //RB3
 
-    if(false) {
+    if(true) {
       if(targetLayer ==  0 || targetLayer ==  2 || targetLayer ==  4) {
         if(targetStubQuality == 2)
           rTargetLayer = rTargetLayer - 23.5/2; //inner superlayer
@@ -351,7 +351,7 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const int& refLogicLayer
   }
   else if( (targetLayer >= 6 && targetLayer <= 9) || (targetLayer >= 15 && targetLayer <= 17) ) {
     //if true, for the CSC and endcap RPC the R is taken from the hit coordinates
-    bool useEndcapStubsR = false;
+    bool useEndcapStubsR = true;
 
     float rME = targetStubR;
     if(!useEndcapStubsR) {
@@ -460,7 +460,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
 
       int phiExtrp = 0;
       if( (this->myOmtfConfig->getUsePhiBExtrapolationMB1() && aRefHitDef.iRefLayer == 0) ||
-          (this->myOmtfConfig->getUsePhiBExtrapolationMB2() && aRefHitDef.iRefLayer == 2)    ){
+          (this->myOmtfConfig->getUsePhiBExtrapolationMB2() && aRefHitDef.iRefLayer == 2)    ){  //TODO here extrapolation from the layer 2 to the layer 2 has no sense, it is 0
         phiExtrp = extrapolateDtPhiB(aRefHitDef.iRefLayer, phiRef, refStub->phiBHw, 2, 0, 6, 0, this->myOmtfConfig);
       }
 

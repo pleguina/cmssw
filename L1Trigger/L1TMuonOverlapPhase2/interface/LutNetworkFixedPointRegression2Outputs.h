@@ -108,7 +108,6 @@ public:
         runWithInterpolation();
 
         //output0_I goes to the declaration of the lutLayer3_0, but it does not matter, as it is used only for the outputArray
-        //TODO maybe use the layer offset to convert to the unsigned pt?
         auto layer3_0_out = ap_ufixed<output0_I+output0_F, output0_I, AP_RND_CONV, AP_SAT>(lutLayer3_0.getLutOutSum()[0]); //TODO should be AP_RND_CONV rather, but it affect the rate
         auto layer3_1_out = ap_fixed <output1_I+output1_F, output1_I, AP_RND_CONV, AP_SAT>(lutLayer3_1.getLutOutSum()[0]); //here layer3_0_out has size 1
         //auto layer3_0_out = lutLayer3_0.getLutOutSum()[0]; //here layer3_0_out has size 1

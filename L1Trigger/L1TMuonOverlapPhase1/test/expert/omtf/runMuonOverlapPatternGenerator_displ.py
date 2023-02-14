@@ -26,7 +26,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string("log_Patterns_dispalced_test_" + filesNameLike + "_t13"),
+                         filename  = cms.untracked.string("log_Patterns_dispalced_test_" + filesNameLike + "_t14"),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('INFO'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -91,7 +91,9 @@ cscBx = 8
 
 if filesNameLike == 'displHighPt' : # displaced muon sample
     cscBx = 8
-    path = '/eos/user/c/cericeci/forOMTF/OMTF_PhaseII_FixedTiming/'
+    #path = '/eos/user/c/cericeci/forOMTF/OMTF_PhaseII_FixedTiming/'
+    path =  '/eos/user/a/asotorod/Samples/OMTF-L1/OMTF_fixedTiming/'
+    
     fileCnt = 200 
     firstFile = 1 #1001            
     for i in range(firstFile, firstFile + fileCnt, 1):
@@ -248,7 +250,7 @@ process.simOmtfDigis.patternGenerator = cms.string("2DHists")
 
 process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfDigis.generatePatterns = cms.bool(True)
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_dispalced_test_" + filesNameLike + "_t13.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_dispalced_test_" + filesNameLike + "_t14_displSampl.xml")
 
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
