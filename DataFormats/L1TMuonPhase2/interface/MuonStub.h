@@ -117,12 +117,19 @@ namespace l1t {
     bool operator!=(const MuonStub&) const;
 
     void print() const;
+    int time() const {
+      return time_;
+    }
+
+    void setTime(int time = 0) {
+      time_ = time;
+    }
 
   private:
     int etaRegion_;    //In the barrel this is wheel. In the endcap it is 6-ring
     int phiRegion_;    //In the barrel it is sector. In the endcap it is chamber
     int depthRegion_;  //Station
-    uint tfLayer_;     //TF Layer
+    uint tfLayer_ = 0;     //TF Layer
     int coord1_;       // global position angle in units of 30 degrees/2048
     int coord2_;       // bending angle  only in barrel for now
     int id_;           // stub id in case of more stubs per chamber
@@ -132,11 +139,14 @@ namespace l1t {
     int eta2_;         // eta coordinate - in units of 3.0/512.
     int etaQuality_;   // quality of the eta information
     int type_;         //Type: 0 TwinMux or DT, 1 RPC Barrel, 2 CSC, 3 RPC endcap
+
+    int time_ = 0;       // subBX timing of the (combined) hit
+
     /////////members that are not hardware but used for offline studies///////////////////////////////
-    double offline_coord1_;  //offline coordinate 1
-    double offline_coord2_;  //offline coordinate two
-    double offline_eta1_;    //offline eta1
-    double offline_eta2_;    //offline eta2
+    double offline_coord1_ = 0;  //offline coordinate 1
+    double offline_coord2_ = 0;  //offline coordinate two
+    double offline_eta1_ = 0;    //offline eta1
+    double offline_eta2_ = 0;    //offline eta2
   };
 
 }  // namespace l1t

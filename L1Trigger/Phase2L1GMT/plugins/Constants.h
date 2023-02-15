@@ -4,6 +4,7 @@
 #include "ap_int.h"
 
 namespace Phase2L1GMT {
+  const int CLEANMUON_VERSION = 0; //0 is the original algorithm cleanMuonV0, 1 is improved cleanMuonV1
 
   const int ptShifts[9][5] = {{1, 86, -1, 0, 0},
                               {86, 1184, 0, -85, 0},

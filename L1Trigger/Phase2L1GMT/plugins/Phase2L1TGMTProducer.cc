@@ -8,6 +8,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/StreamID.h"
 #include "DataFormats/L1TMuonPhase2/interface/TrackerMuon.h"
+#include "SimTracker/TrackTriggerAssociation/interface/TTTrackAssociationMap.h"
 #include "Node.h"
 
 //
@@ -36,6 +37,11 @@ private:
   int minTrackStubs_;
   int bxMin_;
   int bxMax_;
+
+  edm::EDGetTokenT< TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > > ttTrackMCTruthToken_;
+  edm::EDGetTokenT< std::vector< TrackingParticle > > trackingParticleToken_;
+
+  DataDumper dataDumper;
 };
 
 Phase2L1TGMTProducer::Phase2L1TGMTProducer(const edm::ParameterSet& iConfig)
@@ -47,10 +53,16 @@ Phase2L1TGMTProducer::Phase2L1TGMTProducer(const edm::ParameterSet& iConfig)
       omtfTracks_(consumes<BXVector<RegionalMuonCand> >(iConfig.getParameter<edm::InputTag>("srcOMTF"))),
       minTrackStubs_(iConfig.getParameter<int>("minTrackStubs")),
       bxMin_(iConfig.getParameter<int>("muonBXMin")),
-      bxMax_(iConfig.getParameter<int>("muonBXMax"))
-
+      bxMax_(iConfig.getParameter<int>("muonBXMax")),
+      ttTrackMCTruthToken_(consumes< TTTrackAssociationMap< Ref_Phase2TrackerDigi_ > >(iConfig.getParameter<edm::InputTag>("mcTruthTrackInputTag"))),
+      trackingParticleToken_(consumes< std::vector< TrackingParticle > >(iConfig.getParameter<edm::InputTag>("trackingParticleInputTag"))),
+      dataDumper(ttTrackMCTruthToken_, trackingParticleToken_,
+      iConfig.exists("dumpToRoot") ? iConfig.getParameter<bool>("dumpToRoot") : false,
+      iConfig.exists("dumpToXml") ? iConfig.getParameter<bool>("dumpToXml") : false)
 {
   produces<std::vector<l1t::TrackerMuon> >();
+
+  node_->setPreTrackMatchedMuonProcessor(&dataDumper);
 }
 
 Phase2L1TGMTProducer::~Phase2L1TGMTProducer() {
@@ -64,6 +76,8 @@ Phase2L1TGMTProducer::~Phase2L1TGMTProducer() {
 
 // ------------ method called to produce the data  ------------
 void Phase2L1TGMTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  dataDumper.getHandles(iEvent);
+
   using namespace edm;
   Handle<l1t::TrackerMuon::L1TTTrackCollection> trackHandle;
   iEvent.getByToken(srcTracks_, trackHandle);
@@ -116,6 +130,12 @@ void Phase2L1TGMTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iS
   std::vector<l1t::TrackerMuon> out = node_->processEvent(tracks, muonTracks, stubs);
   std::unique_ptr<std::vector<l1t::TrackerMuon> > out1 = std::make_unique<std::vector<l1t::TrackerMuon> >(out);
   iEvent.put(std::move(out1));
+
+  for(auto& muonCAnd : out) {
+    muonCAnd.print();
+  }
+
+  dataDumper.writeToXml();
 }
 
 // ------------ method called once each stream before processing any runs, lumis or events  ------------

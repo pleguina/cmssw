@@ -13,20 +13,24 @@
 #include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
 #include "DataFormats/L1Trigger/interface/Vertex.h"
 
+#include "ApSignAbsInt.h"
+
 #include <vector>
 
 namespace Phase2L1GMT {
 
   class PreTrackMatchedMuon {
   public:
-    PreTrackMatchedMuon(const uint& charge,
+    PreTrackMatchedMuon(const int& curvature,
+	                    const uint& charge,
                         const uint& pt,
                         const int& eta,
                         const int& phi,
                         const int& z0,
                         const int& d0,
                         const uint& beta = 15)
-        : charge_(charge),
+        : curvature_(curvature),
+          charge_(charge),
           pt_(pt),
           eta_(eta),
           phi_(phi),
@@ -40,8 +44,13 @@ namespace Phase2L1GMT {
           stubID2_(511),
           stubID3_(511),
           stubID4_(511),
-          valid_(false) {}
+          valid_(false),
+          deltaCoords1(5),
+          deltaCoords2(5),
+          deltaEtas1(5),
+          deltaEtas2(5) {}
 
+    const uint curvature() const { return curvature_; }
     const uint charge() const { return charge_; }
     const uint pt() const { return pt_; }
     const int eta() const { return eta_; }
@@ -61,6 +70,22 @@ namespace Phase2L1GMT {
     const uint stubID2() const { return stubID2_; }
     const uint stubID3() const { return stubID3_; }
     const uint stubID4() const { return stubID4_; }
+
+    const uint stubID(unsigned int layer) const {
+      if(layer == 0)
+        return stubID0_;
+      if(layer == 1)
+        return stubID1_;
+      if(layer == 2)
+        return stubID2_;
+      if(layer == 3)
+        return stubID3_;
+      if(layer == 4)
+        return stubID4_;
+
+      return 0;
+    }
+
     bool valid() const { return valid_; }
 
     void setQuality(uint quality) { quality_ = quality; }
@@ -99,6 +124,34 @@ namespace Phase2L1GMT {
     void setTrkPtr(const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> >& trkPtr) { trkPtr_ = trkPtr; }
 
     const edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > trkPtr() const { return trkPtr_; }
+
+    auto& getDeltaCoords1() {
+      return deltaCoords1;
+    }
+
+    auto& getDeltaCoords2() {
+      return deltaCoords2;
+    }
+
+    std::vector<ApSignAbsInt<BITSSIGMAETA> >& getDeltaEtas1() {
+      return deltaEtas1;
+    }
+
+    std::vector<ApSignAbsInt<BITSSIGMAETA> >& getDeltaEtas2() {
+      return deltaEtas2;
+    }
+
+    //each bit denotes one phi coordinate in the combined stub, i.e. bit 0 is deltaCoords1[layer=0], bit 1 deltaCoords2[layer=0], etc.
+    unsigned short getHitsValid() const {
+      return hitsValid;
+    }
+
+    void setHitsValid(unsigned int coordIdx, bool valid) {
+      if(valid)
+        hitsValid = hitsValid | (1 << coordIdx);
+      else
+        hitsValid = hitsValid & ~(1 << coordIdx);
+    }
 
     void print() const {
       LogDebug("PreTrackMatchedMuon") << "preconstructed muon : charge=" << charge_ << " pt=" << offline_pt_ << ","
@@ -140,6 +193,7 @@ namespace Phase2L1GMT {
     }
 
   private:
+    int curvature_ = 0;
     uint charge_;
     uint pt_;
     int eta_;
@@ -149,9 +203,9 @@ namespace Phase2L1GMT {
     uint beta_;
     bool isGlobal_;
     uint quality_;
-    float offline_pt_;
-    float offline_eta_;
-    float offline_phi_;
+    float offline_pt_ = 0;
+    float offline_eta_ = 0;
+    float offline_phi_ = 0;
     uint stubID0_;
     uint stubID1_;
     uint stubID2_;
@@ -161,6 +215,15 @@ namespace Phase2L1GMT {
     l1t::MuonStubRefVector stubs_;
     std::vector<l1t::RegionalMuonCandRef> muRef_;
     edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_> > trkPtr_;
+
+    //index is layer, 0 - to 4
+    std::vector<ApSignAbsInt<BITSSIGMACOORD> > deltaCoords1;
+    std::vector<ApSignAbsInt<BITSSIGMACOORD> > deltaCoords2;
+
+    std::vector<ApSignAbsInt<BITSSIGMAETA> > deltaEtas1;
+    std::vector<ApSignAbsInt<BITSSIGMAETA> > deltaEtas2;
+
+    unsigned short hitsValid = 0;
   };
 }  // namespace Phase2L1GMT
 
