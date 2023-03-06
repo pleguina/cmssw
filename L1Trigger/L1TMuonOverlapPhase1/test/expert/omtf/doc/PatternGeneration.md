@@ -33,7 +33,7 @@ The patterns generated with the above options set to True will work also for the
 
 ##### Runing the job collecting the hits statistics:
 ```
-runMuonOverlapPatternGenerator.py allPt
+cmsRun runMuonOverlapPatternGenerator.py allPt
 ```
 it will use these samples:
 /eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/'
@@ -71,7 +71,7 @@ process.simOmtfDigis.patternsROOTFile = cms.FileInPath("L1Trigger/L1TMuonOverlap
 * Set the output files name
 
 ```
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_ExtraplMB1nadMB2_t10_classProb17_recalib2.xml")
 ```
 The root file with the patterns will have a similar name.
 

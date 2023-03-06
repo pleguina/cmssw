@@ -11,9 +11,11 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-version = 't14_extrapolSimpl_displ_allfiles'
+#version = 't14_extrapolSimpl_displ_allfiles'
+#version = 't15_extrapolSimpl_displ_test'
+version = 't16_extrapolFul_displ_test'
 
-runDebug = "INFO" # or "INFO" DEBUG
+runDebug = "DEBUG" # or "INFO" DEBUG
 useExtraploationAlgo = True;
 
 if verbose: 
@@ -153,7 +155,7 @@ fileNames = cms.untracked.vstring(
 )
 	                    
 if(runDebug == "DEBUG") :
-    process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
+    process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(500))
 else :
     process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 
@@ -184,7 +186,11 @@ process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAn
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonOverlapPhase1.simOmtfDigis_cfi')
 
-process.simOmtfDigis.dumpResultToXML = cms.bool(False)
+if(runDebug == "DEBUG") :
+    process.simOmtfDigis.dumpResultToXML = cms.bool(True)
+else :
+    process.simOmtfDigis.dumpResultToXML = cms.bool(False)
+
 process.simOmtfDigis.dumpResultToROOT = cms.bool(False)
 
 if(runDebug == "DEBUG") :
@@ -211,7 +217,8 @@ process.simOmtfDigis.ghostBusterType = cms.string("byRefLayer") # byLLH byRefLay
 
 if useExtraploationAlgo :
     #process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2_test.xml")
-    process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_ExtraplMB1nadMB2Simplified_t14_classProb17_recalib2.xml")
+    #process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_ExtraplMB1nadMB2Simplified_t14_classProb17_recalib2.xml")
+    process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_ExtraplMB1nadMB2FullAlgo_t16_classProb17_recalib2.xml")
 else :
     process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00012_oldSample_3_30Files_grouped1_classProb17_recalib2.xml")
 
