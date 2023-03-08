@@ -51,40 +51,6 @@ void XMLEventWriter::observeProcesorBegin(unsigned int iProcessor, l1t::tftype m
   procTree.add("<xmlattr>.position", stringStr.str());
 }
 
-namespace {
-  unsigned int eta2Bits(unsigned int eta) {
-    if (eta == 73)
-      return 0b100000000;
-    else if (eta == 78)
-      return 0b010000000;
-    else if (eta == 85)
-      return 0b001000000;
-    else if (eta == 90)
-      return 0b000100000;
-    else if (eta == 94)
-      return 0b000010000;
-    else if (eta == 99)
-      return 0b000001000;
-    else if (eta == 103)
-      return 0b000000100;
-    else if (eta == 110)
-      return 0b000000010;
-    else if (eta == 75)
-      return 0b110000000;
-    else if (eta == 79)
-      return 0b011000000;
-    else if (eta == 92)
-      return 0b000110000;
-    else if (eta == 115)
-      return 0b000000001;
-    else if (eta == 121)
-      return 0b000000000;
-    else
-      return 0b111111111;
-    ;
-  }
-}  // namespace
-
 void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
                                               l1t::tftype mtfType,
                                               const std::shared_ptr<OMTFinput>& input,
@@ -110,7 +76,7 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
 
       auto& hitTree = layerTree.add("Hit", "");
 
-      hitTree.add("<xmlattr>.iEta", eta2Bits(abs(input->getHitEta(iLayer, iHit))));
+      hitTree.add("<xmlattr>.iEta", OMTFConfiguration::eta2Bits(abs(input->getHitEta(iLayer, iHit))));
       hitTree.add("<xmlattr>.iInput", iHit);
       hitTree.add("<xmlattr>.iPhi", hitPhi);
     }
@@ -127,7 +93,9 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
       auto& algoMuonTree = procTree.add("AlgoMuon", "");
       algoMuonTree.add("<xmlattr>.charge", algoCand->getCharge());
       algoMuonTree.add("<xmlattr>.disc", algoCand->getDisc());
-      algoMuonTree.add("<xmlattr>.etaCode", eta2Bits(abs(algoCand->getEtaHw())));
+      algoMuonTree.add("<xmlattr>.pdfSum", algoCand->getGpResult().getPdfSum());
+      algoMuonTree.add("<xmlattr>.pdfSumUpt", algoCand->getGpResultUpt().getPdfSumUpt());
+      algoMuonTree.add("<xmlattr>.etaCode", OMTFConfiguration::eta2Bits(abs(algoCand->getEtaHw())));
       algoMuonTree.add("<xmlattr>.iRefHit", algoCand->getRefHitNumber());
       algoMuonTree.add("<xmlattr>.iRefLayer", algoCand->getRefLayer());
       algoMuonTree.add("<xmlattr>.layers", std::bitset<18>(algoCand->getFiredLayerBits()));

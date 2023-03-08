@@ -11,10 +11,10 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
-version = 't15_allFiles'
+version = 't16_sample_test_08_03_2023_1'
 
-runDebug = "DEBUG" # or "INFO" DEBUG
-useExtraploationAlgo = True;
+runDebug = "INFO" # or "INFO" DEBUG
+useExtraploationAlgo = False;
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -77,11 +77,16 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '103X_upgrade2023_realistic_v2'
 
 
 #path = '/eos/user/k/kbunkow/cms_data/SingleMuFullEta/721_FullEta_v4/' #old sample, but very big
-path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/' #new sample, but small and more noisy
+#path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v2/' #new sample, but small and more noisy
 #path = '/eos/user/a/akalinow/Data/SingleMu/9_3_14_FullEta_v1/'
 
 #path = '/afs/cern.ch/work/a/akalinow/public/MuCorrelator/Data/SingleMu/9_3_14_FullEta_v1/'
 #path = '/afs/cern.ch/work/k/kbunkow/public/data/SingleMuFullEta/721_FullEta_v4/'
+
+#path = "/eos/user/j/jwiechni/HSCP/23_01_2023/SingleMu_ch0_OneOverPt_23_01_2023/23_01_2023/230123_144305/0000/"
+#path = "/eos/user/a/akalinow/Data/SingleMu/SingleMu_ch0_OneOverPt_test_14_02_2023_1/test_14_02_2023_1/230214_084703/0000/"
+#path = "/eos/user/a/akalinow/Data/OMTF/test_14_02_2023_2/SingleMu_ch0_OneOverPt_test_14_02_2023_2/test_14_02_2023_2/230214_165448/0000/"
+path = "/eos/user/a/akalinow/Data/SingleMu/12_5_2_p1_22_02_2023/SingleMu_ch2_OneOverPt_12_5_2_p1_22_02_2023/12_5_2_p1_22_02_2023/230222_141559/0000/"
 
 onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
 #print(onlyfiles)
@@ -120,15 +125,16 @@ if filesNameLike == 'allPt' :
                         selFilesPerPtBin += 1
                 if(selFilesPerPtBin >= filesPerPtBin):
                     break
-                        
+                                              
 else :
-    for i in range(1, 2, 1):
+    for i in range(1, 11, 1):
         for f in onlyfiles:
             #if (( filesNameLike + '_' + str(i) + '_') in f):  #TODO for 721_FullEta_v4/
             if (( filesNameLike + '_' + str(i) + '.') in f): #TODO for 9_3_14_FullEta_v2
                 print(f)
                 chosenFiles.append('file://' + path + f) 
          
+
 
 print("chosenFiles")
 for chFile in chosenFiles:
@@ -189,14 +195,22 @@ process.TFileService = cms.Service("TFileService", fileName = cms.string('omtfAn
 ####OMTF Emulator
 process.load('L1Trigger.L1TMuonOverlapPhase1.simOmtfDigis_cfi')
 
-process.simOmtfDigis.dumpResultToXML = cms.bool(False)
-process.simOmtfDigis.dumpResultToROOT = cms.bool(False)
+
 
 if(runDebug == "DEBUG") :
     process.simOmtfDigis.eventCaptureDebug = cms.bool(True)
+    process.simOmtfDigis.dumpResultToXML = cms.bool(True)
 else :
     process.simOmtfDigis.eventCaptureDebug = cms.bool(False)    
+    process.simOmtfDigis.dumpResultToXML = cms.bool(False)
 #process.simOmtfDigis.simTracksTag = cms.InputTag('g4SimHits')
+
+process.simOmtfDigis.dumpHitsToROOT = cms.bool(True)
+process.simOmtfDigis.candidateSimMuonMatcher = cms.bool(True)
+process.simOmtfDigis.simTracksTag = cms.InputTag('g4SimHits')
+process.simOmtfDigis.simVertexesTag = cms.InputTag('g4SimHits')
+process.simOmtfDigis.muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev_withOvf.root")
+
 
 process.simOmtfDigis.sorterType = cms.string("byLLH")
 process.simOmtfDigis.ghostBusterType = cms.string("byRefLayer") # byLLH byRefLayer GhostBusterPreferRefDt
@@ -215,7 +229,9 @@ process.simOmtfDigis.ghostBusterType = cms.string("byRefLayer") # byLLH byRefLay
 #)
 
 if useExtraploationAlgo :
-    process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2_test.xml")
+    #process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2_test.xml")
+    #process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_ExtraplMB1nadMB2Simplified_t14_classProb17_recalib2.xml")
+    process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_ExtraplMB1nadMB2FullAlgo_t16_classProb17_recalib2.xml")
 else :
     process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00012_oldSample_3_30Files_grouped1_classProb17_recalib2.xml")
 
@@ -231,7 +247,7 @@ process.simOmtfDigis.noHitValueInPdf = cms.bool(True)
 process.simOmtfDigis.minDtPhiQuality = cms.int32(2)
 process.simOmtfDigis.minDtPhiBQuality = cms.int32(4)
 
-process.simOmtfDigis.lctCentralBx = cms.int32(6);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+process.simOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
 if useExtraploationAlgo :
     process.simOmtfDigis.dtRefHitMinQuality =  cms.int32(4)

@@ -151,6 +151,8 @@ public:
 
   int etaToHwEta(double eta) const override { return (eta / etaUnit); }
 
+  static unsigned int eta2Bits(unsigned int eta);
+
   double phiGmtUnit = 2. * M_PI / 576;  //TODO from the interface note, should be defined somewhere globally
   //phi in radians
   virtual int phiToGlobalHwPhi(double phi) const { return std::floor(phi / phiGmtUnit); }
@@ -277,6 +279,10 @@ public:
     this->dtRefHitMinQuality = dtRefHitMinQuality;
   }
 
+  bool getDumpResultToXML() const {
+    return dumpResultToXML;
+  }
+
   void printConfig() const;
 
 private:
@@ -349,6 +355,8 @@ private:
   //min quality of the DT phi hit used as the reference hit
   //Remember that it is on the top of the minDtPhiQuality
   int dtRefHitMinQuality = 2;
+
+  bool dumpResultToXML = false;
 };
 
 #endif

@@ -26,6 +26,7 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg,
   if (edmCfg.getParameter<string>("patternGenerator") == "patternGen" || edmCfg.getParameter<string>("patternGenerator") == "2DHists")
     initPatternGen();
 
+  //2DHists are done for the displaced muons, then using the propagation for the matching is needed
   if ( edmCfg.getParameter<string>("patternGenerator") == "2DHists")
     updateStatFunction = [this]() { updateStatUsingMatcher2(); };
 
@@ -433,9 +434,15 @@ void PatternGenerator::upadatePdfs() {
               "gp->getDistPhiBitShift(iLayer, iRefLayer) != 0 -  cannot change DistPhiBitShift then!!!!");
         }
 
+        //watch out - the pt here is the hardware pt before the recalibration
         if ((gp->key().thePt <= 10) && (iLayer == 1 || iLayer == 3 || iLayer == 5)) {
+            gp->setDistPhiBitShift(1, iLayer, iRefLayer);
+        }
+        else if((gp->key().thePt >= 11 && gp->key().thePt <= 17) && (iLayer == 1) )
+          //due to grouping the patterns 4-7, the pdfs for the layer 1 in the pattern go outside of the range
+          //so the shift must be increased (or the group should be divided into to 2 groups, but it will increase fw occupancy
           gp->setDistPhiBitShift(1, iLayer, iRefLayer);
-        } else
+        else
           gp->setDistPhiBitShift(0, iLayer, iRefLayer);
 
         //watch out: the shift in a given layer must be the same for patterns in one group
