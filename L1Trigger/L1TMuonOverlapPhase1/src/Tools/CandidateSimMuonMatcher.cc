@@ -206,7 +206,7 @@ void CandidateSimMuonMatcher::observeEventEnd(const edm::Event& event,
 
     //TODO  use other simTrackFilter if needed  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     //we dont want to check the eta of the generated muon, as it is on the vertex,
-    //instead inside match, we check the eta of the propageted track to the second muons station
+    //instead inside match, we check the eta of the propagated track to the second muons station
     std::function<bool(const SimTrack&)> const& simTrackFilter = simTrackIsMuonInBx0; //simTrackIsMuonInOmtfBx0;
 
     matchingResults = match(
@@ -607,9 +607,17 @@ std::vector<MatchingResult> CandidateSimMuonMatcher::match(std::vector<const l1t
     }
 
     //checking if the propagated track is inside the OMTF range, TODO - tune the range!!!!!!!!!!!!!!!!!
-    if( (fabs( tsof.globalPosition().eta()) <= 0.82 ) || (fabs( tsof.globalPosition().eta()) >= 1.24) ) {
+    //eta 0.7 is the beginning of the MB2,
+    //the eta range wider than the nominal OMTF region is needed, as in any case muons outside this region are seen by the OMTF
+    //so it better to train the nn suich that is able to measure its pt, as it may affect the rate
+    if( (fabs( tsof.globalPosition().eta()) >= 0.7 ) && (fabs( tsof.globalPosition().eta()) <= 1.3) ) {
+      LogTrace("l1tOmtfEventPrint") << "CandidateSimMuonMatcher::match trackingParticle IS in OMTF region, matching to the omtfCands";
+    }
+    else {
+      LogTrace("l1tOmtfEventPrint") << "trackingParticle NOT in OMTF region ";
       continue;
     }
+
     /* TODO fix if filling of the deltaPhiPropCandMean and deltaPhiPropCandStdDev is needed
     double ptGen = simTrack.momentum().pt();
     if(ptGen >= deltaPhiVertexProp->GetXaxis()->GetXmax())
@@ -622,11 +630,13 @@ std::vector<MatchingResult> CandidateSimMuonMatcher::match(std::vector<const l1t
       //dropping very low quality candidates, as they are fakes usually - but it has no sense, then the results are not conclusive
       //if(muonCand->hwQual() > 1)
       {
-        MatchingResult result = match(muonCand, ghostBustedProcMuons.at(iCand), simTrack, tsof);
-
+        MatchingResult result;
+        if (tsof.isValid()) {
+          result = match(muonCand, ghostBustedProcMuons.at(iCand), simTrack, tsof);
+        }
         int vtxInd = simTrack.vertIndex();
         if (vtxInd >= 0) {
-          result.simVertex = &(simVertices->at(vtxInd)); //TODO ?????? something strange is here, was commented in the previous version
+          //result.simVertex = &(simVertices->at(vtxInd)); //TODO ?????? something strange is here, was commented in the previous version
         }
         if (result.result == MatchingResult::ResultType::matched) {
           matchingResults.push_back(result);

@@ -26,6 +26,7 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg,
   if (edmCfg.getParameter<string>("patternGenerator") == "patternGen" || edmCfg.getParameter<string>("patternGenerator") == "2DHists")
     initPatternGen();
 
+  //2DHists are done for the displaced muons, then using the propagation for the matching is needed
   if ( edmCfg.getParameter<string>("patternGenerator") == "2DHists")
     updateStatFunction = [this]() { updateStatUsingMatcher2(); };
 

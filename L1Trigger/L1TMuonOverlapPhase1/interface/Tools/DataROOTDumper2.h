@@ -110,6 +110,8 @@ private:
   TH1I* ptGenNeg = nullptr;
 
   std::vector<TH2*> hitVsPt;
+
+  bool dumpKilledOmtfCands = false;
 };
 
 #endif /* L1T_OmtfP1_TOOLS_DATAROOTDUMPER2_H_ */

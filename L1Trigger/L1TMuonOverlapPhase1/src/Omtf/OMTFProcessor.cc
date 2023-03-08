@@ -78,7 +78,8 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
   extrapolFactors.resize(2, std::vector<std::map<int, double> >(this->myOmtfConfig->nLayers()));
   extrapolFactorsNorm.resize(2, std::vector<std::map<int, int> >(this->myOmtfConfig->nLayers()));
 
-  loadExtrapolFactors();
+  if(this->myOmtfConfig->getUsePhiBExtrapolationMB1() || this->myOmtfConfig->getUsePhiBExtrapolationMB2() )
+    loadExtrapolFactors();
 }
 
 template <class GoldenPatternType>
@@ -741,8 +742,9 @@ void OMTFProcessor<GoldenPatternType>::saveExtrapolFactors() {
 template <class GoldenPatternType>
 void OMTFProcessor<GoldenPatternType>::loadExtrapolFactors() {
   boost::property_tree::ptree tree;
-  std::string filename = "ExtrapolationFactors_withQAndEta.xml";
-  //std::string filename = "ExtrapolationFactors_simple.xml";
+  std::string filename = "ExtrapolationFactors_simple.xml";
+  if(useStubQualInExtr)
+    filename = "ExtrapolationFactors_withQAndEta.xml";
 
   boost::property_tree::read_xml(filename, tree);
 

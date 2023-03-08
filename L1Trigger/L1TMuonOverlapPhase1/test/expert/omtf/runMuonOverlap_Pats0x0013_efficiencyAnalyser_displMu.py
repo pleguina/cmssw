@@ -191,13 +191,20 @@ if(runDebug == "DEBUG") :
 else :
     process.simOmtfDigis.dumpResultToXML = cms.bool(False)
 
-process.simOmtfDigis.dumpResultToROOT = cms.bool(False)
 
 if(runDebug == "DEBUG") :
     process.simOmtfDigis.eventCaptureDebug = cms.bool(True)
 else :
     process.simOmtfDigis.eventCaptureDebug = cms.bool(False)    
 #process.simOmtfDigis.simTracksTag = cms.InputTag('g4SimHits')
+
+process.simOmtfDigis.candidateSimMuonMatcher = cms.bool(True)
+process.simOmtfDigis.simTracksTag = cms.InputTag('g4SimHits')
+process.simOmtfDigis.simVertexesTag = cms.InputTag('g4SimHits')
+process.simOmtfDigis.muonMatcherFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/muonMatcherHists_100files_smoothStdDev_withOvf.root")
+
+process.simOmtfDigis.dumpHitsToROOT = cms.bool(True)
+
 
 process.simOmtfDigis.sorterType = cms.string("byLLH")
 process.simOmtfDigis.ghostBusterType = cms.string("byRefLayer") # byLLH byRefLayer GhostBusterPreferRefDt
