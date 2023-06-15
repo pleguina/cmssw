@@ -47,6 +47,22 @@ const int OMTFinput::getHitEta(unsigned int iLayer, unsigned int iInput) const {
   return myOmtfConfig->nPhiBins();
 }
 
+const int OMTFinput::getHitQual(unsigned int iLayer, unsigned int iInput) const {
+  /*  assert(iLayer < muonStubsInLayers.size());
+  assert(iInput < muonStubsInLayers[iLayer].size());*/
+  if (this->myOmtfConfig->isBendingLayer(iLayer)) {
+    MuonStubPtr stub = getMuonStub(iLayer - 1, iInput);
+    if (stub)
+      return stub->qualityHw;
+  }
+
+  MuonStubPtr stub = getMuonStub(iLayer, iInput);
+  if (stub)
+    return stub->qualityHw;
+
+  return myOmtfConfig->nPhiBins();
+}
+
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
 std::bitset<128> OMTFinput::getRefHits(unsigned int iProcessor) const {

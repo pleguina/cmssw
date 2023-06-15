@@ -12,6 +12,8 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLEventWriter.h"
 
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
 #include <boost/property_tree/xml_parser.hpp>
 
 #include <bitset>
@@ -76,9 +78,11 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
 
       auto& hitTree = layerTree.add("Hit", "");
 
-      hitTree.add("<xmlattr>.iEta", OMTFConfiguration::eta2Bits(abs(input->getHitEta(iLayer, iHit))));
       hitTree.add("<xmlattr>.iInput", iHit);
+      hitTree.add("<xmlattr>.iEta", OMTFConfiguration::eta2Bits(abs(input->getHitEta(iLayer, iHit))));
       hitTree.add("<xmlattr>.iPhi", hitPhi);
+      hitTree.add("<xmlattr>.iQual", input->getHitQual(iLayer, iHit));
+
     }
 
     if(layerTree.size()) {
@@ -104,6 +108,42 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
       algoMuonTree.add("<xmlattr>.phiCode", algoCand->getPhi());
       algoMuonTree.add("<xmlattr>.phiRHit", algoCand->getPhiRHit());
       algoMuonTree.add("<xmlattr>.ptCode", algoCand->getPt());
+
+      auto& gpResultTree = algoMuonTree.add("gpResult", "");
+      auto& gpResult = algoCand->getGpResult();
+
+      gpResultTree.add("<xmlattr>.patNum", algoCand->getHwPatternNumber());
+      gpResultTree.add("<xmlattr>.pdfSum", gpResult.getPdfSum());
+
+      for (unsigned int iLogicLayer = 0; iLogicLayer < gpResult.getStubResults().size(); ++iLogicLayer) {
+        auto& layerTree = gpResultTree.add("layer", "");
+        layerTree.add("<xmlattr>.num", iLogicLayer);
+        auto pdfBin = gpResult.getStubResults()[iLogicLayer].getPdfBin();
+        if(pdfBin == 5400)
+          pdfBin = 0;
+        layerTree.add("<xmlattr>.pdfBin", pdfBin);
+        layerTree.add("<xmlattr>.pdfVal", gpResult.getStubResults()[iLogicLayer].getPdfVal());
+        layerTree.add("<xmlattr>.fired", gpResult.isLayerFired(iLogicLayer));
+      }
+
+      if(algoCand->getGpResultUpt().isValid() ) {
+        auto& gpResultTree = algoMuonTree.add("gpResultUpt", "");
+        auto& gpResult = algoCand->getGpResultUpt();
+
+        gpResultTree.add("<xmlattr>.patNum", algoCand->getGoldenPaternUpt()->key().getHwPatternNumber());
+        gpResultTree.add("<xmlattr>.pdfSum", gpResult.getPdfSumUpt());
+
+        for (unsigned int iLogicLayer = 0; iLogicLayer < gpResult.getStubResults().size(); ++iLogicLayer) {
+          auto& layerTree = gpResultTree.add("layer", "");
+          layerTree.add("<xmlattr>.num", iLogicLayer);
+          auto pdfBin = gpResult.getStubResults()[iLogicLayer].getPdfBin();
+          if(pdfBin == 5400)
+            pdfBin = 0;
+          layerTree.add("<xmlattr>.pdfBin", pdfBin);
+          layerTree.add("<xmlattr>.pdfVal", gpResult.getStubResults()[iLogicLayer].getPdfVal());
+          layerTree.add("<xmlattr>.fired", gpResult.isLayerFired(iLogicLayer));
+        }
+      }
     }
   }
 
@@ -153,5 +193,7 @@ void XMLEventWriter::observeEventEnd(const edm::Event& iEvent,
 }
 
 void XMLEventWriter::endJob() {
+  edm::LogInfo("l1tOmtfEventPrint")<<"XMLEventWriter::endJob() - writing the date to the xml - starting";
   boost::property_tree::write_xml(fName, tree, std::locale(), boost::property_tree::xml_parser::xml_writer_make_settings<std::string>(' ', 2));
+  edm::LogInfo("l1tOmtfEventPrint")<<"XMLEventWriter::endJob() - writing the date to the xml - done";
 }

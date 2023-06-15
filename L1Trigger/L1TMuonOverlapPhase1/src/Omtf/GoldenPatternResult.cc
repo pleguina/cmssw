@@ -336,11 +336,11 @@ void GoldenPatternResult::finalise10() {
           //pdfSum += 0;
         }
       } else {
-        //banding layer fired, but not fits to the pdf, N.B works only with the patterns having "no hit value" and with noHitValueInPdf = True
+        //bending layer fired, but not fits to the pdf, N.B works only with the patterns having "no hit value" and with noHitValueInPdf = True
         /*if (stubResults[iLogicLayer].getPdfVal() == 0)
           pdfSum -= 32; //has no sense with extrapolation from the ref layer using the phiB
         else*/
-        pdfSum += stubResults[iLogicLayer].getPdfVal();  //banding layer not fired at all
+        pdfSum += stubResults[iLogicLayer].getPdfVal();  //bending layer not fired at all
       }
     } else {
       if (iLogicLayer < 10 && stubResults[iLogicLayer].getPdfVal() == 0)

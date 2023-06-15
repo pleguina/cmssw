@@ -10,6 +10,8 @@ from os.path import isfile, join
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 verbose = True
+#version = "ExtraplMB1nadMB2FullAlgo_t16"
+version = "ExtraplMB1nadMB2Simplified_t17"
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -23,7 +25,7 @@ if verbose:
                     ),
        categories        = cms.untracked.vstring('l1tOmtfEventPrint', 'OMTFReconstruction'),
        omtfEventPrint = cms.untracked.PSet(    
-                         filename  = cms.untracked.string('Patterns_layerStat_ExtraplMB1nadMB2FullAlgo_t16'),
+                         filename  = cms.untracked.string('Patterns_layerStat_' + version),
                          extension = cms.untracked.string('.txt'),                
                          threshold = cms.untracked.string('INFO'),
                          default = cms.untracked.PSet( limit = cms.untracked.int32(0) ), 
@@ -196,7 +198,7 @@ process.simOmtfDigis.patternGenerator = cms.string("patternGen")
 
 process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
 process.simOmtfDigis.generatePatterns = cms.bool(True)
-process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_ExtraplMB1nadMB2FullAlgo_t16.xml")
+process.simOmtfDigis.optimisedPatsXmlFile = cms.string("Patterns_layerStat_" + version + ".xml")
 
 process.simOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simOmtfDigis.rpcMaxClusterCnt = cms.int32(2)

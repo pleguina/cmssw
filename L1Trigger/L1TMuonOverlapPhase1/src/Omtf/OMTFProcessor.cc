@@ -72,8 +72,11 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
 
   edm::LogVerbatim("OMTFReconstruction") << "fwVersion 0x" << hex << this->myOmtfConfig->fwVersion() << std::endl;
 
-  useStubQualInExtr = true;
-  useEndcapStubsRInExtr = true;
+  useStubQualInExtr = false;
+  useEndcapStubsRInExtr = false;
+
+  edm::LogVerbatim("OMTFReconstruction") << "useStubQualInExtr "  << useStubQualInExtr
+                                         <<" useEndcapStubsRInExtr "<<useEndcapStubsRInExtr<< std::endl;
 
   extrapolFactors.resize(2, std::vector<std::map<int, double> >(this->myOmtfConfig->nLayers()));
   extrapolFactorsNorm.resize(2, std::vector<std::map<int, int> >(this->myOmtfConfig->nLayers()));
@@ -93,7 +96,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
 
     if(ptAssignment) {
       candidate.setHwPt(myCand->getPtNN());
-       candidate.setHwSign(myCand->getChargeNN() < 0 ? 1 : 0);
+      candidate.setHwSign(myCand->getChargeNN() < 0 ? 1 : 0);
     }
     else {
       candidate.setHwPt(myCand->getPt());
@@ -440,6 +443,8 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFP(const int& refLogicLay
 
   double hsPhiPitch = 2 * M_PI / omtfConfig->nPhiBins(); //rad/halfStrip
 
+  int hsPhiPitchInt = 305; //hsPhiPitch * 512
+
   int reflLayerIndex = refLogicLayer == 0 ? 0 : 1;
   int extrFactor = 0;
 
@@ -452,9 +457,11 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFP(const int& refLogicLay
   else if(targetLayer ==  1 || targetLayer ==  3 || targetLayer ==  5) {
     int deltaPhi = targetStubPhi - refPhi; //[halfStrip]
 
-    deltaPhi = round(deltaPhi * hsPhiPitch * 512.); //deltaPhi is in phi_b hw scale
+    //deltaPhi = round(deltaPhi * hsPhiPitch * 512.); //deltaPhi is in phi_b hw scale
+    deltaPhi = (deltaPhi * hsPhiPitchInt) / 512;
     phiExtr = refPhiB - deltaPhi; //phiExtr is also in phi_b hw scale
     //LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" deltaPhi "<<deltaPhi<<" phiExtr "<<phiExtr<<std::endl;
+
   }
   else if(targetLayer >= 10 && targetLayer <= 14) {
     extrFactor = extrapolFactors[reflLayerIndex][targetLayer][0];
@@ -468,7 +475,9 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFP(const int& refLogicLay
     }
   }
 
-  phiExtr = extrFactor * refPhiB / extrapolMultiplier;
+  if (this->myOmtfConfig->isBendingLayer(targetLayer) == false) {
+    phiExtr = extrFactor * refPhiB / extrapolMultiplier;
+  }
 
   LogTrace("l1tOmtfEventPrint")<<"\n"<<__FUNCTION__<<":"<<__LINE__<<" refLogicLayer "<<refLogicLayer <<" targetLayer "<<targetLayer<<std::endl;
   LogTrace("l1tOmtfEventPrint")<<"refPhi "<<refPhi<<" refPhiB "<<refPhiB<<" targetStubPhi "<<targetStubPhi<<" targetStubQuality "<<targetStubQuality
@@ -561,8 +570,8 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
                 extrapolatedPhiTree.add("<xmlattr>.layer", iLayer);
                 extrapolatedPhiTree.add("<xmlattr>.refPhiBHw", refStub->phiBHw);
                 extrapolatedPhiTree.add("<xmlattr>.iStub", iStub);
-                extrapolatedPhiTree.add("<xmlattr>.qualityHw", refStub->qualityHw);
-                extrapolatedPhiTree.add("<xmlattr>.etaHw", refStub->etaHw);
+                extrapolatedPhiTree.add("<xmlattr>.qualityHw", targetStub->qualityHw);
+                extrapolatedPhiTree.add("<xmlattr>.etaHw", targetStub->etaHw);
                 extrapolatedPhiTree.add("<xmlattr>.val", extrapolatedPhi[iStub]);
               }
             }
@@ -747,6 +756,8 @@ void OMTFProcessor<GoldenPatternType>::loadExtrapolFactors() {
     filename = "ExtrapolationFactors_withQAndEta.xml";
 
   boost::property_tree::read_xml(filename, tree);
+
+  edm::LogVerbatim("OMTFReconstruction")<<"loadExtrapolFactors from file "<<filename<<std::endl;
 
   extrapolMultiplier = tree.get<int>("ExtrapolationFactors.<xmlattr>.multiplier");
   edm::LogVerbatim("OMTFReconstruction")<<"extrapolMultiplier "<<extrapolMultiplier<<std::endl;
