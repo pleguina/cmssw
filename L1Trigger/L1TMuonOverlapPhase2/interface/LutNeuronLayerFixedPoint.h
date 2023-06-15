@@ -14,6 +14,7 @@
 #include <ap_int.h>
 #include <array>
 #include <limits>
+#include <iomanip>
 
 #include <boost/property_tree/ptree.hpp>
 
@@ -94,7 +95,8 @@ public:
                 auto& lut = lutArray.at(iInput).at(iNeuron);
                 std::ostringstream ostr;
                 for(auto& a : lut) {
-                    ostr<<std::hex<<a.bits_to_uint64()<<", ";
+                    //ostr<<std::hex<<a.bits_to_uint64()<<", ";
+                    ostr<<std::fixed<<std::setprecision(19)<<a.to_float()<<", ";
                 }
                 tree.put(keyPath + "." + name + ".lutArray." + std::to_string(iInput) + "." + std::to_string(iNeuron), ostr.str());
             }
@@ -120,7 +122,8 @@ public:
 
                 for(auto& a : lut) {
                     if(std::getline(ss, item, ',') ) {
-                        a.setBits(std::stoull(item, NULL, 16));
+                        //a.setBits(std::stoull(item, NULL, 16));
+                        a = std::stof(item, NULL);
                     }
                     else {
                         throw std::runtime_error("LutNeuronLayerFixedPoint::read: number of items get from file is smaller than lut size");

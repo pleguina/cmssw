@@ -108,10 +108,10 @@ public:
         runWithInterpolation();
 
         //output0_I goes to the declaration of the lutLayer3_0, but it does not matter, as it is used only for the outputArray
-        auto layer3_0_out = ap_ufixed<output0_I+output0_F, output0_I, AP_RND_CONV, AP_SAT>(lutLayer3_0.getLutOutSum()[0]); //TODO should be AP_RND_CONV rather, but it affect the rate
-        auto layer3_1_out = ap_fixed <output1_I+output1_F, output1_I, AP_RND_CONV, AP_SAT>(lutLayer3_1.getLutOutSum()[0]); //here layer3_0_out has size 1
-        //auto layer3_0_out = lutLayer3_0.getLutOutSum()[0]; //here layer3_0_out has size 1
-        //auto layer3_1_out = lutLayer3_1.getLutOutSum()[0]; //here layer3_0_out has size 1
+        //auto layer3_0_out = ap_ufixed<output0_I+output0_F, output0_I, AP_RND_CONV, AP_SAT>(lutLayer3_0.getLutOutSum()[0]); //TODO should be AP_RND_CONV rather, but it affect the rate
+        //auto layer3_1_out = ap_fixed <output1_I+output1_F, output1_I, AP_RND_CONV, AP_SAT>(lutLayer3_1.getLutOutSum()[0]); //here layer3_0_out has size 1
+        auto layer3_0_out = lutLayer3_0.getLutOutSum()[0]; //here layer3_0_out has size 1
+        auto layer3_1_out = lutLayer3_1.getLutOutSum()[0]; //here layer3_0_out has size 1
 
         //std::cout<<"layer3_0_out[0] "<<layer3_0_out[0]<<" layer3_1_out[0] "<<layer3_1_out[0]<<std::endl;
 
@@ -132,10 +132,15 @@ public:
         // Create an empty property tree object.
         boost::property_tree::ptree tree;
 
-        lutLayer1.save(tree, "LutNetworkFixedPointRegression2Outputs");
-        lutLayer2.save(tree, "LutNetworkFixedPointRegression2Outputs");
-        lutLayer3_0.save(tree, "LutNetworkFixedPointRegression2Outputs");
-        lutLayer3_1.save(tree, "LutNetworkFixedPointRegression2Outputs");
+        PUT_VAR(tree, name, output0_I)
+        PUT_VAR(tree, name, output0_F)
+        PUT_VAR(tree, name, output1_I)
+        PUT_VAR(tree, name, output1_F)
+
+        lutLayer1.save(tree, name);
+        lutLayer2.save(tree, name);
+        lutLayer3_0.save(tree, name);
+        lutLayer3_1.save(tree, name);
 
         int size = ptCalibrationArray.size();
         std::string key = "LutNetworkFixedPointRegression2Outputs.ptCalibrationArray";
@@ -156,11 +161,15 @@ public:
 
         boost::property_tree::read_xml(filename, tree);
 
-        lutLayer1.load(tree, "LutNetworkFixedPointRegression2Outputs");
-        lutLayer2.load(tree, "LutNetworkFixedPointRegression2Outputs");
-        lutLayer3_0.load(tree, "LutNetworkFixedPointRegression2Outputs");
-        lutLayer3_1.load(tree, "LutNetworkFixedPointRegression2Outputs");
+        CHECK_VAR(tree, name, output0_I)
+        CHECK_VAR(tree, name, output0_F)
+        CHECK_VAR(tree, name, output1_I)
+        CHECK_VAR(tree, name, output1_F)
 
+        lutLayer1.load(tree, name);
+        lutLayer2.load(tree, name);
+        lutLayer3_0.load(tree, name);
+        lutLayer3_1.load(tree, name);
 
         std::string key = "LutNetworkFixedPointRegression2Outputs.ptCalibrationArray";
         int size = ptCalibrationArray.size();
@@ -193,6 +202,8 @@ private:
     //ptCalibrationArray size should be 1024, the LSB of the input 0.25 GeV,
     //the output is int, with range 0...511, the LSB of output 0.5 GeV
     std::array<ap_uint<9>, 1<<(output0_I+output0_F)> ptCalibrationArray;
+
+    std::string name = "LutNetworkFixedPointRegression2Outputs";
 };
 
 } /* namespace lutNN */

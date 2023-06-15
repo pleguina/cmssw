@@ -50,7 +50,7 @@ PtAssignmentNNRegression::PtAssignmentNNRegression(const edm::ParameterSet& edmC
     static const int layer3_1_lut_I = 4;
     static const int layer3_1_lut_F = 11;
     static const int output1_I = 8;
-    static const int output1_F = 8;
+    static const int output1_F = 0; //Does not matter in principle - it is not used
 
     lutNetworkFP.reset(new lutNN::LutNetworkFixedPointRegression2Outputs<input_I,  input_F,  networkInputSize,
                          layer1_lut_I, layer1_lut_F, layer1_neurons,        //layer1_lutSize = 2 ^ input_I
@@ -238,11 +238,12 @@ std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoM
   pts.emplace_back(pt);
 
   //algoMuon->setPtNN(omtfConfig->ptGevToHw(nnResult.at(0)));
-  algoMuon->setPtNN(lutNetworkFP->getCalibratedHwPt());
+  auto calibratedHwPt = lutNetworkFP->getCalibratedHwPt();
+  algoMuon->setPtNN(calibratedHwPt);
 
   algoMuon->setChargeNN(nnResult[1] >= 0 ? 1 : -1);
 
-	//TODO add some if here, such that the property_tree i sfilled only when needed
+	//TODO add some if here, such that the property_tree is filled only when needed
   boost::property_tree::ptree procDataTree;
   for(unsigned int i = 0; i < inputs.size(); i++) {
     auto& inputTree = procDataTree.add("input", "");
@@ -250,8 +251,17 @@ std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoM
     inputTree.add("<xmlattr>.val", inputs[i]);
   }
 
-  procDataTree.add("output0.<xmlattr>.val", std::to_string(nnResult.at(0)));
-  procDataTree.add("output1.<xmlattr>.val", std::to_string(nnResult.at(1)));
+  std::ostringstream ostr;
+  ostr<<std::fixed<<std::setprecision(19)<<nnResult.at(0);
+  procDataTree.add("output0.<xmlattr>.val", ostr.str());
+
+  ostr.str("");
+  ostr<<std::fixed<<std::setprecision(19)<<nnResult.at(1);
+  procDataTree.add("output1.<xmlattr>.val", ostr.str());
+
+  procDataTree.add("calibratedHwPt.<xmlattr>.val", calibratedHwPt);
+
+  procDataTree.add("hwSign.<xmlattr>.val", algoMuon->getChargeNN() < 0 ? 1 : 0);
 
   for (auto& obs : observers)
     obs->addProcesorData("regressionNN", procDataTree);
