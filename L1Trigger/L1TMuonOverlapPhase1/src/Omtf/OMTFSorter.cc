@@ -20,6 +20,8 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(
   GoldenPatternType* bestGP = nullptr;  //the GoldenPattern with the best result for this iRefHit
   //std::cout <<" ====== sortRefHitResults: " << std::endl;
 
+  GoldenPatternType* bestGpUnconstr = nullptr;
+
   for (auto& itGP : gPatterns) {
     if (!itGP->getResults()[procIndx][iRefHit].isValid())
       continue;
@@ -36,28 +38,41 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(
     } else if (myType == 0 && itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() >
                                   bestGP->getResults()[procIndx][iRefHit].getFiredLayerCnt()) {
       bestGP = itGP.get();
-      /*
-      std::cout <<" sorter, byQual, now best is: "
-		<<bestGP->key() << " "
-		<<itGP->getResults()[procIndx][iRefHit]
-		<<std::endl;
-      */
     } else if (myType == 1 || (itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() ==
                                bestGP->getResults()[procIndx][iRefHit].getFiredLayerCnt())) {
       if (itGP->getResults()[procIndx][iRefHit].getPdfSum() > bestGP->getResults()[procIndx][iRefHit].getPdfSum()) {
         //if the PdfWeigtSum is equal, we take the GP with the lower number, i.e. lower pt = check if this is ok for physics FIXME (KB)
         bestGP = itGP.get();
-        /*
-        std::cout <<" sorter, byDisc, now best is: "
-		  <<bestGP->key() << " "
-		  <<itGP->getResults()[procIndx][iRefHit]
-		  <<std::endl;
-	*/
       }
     }
+
+    if (bestGpUnconstr == nullptr) {
+      if (itGP->getResults()[procIndx][iRefHit].getPdfSumUnconstr() > 0)
+        bestGpUnconstr = itGP.get();
+    } else if (myType == 0 && itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() >
+                                  bestGpUnconstr->getResults()[procIndx][iRefHit].getFiredLayerCnt()) {
+      bestGpUnconstr = itGP.get();
+    } else if (myType == 1 || (itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() ==
+                               bestGpUnconstr->getResults()[procIndx][iRefHit].getFiredLayerCnt())) {
+      if (itGP->getResults()[procIndx][iRefHit].getPdfSumUnconstr() >
+          bestGpUnconstr->getResults()[procIndx][iRefHit].getPdfSumUnconstr()) {
+        //if the PdfWeigtSum is equal, we take the GP with the lower number, i.e. lower pt = check if this is ok for physics FIXME (KB)
+        bestGpUnconstr = itGP.get();
+      }
+    }
+
+    //    LogTrace("OMTFReconstruction")<<"OMTFSorter::sortRefHitResults() " << itGP->key()<<" getFiredLayer "<< itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt()
+    //    <<" PdfSum "<< itGP->getResults()[procIndx][iRefHit].getPdfSum()
+    //    <<" PdfSumUnconstr "<< itGP->getResults()[procIndx][iRefHit].getPdfSumUnconstr()<< std::endl;
   }
   if (bestGP) {
     AlgoMuons::value_type candidate(new AlgoMuon(bestGP->getResults()[procIndx][iRefHit], bestGP, iRefHit));
+
+    if (bestGpUnconstr) {
+      candidate->setGpResultUnconstr(bestGpUnconstr->getResults()[procIndx][iRefHit]);
+      candidate->setGoldenPaternUnconstr(bestGpUnconstr);
+    }
+
     //std::cout<<__FUNCTION__<<" line "<<__LINE__ <<" return: " << *candidate << std::endl;
     return candidate;
   } else {
