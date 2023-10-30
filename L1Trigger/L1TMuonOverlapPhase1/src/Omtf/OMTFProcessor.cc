@@ -86,7 +86,9 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
     extrapolFactors.resize(2, std::vector<std::map<int, double> >(this->myOmtfConfig->nLayers()));
     extrapolFactorsNorm.resize(2, std::vector<std::map<int, int> >(this->myOmtfConfig->nLayers()));
 
-    if (!extrapolFactorsFilename.empty())
+    //when useFloatingPointExtrapolation is true the extrapolFactors are not used,
+    //all calculations are done in the extrapolateDtPhiBFloatPoint
+    if (!extrapolFactorsFilename.empty() && !useFloatingPointExtrapolation)
       loadExtrapolFactors(extrapolFactorsFilename);
   }
 
@@ -387,10 +389,10 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
 
     float d = rTargetLayer - rRefLayer;
     //float deltaPhiExtr = d/rTargetLayer * refPhiB / 512.; //[rad]
-    //phiExtr = round(deltaPhiExtr / hsPhiPitch); //[halfStrip] //TODO do math as in firmware
+    //phiExtr = round(deltaPhiExtr / hsPhiPitch); //[halfStrip]
 
     float extrFactor = d / rTargetLayer / 512. / hsPhiPitch;
-    phiExtr = extrFactor * (float)refPhiB;  //[halfStrip] //TODO do math as in firmware
+    phiExtr = extrFactor * (float)refPhiB;  //[halfStrip]
 
     if (useStubQualInExtr & (targetLayer == 0 || targetLayer == 2 || targetLayer == 4)) {
       extrapolFactors[reflLayerIndex][targetLayer][targetStubQuality] = extrFactor;
