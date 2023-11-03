@@ -36,8 +36,10 @@ simOmtfDigis = cms.EDProducer("L1TMuonOverlapPhase1TrackProducer",
   useEndcapStubsRInExtr  = cms.bool(False),
   useFloatingPointExtrapolation  = cms.bool(False),
   dtRefHitMinQuality =  cms.int32(4),  
-  extrapolFactorsFilename = cms.string("ExtrapolationFactors_simple.xml"),
+  extrapolFactorsFileName= cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/ExtrapolationFactors_simple.xml"),
   sorterType = cms.string("byLLH"),
-  ghostBusterType = cms.string("byRefLayer") # byLLH byRefLayer GhostBusterPreferRefDt
+  ghostBusterType = cms.string("byRefLayer"), # byLLH byRefLayer GhostBusterPreferRefDt
+  goldenPatternResultFinalizeFunction = cms.int32(10)
 )
+
 

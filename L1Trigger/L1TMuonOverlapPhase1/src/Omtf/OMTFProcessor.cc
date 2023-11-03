@@ -78,9 +78,9 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
   if (edmCfg.exists("useFloatingPointExtrapolation"))
     useFloatingPointExtrapolation = edmCfg.getParameter<bool>("useFloatingPointExtrapolation");
 
-  std::string extrapolFactorsFilename;
-  if (edmCfg.exists("extrapolFactorsFilename"))
-    extrapolFactorsFilename = edmCfg.getParameter<std::string>("extrapolFactorsFilename");
+  std::string extrapolFactorsFileName;
+  if (edmCfg.exists("extrapolFactorsFileName"))
+    extrapolFactorsFileName = edmCfg.getParameter<edm::FileInPath>("extrapolFactorsFileName").fullPath();
 
   if (this->myOmtfConfig->usePhiBExtrapolationMB1() || this->myOmtfConfig->usePhiBExtrapolationMB2()) {
     extrapolFactors.resize(2, std::vector<std::map<int, double> >(this->myOmtfConfig->nLayers()));
@@ -88,12 +88,12 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
 
     //when useFloatingPointExtrapolation is true the extrapolFactors are not used,
     //all calculations are done in the extrapolateDtPhiBFloatPoint
-    if (!extrapolFactorsFilename.empty() && !useFloatingPointExtrapolation)
-      loadExtrapolFactors(extrapolFactorsFilename);
+    if (!extrapolFactorsFileName.empty() && !useFloatingPointExtrapolation)
+      loadExtrapolFactors(extrapolFactorsFileName);
   }
 
   edm::LogVerbatim("OMTFReconstruction") << "useFloatingPointExtrapolation " << useFloatingPointExtrapolation << std::endl;
-  edm::LogVerbatim("OMTFReconstruction") << "extrapolFactorsFilename " << extrapolFactorsFilename << std::endl;
+  edm::LogVerbatim("OMTFReconstruction") << "extrapolFactorsFileName " << extrapolFactorsFileName << std::endl;
 }
 
 template <class GoldenPatternType>
@@ -130,8 +130,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     if (myCand->getPtUnconstr() >= 0) {  //empty PtUnconstrained is -1, maybe should be corrected on the source
       //the upt has different hardware scale than the pt, the upt unit is 1 GeV
       candidate.setHwPtUnconstrained(myCand->getPtUnconstr());
-    } else
-      candidate.setHwPtUnconstrained(0);
+    } else candidate.setHwPtUnconstrained(0);
 
     unsigned int quality = 12;
     if (this->myOmtfConfig->fwVersion() <= 6)
@@ -608,8 +607,8 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
 
       MuonStubPtrs1D restrictedLayerStubs = this->restrictInput(iProcessor, iRegion, iLayer, aInput);
 
-      //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" iRefLayer "<<aRefHitDef.iRefLayer<<" hits.size "<<restrictedLayerHits.size()<<std::endl;
-      //LogTrace("l1tOmtfEventPrint")<<"iLayer "<<iLayer<<" refHitNum "<<myOmtfConfig->nTestRefHits()-nTestedRefHits-1<<" iRefHit "<<iRefHit;
+      //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" iRefLayer "<<aRefHitDef.iRefLayer<<std::endl;
+      //LogTrace("l1tOmtfEventPrint")<<"iLayer "<<iLayer<<" iRefHit "<<iRefHit;
       //LogTrace("l1tOmtfEventPrint")<<" nTestedRefHits "<<nTestedRefHits<<" aRefHitDef "<<aRefHitDef<<std::endl;
 
       std::vector<int> extrapolatedPhi(restrictedLayerStubs.size(), 0);
@@ -621,12 +620,15 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
           unsigned int iStub = 0;
           for (auto& targetStub : restrictedLayerStubs) {
             if (targetStub) {
+			  extrapolatedPhi[iStub] = extrapolateDtPhiB(refStub, targetStub, iLayer, this->myOmtfConfig);
+			  
               LogTrace("l1tOmtfEventPrint") << "\n"
                                             << __FUNCTION__ << ":" << __LINE__ << " extrapolating from layer "
-                                            << refLayerLogicNum << " - iRefLayer " << aRefHitDef.iRefLayer << " layer "
-                                            << iLayer << " stub " << targetStub << std::endl;
-              extrapolatedPhi[iStub] = extrapolateDtPhiB(refStub, targetStub, iLayer, this->myOmtfConfig);
-
+                                            << refLayerLogicNum << " - iRefLayer " << aRefHitDef.iRefLayer << " to layer "
+                                            << iLayer << " stub " << targetStub
+											<< " value "<<extrapolatedPhi[iStub]
+											<< std::endl;
+											            
               if (this->myOmtfConfig->getDumpResultToXML()) {
                 auto& extrapolatedPhiTree = procDataTree.add_child("extrapolatedPhi", boost::property_tree::ptree());
                 extrapolatedPhiTree.add("<xmlattr>.refLayer", refLayerLogicNum);
@@ -650,7 +652,11 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
         StubResult stubResult =
             itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer, restrictedLayerStubs, extrapolatedPhi, refStub);
 
-        //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" layerResult: valid"<<layerResult.valid<<" pdfVal "<<layerResult.pdfVal<<std::endl;
+        LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__
+                                     <<" layerResult: valid"<<stubResult.getValid()
+                                     <<" pdfVal "<<stubResult.getPdfVal()
+                                     <<std::endl;
+									 
         itGP->getResults()[procIndx][iRefHit].setStubResult(iLayer, stubResult);
       }
     }
