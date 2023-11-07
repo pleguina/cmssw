@@ -344,7 +344,7 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
   LogTrace("l1tOmtfEventPrint") << "refPhi " << refPhi << " refPhiB " << refPhiB << " targetStubPhi " << targetStubPhi
                                 << " targetStubQuality " << targetStubQuality << std::endl;
 
-  double hsPhiPitch = 2 * M_PI / omtfConfig->nPhiBins();  //rad/halfStrip
+  //double hsPhiPitch = 2 * M_PI / omtfConfig->nPhiBins();  //rad/halfStrip
 
   int phiExtr = 0;  //delta phi extrapolated
 
@@ -387,11 +387,14 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
     }
 
     float d = rTargetLayer - rRefLayer;
-    //float deltaPhiExtr = d/rTargetLayer * refPhiB / 512.; //[rad]
-    //phiExtr = round(deltaPhiExtr / hsPhiPitch); //[halfStrip]
+    //float deltaPhiExtr = d/rTargetLayer * refPhiB / omtfConfig->dtPhiBUnitsRad(); //[rad]
+    //phiExtr = round(deltaPhiExtr / omtfConfig->omtfPhiUnit()); //[halfStrip]
 
-    float extrFactor = d / rTargetLayer / 512. / hsPhiPitch;
+    float extrFactor = d / rTargetLayer / omtfConfig->dtPhiBUnitsRad() / omtfConfig->omtfPhiUnit();
     phiExtr = extrFactor * (float)refPhiB;  //[halfStrip]
+
+    float deltaPhiExtr = atan( d / rTargetLayer * tan(refPhiB / omtfConfig->dtPhiBUnitsRad()) );  //[rad]
+    phiExtr = round(deltaPhiExtr / omtfConfig->omtfPhiUnit()); //[halfStrip]
 
     if (useStubQualInExtr & (targetLayer == 0 || targetLayer == 2 || targetLayer == 4)) {
       extrapolFactors[reflLayerIndex][targetLayer][targetStubQuality] = extrFactor;
@@ -414,7 +417,7 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
   } else if (targetLayer == 1 || targetLayer == 3 || targetLayer == 5) {
     int deltaPhi = targetStubPhi - refPhi;  //[halfStrip]
 
-    deltaPhi = round(deltaPhi * hsPhiPitch * 512.);  //deltaPhi is in phi_b hw scale
+    deltaPhi = round(deltaPhi * omtfConfig->omtfPhiUnit() * omtfConfig->dtPhiBUnitsRad());  //deltaPhi is here in phi_b hw scale
     phiExtr = refPhiB - deltaPhi;                    //phiExtr is also in phi_b hw scale
     LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " deltaPhi " << deltaPhi << " phiExtr "
                                   << phiExtr << std::endl;
@@ -441,11 +444,14 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
     }
 
     float d = rME - rRefLayer;
-    float deltaPhiExtr = d / rME * refPhiB / 512.;  //[rad]
-    //phiExtr = round(deltaPhiExtr / hsPhiPitch); //[halfStrip]
+    //float deltaPhiExtr = d / rME * refPhiB / omtfConfig->dtPhiBUnitsRad();  //[rad]
+    //phiExtr = round(deltaPhiExtr / omtfConfig->omtfPhiUnit()); //[halfStrip]
 
-    float extrFactor = d / rME / 512. / hsPhiPitch;
+    float extrFactor = d / rME / omtfConfig->dtPhiBUnitsRad() / omtfConfig->omtfPhiUnit();
     phiExtr = extrFactor * refPhiB;  //[halfStrip]
+
+    float deltaPhiExtr = atan( d / rME * tan(refPhiB / omtfConfig->dtPhiBUnitsRad() ) );  //[rad]
+    phiExtr = round(deltaPhiExtr / omtfConfig->omtfPhiUnit()); //[halfStrip]
 
     if (useEndcapStubsRInExtr) {
       extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubEta)] += extrFactor;
@@ -480,7 +486,9 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
                                                                   const OMTFConfiguration* omtfConfig) {
   int phiExtr = 0;  //delta phi extrapolated
 
-  int hsPhiPitchInt = 305;  //hsPhiPitch * 512
+  //omtfConfig->omtfPhiUnit() * 512 * 512 - first 512 is the is the phiB scale (512 units / rad)
+  //the second 512 is just multiplier to have integer value, it is then removed by diving by 512 in the deltaPhi
+  int omtfPhiUnitInt = 305;
 
   int reflLayerIndex = refLogicLayer == 0 ? 0 : 1;
   int extrFactor = 0;
@@ -493,8 +501,8 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
   } else if (targetLayer == 1 || targetLayer == 3 || targetLayer == 5) {
     int deltaPhi = targetStubPhi - refPhi;  //[halfStrip]
 
-    //deltaPhi = round(deltaPhi * hsPhiPitch * 512.); //deltaPhi is in phi_b hw scale
-    deltaPhi = (deltaPhi * hsPhiPitchInt) / 512;
+    //deltaPhi = round(deltaPhi * omtfConfig->omtfPhiUnit() * 512.); //deltaPhi is in phi_b hw scale
+    deltaPhi = (deltaPhi * omtfPhiUnitInt) / 512;
     phiExtr = refPhiB - deltaPhi;  //phiExtr is also in phi_b hw scale
     //LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" deltaPhi "<<deltaPhi<<" phiExtr "<<phiExtr<<std::endl;
 
