@@ -578,13 +578,13 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
 
   //////////////////////////////////////
   //////////////////////////////////////
-  std::bitset<128> refHitsBits = aInput.getRefHits(iProcessor);
+  auto refHitsBits = aInput.getRefHits(iProcessor);
   if (refHitsBits.none())
     return;  // myResults;
 
   std::vector<const RefHitDef*> refHitDefs;
 
-  //loop over all possible refHits, i.e. 128
+  //loop over all possible refHits, e.g. 128
   for (unsigned int iRefHit = 0; iRefHit < this->myOmtfConfig->nRefHits(); ++iRefHit) {
     if (!refHitsBits[iRefHit])
       continue;
@@ -660,10 +660,10 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
         StubResult stubResult =
             itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer, restrictedLayerStubs, extrapolatedPhi, refStub);
 
-        LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__
+       /* LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__
                                      <<" layerResult: valid"<<stubResult.getValid()
                                      <<" pdfVal "<<stubResult.getPdfVal()
-                                     <<std::endl;
+                                     <<std::endl;*/
 									 
         itGP->getResults()[procIndx][iRefHit].setStubResult(iLayer, stubResult);
       }
