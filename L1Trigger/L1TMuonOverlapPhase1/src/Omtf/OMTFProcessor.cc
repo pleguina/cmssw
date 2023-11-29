@@ -588,7 +588,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
   //////////////////////////////////////
   std::vector<const RefHitDef*> refHitDefs;
 
-  if (this->myOmtfConfig->getRefHitSelectorVersion() == 0) {
+  {
     auto refHitsBits = aInput.getRefHits(iProcessor);
     if (refHitsBits.none())
       return;  // myResults;
@@ -603,33 +603,8 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       if (refHitDefs.size() == this->myOmtfConfig->nTestRefHits())
         break;
     }
-  } else {
-    auto refHitStubs = aInput.getRefHitStubs(iProcessor);
-    if (refHitStubs.empty())
-      return;  // myResults;
-
-    for (auto& refHitStub : refHitStubs) {
-      auto stubEqualsDef = [&](const RefHitDef& refHitDef) {
-        if ((int)(refHitStub->logicLayer) == this->myOmtfConfig->getRefToLogicNumber()[refHitDef.iRefLayer] &&
-            refHitStub->input == refHitDef.iInput && refHitDef.fitsRange(refHitStub->phiHw))
-          return true;
-        return false;
-      };
-
-      auto& refHitsDefInProc = this->myOmtfConfig->getRefHitsDefs()[iProcessor];
-      auto it = std::find_if(refHitsDefInProc.begin(), refHitsDefInProc.end(), stubEqualsDef);
-      if (it == refHitsDefInProc.end())
-        LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << " " << __LINE__ << " it ==  getRefHitsDefInProc.end() "
-                                      << " refHitStub->input " << refHitStub->input << " " << (*refHitStub);
-      else {
-        refHitDefs.push_back(&(*it));
-      }
-
-      //this condition is in the getRefHitStubs
-      if (refHitDefs.size() == this->myOmtfConfig->nTestRefHits())
-        break;
-    }
   }
+
   boost::property_tree::ptree procDataTree;
   LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << " " << __LINE__;
   for (unsigned int iLayer = 0; iLayer < this->myOmtfConfig->nLayers(); ++iLayer) {

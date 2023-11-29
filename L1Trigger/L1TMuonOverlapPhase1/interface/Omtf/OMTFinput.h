@@ -45,8 +45,6 @@ public:
 
   boost::dynamic_bitset<> getRefHits(unsigned int iProcessor) const;
 
-  MuonStubPtrs1D getRefHitStubs(unsigned int iProcessor) const;
-
   friend std::ostream &operator<<(std::ostream &out, const OMTFinput &aInput);
 
 private:

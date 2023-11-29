@@ -279,8 +279,6 @@ public:
 
   bool useStubQualInExtr() const { return useStubQualInExtr_; }
 
-  int getRefHitSelectorVersion() const { return refHitSelectorVersion; }
-
 private:
   L1TMuonOverlapParams rawParams;
 
@@ -355,8 +353,6 @@ private:
   //min quality of the DT phi hit used as the reference hit
   //Remember that it is on the top of the minDtPhiQuality
   int dtRefHitMinQuality = 2;
-
-  int refHitSelectorVersion = 0;
 
   bool dumpResultToXML = false;
 };

@@ -214,8 +214,6 @@ void OMTFConfiguration::configure(const L1TMuonOverlapParams *omtfParams) {
 
     setGhostBusterType("byRefLayer");
   }
-
-  //refHitSelectorVersion = 2; //TODO!!!!!!!!!!
 }
 
 void OMTFConfiguration::configureFromEdmParameterSet(const edm::ParameterSet &edmParameterSet) {
