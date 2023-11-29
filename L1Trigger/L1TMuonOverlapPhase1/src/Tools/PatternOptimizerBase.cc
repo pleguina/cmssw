@@ -294,8 +294,7 @@ void PatternOptimizerBase::savePatternsInRoot(std::string rootFileName) {
             }
             histLayerStat->Write();
           } else {
-            if (iRefLayer == 0 || iRefLayer == 2)
-            {  //TODO!!!!!!!!!!!!!!!!!!!!!!!!
+            if (iRefLayer == 0 || iRefLayer == 2) {  //TODO!!!!!!!!!!!!!!!!!!!!!!!!
               unsigned int binCnt2 = gp->getStatistics()[iLayer][iRefLayer][0].size();
               //TH2I* histLayerStat = new TH2I(histName.c_str(), (histName  + ";ref phiB;delta_phi").c_str(), binCnt2, -0.5, binCnt2 - 0.5, binCnt1, -0.5, binCnt1 - 0.5);
               double xmin = -0.5 - binCnt2 / 2;
@@ -313,7 +312,7 @@ void PatternOptimizerBase::savePatternsInRoot(std::string rootFileName) {
                                              -0.5 - binCnt1 / 2,
                                              binCnt1 / 2 - 0.5);
 
-              if(edmCfg.getParameter<string>("patternGenerator") == "deltaPhiVsPhiRef")
+              if (edmCfg.getParameter<string>("patternGenerator") == "deltaPhiVsPhiRef")
                 histLayerStat->GetXaxis()->SetTitle("ref phi");
 
               for (unsigned int iBin1 = 0; iBin1 < binCnt1; iBin1++) {    //deltaPhi

@@ -26,7 +26,7 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg,
 
   if (edmCfg.getParameter<string>("patternGenerator") == "patternGen" ||
       edmCfg.getParameter<string>("patternGenerator") == "2DHists" ||
-      edmCfg.getParameter<string>("patternGenerator") == "deltaPhiVsPhiRef" )
+      edmCfg.getParameter<string>("patternGenerator") == "deltaPhiVsPhiRef")
     initPatternGen();
 
   //2DHists are done for the displaced muons, then using the propagation for the matching is needed
@@ -55,16 +55,16 @@ void PatternGenerator::initPatternGen() {
 
     gp->reset();
 
-    int statBinsCnt1 = 1024 *2;  //TODO should be big enough to comprise the pdf tails
+    int statBinsCnt1 = 1024 * 2;  //TODO should be big enough to comprise the pdf tails
 
     int statBinsCnt2 = 1;  //for normal pattern generation
 
     if (edmCfg.getParameter<string>("patternGenerator") == "2DHists")
       statBinsCnt2 = 1024;
-      //for 2D distribution, phiB vs phiDist, but if done for 8 ref layers, consumes too much memory
+    //for 2D distribution, phiB vs phiDist, but if done for 8 ref layers, consumes too much memory
     else if (edmCfg.getParameter<string>("patternGenerator") == "deltaPhiVsPhiRef")
       statBinsCnt2 = omtfConfig->nPhiBins() / omtfConfig->nProcessors();
-      //for 2D distribution, phiB vs phiDist, but if done for 8 ref layers, consumes too much memory
+    //for 2D distribution, phiB vs phiDist, but if done for 8 ref layers, consumes too much memory
 
     //if(statBinsCnt2 > 10 && omtfConfig->nRefLayers() > 2)
     //  throw cms::Exception("PatternGenerator::initPatternGen(): statBinsCnt2 and omtfConfig->nRefLayers() too big, will consume too much memory");
@@ -364,11 +364,10 @@ void PatternGenerator::endJob() {
   } else if (edmCfg.getParameter<string>("patternGenerator") == "2DHists") {
     upadatePdfs();
     writeLayerStat = true;
-  } else if (edmCfg.getParameter<string>("patternGenerator") == "deltaPhiVsPhiRef"){
+  } else if (edmCfg.getParameter<string>("patternGenerator") == "deltaPhiVsPhiRef") {
     upadatePdfs();
     writeLayerStat = true;
-  }
-  else if (edmCfg.getParameter<string>("patternGenerator") == "patternGenFromStat") {
+  } else if (edmCfg.getParameter<string>("patternGenerator") == "patternGenFromStat") {
     std::string rootFileName = edmCfg.getParameter<edm::FileInPath>("patternsROOTFile").fullPath();
     edm::LogImportant("l1tOmtfEventPrint") << "PatternGenerator::endJob() rootFileName " << rootFileName << std::endl;
     TFile inFile(rootFileName.c_str());

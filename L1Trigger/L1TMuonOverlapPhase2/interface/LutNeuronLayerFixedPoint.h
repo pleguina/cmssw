@@ -115,8 +115,8 @@ namespace lutNN {
 
           for (auto& a : lut) {
             if (std::getline(ss, item, ',')) {
-              //a.setBits(std::stoull(item, NULL, 16));
-              a = std::stof(item, NULL);
+              //a.setBits(std::stoull(item, nullptr, 16));
+              a = std::stof(item, nullptr);
             } else {
               throw std::runtime_error(
                   "LutNeuronLayerFixedPoint::read: number of items get from file is smaller than lut size");

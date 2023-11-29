@@ -55,28 +55,29 @@ PtAssignmentNNRegression::PtAssignmentNNRegression(const edm::ParameterSet& edmC
     static const int output1_I = 8;
     static const int output1_F = 0;  //Does not matter in principle - it is not used
 
-    lutNetworkFP.reset(new lutNN::LutNetworkFixedPointRegression2Outputs<input_I,
-                                                                         input_F,
-                                                                         networkInputSize,
-                                                                         layer1_lut_I,
-                                                                         layer1_lut_F,
-                                                                         layer1_neurons,  //layer1_lutSize = 2 ^ input_I
-                                                                         layer1_output_I,
-                                                                         layer2_input_I,
-                                                                         layer2_lut_I,
-                                                                         layer2_lut_F,
-                                                                         layer2_neurons,
-                                                                         layer3_input_I,
-                                                                         layer3_0_inputCnt,
-                                                                         layer3_0_lut_I,
-                                                                         layer3_0_lut_F,
-                                                                         output0_I,
-                                                                         output0_F,
-                                                                         layer3_1_inputCnt,
-                                                                         layer3_1_lut_I,
-                                                                         layer3_1_lut_F,
-                                                                         output1_I,
-                                                                         output1_F>());
+    lutNetworkFP =
+        std::make_unique<lutNN::LutNetworkFixedPointRegression2Outputs<input_I,
+                                                                       input_F,
+                                                                       networkInputSize,
+                                                                       layer1_lut_I,
+                                                                       layer1_lut_F,
+                                                                       layer1_neurons,  //layer1_lutSize = 2 ^ input_I
+                                                                       layer1_output_I,
+                                                                       layer2_input_I,
+                                                                       layer2_lut_I,
+                                                                       layer2_lut_F,
+                                                                       layer2_neurons,
+                                                                       layer3_input_I,
+                                                                       layer3_0_inputCnt,
+                                                                       layer3_0_lut_I,
+                                                                       layer3_0_lut_F,
+                                                                       output0_I,
+                                                                       output0_F,
+                                                                       layer3_1_inputCnt,
+                                                                       layer3_1_lut_I,
+                                                                       layer3_1_lut_F,
+                                                                       output1_I,
+                                                                       output1_F> >();
 
     edm::LogImportant("OMTFReconstruction")
         << " " << __FUNCTION__ << ":" << __LINE__ << " networkFile " << networkFile << std::endl;
@@ -222,8 +223,6 @@ std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoM
             << " layer " << int(hit.layer) << " hit.phiDist " << hit.phiDist << " valid " << stubResult.getValid()
             << " !!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
       }
-
-      stubResult.getMuonStub()->detId;
 
       DetId detId(stubResult.getMuonStub()->detId);
       if (detId.subdetId() == MuonSubdetId::CSC) {

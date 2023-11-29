@@ -78,18 +78,17 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   MuonStub stub;
 
   //converting the quality to the same encoding as in phase-1, as it is important for extrapolation
-  if(digi.quality() >= 6)
+  if (digi.quality() >= 6)
     stub.qualityHw = digi.quality() - 2;
-  else if(digi.quality() >= 3) {
-    if(digi.slNum() == 3)
+  else if (digi.quality() >= 3) {
+    if (digi.slNum() == 3)
       stub.qualityHw = 3;
-    else if(digi.slNum() == 1)
+    else if (digi.slNum() == 1)
       stub.qualityHw = 2;
-  }
-  else {
-    if(digi.slNum() == 3)
+  } else {
+    if (digi.slNum() == 3)
       stub.qualityHw = 1;
-    else if(digi.slNum() == 1)
+    else if (digi.slNum() == 1)
       stub.qualityHw = 0;
   }
 
@@ -134,10 +133,10 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
 
   OmtfName board(iProcessor, config);
   LogTrace("l1tOmtfEventPrint") << board.name() << " L1Phase2MuDTPhDigi: detid " << detid << " digi "
-                                        << " whNum " << digi.whNum() << " scNum " << digi.scNum() << " stNum "
-                                        << digi.stNum() << " slNum " << digi.slNum() << " quality " << digi.quality()
-                                        << " rpcFlag " << digi.rpcFlag() << " phi " << digi.phi() << " phiBend "
-                                        << digi.phiBend() << std::endl;
+                                << " whNum " << digi.whNum() << " scNum " << digi.scNum() << " stNum " << digi.stNum()
+                                << " slNum " << digi.slNum() << " quality " << digi.quality() << " rpcFlag "
+                                << digi.rpcFlag() << " phi " << digi.phi() << " phiBend " << digi.phiBend()
+                                << std::endl;
   OMTFinputMaker::addStub(config, muonStubsInLayers, iLayer, iInput, stub);
 }
 

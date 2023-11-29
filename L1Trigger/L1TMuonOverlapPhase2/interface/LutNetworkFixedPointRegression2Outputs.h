@@ -57,7 +57,7 @@ namespace lutNN {
       lutLayer3_1.setName("lutLayer3_1");
     };
 
-    virtual ~LutNetworkFixedPointRegression2Outputs(){};
+    ~LutNetworkFixedPointRegression2Outputs() override{};
 
     typedef LutNeuronLayerFixedPoint<input_I, input_F, inputSize, layer1_lut_I, layer1_lut_F, layer1_neurons, layer1_output_I>
         LutLayer1;
@@ -221,8 +221,8 @@ namespace lutNN {
 
       for (auto& a : ptCalibrationArray) {
         if (std::getline(ss, item, ',')) {
-          //a = std::stoul(item, NULL, 16);
-          a = std::stoul(item, NULL, 10);
+          //a = std::stoul(item, nullptr, 16);
+          a = std::stoul(item, nullptr, 10);
         } else {
           throw std::runtime_error(
               "LutNetworkFixedPointRegression2Outputs::read: number of items get from file is smaller than lut size");

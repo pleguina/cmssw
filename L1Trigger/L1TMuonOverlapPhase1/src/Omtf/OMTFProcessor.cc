@@ -424,7 +424,7 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
     //deltaPhi is here in phi_b hw scale
     deltaPhi = round(deltaPhi * omtfConfig->omtfPhiUnit() * omtfConfig->dtPhiBUnitsRad());
 
-    phiExtr = refPhiB - deltaPhi;                    //phiExtr is also in phi_b hw scale
+    phiExtr = refPhiB - deltaPhi;  //phiExtr is also in phi_b hw scale
     LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " deltaPhi " << deltaPhi << " phiExtr "
                                   << phiExtr << std::endl;
   } else if ((targetLayer >= 6 && targetLayer <= 9) || (targetLayer >= 15 && targetLayer <= 17)) {
