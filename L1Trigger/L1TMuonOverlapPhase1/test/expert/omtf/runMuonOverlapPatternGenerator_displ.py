@@ -14,7 +14,8 @@ verbose = True
 
 filesNameLike = sys.argv[2]
 
-version = "ExtraplMB1nadMB2DTQualAndEtaFloatP_atan_ValueP1Scale_t18"
+#version = "ExtraplMB1nadMB2DTQualAndEtaFloatP_atan_ValueP1Scale_t18"
+version = "noExtrapl_deltaPhiVsPhiRef"
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",
@@ -247,7 +248,8 @@ process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapP
 #)
 
 #process.simOmtfDigis.patternGenerator = cms.string("patternGen")
-process.simOmtfDigis.patternGenerator = cms.string("2DHists")
+#process.simOmtfDigis.patternGenerator = cms.string("2DHists")
+process.simOmtfDigis.patternGenerator = cms.string("deltaPhiVsPhiRef")
 
 
 process.simOmtfDigis.patternType = cms.string("GoldenPatternWithStat")
@@ -263,8 +265,10 @@ process.simOmtfDigis.minDtPhiBQuality = cms.int32(4)
 
 process.simOmtfDigis.dtRefHitMinQuality =  cms.int32(4)
 
-process.simOmtfDigis.usePhiBExtrapolationFromMB1 = cms.bool(True)
-process.simOmtfDigis.usePhiBExtrapolationFromMB2 = cms.bool(True)
+#process.simOmtfDigis.usePhiBExtrapolationFromMB1 = cms.bool(True)
+#process.simOmtfDigis.usePhiBExtrapolationFromMB2 = cms.bool(True)
+process.simOmtfDigis.usePhiBExtrapolationFromMB1 = cms.bool(False)
+process.simOmtfDigis.usePhiBExtrapolationFromMB2 = cms.bool(False)
 
 process.simOmtfDigis.useStubQualInExtr  = cms.bool(True)
 process.simOmtfDigis.useEndcapStubsRInExtr  = cms.bool(True)

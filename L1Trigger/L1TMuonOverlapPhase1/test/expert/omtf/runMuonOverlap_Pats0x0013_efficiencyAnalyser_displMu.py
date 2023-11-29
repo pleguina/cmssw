@@ -17,9 +17,9 @@ verbose = True
 #version = 'ExtraplMB1nadMB2SimplifiedFP_t17_v11_test_valueP1Scale'
 #version = 'ExtraplMB1nadMB2SimplifiedFP_t19_v16_test_bits'
 #version = 'Patterns_0x00012_t17_v11_extr_off_test_bits'
-version = 'ExtraplMB1nadMB2SimplifiedFP_t19_v16_test_bits_MH-1000_MFF-150_CTau-1000mm'
+version = 'ExtraplMB1nadMB2SimplifiedFP_t19_v16_test_bits_MH-1000_MFF-150_CTau-1000mm_1file'
 
-runDebug = "INFO" # or "INFO" DEBUG
+runDebug = "DEBUG" # or "INFO" DEBUG
 useExtraploationAlgo = True
 #useExtraploationAlgo = False
 
@@ -118,7 +118,11 @@ if True :    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<!
         for file in fnmatch.filter(files, '*.root'):
             root_files.append(os.path.join(root, file))
     
-    file_cnt = 1000000   
+    if(runDebug == "DEBUG") :
+        file_cnt = 1
+    else :
+        file_cnt = 1000000
+           
     file_num = 0    
     for root_file in root_files :
         if isfile(root_file) :
@@ -256,7 +260,7 @@ if useExtraploationAlgo :
     #process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_layerStat_ExtraplMB1nadMB2_t10_classProb17_recalib2_test.xml")
     #process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_ExtraplMB1nadMB2Simplified_t14_classProb17_recalib2.xml")
     #process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_ExtraplMB1nadMB2FullAlgo_t16_classProb17_recalib2.xml")
-    process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_ExtraplMB1nadMB2SimplifiedFP_t17_classProb17_recalib2.xml")
+    process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuonOverlapPhase1/test/expert/omtf/Patterns_ExtraplMB1nadMB2SimplifiedFP_t17_classProb17_recalib2_minDP0.xml")
 else :
     process.simOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00012_oldSample_3_30Files_grouped1_classProb17_recalib2.xml")
 

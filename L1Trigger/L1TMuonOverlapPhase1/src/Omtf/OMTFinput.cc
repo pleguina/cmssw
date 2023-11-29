@@ -67,7 +67,7 @@ const int OMTFinput::getHitQual(unsigned int iLayer, unsigned int iInput) const 
 
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
-boost::dynamic_bitset<>  OMTFinput::getRefHits(unsigned int iProcessor) const {
+boost::dynamic_bitset<> OMTFinput::getRefHits(unsigned int iProcessor) const {
   boost::dynamic_bitset<> refHits(myOmtfConfig->nRefHits());
 
   unsigned int iRefHit = 0;
@@ -86,6 +86,34 @@ boost::dynamic_bitset<>  OMTFinput::getRefHits(unsigned int iProcessor) const {
 
   return refHits;
 }
+
+///////////////////////////////////////////////////
+///////////////////////////////////////////////////
+MuonStubPtrs1D OMTFinput::getRefHitStubs(unsigned int iProcessor) const {
+  MuonStubPtrs1D refStubs;
+  for (unsigned int iRefLayer = 0; iRefLayer < myOmtfConfig->nRefLayers(); ++iRefLayer) {
+    auto refHitLogicLayer = myOmtfConfig->getRefToLogicNumber()[iRefLayer];
+    int firstInput = 2;
+    if (iRefLayer >= 6)
+      firstInput = 4;
+
+    //this
+    for (unsigned int iInput = firstInput; iInput < muonStubsInLayers[refHitLogicLayer].size(); ++iInput) {
+      auto stub = getMuonStub(refHitLogicLayer, iInput);
+      if (stub) {
+        //TODO use a constant defined somewhere instead of 6
+        if (refHitLogicLayer >= 6 || stub->qualityHw >= myOmtfConfig->getDtRefHitMinQuality()) {
+          refStubs.push_back(stub);
+        }
+
+        //if(refStubs.size() == myOmtfConfig->nTestRefHits())
+        //  return refStubs;
+      }
+    }
+  }
+  return refStubs;
+}
+
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
 std::ostream& operator<<(std::ostream& out, const OMTFinput& aInput) {

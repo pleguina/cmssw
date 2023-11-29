@@ -471,5 +471,6 @@ void OMTFinputMaker::addStub(const OMTFConfiguration* config,
     return;
   //in this implementation only two first stubs are added for a given iInput
 
+  stub.input = iInput;
   muonStubsInLayers.at(iLayer).at(iInput) = std::make_shared<MuonStub>(stub);
 }

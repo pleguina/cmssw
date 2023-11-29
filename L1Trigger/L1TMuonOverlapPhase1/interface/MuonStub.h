@@ -52,6 +52,8 @@ public:
   //used to address LUTs
   unsigned int logicLayer = 0;
 
+  unsigned int input = 0;
+
   //int roll = 0;  //TODO remove
 
   int detId = 0;

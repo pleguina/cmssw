@@ -96,11 +96,6 @@ public:
 
   void setStubEtaEncoding(StubEtaEncoding stubEtaEncoding) { this->stubEtaEncoding = stubEtaEncoding; }
 
-  //[rad], LSB of the DT segment phi
-  /*double dtPhiUnit() const {
-    return dtPhiUnit_;
-  }*/
-
   //[unit/rad] for DT segment phiB, as it is at the level of the algorithm
   //in the link data it can be different, and it is converted in the DtDigiToStubsConverterOmtf::addDTphiDigi
   double dtPhiBUnitsRad() const { return dtPhiBUnitsRad_; }
@@ -119,8 +114,7 @@ private:
 
   int minDtPhiBQuality = 2;  //used on the top of the minDtPhiQuality
 
-  //double dtPhiUnit_ = 1./4096; //[rad], LSB of the DT segment phi
-  double dtPhiBUnitsRad_ = 512; //[unit/rad] for DT segment phiB, as it is at the level of the algorithm
+  double dtPhiBUnitsRad_ = 512;  //[unit/rad] for DT segment phiB, it is at the level of the algorithm, not inputs
 
   bool fixCscGeometryOffset = false;
 
