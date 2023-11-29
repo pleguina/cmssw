@@ -39,6 +39,8 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   minDtPhiBQuality = cms.int32(2), #/TODO change to 4
   
   dtRefHitMinQuality =  cms.int32(2), #/TODO change to 4
+  
+  dtPhiBUnitsRad = cms.int32(1024), #2048 is the orginal phase2 scale, 512 is the phase1 scale
     
   stubEtaEncoding = cms.string("valueP1Scale"), #/bits TODO change to valueP1Scale when InputMakerPhase2 is modifiwed
   

@@ -1,9 +1,11 @@
-#include <L1Trigger/L1TMuonOverlapPhase2/plugins/L1TMuonOverlapPhase2TrackProducer.h>
+#include "L1Trigger/L1TMuonOverlapPhase2/plugins/L1TMuonOverlapPhase2TrackProducer.h"
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigiCollection.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhContainer.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCandFwd.h"
 #include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
+#include "SimDataFormats/Track/interface/SimTrackContainer.h"
+#include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
 #include "FWCore/Framework/interface/EDConsumerBase.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ProductRegistryHelper.h"
@@ -25,17 +27,22 @@ L1TMuonOverlapPhase2TrackProducer::L1TMuonOverlapPhase2TrackProducer(const edm::
       muonGeometryTokens({esConsumes<RPCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
                           esConsumes<CSCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
                           esConsumes<DTGeometry, MuonGeometryRecord, edm::Transition::BeginRun>()}),
+      //needed for pattern generation and RootDataDumper
+      magneticFieldEsToken(esConsumes<MagneticField, IdealMagneticFieldRecord, edm::Transition::BeginRun>()),
+      propagatorEsToken(esConsumes<Propagator, TrackingComponentsRecord, edm::Transition::BeginRun>(
+                                    edm::ESInputTag("", "SteppingHelixPropagatorAlong"))),
       omtfEmulation(edmParameterSet,
                     muStubsInputTokens,
                     consumes<L1Phase2MuDTPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPhPhase2"))) {
   produces<l1t::RegionalMuonCandBxCollection>("OMTF");
 
-  //is it needed?
+  //it is needed for pattern generation and RootDataDumper
   if (edmParameterSet.exists("simTracksTag"))
     mayConsume<edm::SimTrackContainer>(edmParameterSet.getParameter<edm::InputTag>("simTracksTag"));
-  //if(edmParameterSet.exists("simVertexesTag"))
-  //  mayConsume<edm::SimVertexContainer>(edmParameterSet.getParameter<edm::InputTag>("simVertexesTag") );
+  if(edmParameterSet.exists("simVertexesTag"))
+    mayConsume<edm::SimVertexContainer>(edmParameterSet.getParameter<edm::InputTag>("simVertexesTag") );
 }
+
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
 L1TMuonOverlapPhase2TrackProducer::~L1TMuonOverlapPhase2TrackProducer() {}
