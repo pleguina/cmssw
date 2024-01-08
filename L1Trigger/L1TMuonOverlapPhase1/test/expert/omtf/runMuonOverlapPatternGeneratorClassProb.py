@@ -15,7 +15,7 @@ versionIn = "ExtraplMB1nadMB2Simplified_t17"
 #versionIn = "ExtraplMB1nadMB2DTQualAndEtaValueP1Scale_t18"
 #versionIn = "0x00011_oldSample_3_30Files"
 
-versionOut =  versionIn + "_classProb17_recalib2_minDP0"
+versionOut =  versionIn + "_classProb17_recalib2_minDP0_v3"
 
 if verbose: 
     process.MessageLogger = cms.Service("MessageLogger",

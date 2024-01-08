@@ -23,28 +23,31 @@ namespace lutNN {
 
   //_I - number of integer bits in the ap_ufixed, _F - number of fractional bits in the ap_ufixed
   //the network has two outputs, and since each output can have different range, the LUTs in the last layer have different I and F
-  template <int input_I,
-            int input_F,
-            std::size_t inputSize,
-            int layer1_lut_I,
-            int layer1_lut_F,
-            int layer1_neurons,
-            int layer1_output_I,  //to the layer1 output the bias is added to make the layer1 input
-            int layer2_input_I,
-            int layer2_lut_I,
-            int layer2_lut_F,
-            int layer2_neurons,
-            int layer3_input_I,
-            int layer3_0_inputCnt,
-            int layer3_0_lut_I,
-            int layer3_0_lut_F,
-            int output0_I,
-            int output0_F,
-            int layer3_1_inputCnt,
-            int layer3_1_lut_I,
-            int layer3_1_lut_F,
-            int output1_I,
-            int output1_F>
+  template <
+      int input_I,
+      int input_F,
+      std::size_t inputSize,
+      int layer1_lut_I,
+      int layer1_lut_F,
+      int layer1_neurons,
+      int layer1_output_I,  //to the layer1 output the bias is added to make the layer2 input, therefore the layer1_output_I and layer2_lut_I are different
+      int layer1_output_F,
+      int layer2_input_I,
+      int layer2_lut_I,
+      int layer2_lut_F,
+      int layer2_neurons,
+      int layer3_input_I,
+      int layer3_input_F,
+      int layer3_0_inputCnt,
+      int layer3_0_lut_I,
+      int layer3_0_lut_F,
+      int output0_I,
+      int output0_F,
+      int layer3_1_inputCnt,
+      int layer3_1_lut_I,
+      int layer3_1_lut_F,
+      int output1_I,
+      int output1_F>
   class LutNetworkFixedPointRegression2Outputs : public LutNetworkFixedPointRegressionBase {
   public:
     LutNetworkFixedPointRegression2Outputs() {
@@ -59,13 +62,20 @@ namespace lutNN {
 
     ~LutNetworkFixedPointRegression2Outputs() override{};
 
-    typedef LutNeuronLayerFixedPoint<input_I, input_F, inputSize, layer1_lut_I, layer1_lut_F, layer1_neurons, layer1_output_I>
+    typedef LutNeuronLayerFixedPoint<input_I,
+                                     input_F,
+                                     inputSize,
+                                     layer1_lut_I,
+                                     layer1_lut_F,
+                                     layer1_neurons,
+                                     layer1_output_I,
+                                     layer1_output_F>
         LutLayer1;
     LutLayer1 lutLayer1;
 
     static const unsigned int noHitCntShift = layer1_output_I;  //FIXME should be layer1_output_I ???
 
-    static const int layer2_input_F = layer1_lut_F;
+    static const int layer2_input_F = layer1_output_F;
 
     typedef LutNeuronLayerFixedPoint<layer2_input_I,
                                      layer2_input_F,
@@ -73,11 +83,10 @@ namespace lutNN {
                                      layer2_lut_I,
                                      layer2_lut_F,
                                      layer2_neurons,
-                                     layer3_input_I>
+                                     layer3_input_I,
+                                     layer3_input_F>
         LutLayer2;
     LutLayer2 lutLayer2;
-
-    static const int layer3_input_F = layer2_lut_F;
 
     typedef LutNeuronLayerFixedPoint<layer3_input_I,
                                      layer3_input_F,
@@ -85,7 +94,8 @@ namespace lutNN {
                                      layer3_0_lut_I,
                                      layer3_0_lut_F,
                                      1,
-                                     output0_I>
+                                     output0_I,
+                                     output0_F>
         LutLayer3_0;
     LutLayer3_0 lutLayer3_0;  //"lutLayer3_0"
 
@@ -95,7 +105,8 @@ namespace lutNN {
                                      layer3_1_lut_I,
                                      layer3_1_lut_F,
                                      1,
-                                     output1_I>
+                                     output1_I,
+                                     output1_F>
         LutLayer3_1;
     LutLayer3_1 lutLayer3_1;  //"lutLayer3_1"
 
@@ -130,6 +141,12 @@ namespace lutNN {
           noHitsCnt++;
       }
 
+      //the minimum required number of hits for a good candidate is 3,
+      //and the total number of possible hits is 18 (number of OMTF layers)
+      //so the maximum noHitsCnt is 15. It must be constrained here, otherwise address for the the next layer would be out of LUT range
+      if (noHitsCnt > 15)
+        noHitsCnt = 15;
+
       unsigned int bias = (noHitsCnt << noHitCntShift);
 
       //layer1Bias switches the input of the layer2 (i.e. output of the layer1) do different regions in the LUTs
@@ -150,23 +167,19 @@ namespace lutNN {
                                     << std::endl;
     }
 
-    //pt in the hardware scale, ptGeV = (ptHw -1) / 2
     int getCalibratedHwPt() override {
-      auto lutAddr = ap_ufixed<output0_I + output0_F + output0_F, output0_I + output0_F, AP_RND_CONV, AP_SAT>(
-          lutLayer3_0.getLutOutSum()[0]);
-      lutAddr = lutAddr << output0_F;
+      //auto lutAddr = ap_ufixed<output0_I+output0_F+output0_F, output0_I+output0_F, AP_RND_CONV, AP_SAT>(lutLayer3_0.getLutOutSum()[0]);
+      //lutAddr = lutAddr<<output0_F;
       //std::cout<<"lutLayer3_0.getLutOutSum()[0] "<<lutLayer3_0.getLutOutSum()[0]<<" lutAddr.to_uint() "<<lutAddr.to_uint()<<" ptCalibrationArray[lutAddr] "<<ptCalibrationArray[lutAddr.to_uint()]<<std::endl;
-      return ptCalibrationArray[lutAddr.to_uint()].to_uint();
+      //return ptCalibrationArray[lutAddr.to_uint()].to_uint();
+
+      return 0.216286 + 1.09483 * lutLayer3_0.getLutOutSum()[0].to_float();
+      //TODO the same can be obtained by lut[x] -> scale * lut[x] + offset for the last layer
     }
 
     void save(const std::string& filename) override {
       // Create an empty property tree object.
       boost::property_tree::ptree tree;
-
-      PUT_VAR(tree, name, output0_I)
-      PUT_VAR(tree, name, output0_F)
-      PUT_VAR(tree, name, output1_I)
-      PUT_VAR(tree, name, output1_F)
 
       lutLayer1.save(tree, name);
       lutLayer2.save(tree, name);
@@ -193,11 +206,6 @@ namespace lutNN {
       boost::property_tree::ptree tree;
 
       boost::property_tree::read_xml(filename, tree);
-
-      CHECK_VAR(tree, name, output0_I)
-      CHECK_VAR(tree, name, output0_F)
-      CHECK_VAR(tree, name, output1_I)
-      CHECK_VAR(tree, name, output1_F)
 
       lutLayer1.load(tree, name);
       lutLayer2.load(tree, name);

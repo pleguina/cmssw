@@ -4,8 +4,8 @@ import FWCore.ParameterSet.Config as cms
 ###OMTF emulator configuration
 simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
                               
-  srcDTPh = cms.InputTag('simDtTriggerPrimitiveDigis'),
-  srcDTTh = cms.InputTag('simDtTriggerPrimitiveDigis'),
+  #srcDTPh = cms.InputTag('simDtTriggerPrimitiveDigis'),
+  #srcDTTh = cms.InputTag('simDtTriggerPrimitiveDigis'),
   srcCSC = cms.InputTag('simCscTriggerPrimitiveDigis','MPCSORTED'),
   srcRPC = cms.InputTag('simMuonRPCDigis'), 
   srcDTPhPhase2 = cms.InputTag('dtTriggerPhase2PrimitiveDigis'),
@@ -38,10 +38,13 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   
   dtRefHitMinQuality =  cms.int32(4),
   
-  dtPhiBUnitsRad = cms.int32(1024), #2048 is the orginal phase2 scale, 512 is the phase1 scale
+  #dtPhiBUnitsRad is [unit/rad] for DT segment phiB at the level of the OMTF pattern algorithm
+  #in the link data the scale can be different, and it is converted to the OMTF scale in the DtDigiToStubsConverterOmtf::addDTphiDigi
+  #in the phase2 DT lnk data the scale is 2048 units/rad, so with  dtPhiBUnitsRad = 1024 we drop one LSB
+  dtPhiBUnitsRad = cms.int32(1024),
     
   stubEtaEncoding = cms.string("valueP1Scale"), #TODO change to valueP1Scale when InputMakerPhase2 is modifiwed
-  
+
   usePhiBExtrapolationFromMB1 = cms.bool(False),
   usePhiBExtrapolationFromMB2 = cms.bool(False),
   useStubQualInExtr  = cms.bool(False),

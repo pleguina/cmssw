@@ -110,9 +110,20 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     //the charge is only for the constrained measurement. The constrained measurement is always defined for a valid candidate
     if (ptAssignment) {
       candidate.setHwPt(myCand->getPtNNConstr());
+      if (myCand->getPdfSumConstr() == 0 && myCand->getPtUnconstr() > 0)
+        candidate.setHwPt(1);
+
       candidate.setHwSign(myCand->getChargeNNConstr() < 0 ? 1 : 0);
     } else {
-      candidate.setHwPt(myCand->getPtConstr());
+      if (myCand->getPdfSumConstr() > 0 && myCand->getFiredLayerCntConstr() >= 3)
+        candidate.setHwPt(myCand->getPtConstr());
+      else if (myCand->getPtUnconstr() > 0)
+        //if myCand->getPdfSumConstr() == 0, the myCand->getPtConstr() might not be 0, see the end of GhostBusterPreferRefDt::select
+        //but 0 means empty candidate, 1 means pt=0, therefore here we set HwPt to 1, as the PtUnconstr > 0
+        candidate.setHwPt(1);
+      else
+        candidate.setHwPt(0);
+
       candidate.setHwSign(myCand->getChargeConstr() < 0 ? 1 : 0);
     }
 
@@ -281,7 +292,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     trackAddr[1] = myCand->getRefLayer();
     trackAddr[2] = myCand->getDisc();
     trackAddr[3] = myCand->getGpResultUnconstr().getPdfSumUnconstr();
-    if (candidate.hwPt() > 0) {
+    if (candidate.hwPt() > 0 || candidate.hwPtUnconstrained() > 0) {
       candidate.setTrackAddress(trackAddr);
       candidate.setTFIdentifiers(iProcessor, mtfType);
       result.push_back(candidate);

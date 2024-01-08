@@ -117,6 +117,11 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
   AlgoMuons refHitCleanCandsFixedEta;
 
   for (unsigned int iMu1 = 0; iMu1 < muonsIN.size(); iMu1++) {
+    if (muonsIN[iMu1]->getPdfSumConstr() < -1) {
+      LogTrace("OMTFReconstruction") << *(muonsIN[iMu1]) << std::endl
+                                     << muonsIN[iMu1]->getGpResultConstr() << std::endl
+                                     << muonsIN[iMu1]->getGpResultUnconstr() << std::endl;
+    }
     refHitCleanCandsFixedEta.emplace_back(new AlgoMuon(*(muonsIN[iMu1])));
 
     if (omtfConfig->getStubEtaEncoding() == ProcConfigurationBase::StubEtaEncoding::bits)

@@ -446,7 +446,8 @@ void PatternGenerator::upadatePdfs() {
         //watch out - the pt here is the hardware pt before the recalibration
         //the shift for given pattern and layer should be the same same for all refLayers
         //otherwise the firmware does not compile - at least the phase-1
-        if ((gp->key().thePt <= 10) &&
+        //for phase2
+        /*if ((gp->key().thePt <= 10) &&
             (iLayer == 1 || iLayer == 3 || iLayer == 5)) {  //iRefLayer: MB2, iLayer: MB1 and MB2 phiB
           gp->setDistPhiBitShift(2, iLayer, iRefLayer);
         } else if ((gp->key().thePt <= 10) && (iLayer == 10)) {  //iRefLayer: MB2, iLayer: RB1_in
@@ -459,6 +460,26 @@ void PatternGenerator::upadatePdfs() {
           //due to grouping the patterns 4-7, the pdfs for the layer 1 in the pattern go outside of the range
           //so the shift must be increased (or the group should be divided into to 2 groups, but it will increase fw occupancy
           gp->setDistPhiBitShift(1, iLayer, iRefLayer);
+        } else
+          gp->setDistPhiBitShift(0, iLayer, iRefLayer);*/
+
+        //for phase1
+        if ((gp->key().thePt <= 8) &&
+            (iLayer == 1 || iLayer == 3 || iLayer == 5)) {  //iRefLayer: MB2, iLayer: MB1 and MB2 phiB
+          gp->setDistPhiBitShift(2, iLayer, iRefLayer);
+        } else if ((gp->key().thePt <= 10) && (iLayer == 10)) {  //iRefLayer: MB2, iLayer: RB1_in
+          gp->setDistPhiBitShift(1, iLayer, iRefLayer);
+        } else if ((gp->key().thePt <= 10) &&
+                   (iLayer == 1 || iLayer == 3 || iLayer == 5)) {  //iRefLayer: MB2, iLayer: MB1 and MB2 phiB
+          gp->setDistPhiBitShift(1, iLayer, iRefLayer);
+        } else if ((gp->key().thePt <= 17) && (iLayer == 1)) {  //MB1 phiB
+          //due to grouping the patterns 4-7, the pdfs for the layer 1 in the pattern go outside of the range
+          //so the shift must be increased (or the group should be divided into to 2 groups, but it will increase fw occupancy
+          gp->setDistPhiBitShift(1, iLayer, iRefLayer);
+        } else if ((gp->key().thePt >= 11 && gp->key().thePt <= 17) && (iLayer == 3 || iLayer == 5)) {  //MB1 phiB
+          //due to grouping the patterns 4-7, the pdfs for the layer 1 in the pattern go outside of the range
+          //so the shift must be increased (or the group should be divided into to 2 groups, but it will increase fw occupancy
+          gp->setDistPhiBitShift(0, iLayer, iRefLayer);
         } else
           gp->setDistPhiBitShift(0, iLayer, iRefLayer);
       }

@@ -128,6 +128,7 @@ int OmtfAngleConverter::getGlobalEta(const DTChamberId dTChamberId,
         bti_group = 511;
   }
 
+  //TODO why bti_group == 511 (meaning there is more then one bit fired) is converted into 95, but not into middle of the chamber?
   int iEta = 0;
   if (bti_group == 511)
     iEta = 95;
