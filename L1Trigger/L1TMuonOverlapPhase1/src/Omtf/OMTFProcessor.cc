@@ -626,7 +626,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       MuonStubPtrs1D restrictedLayerStubs = this->restrictInput(iProcessor, iRegion, iLayer, aInput);
 
       //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" iRefLayer "<<aRefHitDef.iRefLayer<<std::endl;
-      //LogTrace("l1tOmtfEventPrint")<<"iLayer "<<iLayer<<" iRefHit "<<iRefHit;
+      edm::LogVerbatim("l1tOmtfEventPrint")<<"iLayer "<<iLayer<<" iRefHit "<<iRefHit<< " iProcessor "<< iProcessor << std::endl;
       //LogTrace("l1tOmtfEventPrint")<<" nTestedRefHits "<<nTestedRefHits<<" aRefHitDef "<<aRefHitDef<<std::endl;
 
       std::vector<int> extrapolatedPhi(restrictedLayerStubs.size(), 0);
@@ -665,7 +665,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       for (auto& itGP : this->theGPs) {
         if (itGP->key().thePt == 0)  //empty pattern
           continue;
-
+        //edm::LogVerbatim("l1tOmtfEventPrint")<<"Pattern: "<<itGP->key().theNumber<<std::endl;
         StubResult stubResult =
             itGP->process1Layer1RefLayer(aRefHitDef.iRefLayer, iLayer, restrictedLayerStubs, extrapolatedPhi, refStub);
 
@@ -719,13 +719,15 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
   //////////////////////////////////////
   {
     for (auto& itGP : this->theGPs) {
+     // edm::LogVerbatim("l1tOmtfEventPrint")<<"Finalise \n"<<"Pattern : "<<itGP->key().theNumber<<std::endl;
+      //edm::LogVerbatim("l1tOmtfEventPrint")<<" iProcessor "<< iProcessor << std::endl;
       itGP->finalise(procIndx);
       //debug
-      /*for(unsigned int iRefHit = 0; iRefHit < itGP->getResults()[procIndx].size(); ++iRefHit) {
+      /* for(unsigned int iRefHit = 0; iRefHit < itGP->getResults()[procIndx].size(); ++iRefHit) {
         if(itGP->getResults()[procIndx][iRefHit].isValid()) {
-          LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<"__LINE__"<<itGP->getResults()[procIndx][iRefHit]<<std::endl;
+          edm::LogVerbatim("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<"__LINE__"<<itGP->getResults()[procIndx][iRefHit]<<std::endl;
         }
-      }*/
+      } */
     }
   }
 
@@ -752,6 +754,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::run(
 
   //input is shared_ptr because the observers may need them after the run() method execution is finished
   std::shared_ptr<OMTFinput> input = std::make_shared<OMTFinput>(this->myOmtfConfig);
+  edm::LogVerbatim("l1tOmtfEventPrint")<<"bx: "<<bx;
   inputMaker->buildInputForProcessor(input->getMuonStubs(), iProcessor, mtfType, bx, bx, observers);
 
   //LogTrace("l1tOmtfEventPrint")<<"buildInputForProce "; t.report();

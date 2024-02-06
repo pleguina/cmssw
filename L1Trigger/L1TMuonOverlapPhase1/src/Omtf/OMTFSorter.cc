@@ -31,7 +31,6 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(
     ///Accept only candidates with >2 hits
     if (itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() < 3)  //TODO - move 3 to the configuration??
       continue;
-
     if (bestGP == nullptr) {
       bestGP = itGP.get();
     } else if (myType == 0 && itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() >
@@ -44,6 +43,7 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(
         bestGP = itGP.get();
       }
     }
+
 
     if (bestGpUnconstr == nullptr) {
       if (itGP->getResults()[procIndx][iRefHit].getPdfSumUnconstr() > 0)

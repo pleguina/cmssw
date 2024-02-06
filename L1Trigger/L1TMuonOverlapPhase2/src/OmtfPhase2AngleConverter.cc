@@ -7,7 +7,7 @@ int OmtfPhase2AngleConverter::getProcessorPhi(int phiZero, l1t::tftype part, int
   int sector = dtScNum + 1;  //NOTE: there is a inconsistency in DT sector numb. Thus +1 needed to get detector numb.
 
   double scale = 0.5 / dtPhiBins / hsPhiPitch;  //was 0.8
-  int scale_coeff = lround(scale * (1 << 15));
+  int scale_coeff = lround(scale * (1 << 11));
 
   int ichamber = sector - 1;
   if (ichamber > 6)
@@ -15,7 +15,7 @@ int OmtfPhase2AngleConverter::getProcessorPhi(int phiZero, l1t::tftype part, int
 
   int offsetGlobal = (int)nPhiBins * ichamber / 12;
 
-  int phiConverted = ((dtPhi * scale_coeff) >> 15) + offsetGlobal - phiZero;
+  int phiConverted = ((dtPhi * scale_coeff) >> 11) + offsetGlobal - phiZero;
 
   return config->foldPhi(phiConverted);
 }

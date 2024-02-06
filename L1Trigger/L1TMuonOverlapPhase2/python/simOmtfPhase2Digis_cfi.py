@@ -11,9 +11,9 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   srcDTPhPhase2 = cms.InputTag('dtTriggerPhase2PrimitiveDigis'),
   
   simTracksTag = cms.InputTag('g4SimHits'),                             
-  dumpResultToXML = cms.bool(False),
+  dumpResultToXML = cms.bool(True),
   dumpDetailedResultToXML = cms.bool(False),
-  XMLDumpFileName = cms.string("TestEvents.xml"),                                     
+  XMLDumpFileName = cms.string("TestEvents_pelayo.xml"),                                     
   dumpGPToXML = cms.bool(False),  
   readEventsFromXML = cms.bool(False),
   eventsXMLFiles = cms.vstring("TestEvents.xml"),
@@ -40,7 +40,7 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   
   dtRefHitMinQuality =  cms.int32(2), #/TODO change to 4
   
-  dtPhiBUnitsRad = cms.int32(1024), #2048 is the orginal phase2 scale, 512 is the phase1 scale
+  dtPhiBUnitsRad = cms.int32(512), #2048 is the orginal phase2 scale, 512 is the phase1 scale
     
   stubEtaEncoding = cms.string("valueP1Scale"), #/bits TODO change to valueP1Scale when InputMakerPhase2 is modifiwed
   
@@ -51,7 +51,7 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   useFloatingPointExtrapolation  = cms.bool(False),
   #extrapolFactorsFilename = cms.FileInPath("ExtrapolationFactors_simple.xml"),
   
-  sorterType = cms.string("byLLH"),
+  sorterType = cms.string("byLLH"), # byNhitsByLLH byLLH
   ghostBusterType = cms.string("GhostBusterPreferRefDt"), # byLLH byRefLayer GhostBusterPreferRefDt
   goldenPatternResultFinalizeFunction = cms.int32(9)
 )

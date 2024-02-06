@@ -75,25 +75,8 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
                                                     l1t::tftype procTyp) {
   DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum() + 1);
 
-  MuonStub stub;
-
-  //converting the quality to the same encoding as in phase-1, as it is important for extrapolation
-  if (digi.quality() >= 6)
-    stub.qualityHw = digi.quality() - 2;
-  else if (digi.quality() >= 3) {
-    if (digi.slNum() == 3)
-      stub.qualityHw = 3;
-    else if (digi.slNum() == 1)
-      stub.qualityHw = 2;
-  } else {
-    if (digi.slNum() == 3)
-      stub.qualityHw = 1;
-    else if (digi.slNum() == 1)
-      stub.qualityHw = 0;
-  }
-
-  if (stub.qualityHw < config->getMinDtPhiQuality())
-    return;
+   if (digi.quality() < config->getMinDtPhiQuality())
+      return;
 
   unsigned int hwNumber = config->getLayerNumber(detid.rawId());
   if (config->getHwToLogicLayer().find(hwNumber) == config->getHwToLogicLayer().end())
@@ -103,9 +86,9 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   unsigned int iLayer = iter->second;
   unsigned int iInput = OMTFinputMaker::getInputNumber(config, detid.rawId(), iProcessor, procTyp);
   //MuonStub& stub = muonStubsInLayers[iLayer][iInput];
-
+  MuonStub stub;
   stub.type = MuonStub::DT_PHI_ETA;
-
+  stub.qualityHw = digi.quality();
   //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
   stub.phiHw = angleConverter->getProcessorPhi(
       OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, digi.scNum(), digi.phi());
@@ -119,8 +102,9 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   //stub.etaHw = angleConverter->getGlobalEta(detid, dtThDigis, digi.bxNum() - 20);
   //in phase2, the phiB is 13 bits, and range is [-2, 2 rad] so 4 rad, 2^13 units/(4 rad) =  1^11/rad.
   //need to convert them to 512units==1rad (to use OLD PATTERNS...)
+  float PHIB_CONV = 1. / 2048. * config->dtPhiBUnitsRad();
   if (stub.qualityHw >= config->getMinDtPhiBQuality())
-    stub.phiBHw = digi.phiBend() * config->dtPhiBUnitsRad() / 2048;
+    stub.phiBHw = digi.phiBend() >> 2;
   else
     stub.phiBHw = config->nPhiBins();
 
@@ -132,7 +116,7 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   stub.detId = detid;
 
   OmtfName board(iProcessor, config);
-  LogTrace("l1tOmtfEventPrint") << board.name() << " L1Phase2MuDTPhDigi: detid " << detid << " digi "
+  edm::LogVerbatim("l1tOmtfEventPrint") << board.name() << " L1Phase2MuDTPhDigi: detid " << detid << " digi "
                                 << " whNum " << digi.whNum() << " scNum " << digi.scNum() << " stNum " << digi.stNum()
                                 << " slNum " << digi.slNum() << " quality " << digi.quality() << " rpcFlag "
                                 << digi.rpcFlag() << " phi " << digi.phi() << " phiBend " << digi.phiBend()

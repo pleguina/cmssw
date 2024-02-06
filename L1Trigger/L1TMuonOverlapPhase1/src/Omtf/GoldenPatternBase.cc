@@ -47,7 +47,9 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
                                                      MuonStubPtrs1D layerStubs,
                                                      const std::vector<int>& extrapolatedPhi,
                                                      const MuonStubPtr& refStub) {
-  //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0) LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<key()<<this->getDistPhiBitShift(iLayer, iRefLayer)<<std::endl;
+  //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0) edm::LogVerbatim("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<key()<<this->getDistPhiBitShift(iLayer, iRefLayer)<<std::endl;
+
+
 
   int phiMean = this->meanDistPhiValue(iLayer, iRefLayer, refStub->phiBHw);
   int phiDistMin = myOmtfConfig->nPhiBins();  //1<<(myOmtfConfig->nPdfAddrBits()); //"infinite" value for the beginning
@@ -81,17 +83,18 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
     int phiDist = this->myOmtfConfig->foldPhi(hitPhi - extrapolatedPhi[iStub] - phiMean - phiRefHit);
     //for standard omtf foldPhi is not needed, but if one processor works for full phi then it is
     //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0)
-    /*LogTrace("l1tOmtfEventPrint") <<"\n"<<__FUNCTION__<<":"<<__LINE__<<" "<<theKey<<std::endl;
-    LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__
+    /* edm::LogVerbatim("l1tOmtfEventPrint") <<"\n"<<__FUNCTION__<<":"<<__LINE__<<" "<<theKey<<std::endl;
+    edm::LogVerbatim("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__
     		<<"  iRefLayer "<<iRefLayer<<" iLayer "<<iLayer
-    		<<" hitPhi "<<hitPhi<<" phiMean "<<phiMean<<" phiRefHit "<<phiRefHit<<" phiDist "<<phiDist<<std::endl;*/
-
+    		<<" hitPhi "<<hitPhi<<" phiMean "<<phiMean<<" phiRefHit "<<phiRefHit<<" phiDist "<<phiDist<<std::endl;
+ */
     //firmware works on the sign-value, shift must be done on abs(phiDist)
     int sign = phiDist < 0 ? -1 : 1;
     phiDist = abs(phiDist) >> this->getDistPhiBitShift(iLayer, iRefLayer);
     phiDist *= sign;
     //if the shift is done here, it means that the phiMean in the xml should be the same as without shift
-    //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0) std::cout<<__FUNCTION__<<":"<<__LINE__<<" phiDist "<<phiDist<<std::endl;
+    //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0) 
+    //edm::LogVerbatim("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" phiDist signed "<<phiDist<<std::endl;
     if (abs(phiDist) < abs(phiDistMin)) {
       phiDistMin = phiDist;
       selectedStub = stub;
@@ -100,8 +103,11 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
 
   if (!selectedStub) {
     PdfValueType pdfVal = 0;
-    if (this->myOmtfConfig->isNoHitValueInPdf())
+    //edm::LogVerbatim("l1tOmtfEventPrint") << "selectedStub not available -> PDF ADDRESS 0" << std::endl;
+    if (this->myOmtfConfig->isNoHitValueInPdf()){
       pdfVal = this->pdfValue(iLayer, iRefLayer, 0);
+      //edm::LogVerbatim("l1tOmtfEventPrint") << "pdfVal == " << pdfVal << " fired " << 0 << std::endl;
+    }
     return StubResult(pdfVal, false, myOmtfConfig->nPhiBins(), iLayer, selectedStub);
   }
 
@@ -109,12 +115,13 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
 
   /*  debug
   if(phiDistMin != 128 && iRefLayer == 0 && iLayer == 1)*/
-  /*LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iRefLayer "<<iRefLayer<<" iLayer "<<iLayer<<" selectedStub "<<*selectedStub
+  /*edm::LogVerbatim("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iRefLayer "<<iRefLayer<<" iLayer "<<iLayer<<" selectedStub "<<*selectedStub
 		  <<" phiDistMin "<<phiDistMin<<" phiMean "<<phiMean<<" shift "<<this->getDistPhiBitShift(iLayer, iRefLayer)<<std::endl;*/
 
   ///Check if phiDistMin is within pdf range -63 +63
   ///in firmware here the arithmetic "value and sign" is used, therefore the range is -63 +63, and not -64 +63
   if (abs(phiDistMin) > ((1 << (myOmtfConfig->nPdfAddrBits() - 1)) - 1)) {
+    //edm::LogVerbatim("l1tOmtfEventPrint") << "abs(phiDistMin) > (1 << (myOmtfConfig->nPdfAddrBits() - 1)) - 1  :  " << abs(phiDistMin) << ">" << ((1 << (myOmtfConfig->nPdfAddrBits() - 1)) - 1) << " fired " << 0 << std::endl;
     return StubResult(0, false, phiDistMin + pdfMiddle, iLayer, selectedStub);
 
     //return GoldenPatternResult::LayerResult(this->pdfValue(iLayer, iRefLayer, 0), false, phiDistMin + pdfMiddle, selHit);
@@ -124,8 +131,9 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
 
   ///Shift phidist, so 0 is at the middle of the range
   phiDistMin += pdfMiddle;
-  //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0) LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" phiDistMin "<<phiDistMin<<std::endl;
+  //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0) edm::LogVerbatim("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" phiDistMin "<<phiDistMin<<std::endl;
   PdfValueType pdfVal = this->pdfValue(iLayer, iRefLayer, phiDistMin);
+  //edm::LogVerbatim("l1tOmtfEventPrint") << " pdfMIddle :" << pdfMiddle << " Phidist+pdfMIddle :" << phiDistMin << " pdfVal :"<<pdfVal << " fired " << (pdfVal<= 0 ? 0 : 1)<<std::endl;
   if (pdfVal <= 0) {
     return StubResult(0, false, phiDistMin, iLayer, selectedStub);
   }
