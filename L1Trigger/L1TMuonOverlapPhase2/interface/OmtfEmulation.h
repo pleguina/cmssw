@@ -12,12 +12,13 @@
 #include "FWCore/Utilities/interface/EDGetToken.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFReconstruction.h"
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/OmtfPhase2AngleConverter.h"
+#include "L1Trigger/L1TMuonOverlapPhase2/interface/InputMakerPhase2.h"
 
 class OmtfEmulation : public OMTFReconstruction {
 public:
   OmtfEmulation(const edm::ParameterSet& edmParameterSet,
                 MuStubsInputTokens& muStubsInputTokens,
-                edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2);
+                MuStubsPhase2InputTokens& muStubsPhase2InputTokens);
 
   void beginJob();
 
@@ -28,8 +29,7 @@ public:
                     const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken) override;
 
 private:
-  edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2;
-
+  MuStubsPhase2InputTokens& muStubsPhase2InputTokens;
   unique_ptr<PtAssignmentBase> ptAssignment;
 };
 

@@ -23,6 +23,9 @@ L1TMuonOverlapPhase2TrackProducer::L1TMuonOverlapPhase2TrackProducer(const edm::
            mayConsume<L1MuDTChambThContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTTh")),
            consumes<CSCCorrelatedLCTDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcCSC")),
            consumes<RPCDigiCollection>(edmParameterSet.getParameter<edm::InputTag>("srcRPC"))}),
+      muStubsPhase2InputTokens(
+          {consumes<L1Phase2MuDTPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPhPhase2")),
+           consumes<L1Phase2MuDTThContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTThPhase2"))}),
       omtfParamsEsToken(esConsumes<L1TMuonOverlapParams, L1TMuonOverlapParamsRcd, edm::Transition::BeginRun>()),
       muonGeometryTokens({esConsumes<RPCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
                           esConsumes<CSCGeometry, MuonGeometryRecord, edm::Transition::BeginRun>(),
@@ -31,9 +34,7 @@ L1TMuonOverlapPhase2TrackProducer::L1TMuonOverlapPhase2TrackProducer(const edm::
       magneticFieldEsToken(esConsumes<MagneticField, IdealMagneticFieldRecord, edm::Transition::BeginRun>()),
       propagatorEsToken(esConsumes<Propagator, TrackingComponentsRecord, edm::Transition::BeginRun>(
           edm::ESInputTag("", "SteppingHelixPropagatorAlong"))),
-      omtfEmulation(edmParameterSet,
-                    muStubsInputTokens,
-                    consumes<L1Phase2MuDTPhContainer>(edmParameterSet.getParameter<edm::InputTag>("srcDTPhPhase2"))) {
+      omtfEmulation(edmParameterSet, muStubsInputTokens, muStubsPhase2InputTokens) {
   produces<l1t::RegionalMuonCandBxCollection>("OMTF");
 
   //it is needed for pattern generation and RootDataDumper

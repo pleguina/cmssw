@@ -17,14 +17,14 @@
 
 OmtfEmulation::OmtfEmulation(const edm::ParameterSet& edmParameterSet,
                              MuStubsInputTokens& muStubsInputTokens,
-                             edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2)
-    : OMTFReconstruction(edmParameterSet, muStubsInputTokens), inputTokenDTPhPhase2(inputTokenDTPhPhase2) {}
+                             MuStubsPhase2InputTokens& muStubsPhase2InputTokens)
+    : OMTFReconstruction(edmParameterSet, muStubsInputTokens), muStubsPhase2InputTokens(muStubsPhase2InputTokens) {}
 
 void OmtfEmulation::beginJob() {
   if (edmParameterSet.exists("usePhase2DTPrimitives") && edmParameterSet.getParameter<bool>("usePhase2DTPrimitives")) {
     inputMaker = std::make_unique<InputMakerPhase2>(edmParameterSet,
                                                     muStubsInputTokens,
-                                                    inputTokenDTPhPhase2,
+                                                    muStubsPhase2InputTokens,
                                                     omtfConfig.get(),
                                                     std::make_unique<OmtfPhase2AngleConverter>());
   } else {
