@@ -24,8 +24,6 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                              int bxFrom,
                                              int bxTo,
                                              std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
-  if (!dtPhDigis)
-    return;
 
   boost::property_tree::ptree procDataTree;
 
