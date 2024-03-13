@@ -119,6 +119,9 @@ bool omtfHitWithQualToEventInput(OmtfHit& hit, std::vector<float>& inputs, unsig
   int rangeFactor = 2;  //rangeFactor scales the hit.phiDist such that the event->inputs is smaller then 63
 
   if ((hit.layer == 1 || hit.layer == 3 || hit.layer == 5)) {
+    //if (!hit.valid)
+    //  return false;
+
     if (hit.quality < 2)  ///TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       return false;
 
@@ -135,8 +138,8 @@ bool omtfHitWithQualToEventInput(OmtfHit& hit, std::vector<float>& inputs, unsig
       //rangeFactor *= 4;
     }
   } else {
-    if (!hit.valid)
-      return false;
+    //if (!hit.valid)
+    //  return false;
 
     if ((hit.layer == 0 || hit.layer == 2 || hit.layer == 3)) {
       if (hit.quality >= 4) {

@@ -179,7 +179,7 @@ namespace lutNN {
         //std::cout<<__FUNCTION__<<":"<<__LINE__<<" "<<name<<" "<<"iOut "<<iOut<<" lutOutSumArray[i] "<<lutOutSumArray[iOut]<<" outputArray[i] "<<outputArray[iOut]<<std::endl;
         if (outputArray[iOut] > (max_ap_ufixed<output_W, output_I>() - 1)) {
           outputArray[iOut] = max_ap_ufixed<output_W, output_I>() - 1;
-          std::cout << __FUNCTION__ << ":" << __LINE__ << " " << name << " "
+          edm::LogVerbatim("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " " << name << " "
                     << "iOut " << iOut << " lutOutSumArray[i] " << lutOutSumArray[iOut] << " outputArray[i] "
                     << outputArray[iOut] << " max_ap_ufixed " << max_ap_ufixed<output_W, output_I>()
                     << " <<<<<<<<<<<<<<<" << std::endl;

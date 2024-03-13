@@ -146,6 +146,7 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
 
         //for the DT stubs, if there is no eta, the middle of the chamber is set as the stub eta, i.e. 75, 79 or 92 respectively
         //in this case the eta can be replaced by the eta from the killed algoMuon
+        //TODO add 95 meaning no DT segment was found, or don't use 95 in OmtfAngleConverter::getGlobalEta
         if (omtfConfig->getRefToLogicNumber()[muIN1->getRefLayer()] <= 5 && (omtfConfig->fwVersion() >= 6) &&
             ((abs(muIN1->getEtaHw()) == 75 || abs(muIN1->getEtaHw()) == 79 || abs(muIN1->getEtaHw()) == 92)) &&
             ((abs(muIN2->getEtaHw()) != 75 && abs(muIN2->getEtaHw()) != 79 &&

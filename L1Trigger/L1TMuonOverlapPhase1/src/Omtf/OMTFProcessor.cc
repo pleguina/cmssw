@@ -109,9 +109,12 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
 
     //the charge is only for the constrained measurement. The constrained measurement is always defined for a valid candidate
     if (ptAssignment) {
-      candidate.setHwPt(myCand->getPtNNConstr());
-      if (myCand->getPdfSumConstr() == 0 && myCand->getPtUnconstr() > 0)
+      if (myCand->getPdfSumConstr() > 0 && myCand->getFiredLayerCntConstr() >= 3)
+        candidate.setHwPt(myCand->getPtNNConstr());
+      else if (myCand->getPtUnconstr() > 0)
         candidate.setHwPt(1);
+      else
+        candidate.setHwPt(0);
 
       candidate.setHwSign(myCand->getChargeNNConstr() < 0 ? 1 : 0);
     } else {

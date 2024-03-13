@@ -38,23 +38,32 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     if (digiIt.bxNum() - 20 >= bxFrom && digiIt.bxNum() - 20 <= bxTo) {
       addDTphiDigi(muonStubsInLayers, digiIt, dtThDigis.product(), iProcessor, procTyp);
 
-      auto& dtP2Digi = procDataTree.add_child("dtP2Digi", boost::property_tree::ptree());
-      dtP2Digi.add("<xmlattr>.whNum", digiIt.whNum());
-      dtP2Digi.add("<xmlattr>.scNum", digiIt.scNum());
-      dtP2Digi.add("<xmlattr>.stNum", digiIt.stNum());
-      dtP2Digi.add("<xmlattr>.slNum", digiIt.slNum());
-      dtP2Digi.add("<xmlattr>.quality", digiIt.quality());
-      dtP2Digi.add("<xmlattr>.rpcFlag", digiIt.rpcFlag());
-      dtP2Digi.add("<xmlattr>.phi", digiIt.phi());
-      dtP2Digi.add("<xmlattr>.phiBend", digiIt.phiBend());
+      auto& dtP2PhiDigi = procDataTree.add_child("dtP2PhiDigi", boost::property_tree::ptree());
+      dtP2PhiDigi.add("<xmlattr>.whNum", digiIt.whNum());
+      dtP2PhiDigi.add("<xmlattr>.scNum", digiIt.scNum());
+      dtP2PhiDigi.add("<xmlattr>.stNum", digiIt.stNum());
+      dtP2PhiDigi.add("<xmlattr>.slNum", digiIt.slNum());
+      dtP2PhiDigi.add("<xmlattr>.quality", digiIt.quality());
+      dtP2PhiDigi.add("<xmlattr>.rpcFlag", digiIt.rpcFlag());
+      dtP2PhiDigi.add("<xmlattr>.phi", digiIt.phi());
+      dtP2PhiDigi.add("<xmlattr>.phiBend", digiIt.phiBend());
     }
   }
 
-  if (!mergePhiAndTheta) {
-    for (auto& thetaDigi : (*(dtThDigis->getContainer()))) {
-      if (thetaDigi.bxNum() >= bxFrom && thetaDigi.bxNum() <= bxTo) {
+  for (auto& thetaDigi : (*(dtThDigis->getContainer()))) {
+    if (thetaDigi.bxNum() - 20  >= bxFrom && thetaDigi.bxNum() - 20  <= bxTo) {
+      if (!mergePhiAndTheta) {
         addDTetaStubs(muonStubsInLayers, thetaDigi, iProcessor, procTyp);
       }
+
+      auto& dtP2ThDigi = procDataTree.add_child("dtP2ThDigi", boost::property_tree::ptree());
+      dtP2ThDigi.add("<xmlattr>.whNum", thetaDigi.whNum());
+      dtP2ThDigi.add("<xmlattr>.scNum", thetaDigi.scNum());
+      dtP2ThDigi.add("<xmlattr>.stNum", thetaDigi.stNum());
+      dtP2ThDigi.add("<xmlattr>.quality", thetaDigi.quality());
+      dtP2ThDigi.add("<xmlattr>.rpcFlag", thetaDigi.rpcFlag());
+      dtP2ThDigi.add("<xmlattr>.k", thetaDigi.k());
+      dtP2ThDigi.add("<xmlattr>.z", thetaDigi.z());
     }
   }
 
