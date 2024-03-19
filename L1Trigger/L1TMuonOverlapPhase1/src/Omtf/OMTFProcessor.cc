@@ -481,8 +481,10 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
     phiExtr = round(deltaPhiExtr / omtfConfig->omtfPhiUnit());                         //[halfStrip]
 
     if (useEndcapStubsRInExtr) {
-      extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubEta)] += extrFactor;
-      extrapolFactorsNorm[reflLayerIndex][targetLayer][abs(targetStubEta)]++;
+      //extrapolFactors[reflLayerIndex][targetLayer][std::abs(targetStubEta)] += extrFactor;
+      //extrapolFactorsNorm[reflLayerIndex][targetLayer][std::abs(targetStubEta)]++;
+      extrapolFactors[reflLayerIndex][targetLayer][std::abs(rME)] += extrFactor;
+      extrapolFactorsNorm[reflLayerIndex][targetLayer][std::abs(rME)]++;
       //extrapolFactors[reflLayerIndex][targetLayer][0] += extrFactor;
       //extrapolFactorsNorm[reflLayerIndex][targetLayer][0]++;
     } else {
@@ -538,7 +540,8 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
     if (useEndcapStubsRInExtr) {
       //if given abs(targetStubEta) value is not present in the map, it is added with default value of 0
       //so it should be good. The only problem is that the map can grow...
-      extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubEta)];
+      //extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubEta)];
+      extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubR)];
     } else {
       extrFactor = extrapolFactors[reflLayerIndex][targetLayer][0];
     }

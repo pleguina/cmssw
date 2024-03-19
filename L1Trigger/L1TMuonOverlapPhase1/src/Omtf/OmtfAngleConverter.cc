@@ -206,13 +206,15 @@ int OmtfAngleConverter::getGlobalEta(unsigned int rawid, const CSCCorrelatedLCTD
   const GlobalPoint final_gp(
       GlobalPoint::Polar(coarse_gp.theta(), (coarse_gp.phi().value() + phi_offset), coarse_gp.mag()));
 
-  r = final_gp.perp();
+  //r = final_gp.perp();
 
   if (config->getStubEtaEncoding() == ProcConfigurationBase::StubEtaEncoding::bits)
     return OMTFConfiguration::eta2Bits(abs(etaKeyWG2Code(id, keyWG)));
   else if (config->getStubEtaEncoding() == ProcConfigurationBase::StubEtaEncoding::valueP1Scale) {
+    //TODO add firmware like, fixed point conversion from keyWG to eta and r
     const LocalPoint lpWg = layer_geom->localCenterOfWireGroup(keyWG);
     const GlobalPoint gpWg = layer->surface().toGlobal(lpWg);
+    r = round(gpWg.perp());
 
     return config->etaToHwEta(abs(gpWg.eta()));
   } else {

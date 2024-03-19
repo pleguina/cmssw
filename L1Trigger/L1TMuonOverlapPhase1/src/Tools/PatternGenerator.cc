@@ -132,6 +132,9 @@ void PatternGenerator::updateStat() {
     throw runtime_error("algoMuon is null");
   }
 
+  simMuEta->Fill(simMuon->momentum().eta());
+  candEta->Fill(omtfConfig->hwEtaToEta(regionalMuonCand.hwEta()));
+
   double ptSim = simMuon->momentum().pt();
   int chargeSim = (abs(simMuon->type()) == 13) ? simMuon->type() / -13 : 0;
 
@@ -217,6 +220,8 @@ void PatternGenerator::updateStatUsingMatcher2() {
       double muDxy = (-1 * matchingResult.simVertex->position().x() * matchingResult.simTrack->momentum().py() +
                       matchingResult.simVertex->position().y() * matchingResult.simTrack->momentum().px()) /
                      matchingResult.simTrack->momentum().pt();
+
+      simMuEta->Fill(matchingResult.simTrack->momentum().eta());
 
       simMuPtVsDispl->Fill(matchingResult.simTrack->momentum().pt(), muDxy);
       simMuPtVsRho->Fill(matchingResult.simTrack->momentum().pt(), matchingResult.simVertex->position().rho());
@@ -563,19 +568,20 @@ void PatternGenerator::upadatePdfs() {
             //then higher value of shift can be avoided (sometimes). So this is just a simple trick
             meanDistPhi /= norm;
 
-            //setting the meanDistPhi to 0 if it is already small - this should save logic in FPGA
+            /*
+            //setting the meanDistPhi to 0 if it is already small - this should save logic in FPGA - but seems it does not
             if (iLayer == 2) {
               //the meanDistPhi for the iLayer == 2 i.e. MB2 is used to calculate the algoMuon output phi
               //therefore it is not zero-ed, as it will affect this output phi, phi and thus e.g. ghostbusting
             } else if (abs(round(meanDistPhi)) <= 3)
               meanDistPhi = 0;
             else if (goldenPatterns.at(patternGroups[iGroup][0]).get()->key().thePt >= 13) {
-              //RPC layers, one strip is 4.7 units, the minimal possinle spacing between two RPC hits is 2 strips
+              //RPC layers, one strip is 4.7 units, the minimal possible spacing between two RPC hits is 2 strips
               if (iLayer >= 10 && abs(round(meanDistPhi)) <= 8)
                 meanDistPhi = 0;
               else if (abs(round(meanDistPhi)) <= 5)
                 meanDistPhi = 0;
-            }
+            } */
 
             for (unsigned int i = 0; i < patternGroups[iGroup].size(); i++) {
               auto gp = goldenPatterns.at(patternGroups[iGroup][i]).get();

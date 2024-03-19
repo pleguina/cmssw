@@ -145,12 +145,15 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
         refHitCleanCandsFixedEta[iMu1]->getKilledMuons().emplace_back(muIN2);
 
         //for the DT stubs, if there is no eta, the middle of the chamber is set as the stub eta, i.e. 75, 79 or 92 respectively
-        //in this case the eta can be replaced by the eta from the killed algoMuon
+        //in this case the eta can be replaced by the eta from the killed algoMuon.
+        //Eta 121 is outside of the OMTF region, therefore all candidates with this eta have quality 0,
+        //so there is no sense to assign this eta to the candidates with eta 75, 79 or 92.
+        //The condition  abs(muIN2->getEtaHw()) != 121 was added in the FW in 2024
         //TODO add 95 meaning no DT segment was found, or don't use 95 in OmtfAngleConverter::getGlobalEta
         if (omtfConfig->getRefToLogicNumber()[muIN1->getRefLayer()] <= 5 && (omtfConfig->fwVersion() >= 6) &&
-            ((abs(muIN1->getEtaHw()) == 75 || abs(muIN1->getEtaHw()) == 79 || abs(muIN1->getEtaHw()) == 92)) &&
-            ((abs(muIN2->getEtaHw()) != 75 && abs(muIN2->getEtaHw()) != 79 &&
-              abs(muIN2->getEtaHw()) != 92))) {  //FIXME condition in this do not affects the final result
+            (abs(muIN1->getEtaHw()) == 75 || abs(muIN1->getEtaHw()) == 79 || abs(muIN1->getEtaHw()) == 92) &&
+            (abs(muIN2->getEtaHw()) != 75 && abs(muIN2->getEtaHw()) != 79 && abs(muIN2->getEtaHw()) != 92 &&
+                abs(muIN2->getEtaHw()) != 121)) {
 
           muIN1->setEta(muIN2->getEtaHw());
         }
