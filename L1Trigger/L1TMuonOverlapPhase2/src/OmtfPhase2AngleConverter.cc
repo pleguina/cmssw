@@ -39,6 +39,7 @@ int OmtfPhase2AngleConverter::getGlobalEta(DTChamberId dTChamberId,
   float eta = -999;
   // get the theta digi
   bool foundeta = false;
+  int thetaDigiCnt = 0;
   for (const auto& thetaDigi : (*(dtThDigis->getContainer()))) {
     if (thetaDigi.whNum() == dTChamberId.wheel() && thetaDigi.stNum() == dTChamberId.station() &&
         thetaDigi.scNum() == (dTChamberId.sector() - 1) && (thetaDigi.bxNum() - 20) == bxNum) {
@@ -48,13 +49,37 @@ int OmtfPhase2AngleConverter::getGlobalEta(DTChamberId dTChamberId,
       eta = -1. * sign * log(fabs(tan(atan(1 / k) / 2.)));
       LogTrace("OMTFReconstruction") << "OmtfPhase2AngleConverter::getGlobalEta(" << dTChamberId << ") eta: " << eta
                                      << " k: " << k << " thetaDigi.k(): " << thetaDigi.k();
-      foundeta = true;
+
+      thetaDigiCnt++;
+      //checking if the obtained eta has reasonable range - temporary fix
+      if ( (dTChamberId.station() == 1 && (std::abs(eta) < 0.85 || std::abs(eta) > 1.20) ) ||
+           (dTChamberId.station() == 2 && (std::abs(eta) < 0.75 || std::abs(eta) > 1.04) ) ||
+           (dTChamberId.station() == 3 && (std::abs(eta) < 0.63 || std::abs(eta) > 0.92) )    ) {
+        foundeta = false;
+        edm::LogVerbatim("OMTFReconstruction") << "OmtfPhase2AngleConverter::getGlobalEta(" << dTChamberId << ") wrong output eta: " << eta
+                                     << " k: " << k << " thetaDigi.k(): " << thetaDigi.k()<<" quality "<<thetaDigi.quality();
+      }
+      else
+        foundeta = true;
     }
   }
+
+  //if more than 1 thetaDigi per given chamber - we don't use them, as they are ambiguous and we have no way to match them to the phi digis
+  if(thetaDigiCnt > 1)
+    foundeta = false;
+
   if (foundeta) {
-    return abs(etaVal2CodePhase2(eta));
+    return std::abs(etaVal2CodePhase2(eta));
   } else {
-    return 0;
+    //Returning eta of the chamber middle
+    if (dTChamberId.station() == 1)
+      eta = 92;
+    else if (dTChamberId.station() == 2)
+      eta = 79;
+    else if (dTChamberId.station() == 3)
+      eta = 75;
+
+    return eta;
   }
-  return -999;
+  return 95;
 }
