@@ -24,6 +24,8 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                              int bxFrom,
                                              int bxTo,
                                              std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+  if (!dtPhDigis)
+    return;
 
   boost::property_tree::ptree procDataTree;
 
@@ -38,34 +40,28 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     if (digiIt.bxNum() - 20 >= bxFrom && digiIt.bxNum() - 20 <= bxTo) {
       addDTphiDigi(muonStubsInLayers, digiIt, dtThDigis.product(), iProcessor, procTyp);
 
-      auto& dtP2PhiDigi = procDataTree.add_child("dtP2PhiDigi", boost::property_tree::ptree());
-      dtP2PhiDigi.add("<xmlattr>.whNum", digiIt.whNum());
-      dtP2PhiDigi.add("<xmlattr>.scNum", digiIt.scNum());
-      dtP2PhiDigi.add("<xmlattr>.stNum", digiIt.stNum());
-      dtP2PhiDigi.add("<xmlattr>.slNum", digiIt.slNum());
-      dtP2PhiDigi.add("<xmlattr>.quality", digiIt.quality());
-      dtP2PhiDigi.add("<xmlattr>.rpcFlag", digiIt.rpcFlag());
-      dtP2PhiDigi.add("<xmlattr>.phi", digiIt.phi());
-      dtP2PhiDigi.add("<xmlattr>.phiBend", digiIt.phiBend());
+      auto& dtP2Digi = procDataTree.add_child("dtP2Digi", boost::property_tree::ptree());
+      dtP2Digi.add("<xmlattr>.whNum", digiIt.whNum());
+      dtP2Digi.add("<xmlattr>.scNum", digiIt.scNum());
+      dtP2Digi.add("<xmlattr>.stNum", digiIt.stNum());
+      dtP2Digi.add("<xmlattr>.slNum", digiIt.slNum());
+      dtP2Digi.add("<xmlattr>.quality", digiIt.quality());
+      dtP2Digi.add("<xmlattr>.rpcFlag", digiIt.rpcFlag());
+      dtP2Digi.add("<xmlattr>.phi", digiIt.phi());
+      dtP2Digi.add("<xmlattr>.phiBend", digiIt.phiBend());
     }
   }
 
-  for (auto& thetaDigi : (*(dtThDigis->getContainer()))) {
-    if (thetaDigi.bxNum() - 20  >= bxFrom && thetaDigi.bxNum() - 20  <= bxTo) {
-      if (!mergePhiAndTheta) {
+  if (!mergePhiAndTheta) {
+    for (auto& thetaDigi : (*(dtThDigis->getContainer()))) {
+      if (thetaDigi.bxNum() >= bxFrom && thetaDigi.bxNum() <= bxTo) {
         addDTetaStubs(muonStubsInLayers, thetaDigi, iProcessor, procTyp);
       }
-
-      auto& dtP2ThDigi = procDataTree.add_child("dtP2ThDigi", boost::property_tree::ptree());
-      dtP2ThDigi.add("<xmlattr>.whNum", thetaDigi.whNum());
-      dtP2ThDigi.add("<xmlattr>.scNum", thetaDigi.scNum());
-      dtP2ThDigi.add("<xmlattr>.stNum", thetaDigi.stNum());
-      dtP2ThDigi.add("<xmlattr>.quality", thetaDigi.quality());
-      dtP2ThDigi.add("<xmlattr>.rpcFlag", thetaDigi.rpcFlag());
-      dtP2ThDigi.add("<xmlattr>.k", thetaDigi.k());
-      dtP2ThDigi.add("<xmlattr>.z", thetaDigi.z());
     }
   }
+  //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
+  //angleConverter->AngleConverterBase::getGlobalEta(dtThDigis, 0, 0);std::endl;
+  //angleConverter->AngleConverterBase::getGlobalEta(dtThDigis, 0, 0);
 
   for (auto& obs : observers)
     obs->addProcesorData("linkData", procDataTree);
@@ -74,51 +70,43 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
 //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
 void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
                                                     const L1Phase2MuDTPhDigi& digi,
-                                                    const L1Phase2MuDTThContainer* dtThDigis,
+                                                    const L1MuDTChambThContainer* dtThDigis,
                                                     unsigned int iProcessor,
                                                     l1t::tftype procTyp) {
   DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum() + 1);
 
-  MuonStub stub;
+   if (digi.quality() < config->getMinDtPhiQuality())
+      return;
 
-  //converting the quality to the same encoding as in phase-1, as it is important for extrapolation
-  if (digi.quality() >= 6)
-    stub.qualityHw = digi.quality() - 2;
-  else if (digi.quality() >= 3) {
-    if (digi.slNum() == 3)
-      stub.qualityHw = 3;
-    else if (digi.slNum() == 1)
-      stub.qualityHw = 2;
-  } else {
-    if (digi.slNum() == 3)
-      stub.qualityHw = 1;
-    else if (digi.slNum() == 1)
-      stub.qualityHw = 0;
-  }
-
-  if (stub.qualityHw < config.getMinDtPhiQuality())
+  unsigned int hwNumber = config->getLayerNumber(detid.rawId());
+  if (config->getHwToLogicLayer().find(hwNumber) == config->getHwToLogicLayer().end())
     return;
 
-  unsigned int hwNumber = config.getLayerNumber(detid.rawId());
-  if (config.getHwToLogicLayer().find(hwNumber) == config.getHwToLogicLayer().end())
-    return;
-
-  auto iter = config.getHwToLogicLayer().find(hwNumber);
+  auto iter = config->getHwToLogicLayer().find(hwNumber);
   unsigned int iLayer = iter->second;
-  unsigned int iInput = OMTFinputMaker::getInputNumber(&config, detid.rawId(), iProcessor, procTyp);
+  unsigned int iInput = OMTFinputMaker::getInputNumber(config, detid.rawId(), iProcessor, procTyp);
   //MuonStub& stub = muonStubsInLayers[iLayer][iInput];
-
+  MuonStub stub;
   stub.type = MuonStub::DT_PHI_ETA;
+  stub.qualityHw = digi.quality();
+  //std::cout<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
+  stub.phiHw = angleConverter->getProcessorPhi(
+      OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, digi.scNum(), digi.phi());
+  //stub.etaHw  =  angleConverter->getGlobalEta(digi, dtThDigis);
 
-  stub.phiHw = angleConverter.getProcessorPhi(
-      OMTFinputMaker::getProcessorPhiZero(&config, iProcessor), procTyp, digi.scNum(), digi.phi());
-
-  stub.etaHw = angleConverter.getGlobalEta(detid, dtThDigis, digi.bxNum() - 20, digi.t0());
+  //TODO the dtThDigis are not good yet,so passing an empty container to the angleConverter
+  //then it should return middle of chambers
+  //remove when the dtThDigis are fixed on the DT side
+  L1MuDTChambThContainer dtThDigisEmpty;
+  stub.etaHw = angleConverter->getGlobalEta(detid, &dtThDigisEmpty, digi.bxNum() - 20);
+  //stub.etaHw = angleConverter->getGlobalEta(detid, dtThDigis, digi.bxNum() - 20);
   //in phase2, the phiB is 13 bits, and range is [-2, 2 rad] so 4 rad, 2^13 units/(4 rad) =  1^11/rad.
   //need to convert them to 512units==1rad (to use OLD PATTERNS...)
-  stub.phiBHw = digi.phiBend() * config.dtPhiBUnitsRad() / 2048;
-  //the cut if (stub.qualityHw >= config.getMinDtPhiBQuality()) is done in the ProcessorBase<GoldenPatternType>::restrictInput
-  //as is is done like that in the firmware
+  float PHIB_CONV = 1. / 2048. * config->dtPhiBUnitsRad();
+  if (stub.qualityHw >= config->getMinDtPhiBQuality())
+    stub.phiBHw = digi.phiBend() >> 2;
+  else
+    stub.phiBHw = config->nPhiBins();
 
   // need to shift 20-BX to roll-back the shift introduced by the DT TPs
   stub.bx = digi.bxNum() - 20;
@@ -127,20 +115,17 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   stub.logicLayer = iLayer;
   stub.detId = detid;
 
-  OmtfName board(iProcessor, &config);
-  LogTrace("l1tOmtfEventPrint") << board.name() << " L1Phase2MuDTPhDigi: detid " << detid << " digi "
+  OmtfName board(iProcessor, config);
+  edm::LogVerbatim("l1tOmtfEventPrint") << board.name() << " L1Phase2MuDTPhDigi: detid " << detid << " digi "
                                 << " whNum " << digi.whNum() << " scNum " << digi.scNum() << " stNum " << digi.stNum()
                                 << " slNum " << digi.slNum() << " quality " << digi.quality() << " rpcFlag "
                                 << digi.rpcFlag() << " phi " << digi.phi() << " phiBend " << digi.phiBend()
                                 << std::endl;
-  LogTrace("l1tOmtfEventPrint") << board.name() << " stub: detid " << detid << " phi " << stub.phiHw << " eta "
-                                << stub.etaHw << " phiB " << stub.phiBHw << " bx " << stub.bx << " quality "
-                                << stub.qualityHw << " logicLayer " << stub.logicLayer << std::endl;
-  OMTFinputMaker::addStub(&config, muonStubsInLayers, iLayer, iInput, stub);
+  OMTFinputMaker::addStub(config, muonStubsInLayers, iLayer, iInput, stub);
 }
 
 void DtPhase2DigiToStubsConverterOmtf::addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers,
-                                                     const L1Phase2MuDTThDigi& thetaDigi,
+                                                     const L1MuDTChambThDigi& thetaDigi,
                                                      unsigned int iProcessor,
                                                      l1t::tftype procTyp) {
   //in the Phase1 omtf the theta stubs are merged with the phi in the addDTphiDigi
@@ -150,16 +135,25 @@ void DtPhase2DigiToStubsConverterOmtf::addDTetaStubs(MuonStubPtrs2D& muonStubsIn
 bool DtPhase2DigiToStubsConverterOmtf::acceptDigi(const DTChamberId& dTChamberId,
                                                   unsigned int iProcessor,
                                                   l1t::tftype procType) {
-  return OMTFinputMaker::acceptDtDigi(&config, dTChamberId, iProcessor, procType);
+  return OMTFinputMaker::acceptDtDigi(config, dTChamberId, iProcessor, procType);
 }
 
 InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
                                    MuStubsInputTokens& muStubsInputTokens,
-                                   MuStubsPhase2InputTokens& muStubsPhase2InputTokens,
+                                   edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDTPhPhase2,
                                    const OMTFConfiguration* config,
                                    std::unique_ptr<OmtfAngleConverter> angleConverter)
     : OMTFinputMaker(edmParameterSet, muStubsInputTokens, config, std::move(angleConverter)) {
   edm::LogImportant("OMTFReconstruction") << "constructing InputMakerPhase2" << std::endl;
+
+  /*  if(!edmParameterSet.getParameter<bool>("dropDTPrimitives"))
+    digiToStubsConverters.emplace_back(std::make_unique<DtDigiToStubsConverterOmtf>(config, &angleConverter, muStubsInputTokens.inputTokenDtPh, muStubsInputTokens.inputTokenDtTh));
+
+  if(!edmParameterSet.getParameter<bool>("dropCSCPrimitives"))
+    digiToStubsConverters.emplace_back(std::make_unique<CscDigiToStubsConverterOmtf>(config, &angleConverter, muStubsInputTokens.inputTokenCSC));
+
+  if(!edmParameterSet.getParameter<bool>("dropRPCPrimitives"))
+    digiToStubsConverters.emplace_back(std::make_unique<RpcDigiToStubsConverterOmtf>(config, &angleConverter, &rpcClusterization, muStubsInputTokens.inputTokenRPC));*/
 
   if (edmParameterSet.exists("usePhase2DTPrimitives") && edmParameterSet.getParameter<bool>("usePhase2DTPrimitives")) {
     if (edmParameterSet.getParameter<bool>("dropDTPrimitives") != true)
@@ -168,11 +162,11 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
           "is not true");
     //if the Phase2DTPrimitives are used, then the phase1 DT primitives should be dropped
     edm::LogImportant("OMTFReconstruction") << " using Phase2 DT trigger primitives" << std::endl;
-
     digiToStubsConverters.emplace_back(std::make_unique<DtPhase2DigiToStubsConverterOmtf>(
-        config,
-        dynamic_cast<OmtfPhase2AngleConverter*>(this->angleConverter.get()),
-        muStubsPhase2InputTokens.inputTokenDtPh,
-        muStubsPhase2InputTokens.inputTokenDtTh));
+        config, this->angleConverter.get(), inputTokenDTPhPhase2, muStubsInputTokens.inputTokenDtTh));
   }
+}
+
+InputMakerPhase2::~InputMakerPhase2() {
+  // TODO Auto-generated destructor stub
 }
