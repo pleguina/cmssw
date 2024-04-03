@@ -1,0 +1,63 @@
+
+<OMTF version="0x0004">
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="7" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="8" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="9" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="10" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="11" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="13" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="15" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="17" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="21" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="25" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="29" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="33" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="37" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="41" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="45" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="49" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="53" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="57" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="61" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="71" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="81" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="91" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="101" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="121" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="141" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="161" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="201" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="1" iEta="0" iPhi="0" iPt1="401" iPt2="0" iPt3="0" iPt4="0"/>
+
+
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="7" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="8" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="9" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="10" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="11" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="13" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="15" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="17" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="21" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="25" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="29" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="33" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="37" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="41" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="45" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="49" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="53" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="57" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="61" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="71" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="81" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="91" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="101" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="121" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="141" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="161" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="201" iPt2="0" iPt3="0" iPt4="0"/>
+  <GP iCharge="-1" iEta="0" iPhi="0" iPt1="401" iPt2="0" iPt3="0" iPt4="0"/>
+
+</OMTF>
+

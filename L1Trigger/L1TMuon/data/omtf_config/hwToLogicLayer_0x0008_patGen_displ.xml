@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<OMTF xmlns:xi="http://www.w3.org/2001/XInclude" version="0x0008">
+
+<GlobalData nPdfAddrBits="7" nPdfValBits="6" nHitsPerLayer="8" nPhiBits="11" nPhiBins="5400" nRefHits="12" nTestRefHits="1" nProcessors="6" nLogicRegions="6" nInputs="14" nLayers="18" nRefLayers="1" nGoldenPatterns="224"/>
+
+<ConnectionMap iProcessor="0" barrelMin="1"  barrelMax="3"  endcap10DegMin="2"  endcap10DegMax="8"  endcap20DegMin="1" endcap20DegMax="4"/>
+<ConnectionMap iProcessor="1" barrelMin="3"  barrelMax="5"  endcap10DegMin="8"  endcap10DegMax="14" endcap20DegMin="4" endcap20DegMax="7"/>
+<ConnectionMap iProcessor="2" barrelMin="5"  barrelMax="7"  endcap10DegMin="14" endcap10DegMax="20" endcap20DegMin="7" endcap20DegMax="10"/>
+<ConnectionMap iProcessor="3" barrelMin="7"  barrelMax="9"  endcap10DegMin="20" endcap10DegMax="26" endcap20DegMin="10" endcap20DegMax="13"/>
+<ConnectionMap iProcessor="4" barrelMin="9"  barrelMax="11" endcap10DegMin="26" endcap10DegMax="32" endcap20DegMin="13" endcap20DegMax="16"/>
+<ConnectionMap iProcessor="5" barrelMin="11" barrelMax="1"  endcap10DegMin="32" endcap10DegMax="2"  endcap20DegMin="16" endcap20DegMax="1"/>
+
+<LayerMap hwName = "MB1"    hwNumber = "101"  logicNumber = "0"  bendingLayer = "0" connectedToLayer="1"/>
+<LayerMap hwName = "MB1b"   hwNumber = "1101" logicNumber = "1"  bendingLayer = "1" connectedToLayer="0"/>
+<LayerMap hwName = "MB2"    hwNumber = "102"  logicNumber = "2"  bendingLayer = "0" connectedToLayer="3"/>
+<LayerMap hwName = "MB2b"   hwNumber = "1102" logicNumber = "3"  bendingLayer = "1" connectedToLayer="2"/>
+<LayerMap hwName = "MB3"    hwNumber = "103"  logicNumber = "4"  bendingLayer = "0" connectedToLayer="5"/>
+<LayerMap hwName = "MB3b"   hwNumber = "1103" logicNumber = "5"  bendingLayer = "1" connectedToLayer="4"/>
+<LayerMap hwName = "ME1/3"  hwNumber = "201"  logicNumber = "6"  bendingLayer = "0" connectedToLayer="6"/>
+<LayerMap hwName = "ME2/2"  hwNumber = "202"  logicNumber = "7"  bendingLayer = "0" connectedToLayer="7"/>
+<LayerMap hwName = "ME3/2"  hwNumber = "203"  logicNumber = "8"  bendingLayer = "0" connectedToLayer="8"/>
+<LayerMap hwName = "ME1/2"  hwNumber = "2011"  logicNumber = "9"  bendingLayer = "0" connectedToLayer="9"/>
+<LayerMap hwName = "RB1in"  hwNumber = "301"  logicNumber = "10" bendingLayer = "0" connectedToLayer="10"/>
+<LayerMap hwName = "RB1out" hwNumber = "302"  logicNumber = "11" bendingLayer = "0" connectedToLayer="11"/>
+<LayerMap hwName = "RB2in"  hwNumber = "303"  logicNumber = "12" bendingLayer = "0" connectedToLayer="12"/>
+<LayerMap hwName = "RB2out" hwNumber = "304"  logicNumber = "13" bendingLayer = "0" connectedToLayer="13"/>
+<LayerMap hwName = "RB3"    hwNumber = "305"  logicNumber = "14" bendingLayer = "0" connectedToLayer="14"/>
+<LayerMap hwName = "RE1/3"  hwNumber = "311"  logicNumber = "15" bendingLayer = "0" connectedToLayer="15"/>
+<LayerMap hwName = "RE2/3"  hwNumber = "312"  logicNumber = "16" bendingLayer = "0" connectedToLayer="16"/>
+<LayerMap hwName = "RE3/3"  hwNumber = "313"  logicNumber = "17" bendingLayer = "0" connectedToLayer="17"/>
+
+<RefLayerMap refLayer="0" logicNumber ="0"/>
+<!--
+<RefLayerMap refLayer="1" logicNumber ="7"/>
+<RefLayerMap refLayer="2" logicNumber ="2"/>
+<RefLayerMap refLayer="3" logicNumber ="6"/>
+<RefLayerMap refLayer="4" logicNumber ="16"/>
+<RefLayerMap refLayer="5" logicNumber ="4"/>
+<RefLayerMap refLayer="6" logicNumber ="10"/>
+<RefLayerMap refLayer="7" logicNumber ="11"/> -->
+
+  <Processor iProcessor="0">
+    <RefLayer iGlobalPhiStart="354" iRefLayer="0"/>
+<!--    <RefLayer iGlobalPhiStart="235" iRefLayer="1"/>
+    <RefLayer iGlobalPhiStart="230" iRefLayer="2"/>
+    <RefLayer iGlobalPhiStart="258" iRefLayer="3"/>
+    <RefLayer iGlobalPhiStart="242" iRefLayer="4"/>
+    <RefLayer iGlobalPhiStart="295" iRefLayer="5"/>
+    <RefLayer iGlobalPhiStart="338" iRefLayer="6"/>
+    <RefLayer iGlobalPhiStart="340" iRefLayer="7"/> -->
+
+    <!-- iRefLayer=0 logicNumber=0 hwName="MB1" -->
+    <RefHit iInput="2"  iPhiMax="149" iPhiMin="-99" iRefHit="0"  iRefLayer="0" iRegion="0"/> <!-- extended -->
+    <RefHit iInput="3"  iPhiMax="149" iPhiMin="-99" iRefHit="1"  iRefLayer="0" iRegion="0"/> <!-- extended -->
+    <RefHit iInput="2"  iPhiMax="299" iPhiMin="150" iRefHit="2"  iRefLayer="0" iRegion="1"/>
+    <RefHit iInput="3"  iPhiMax="299" iPhiMin="150" iRefHit="3"  iRefLayer="0" iRegion="1"/>
+    <RefHit iInput="2"  iPhiMax="549" iPhiMin="300" iRefHit="4"  iRefLayer="0" iRegion="2"/> <!-- extended -->
+    <RefHit iInput="3"  iPhiMax="549" iPhiMin="300" iRefHit="5"  iRefLayer="0" iRegion="2"/> <!-- extended -->
+    <RefHit iInput="4"  iPhiMax="599" iPhiMin="350" iRefHit="6"  iRefLayer="0" iRegion="3"/> <!-- extended -->
+    <RefHit iInput="5"  iPhiMax="599" iPhiMin="350" iRefHit="7"  iRefLayer="0" iRegion="3"/> <!-- extended -->
+    <RefHit iInput="4"  iPhiMax="749" iPhiMin="600" iRefHit="8"  iRefLayer="0" iRegion="4"/>
+    <RefHit iInput="5"  iPhiMax="749" iPhiMin="600" iRefHit="9"  iRefLayer="0" iRegion="4"/>
+    <RefHit iInput="4"  iPhiMax="999" iPhiMin="750" iRefHit="10" iRefLayer="0" iRegion="5"/> <!-- extended -->
+    <RefHit iInput="5"  iPhiMax="999" iPhiMin="750" iRefHit="11" iRefLayer="0" iRegion="5"/> <!-- extended -->
+
+
+    <LogicRegion iRegion="0">
+      <Layer iFirstInput="0" iLayer="0" nInputs="4"/>
+      <Layer iFirstInput="0" iLayer="1" nInputs="4"/>
+      <Layer iFirstInput="0" iLayer="2" nInputs="4"/>
+      <Layer iFirstInput="0" iLayer="3" nInputs="4"/>
+      <Layer iFirstInput="0" iLayer="4" nInputs="4"/>
+      <Layer iFirstInput="0" iLayer="5" nInputs="4"/>
+      <Layer iFirstInput="0" iLayer="6" nInputs="6"/>
+      <Layer iFirstInput="0" iLayer="7" nInputs="6"/>
+      <Layer iFirstInput="0" iLayer="8" nInputs="6"/>
+      <Layer iFirstInput="0" iLayer="9" nInputs="6"/>
+      <Layer iFirstInput="2" iLayer="10" nInputs="8"/>
+      <Layer iFirstInput="2" iLayer="11" nInputs="8"/>
+      <Layer iFirstInput="2" iLayer="12" nInputs="8"/>
+      <Layer iFirstInput="2" iLayer="13" nInputs="8"/>
+      <Layer iFirstInput="0" iLayer="14" nInputs="4"/>
+      <Layer iFirstInput="0" iLayer="15" nInputs="6"/>
+      <Layer iFirstInput="0" iLayer="16" nInputs="6"/>
+      <Layer iFirstInput="0" iLayer="17" nInputs="6"/>
+    </LogicRegion>
+    <LogicRegion iRegion="1">
+      <Layer iFirstInput="2" iLayer="0" nInputs="2"/>
+      <Layer iFirstInput="2" iLayer="1" nInputs="2"/>
+      <Layer iFirstInput="2" iLayer="2" nInputs="2"/>
+      <Layer iFirstInput="2" iLayer="3" nInputs="2"/>
+      <Layer iFirstInput="2" iLayer="4" nInputs="2"/>
+      <Layer iFirstInput="2" iLayer="5" nInputs="2"/>
+      <Layer iFirstInput="2" iLayer="6" nInputs="6"/>
+      <Layer iFirstInput="2" iLayer="7" nInputs="6"/>
+      <Layer iFirstInput="2" iLayer="8" nInputs="6"/>
+      <Layer iFirstInput="2" iLayer="9" nInputs="6"/>
+      <Layer iFirstInput="4" iLayer="10" nInputs="4"/>
+      <Layer iFirstInput="4" iLayer="11" nInputs="4"/>
+      <Layer iFirstInput="4" iLayer="12" nInputs="4"/>
+      <Layer iFirstInput="4" iLayer="13" nInputs="4"/>
+      <Layer iFirstInput="2" iLayer="14" nInputs="2"/>
+      <Layer iFirstInput="2" iLayer="15" nInputs="6"/>
+      <Layer iFirstInput="2" iLayer="16" nInputs="6"/>
+      <Layer iFirstInput="2" iLayer="17" nInputs="6"/>
+    </LogicRegion>
+    <LogicRegion iRegion="2">
+      <Layer iFirstInput="2" iLayer="0" nInputs="4"/>
+      <Layer iFirstInput="2" iLayer="1" nInputs="4"/>
+      <Layer iFirstInput="2" iLayer="2" nInputs="4"/>
+      <Layer iFirstInput="2" iLayer="3" nInputs="4"/>
+      <Layer iFirstInput="2" iLayer="4" nInputs="4"/>
+      <Layer iFirstInput="2" iLayer="5" nInputs="4"/>
+      <Layer iFirstInput="4" iLayer="6" nInputs="6"/>
+      <Layer iFirstInput="4" iLayer="7" nInputs="6"/>
+      <Layer iFirstInput="4" iLayer="8" nInputs="6"/>
+      <Layer iFirstInput="4" iLayer="9" nInputs="6"/>
+      <Layer iFirstInput="4" iLayer="10" nInputs="8"/>
+      <Layer iFirstInput="4" iLayer="11" nInputs="8"/>
+      <Layer iFirstInput="4" iLayer="12" nInputs="8"/>
+      <Layer iFirstInput="4" iLayer="13" nInputs="8"/>
+      <Layer iFirstInput="2" iLayer="14" nInputs="4"/>
+      <Layer iFirstInput="4" iLayer="15" nInputs="6"/>
+      <Layer iFirstInput="4" iLayer="16" nInputs="6"/>
+      <Layer iFirstInput="4" iLayer="17" nInputs="6"/>
+    </LogicRegion>
+    <LogicRegion iRegion="3">
+      <Layer iFirstInput="2" iLayer="0" nInputs="4"/>
+      <Layer iFirstInput="2" iLayer="1" nInputs="4"/>
+      <Layer iFirstInput="2" iLayer="2" nInputs="4"/>
+      <Layer iFirstInput="2" iLayer="3" nInputs="4"/>
+      <Layer iFirstInput="2" iLayer="4" nInputs="4"/>
+      <Layer iFirstInput="2" iLayer="5" nInputs="4"/>
+      <Layer iFirstInput="6" iLayer="6" nInputs="6"/>
+      <Layer iFirstInput="6" iLayer="7" nInputs="6"/>
+      <Layer iFirstInput="6" iLayer="8" nInputs="6"/>
+      <Layer iFirstInput="6" iLayer="9" nInputs="6"/>
+      <Layer iFirstInput="6" iLayer="10" nInputs="8"/>
+      <Layer iFirstInput="6" iLayer="11" nInputs="8"/>
+      <Layer iFirstInput="6" iLayer="12" nInputs="8"/>
+      <Layer iFirstInput="6" iLayer="13" nInputs="8"/>
+      <Layer iFirstInput="2" iLayer="14" nInputs="4"/>
+      <Layer iFirstInput="6" iLayer="15" nInputs="6"/>
+      <Layer iFirstInput="6" iLayer="16" nInputs="6"/>
+      <Layer iFirstInput="6" iLayer="17" nInputs="6"/>
+    </LogicRegion>
+    <LogicRegion iRegion="4">
+      <Layer iFirstInput="4" iLayer="0" nInputs="2"/>
+      <Layer iFirstInput="4" iLayer="1" nInputs="2"/>
+      <Layer iFirstInput="4" iLayer="2" nInputs="2"/>
+      <Layer iFirstInput="4" iLayer="3" nInputs="2"/>
+      <Layer iFirstInput="4" iLayer="4" nInputs="2"/>
+      <Layer iFirstInput="4" iLayer="5" nInputs="2"/>
+      <Layer iFirstInput="8" iLayer="6" nInputs="6"/>
+      <Layer iFirstInput="8" iLayer="7" nInputs="6"/>
+      <Layer iFirstInput="8" iLayer="8" nInputs="6"/>
+      <Layer iFirstInput="8" iLayer="9" nInputs="6"/>
+      <Layer iFirstInput="8" iLayer="10" nInputs="4"/>
+      <Layer iFirstInput="8" iLayer="11" nInputs="4"/>
+      <Layer iFirstInput="8" iLayer="12" nInputs="4"/>
+      <Layer iFirstInput="8" iLayer="13" nInputs="4"/>
+      <Layer iFirstInput="4" iLayer="14" nInputs="2"/>
+      <Layer iFirstInput="8" iLayer="15" nInputs="6"/>
+      <Layer iFirstInput="8" iLayer="16" nInputs="6"/>
+      <Layer iFirstInput="8" iLayer="17" nInputs="6"/>
+    </LogicRegion>
+    <LogicRegion iRegion="5">
+      <Layer iFirstInput="4" iLayer="0" nInputs="2"/>
+      <Layer iFirstInput="4" iLayer="1" nInputs="2"/>
+      <Layer iFirstInput="4" iLayer="2" nInputs="2"/>
+      <Layer iFirstInput="4" iLayer="3" nInputs="2"/>
+      <Layer iFirstInput="4" iLayer="4" nInputs="2"/>
+      <Layer iFirstInput="4" iLayer="5" nInputs="2"/>
+      <Layer iFirstInput="10" iLayer="6" nInputs="4"/>
+      <Layer iFirstInput="10" iLayer="7" nInputs="4"/>
+      <Layer iFirstInput="10" iLayer="8" nInputs="4"/>
+      <Layer iFirstInput="10" iLayer="9" nInputs="4"/>
+      <Layer iFirstInput="8" iLayer="10" nInputs="4"/>
+      <Layer iFirstInput="8" iLayer="11" nInputs="4"/>
+      <Layer iFirstInput="8" iLayer="12" nInputs="4"/>
+      <Layer iFirstInput="8" iLayer="13" nInputs="4"/>
+      <Layer iFirstInput="4" iLayer="14" nInputs="2"/>
+      <Layer iFirstInput="10" iLayer="15" nInputs="4"/>
+      <Layer iFirstInput="10" iLayer="16" nInputs="4"/>
+      <Layer iFirstInput="10" iLayer="17" nInputs="4"/>
+    </LogicRegion>
+  </Processor>
+
+  <Processor iProcessor="1">
+    <RefLayer iGlobalPhiStart="1313" iRefLayer="0"/>
+<!--    <RefLayer iGlobalPhiStart="1195" iRefLayer="1"/>
+    <RefLayer iGlobalPhiStart="1190" iRefLayer="2"/>
+    <RefLayer iGlobalPhiStart="1218" iRefLayer="3"/>
+    <RefLayer iGlobalPhiStart="1202" iRefLayer="4"/>
+    <RefLayer iGlobalPhiStart="1255" iRefLayer="5"/>
+    <RefLayer iGlobalPhiStart="1298" iRefLayer="6"/>
+    <RefLayer iGlobalPhiStart="1300" iRefLayer="7"/> -->
+  </Processor>
+
+  <Processor iProcessor="2">
+    <RefLayer iGlobalPhiStart="2274" iRefLayer="0"/>
+<!--     <RefLayer iGlobalPhiStart="2155" iRefLayer="1"/>
+    <RefLayer iGlobalPhiStart="2150" iRefLayer="2"/>
+    <RefLayer iGlobalPhiStart="2179" iRefLayer="3"/>
+    <RefLayer iGlobalPhiStart="2162" iRefLayer="4"/>
+    <RefLayer iGlobalPhiStart="2215" iRefLayer="5"/>
+    <RefLayer iGlobalPhiStart="2258" iRefLayer="6"/>
+    <RefLayer iGlobalPhiStart="2260" iRefLayer="7"/> -->
+  </Processor>
+
+  <Processor iProcessor="3">
+    <RefLayer iGlobalPhiStart="-2526" iRefLayer="0"/>
+<!--     <RefLayer iGlobalPhiStart="-2644" iRefLayer="1"/>
+    <RefLayer iGlobalPhiStart="-2649" iRefLayer="2"/>
+    <RefLayer iGlobalPhiStart="-2621" iRefLayer="3"/>
+    <RefLayer iGlobalPhiStart="-2637" iRefLayer="4"/>
+    <RefLayer iGlobalPhiStart="-2584" iRefLayer="5"/>
+    <RefLayer iGlobalPhiStart="-2541" iRefLayer="6"/>
+    <RefLayer iGlobalPhiStart="-2539" iRefLayer="7"/> -->
+  </Processor>
+
+  <Processor iProcessor="4">
+    <RefLayer iGlobalPhiStart="-1566" iRefLayer="0"/>
+<!--     <RefLayer iGlobalPhiStart="-1684" iRefLayer="1"/>
+    <RefLayer iGlobalPhiStart="-1689" iRefLayer="2"/>
+    <RefLayer iGlobalPhiStart="-1661" iRefLayer="3"/>
+    <RefLayer iGlobalPhiStart="-1677" iRefLayer="4"/>
+    <RefLayer iGlobalPhiStart="-1624" iRefLayer="5"/>
+    <RefLayer iGlobalPhiStart="-1581" iRefLayer="6"/>
+    <RefLayer iGlobalPhiStart="-1579" iRefLayer="7"/> -->
+  </Processor>
+
+  <Processor iProcessor="5">
+    <RefLayer iGlobalPhiStart="-606" iRefLayer="0"/>
+<!--     <RefLayer iGlobalPhiStart="-724" iRefLayer="1"/>
+    <RefLayer iGlobalPhiStart="-729" iRefLayer="2"/>
+    <RefLayer iGlobalPhiStart="-701" iRefLayer="3"/>
+    <RefLayer iGlobalPhiStart="-717" iRefLayer="4"/>
+    <RefLayer iGlobalPhiStart="-664" iRefLayer="5"/>
+    <RefLayer iGlobalPhiStart="-621" iRefLayer="6"/>
+    <RefLayer iGlobalPhiStart="-619" iRefLayer="7"/> -->
+  </Processor>
+
+</OMTF>

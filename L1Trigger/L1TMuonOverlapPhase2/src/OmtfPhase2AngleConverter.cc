@@ -32,7 +32,7 @@ int OmtfPhase2AngleConverter::getProcessorPhi(int phiZero, l1t::tftype part, int
 
 int OmtfPhase2AngleConverter::getGlobalEta(DTChamberId dTChamberId,
                                            const L1Phase2MuDTThContainer* dtThDigis,
-                                           int bxNum, int time) const {
+                                           int bxNum) const {
   int dtThBins = 65536;  //65536. for [-6.3,6.3]
   float kconv = 1 / (dtThBins / 2.);
 
@@ -41,22 +41,12 @@ int OmtfPhase2AngleConverter::getGlobalEta(DTChamberId dTChamberId,
   bool foundeta = false;
   int thetaDigiCnt = 0;
   for (const auto& thetaDigi : (*(dtThDigis->getContainer()))) {
-    // first check we are in the same station/wheel/sector and BX
-    if (thetaDigi.whNum() != dTChamberId.wheel() || thetaDigi.stNum() != dTChamberId.station() ||
-        thetaDigi.scNum() != (dTChamberId.sector() - 1) || (thetaDigi.bxNum() - 20) == bxNum) 
-        continue;
-    
-    if (quality > thetaDigi.quality() || (quality == thetaDigi.quality() && chi2 > thetaDigi.chi2()) ||
-        (quality == thetaDigi.quality() && chi2 == thetaDigi.chi2() && tdiff > abs(thetaDigi.t0()-time))) {
-      quality = thetaDigi.quality();
-      chi2 = thetaDigi.chi2();
-      tdiff = abs(thetaDigi.t0()-time);
- 
+    if (thetaDigi.whNum() == dTChamberId.wheel() && thetaDigi.stNum() == dTChamberId.station() &&
+        thetaDigi.scNum() == (dTChamberId.sector() - 1) && (thetaDigi.bxNum() - 20) == bxNum) {
       // get the theta digi
       float k = thetaDigi.k() * kconv;  //-pow(-1.,z<0)*log(tan(atan(1/k)/2.));
-      int sign = sgn(thetaDigi.z());    // sign of the z coordinate   
+      int sign = sgn(thetaDigi.z());    // sign of the z coordinate
       eta = -1. * sign * log(fabs(tan(atan(1 / k) / 2.)));
-
       LogTrace("OMTFReconstruction") << "OmtfPhase2AngleConverter::getGlobalEta(" << dTChamberId << ") eta: " << eta
                                      << " k: " << k << " thetaDigi.k(): " << thetaDigi.k();
 
