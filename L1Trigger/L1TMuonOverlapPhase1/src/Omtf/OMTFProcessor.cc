@@ -626,6 +626,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
   }
 
   boost::property_tree::ptree procDataTree;
+  boost::property_tree::ptree restrictedInputsTree;
   LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << " " << __LINE__;
   for (unsigned int iLayer = 0; iLayer < this->myOmtfConfig->nLayers(); ++iLayer) {
     //debug
@@ -644,6 +645,20 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       unsigned int iRegion = aRefHitDef.iRegion;
 
       MuonStubPtrs1D restrictedLayerStubs = this->restrictInput(iProcessor, iRegion, iLayer, aInput);
+      for (auto& targetStub : restrictedLayerStubs) {
+        if (targetStub) {
+          if (this->myOmtfConfig->getDumpResultToXML()) {
+            auto& restrictedStubs = restrictedInputsTree.add_child("restrictedStub", boost::property_tree::ptree());
+            restrictedInputsTree.add("<xmlattr>.refLayer", refLayerLogicNum);
+            restrictedInputsTree.add("<xmlattr>.layer", iLayer);
+            restrictedInputsTree.add("<xmlattr>.iInput", targetStub->input);
+            restrictedInputsTree.add("<xmlattr>.region", iRegion);
+            restrictedInputsTree.add("<xmlattr>.quality", targetStub->qualityHw);
+            restrictedInputsTree.add("<xmlattr>.eta", targetStub->etaHw);
+            restrictedInputsTree.add("<xmlattr>.phi", targetStub->phiHw);
+          }
+        }
+      }
 
       //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" iRefLayer "<<aRefHitDef.iRefLayer<<std::endl;
       //LogTrace("l1tOmtfEventPrint")<<"iLayer "<<iLayer<<" iRefHit "<<iRefHit;
@@ -751,8 +766,10 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
     }
   }
 
-  for (auto& obs : observers)
+  for (auto& obs : observers){
     obs->addProcesorData("extrapolation", procDataTree);
+    obs->addProcesorData("restrictedInputs", restrictedInputsTree);
+  }
 
   return;
 }
