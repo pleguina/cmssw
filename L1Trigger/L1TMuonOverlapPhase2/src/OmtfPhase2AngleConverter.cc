@@ -47,8 +47,8 @@ int OmtfPhase2AngleConverter::getGlobalEta(DTChamberId dTChamberId,
       float k = thetaDigi.k() * kconv;  //-pow(-1.,z<0)*log(tan(atan(1/k)/2.));
       int sign = sgn(thetaDigi.z());    // sign of the z coordinate
       eta = -1. * sign * log(fabs(tan(atan(1 / k) / 2.)));
-      LogTrace("OMTFReconstruction") << "OmtfPhase2AngleConverter::getGlobalEta(" << dTChamberId << ") eta: " << eta
-                                     << " k: " << k << " thetaDigi.k(): " << thetaDigi.k();
+      // LogTrace("OMTFReconstruction") << "OmtfPhase2AngleConverter::getGlobalEta(" << dTChamberId << ") eta: " << eta
+      //                                << " k: " << k << " thetaDigi.k(): " << thetaDigi.k();
 
       thetaDigiCnt++;
       //checking if the obtained eta has reasonable range - temporary fix
@@ -56,8 +56,8 @@ int OmtfPhase2AngleConverter::getGlobalEta(DTChamberId dTChamberId,
            (dTChamberId.station() == 2 && (std::abs(eta) < 0.75 || std::abs(eta) > 1.04) ) ||
            (dTChamberId.station() == 3 && (std::abs(eta) < 0.63 || std::abs(eta) > 0.92) )    ) {
         foundeta = false;
-        edm::LogVerbatim("OMTFReconstruction") << "OmtfPhase2AngleConverter::getGlobalEta(" << dTChamberId << ") wrong output eta: " << eta
-                                     << " k: " << k << " thetaDigi.k(): " << thetaDigi.k()<<" quality "<<thetaDigi.quality();
+        // edm::LogVerbatim("OMTFReconstruction") << "OmtfPhase2AngleConverter::getGlobalEta(" << dTChamberId << ") wrong output eta: " << eta
+        //                              << " k: " << k << " thetaDigi.k(): " << thetaDigi.k()<<" quality "<<thetaDigi.quality();
       }
       else
         foundeta = true;

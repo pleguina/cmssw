@@ -45,7 +45,7 @@ OMTFProcessor<GoldenPatternType>::OMTFProcessor(OMTFConfiguration* omtfConfig,
                                                 const edm::ParameterSet& edmCfg,
                                                 edm::EventSetup const& evSetup,
                                                 GoldenPatternVec<GoldenPatternType>&& gps)
-    : ProcessorBase<GoldenPatternType>(omtfConfig, std::forward<GoldenPatternVec<GoldenPatternType> >(gps)) {
+    : ProcessorBase<GoldenPatternType>(omtfConfig, std::forward<GoldenPatternVec<GoldenPatternType>>(gps)) {
   init(edmCfg, evSetup);
 };
 
@@ -84,8 +84,8 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
   }
 
   if (this->myOmtfConfig->usePhiBExtrapolationMB1() || this->myOmtfConfig->usePhiBExtrapolationMB2()) {
-    extrapolFactors.resize(2, std::vector<std::map<int, double> >(this->myOmtfConfig->nLayers()));
-    extrapolFactorsNorm.resize(2, std::vector<std::map<int, int> >(this->myOmtfConfig->nLayers()));
+    extrapolFactors.resize(2, std::vector<std::map<int, double>>(this->myOmtfConfig->nLayers()));
+    extrapolFactorsNorm.resize(2, std::vector<std::map<int, int>>(this->myOmtfConfig->nLayers()));
 
     //when useFloatingPointExtrapolation is true the extrapolFactors are not used,
     //all calculations are done in the extrapolateDtPhiBFloatPoint
@@ -512,24 +512,27 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
                                                                   const int& targetStubQuality,
                                                                   const int& targetStubEta,
                                                                   const int& targetStubR,
+                                                                  int& extrapolFactor,
                                                                   const OMTFConfiguration* omtfConfig) {
   int phiExtr = 0;  //delta phi extrapolated
 
   int reflLayerIndex = refLogicLayer == 0 ? 0 : 1;
   int extrFactor = 0;
+ 
 
   if (targetLayer == 0 || targetLayer == 2 || targetLayer == 4) {
     if (useStubQualInExtr)
       extrFactor = extrapolFactors[reflLayerIndex][targetLayer][targetStubQuality];
     else
+
       extrFactor = extrapolFactors[reflLayerIndex][targetLayer][0];
   } else if (targetLayer == 1 || targetLayer == 3 || targetLayer == 5) {
-    int deltaPhi = targetStubPhi - refPhi;  //[halfStrip]
+     int deltaPhi = targetStubPhi - refPhi;  //[halfStrip]
 
     int scaleFactor = this->myOmtfConfig->omtfPhiUnit() * this->myOmtfConfig->dtPhiBUnitsRad() * 512;
     //= 305 for phase-1, 512 is multiplier so that scaleFactor is non-zero integer
 
-    deltaPhi = (deltaPhi * scaleFactor) / 512;  //here deltaPhi is converted to the phi_b hw scale
+    deltaPhi = (deltaPhi * scaleFactor) >> 9;  //here deltaPhi is converted to the phi_b hw scale
 
     phiExtr = refPhiB - deltaPhi;  //phiExtr is also in phi_b hw scale
     //LogTrace("l1tOmtfEventPrint") <<__FUNCTION__<<":"<<__LINE__<<" deltaPhi "<<deltaPhi<<" phiExtr "<<phiExtr<<std::endl;
@@ -540,15 +543,15 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
     if (useEndcapStubsRInExtr) {
       //if given abs(targetStubEta) value is not present in the map, it is added with default value of 0
       //so it should be good. The only problem is that the map can grow...
-      //extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubEta)];
-      extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubR)];
+      extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubEta)];
+      //extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubR)];
     } else {
       extrFactor = extrapolFactors[reflLayerIndex][targetLayer][0];
     }
   }
 
   if (this->myOmtfConfig->isBendingLayer(targetLayer) == false) {
-    phiExtr = extrFactor * refPhiB / extrapolMultiplier;
+    phiExtr = extrFactor * refPhiB >> 9;
   }
 
   LogTrace("l1tOmtfEventPrint") << "\n"
@@ -557,7 +560,7 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
   LogTrace("l1tOmtfEventPrint") << "refPhi " << refPhi << " refPhiB " << refPhiB << " targetStubPhi " << targetStubPhi
                                 << " targetStubQuality " << targetStubQuality << " targetStubEta " << targetStubEta
                                 << " extrFactor " << extrFactor << " phiExtr " << phiExtr << std::endl;
-
+  extrapolFactor = extrFactor;
   return phiExtr;
 }
 
@@ -565,6 +568,7 @@ template <class GoldenPatternType>
 int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const MuonStubPtr& refStub,
                                                         const MuonStubPtr& targetStub,
                                                         unsigned int targetLayer,
+                                                        int& extrapolFactor,
                                                         const OMTFConfiguration* omtfConfig) {
   if (useFloatingPointExtrapolation)
     return OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(refStub->logicLayer,
@@ -584,6 +588,7 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const MuonStubPtr& refSt
                                                                        targetStub->qualityHw,
                                                                        targetStub->etaHw,
                                                                        targetStub->r,
+                                                                       extrapolFactor,
                                                                        omtfConfig);
 }
 ///////////////////////////////////////////////
@@ -593,7 +598,7 @@ template <class GoldenPatternType>
 void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
                                                     l1t::tftype mtfType,
                                                     const OMTFinput& aInput,
-                                                    std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+                                                    std::vector<std::unique_ptr<IOMTFEmulationObserver>>& observers) {
   unsigned int procIndx = this->myOmtfConfig->getProcIndx(iProcessor, mtfType);
   for (auto& itGP : this->theGPs) {
     for (auto& result : itGP->getResults()[procIndx]) {
@@ -607,7 +612,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
   //////////////////////////////////////
   //////////////////////////////////////
   std::vector<const RefHitDef*> refHitDefs;
-
+  std::vector<unsigned int> refHitIdxs;
   {
     auto refHitsBits = aInput.getRefHits(iProcessor);
     if (refHitsBits.none())
@@ -619,6 +624,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
         continue;
 
       refHitDefs.push_back(&(this->myOmtfConfig->getRefHitsDefs()[iProcessor][iRefHit]));
+      refHitIdxs.push_back(iRefHit);
 
       if (refHitDefs.size() == this->myOmtfConfig->nTestRefHits())
         break;
@@ -627,6 +633,24 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
 
   boost::property_tree::ptree procDataTree;
   boost::property_tree::ptree restrictedInputsTree;
+  MuonStubPtrs1D restrictedInputsCount;
+  struct StubXmlData {
+    unsigned int refPhi;
+    unsigned int refEta;
+    unsigned int refQuality;
+    unsigned int refInput;
+    unsigned int refLayerLogicNum;
+    unsigned int refLayer;
+    unsigned int refHitIdx;
+    unsigned int layer;
+    unsigned int input;
+    unsigned int region;
+    int quality;
+    int eta;
+    int phi;
+    int phiextr;
+  };
+  std::map<unsigned int, std::vector<StubXmlData>> xmlDataMap;
   LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << " " << __LINE__;
   for (unsigned int iLayer = 0; iLayer < this->myOmtfConfig->nLayers(); ++iLayer) {
     //debug
@@ -645,20 +669,6 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       unsigned int iRegion = aRefHitDef.iRegion;
 
       MuonStubPtrs1D restrictedLayerStubs = this->restrictInput(iProcessor, iRegion, iLayer, aInput);
-      for (auto& targetStub : restrictedLayerStubs) {
-        if (targetStub) {
-          if (this->myOmtfConfig->getDumpResultToXML()) {
-            auto& restrictedStubs = restrictedInputsTree.add_child("restrictedStub", boost::property_tree::ptree());
-            restrictedInputsTree.add("<xmlattr>.refLayer", refLayerLogicNum);
-            restrictedInputsTree.add("<xmlattr>.layer", iLayer);
-            restrictedInputsTree.add("<xmlattr>.iInput", targetStub->input);
-            restrictedInputsTree.add("<xmlattr>.region", iRegion);
-            restrictedInputsTree.add("<xmlattr>.quality", targetStub->qualityHw);
-            restrictedInputsTree.add("<xmlattr>.eta", targetStub->etaHw);
-            restrictedInputsTree.add("<xmlattr>.phi", targetStub->phiHw);
-          }
-        }
-      }
 
       //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<" "<<__LINE__<<" iLayer "<<iLayer<<" iRefLayer "<<aRefHitDef.iRefLayer<<std::endl;
       //LogTrace("l1tOmtfEventPrint")<<"iLayer "<<iLayer<<" iRefHit "<<iRefHit;
@@ -667,13 +677,37 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       std::vector<int> extrapolatedPhi(restrictedLayerStubs.size(), 0);
 
       //TODO make sure the that the iRefLayer numbers used here corresponds to this in the hwToLogicLayer_0x000X.xml
-      if ((this->myOmtfConfig->usePhiBExtrapolationMB1() && aRefHitDef.iRefLayer == 0) ||
-          (this->myOmtfConfig->usePhiBExtrapolationMB2() && aRefHitDef.iRefLayer == 2)) {
-        if ((iLayer != refLayerLogicNum) && (iLayer != refLayerLogicNum + 1)) {
-          unsigned int iStub = 0;
-          for (auto& targetStub : restrictedLayerStubs) {
+      unsigned int iStub = 0;
+      for (auto& targetStub : restrictedLayerStubs) {
+        StubXmlData data;
+        if (targetStub) {
+          data.refPhi = refStub->phiHw;
+          data.refEta = refStub->etaHw;
+          data.refQuality = refStub->qualityHw;
+          data.refLayerLogicNum = refLayerLogicNum;
+          data.refInput = refStub->input;
+          data.refLayer = aRefHitDef.iRefLayer;
+          data.refHitIdx = refHitIdxs[iRefHit];
+          data.layer = iLayer;
+          data.input = targetStub->input;
+          data.region = iRegion;
+          data.quality = targetStub->qualityHw;
+          data.eta = targetStub->etaHw;
+          if (this->myOmtfConfig->isBendingLayer(iLayer)) {
+              data.phi = targetStub->phiBHw;
+            } else {
+              data.phi = targetStub->phiHw;
+          }
+          data.phiextr = 0;
+        }
+        if ((this->myOmtfConfig->usePhiBExtrapolationMB1() && aRefHitDef.iRefLayer == 0) ||
+            (this->myOmtfConfig->usePhiBExtrapolationMB2() && aRefHitDef.iRefLayer == 2)) {
+          if ((iLayer != refLayerLogicNum) && (iLayer != refLayerLogicNum + 1)) {
             if (targetStub) {
-              extrapolatedPhi[iStub] = extrapolateDtPhiB(refStub, targetStub, iLayer, this->myOmtfConfig);
+              int extrapolFactor = 0;
+              extrapolatedPhi[iStub] = extrapolateDtPhiB(refStub, targetStub, iLayer, extrapolFactor, this->myOmtfConfig);
+              // Update the xmlDataMap with the correct phiextr value
+              data.phiextr = extrapolatedPhi[iStub];
 
               LogTrace("l1tOmtfEventPrint")
                   << "\n"
@@ -685,11 +719,14 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
                 auto& extrapolatedPhiTree = procDataTree.add_child("extrapolatedPhi", boost::property_tree::ptree());
                 extrapolatedPhiTree.add("<xmlattr>.refLayer", refLayerLogicNum);
                 extrapolatedPhiTree.add("<xmlattr>.layer", iLayer);
+                extrapolatedPhiTree.add("<xmlattr>.refPhiHw", refStub->phiHw);
                 extrapolatedPhiTree.add("<xmlattr>.refPhiBHw", refStub->phiBHw);
                 extrapolatedPhiTree.add("<xmlattr>.iStub", iStub);
+                extrapolatedPhiTree.add("<xmlattr>.targetStubPhi", targetStub->phiHw);
                 extrapolatedPhiTree.add("<xmlattr>.qualityHw", targetStub->qualityHw);
                 extrapolatedPhiTree.add("<xmlattr>.etaHw", targetStub->etaHw);
                 extrapolatedPhiTree.add("<xmlattr>.phiExtr", extrapolatedPhi[iStub]);
+                extrapolatedPhiTree.add("<xmlattr>.extrapolFactor", extrapolFactor);  
 
                 if (this->myOmtfConfig->isBendingLayer(iLayer))
                   extrapolatedPhiTree.add("<xmlattr>.dist_phi", targetStub->phiBHw - extrapolatedPhi[iStub]);
@@ -697,9 +734,12 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
                   extrapolatedPhiTree.add("<xmlattr>.dist_phi", targetStub->phiHw - extrapolatedPhi[iStub]);
               }
             }
-            iStub++;
           }
         }
+        if (targetStub) {
+          xmlDataMap[iRefHit].push_back(data);
+        }
+        iStub++;
       }
 
       for (auto& itGP : this->theGPs) {
@@ -719,6 +759,28 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
     }
   }
 
+  for (const auto& refHitData : xmlDataMap) {
+    auto& refHitNode = restrictedInputsTree.add_child("RefHit", boost::property_tree::ptree());
+    refHitNode.put("<xmlattr>.refHit", refHitData.first);
+    refHitNode.put("<xmlattr>.refHitIdx", refHitData.second[0].refHitIdx);
+    refHitNode.put("<xmlattr>.refLayer", refHitData.second[0].refLayer);
+    refHitNode.put("<xmlattr>.refLayerLogicNum", refHitData.second[0].refLayerLogicNum);
+    refHitNode.put("<xmlattr>.refHitInput", refHitData.second[0].refInput);
+    refHitNode.put("<xmlattr>.refHitPhi", refHitData.second[0].refPhi);
+    refHitNode.put("<xmlattr>.refHitEta", refHitData.second[0].refEta);
+    refHitNode.put("<xmlattr>.refHitQuality", refHitData.second[0].refQuality);
+    for (const auto& data : refHitData.second) {
+      auto& restrictedStubs = refHitNode.add_child("restrictedStub", boost::property_tree::ptree());
+      restrictedStubs.add("<xmlattr>.layer", data.layer);
+      restrictedStubs.add("<xmlattr>.iInput", data.input);
+      restrictedStubs.add("<xmlattr>.region", data.region);
+      restrictedStubs.add("<xmlattr>.quality", data.quality);
+      restrictedStubs.add("<xmlattr>.eta", data.eta);
+      restrictedStubs.add("<xmlattr>.phi", data.phi);
+      restrictedStubs.add("<xmlattr>.phiExtr", data.phiextr);
+    }
+  }
+
   for (unsigned int iRefHit = 0; iRefHit < refHitDefs.size(); iRefHit++) {
     const RefHitDef& aRefHitDef = *(refHitDefs[iRefHit]);
 
@@ -727,6 +789,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
 
     int phiRef = refStub->phiHw;
     int etaRef = refStub->etaHw;
+    int extrapolFactor = 0;
 
     //calculating the phiExtrp in the case the RefLayer is MB1, to include it in the  candidate phi of candidate
     int phiExtrp = 0;
@@ -740,7 +803,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
             aRefHitDef.iRefLayer, phiRef, refStub->phiBHw, 2, 0, 6, 0, 0, this->myOmtfConfig);
       else
         phiExtrp = extrapolateDtPhiBFixedPoint(
-            aRefHitDef.iRefLayer, phiRef, refStub->phiBHw, 2, 0, 6, 0, 0, this->myOmtfConfig);
+            aRefHitDef.iRefLayer, phiRef, refStub->phiBHw, 2, 0, 6, 0, 0,extrapolFactor, this->myOmtfConfig);
     }
 
     for (auto& itGP : this->theGPs) {
@@ -766,8 +829,9 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
     }
   }
 
-  for (auto& obs : observers){
+  for (auto& obs : observers) {
     obs->addProcesorData("extrapolation", procDataTree);
+
     obs->addProcesorData("restrictedInputs", restrictedInputsTree);
   }
 
@@ -782,7 +846,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::run(
     l1t::tftype mtfType,
     int bx,
     OMTFinputMaker* inputMaker,
-    std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+    std::vector<std::unique_ptr<IOMTFEmulationObserver>>& observers) {
   //uncomment if you want to check execution time of each method
   //boost::timer::auto_cpu_timer t("%ws wall, %us user in getProcessorCandidates\n");
 

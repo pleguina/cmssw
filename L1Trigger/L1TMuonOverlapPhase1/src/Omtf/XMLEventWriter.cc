@@ -75,14 +75,27 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
       hitTree.add("<xmlattr>.iInput", iHit);
       hitTree.add("<xmlattr>.iEta", input->getHitEta(iLayer, iHit));
       hitTree.add("<xmlattr>.iPhi", hitPhi);
-
+      // Ensure that the MuonStubPtr is not null before accessing its members
+      auto muonStub = input->getMuonStub(iLayer, iHit);
+      if (muonStub) {
+        if (iLayer < 6)
+          hitTree.add("<xmlattr>.iPhiB", muonStub->phiBHw);
+        else
+          hitTree.add("<xmlattr>.iPhiB",0);
+      }
+      else
+         hitTree.add("<xmlattr>.iPhiB",0);
+	
+      	
       //in the firmware the hit quality is taken from link data only for the DT stubs
       //for the CSC and RPC 1 means the hit is valid, 0 - not.
       //in the input it is still worth to have the actual quality of the CSC and RPC
       //Because it might be used in the neural network
-      if (iLayer >= 6)
-        hitTree.add("<xmlattr>.iQual", 1);
-      else
+
+      //TODO: Here I pass the QUalityHw always just for test pourposses.
+      // if (iLayer >= 6)
+      //   hitTree.add("<xmlattr>.iQual", 1);
+      // else
         hitTree.add("<xmlattr>.iQual", input->getHitQual(iLayer, iHit));
     }
 

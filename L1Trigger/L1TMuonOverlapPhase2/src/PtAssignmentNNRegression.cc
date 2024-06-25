@@ -273,10 +273,15 @@ std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoM
   //edm::LogImportant("OMTFReconstruction") <<(*algoMuon)<<std::endl;
 
   std::vector<float> inputs(inputCnt, noHitVal);
+  boost::property_tree::ptree bestStubTree;
+  bestStubTree.add("<xmlattr>.reflayer", gpResult.getRefLayer());
+  bestStubTree.add("<xmlattr>.bestPat", algoMuon->getPatternNumConstr());
+
   int hitCnt = 0;
   for (unsigned int iLogicLayer = 0; iLogicLayer < gpResult.getStubResults().size(); ++iLogicLayer) {
     auto& stubResult = gpResult.getStubResults()[iLogicLayer];
     if (stubResult.getMuonStub()) {  //&& stubResult.getValid() //TODO!!!!!!!!!!!!!!!!1
+
       OmtfHit hit(0);
       hit.layer = iLogicLayer;
       hit.quality = stubResult.getMuonStub()->qualityHw;
@@ -293,6 +298,15 @@ std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoM
       }
 
       hit.phiDist = hitPhi - phiRefHit;
+
+      auto& stubTree = bestStubTree.add_child("bestStub", boost::property_tree::ptree());
+      stubTree.add("<xmlattr>.layer", iLogicLayer);
+      stubTree.add("<xmlattr>.input", stubResult.getMuonStub()->input);
+      stubTree.add("<xmlattr>.eta", stubResult.getMuonStub()->etaHw);
+      stubTree.add("<xmlattr>.phi", hitPhi);
+      stubTree.add("<xmlattr>.quality", stubResult.getMuonStub()->qualityHw);
+      stubTree.add("<xmlattr>.phiDist", hitPhi - phiRefHit);
+      stubTree.add("<xmlattr>.valid", int(stubResult.getValid()));
 
       /*
       LogTrace("l1tOmtfEventPrint") <<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
@@ -367,8 +381,10 @@ std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoM
 
   procDataTree.add("hwSign.<xmlattr>.val", algoMuon->getChargeNNConstr() < 0 ? 1 : 0);
 
-  for (auto& obs : observers)
+  for (auto& obs : observers) {
     obs->addProcesorData("regressionNN", procDataTree);
+    obs->addProcesorData("bestStubs", bestStubTree);
+  }
 
   return pts;
 

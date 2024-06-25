@@ -77,11 +77,13 @@ public:
                                   const int& targetStubQuality,
                                   const int& targetStubEta,
                                   const int& targetStubR,
+                                  int& extrapolFactor, 
                                   const OMTFConfiguration* omtfConfig);
 
   int extrapolateDtPhiB(const MuonStubPtr& refStub,
                         const MuonStubPtr& targetStub,
                         unsigned int targetLayer,
+                        int& extrapolFactor,
                         const OMTFConfiguration* omtfConfig);
 
   ///Process input data from a single event
