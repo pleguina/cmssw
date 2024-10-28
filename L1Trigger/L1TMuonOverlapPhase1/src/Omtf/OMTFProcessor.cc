@@ -389,12 +389,17 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
 
   if (targetLayer == 0 || targetLayer == 2 || targetLayer == 4 || (targetLayer >= 10 && targetLayer <= 14)) {
     //all units are cm. Values from the CMS geometry
-    float rTargetLayer = 512.401;  //MB2
+    float rTargetLayer = 512.475;  //MB2
 
     if (targetLayer == 0)
-      rTargetLayer = 431.133;  //MB1
-    else if (targetLayer == 4)
-      rTargetLayer = 617.946;  //MB3
+      rTargetLayer = 431.175;  //MB1
+    else if (targetLayer == 4) {//MB3
+      //it is different than in the phase-1, as in the phase-2 it is a middle of the DT chamber, not muon station
+      if(omtfConfig->usePhase2DTPrimitives())
+        rTargetLayer = 619.675;
+      else
+        rTargetLayer = 617.946;
+    }
 
     else if (targetLayer == 10)
       rTargetLayer = 413.675;  //RB1in

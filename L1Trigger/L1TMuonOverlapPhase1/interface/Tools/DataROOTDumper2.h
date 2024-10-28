@@ -64,7 +64,7 @@ public:
         char quality;
         char z;
         char valid;
-        short eta;
+        short deltaR;
         short phiDist;
       };
     };

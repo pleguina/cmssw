@@ -299,6 +299,10 @@ void OMTFConfiguration::configureFromEdmParameterSet(const edm::ParameterSet &ed
   if (edmParameterSet.exists("cleanStubs")) {
     cleanStubs_ = edmParameterSet.getParameter<bool>("cleanStubs");
   }
+
+  if (edmParameterSet.exists("usePhase2DTPrimitives")) {
+    usePhase2DTPrimitives_ = edmParameterSet.getParameter<bool>("usePhase2DTPrimitives");
+  }
 }
 
 ///////////////////////////////////////////////

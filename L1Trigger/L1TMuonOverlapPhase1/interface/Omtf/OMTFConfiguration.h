@@ -285,6 +285,8 @@ public:
 
   bool cleanStubs() const { return cleanStubs_; }
 
+  bool usePhase2DTPrimitives() const { return usePhase2DTPrimitives_; }
+
 private:
   L1TMuonOverlapParams rawParams;
 
@@ -366,6 +368,8 @@ private:
   bool dumpResultToXML = false;
 
   bool cleanStubs_ = false;
+
+  bool usePhase2DTPrimitives_ = false;
 };
 
 #endif

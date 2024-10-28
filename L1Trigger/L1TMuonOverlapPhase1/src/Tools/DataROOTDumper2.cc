@@ -287,16 +287,20 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
           OmtfEvent::Hit hit;
           hit.layer = iLogicLayer;
           hit.quality = stubResult.getMuonStub()->qualityHw;
-          hit.eta = stubResult.getMuonStub()->etaHw;  //in which scale?
+          //hit.eta = stubResult.getMuonStub()->etaHw;  //replaced by deltaR
           hit.valid = stubResult.getValid();
 
           hit.phiDist = stubResult.getDeltaPhi();
 
-          /* LogTrace("l1tOmtfEventPrint")<<" muonPt "<<event.muonPt<<" omtfPt "<<event.omtfPt<<" RefLayer "<<event.omtfRefLayer
-                <<" layer "<<int(hit.layer)<<" PdfBin "<<stubResult.getPdfBin()<<" hit.phiDist "<<hit.phiDist<<" valid "<<stubResult.getValid()<<" " //<<" phiDist "<<phiDist
-                <<" getDistPhiBitShift "<<procMuon->getGoldenPatern()->getDistPhiBitShift(iLogicLayer, procMuon->getRefLayer())
-                <<" meanDistPhiValue   "<<procMuon->getGoldenPatern()->meanDistPhiValue(iLogicLayer, procMuon->getRefLayer())//<<(phiDist != hit.phiDist? "!!!!!!!<<<<<" : "")
-                <<endl;*/
+          unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[procMuon->getRefLayer()];
+          hit.deltaR = stubResult.getMuonStub()->r - gpResult.getStubResults()[refLayerLogicNum].getMuonStub()->r;
+
+          LogTrace("l1tOmtfEventPrint")<<" muonPt "<<omtfEvent.muonPt<<" omtfPt "<<omtfEvent.omtfPt<<" RefLayer "<<int(omtfEvent.omtfRefLayer)
+                <<" layer "<<int(hit.layer)<<" PdfBin "<<stubResult.getPdfBin()<<" hit.phiDist "<<hit.phiDist<<" valid "<<int(hit.valid)<<" " //<<" phiDist "<<phiDist
+                <<" hit.deltaR "<<hit.deltaR
+                //<<" getDistPhiBitShift "<<procMuon->getGoldenPatern()->getDistPhiBitShift(iLogicLayer, procMuon->getRefLayer())
+                //<<" meanDistPhiValue   "<<procMuon->getGoldenPatern()->meanDistPhiValue(iLogicLayer, procMuon->getRefLayer())//<<(phiDist != hit.phiDist? "!!!!!!!<<<<<" : "")
+                <<endl;
 
           if (hit.phiDist > 504 || hit.phiDist < -512) {
             LogTrace("l1tOmtfEventPrint")

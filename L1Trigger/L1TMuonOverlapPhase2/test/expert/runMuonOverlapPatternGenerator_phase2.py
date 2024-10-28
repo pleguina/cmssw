@@ -19,7 +19,8 @@ runDebug = "INFO" # or "INFO" DEBUG
 
 #version = "ExtraplMB1nadMB2DTQualAndEtaFixedP_ValueP1Scale_t20_v1_SingleMu"
 #version = "noExtrapl_ValueP1Scale_t18_qualConverted_min4_ipT1_deltaPhiVsPhiRef_fixedDTScale"
-version = "ExtraplMB1nadMB2DTQualAndRFixedP_ValueP1Scale_DT_4_4_4_t34_" + filesNameLike
+#version = "ExtraplMB1nadMB2DTQualAndRFixedP_ValueP1Scale_DT_4_4_4_t34_" + filesNameLike
+version = "ExtraplMB1andMB2RFixedP_ValueP1Scale_DT_2_2_2_t35_" + filesNameLike
 
 regeneratedL1DT = True
 
@@ -191,6 +192,7 @@ process.load("L1Trigger.DTTriggerPhase2.dtTriggerPhase2PrimitiveDigis_cfi")
 process.dtTriggerPhase2PrimitiveDigis.debug = False
 process.dtTriggerPhase2PrimitiveDigis.dump = False
 process.dtTriggerPhase2PrimitiveDigis.scenario = 0
+process.dtTriggerPhase2PrimitiveDigis.co_option = -1 # coincidence w.r.t. : -1 = off, 0 = co all, 1 = co phi, 2 = co theta. defoult is 1, but for OMTF this coincidence filter has no sense
 
 # STD aelow are the defoult values
 #process.dtTriggerPhase2PrimitiveDigis.algo = 0 ## initial grouping
@@ -234,12 +236,12 @@ process.simOmtfPhase2Digis.optimisedPatsXmlFile = cms.string("Patterns_layerStat
 #process.simOmtfPhase2Digis.rpcDropAllClustersIfMoreThanMax = cms.bool(True)
 
 process.simOmtfPhase2Digis.minCSCStubRME12 = cms.int32(410) #[cm]
-process.simOmtfPhase2Digis.minCSCStubR = cms.int32(500) #[cm]
+process.simOmtfPhase2Digis.minCSCStubR = cms.int32(490) #[cm]
 
-process.simOmtfPhase2Digis.minDtPhiQuality = cms.int32(4)
-process.simOmtfPhase2Digis.minDtPhiBQuality = cms.int32(4)
+process.simOmtfPhase2Digis.minDtPhiQuality = cms.int32(2)
+process.simOmtfPhase2Digis.minDtPhiBQuality = cms.int32(2)
 
-process.simOmtfPhase2Digis.dtRefHitMinQuality =  cms.int32(4)
+process.simOmtfPhase2Digis.dtRefHitMinQuality =  cms.int32(2)
 
 #process.simOmtfPhase2Digis.usePhiBExtrapolationFromMB1 = cms.bool(True)
 #process.simOmtfPhase2Digis.usePhiBExtrapolationFromMB2 = cms.bool(True)

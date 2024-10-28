@@ -51,6 +51,7 @@ void EventCapture::beginRun(edm::EventSetup const& eventSetup) {
 }
 
 void EventCapture::observeEventBegin(const edm::Event& event) {
+	edm::LogImportant("l1tOmtfEventPrint") << "EventCapture::observeEventBegin event "<<event.id()<<std::endl;
   simMuons.clear();
 
   if (!simTracksTag.label().empty()) {
@@ -122,9 +123,10 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
                << " eta " << std::setw(9) << matchingResult.simTrack->momentum().eta() << " phi " << std::setw(9)
                << matchingResult.simTrack->momentum().phi() << std::endl;
           //TODO choose a condition, to print the desired candidates
-          if (//matchingResult.simTrack->eventId().event() == 0 && std::abs(matchingResult.simTrack->momentum().eta()) > 0.82 &&
-                    std::abs(matchingResult.simTrack->momentum().eta()) < 1.24 && matchingResult.simTrack->momentum().pt() >= 22. &&
-                    matchingResult.muonCand != nullptr && matchingResult.muonCand->hwPt() < 47) {
+          if ( matchingResult.simTrack->eventId().event() == 0 && std::abs(matchingResult.simTrack->momentum().eta()) > 0.82 &&
+                    std::abs(matchingResult.simTrack->momentum().eta()) < 1.24 ) {
+                    //&& matchingResult.simTrack->momentum().pt() >= 22. &&
+                    //matchingResult.muonCand != nullptr && matchingResult.muonCand->hwPt() < 47) {
             dump = true;
           }
         } else {
@@ -148,8 +150,9 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
     bool wasSimMuInOmtfNeg = false;
     for (auto& simMuon : simMuons) {
       //TODO choose a condition, to print the desired events
-      if (simMuon->eventId().event() == 0 && std::abs(simMuon->momentum().eta()) > 0.82 &&
-          std::abs(simMuon->momentum().eta()) < 1.24 && simMuon->momentum().pt() >= 22.) {
+      if (simMuon->eventId().event() == 0 && std::abs(simMuon->momentum().eta()) > 0.82 )
+          //&& std::abs(simMuon->momentum().eta()) < 1.24 && simMuon->momentum().pt() >= 22.)
+      {
         ostr << "SimMuon: eventId " << simMuon->eventId().event() << " pdgId " << std::setw(3) << simMuon->type()
              << " pt " << std::setw(9) << simMuon->momentum().pt()  //<<" Beta "<<simMuon->momentum().Beta()
              << " eta " << std::setw(9) << simMuon->momentum().eta() << " phi " << std::setw(9)

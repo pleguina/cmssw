@@ -114,6 +114,16 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
       OMTFinputMaker::getProcessorPhiZero(&config, iProcessor), procTyp, digi.scNum(), digi.phi());
 
   stub.etaHw = angleConverter.getGlobalEta(detid, dtThDigis, digi.bxNum() - 20);
+
+  if (iLayer == 0)
+    stub.r = 431.175;  //MB1
+  else if (iLayer == 2) {
+    stub.r = 512.475;  //MB2
+  }
+  else if (iLayer == 4) {
+    stub.r = 620; //round(619.675); //MB3, it is different than in the phase-1, as in the phase-2 it is a middle of the DT chamber, not muon station
+  }
+
   //in phase2, the phiB is 13 bits, and range is [-2, 2 rad] so 4 rad, 2^13 units/(4 rad) =  1^11/rad.
   //need to convert them to 512units==1rad (to use OLD PATTERNS...)
   stub.phiBHw = digi.phiBend() * config.dtPhiBUnitsRad() / 2048;
