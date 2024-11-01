@@ -290,10 +290,27 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
           //hit.eta = stubResult.getMuonStub()->etaHw;  //replaced by deltaR
           hit.valid = stubResult.getValid();
 
-          hit.phiDist = stubResult.getDeltaPhi();
-
           unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[procMuon->getRefLayer()];
-          hit.deltaR = stubResult.getMuonStub()->r - gpResult.getStubResults()[refLayerLogicNum].getMuonStub()->r;
+          
+          if(true) { //choose what to dump in hit.phiDist: "hitPhi - phiRefHit" or stubResult.getDeltaPhi()
+            int hitPhi = stubResult.getMuonStub()->phiHw;
+            int phiRefHit = gpResult.getStubResults()[refLayerLogicNum].getMuonStub()->phiHw;
+            hit.phiDist = hitPhi - phiRefHit;
+
+            if (omtfConfig->isBendingLayer(iLogicLayer)) {
+              hit.phiDist = stubResult.getMuonStub()->phiBHw;
+            }
+          }
+          else {
+            //stubResult.getDeltaPhi() includes the extrapolated phi
+            hit.phiDist = stubResult.getDeltaPhi();
+          }
+          
+          if(refLayerLogicNum == iLogicLayer)
+            hit.deltaR = stubResult.getMuonStub()->r - 413; //r of the ref hit - r of RB1in
+          else
+            hit.deltaR = stubResult.getMuonStub()->r - gpResult.getStubResults()[refLayerLogicNum].getMuonStub()->r;
+
 
           LogTrace("l1tOmtfEventPrint")<<" muonPt "<<omtfEvent.muonPt<<" omtfPt "<<omtfEvent.omtfPt<<" RefLayer "<<int(omtfEvent.omtfRefLayer)
                 <<" layer "<<int(hit.layer)<<" PdfBin "<<stubResult.getPdfBin()<<" hit.phiDist "<<hit.phiDist<<" valid "<<int(hit.valid)<<" " //<<" phiDist "<<phiDist
