@@ -9,3 +9,5 @@
 <export>
   <lib name="GeometryDTGeometryBuilder"/>
 </export>
+
+<lib name="boost_timer"/>
