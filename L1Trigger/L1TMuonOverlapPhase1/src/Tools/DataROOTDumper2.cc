@@ -148,9 +148,9 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
     for (auto& matchingResult : matchingResults) {
       edm::LogVerbatim("l1tOmtfEventPrint") << "matchingResult: genPt " << matchingResult.genPt;
       if (matchingResult.procMuon)
-        edm::LogVerbatim("l1tOmtfEventPrint") << " procMuon.PtConstr " << matchingResult.procMuon->getPtConstr()
-                                              << " processor " << matchingResult.muonCand->processor()
-                                              << " hwPhi " << matchingResult.muonCand->hwPhi();
+        edm::LogVerbatim("l1tOmtfEventPrint")
+            << " procMuon.PtConstr " << matchingResult.procMuon->getPtConstr() << " processor "
+            << matchingResult.muonCand->processor() << " hwPhi " << matchingResult.muonCand->hwPhi();
       else
         edm::LogVerbatim("l1tOmtfEventPrint") << " no procMuon" << std::endl;
     }
@@ -291,8 +291,8 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
           hit.valid = stubResult.getValid();
 
           unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[procMuon->getRefLayer()];
-          
-          if(true) { //choose what to dump in hit.phiDist: "hitPhi - phiRefHit" or stubResult.getDeltaPhi()
+
+          if (false) {  //choose what to dump in hit.phiDist: "hitPhi - phiRefHit" or stubResult.getDeltaPhi()
             int hitPhi = stubResult.getMuonStub()->phiHw;
             int phiRefHit = gpResult.getStubResults()[refLayerLogicNum].getMuonStub()->phiHw;
             hit.phiDist = hitPhi - phiRefHit;
@@ -300,24 +300,25 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
             if (omtfConfig->isBendingLayer(iLogicLayer)) {
               hit.phiDist = stubResult.getMuonStub()->phiBHw;
             }
-          }
-          else {
+          } else {
             //stubResult.getDeltaPhi() includes the extrapolated phi
             hit.phiDist = stubResult.getDeltaPhi();
           }
-          
-          if(refLayerLogicNum == iLogicLayer)
-            hit.deltaR = stubResult.getMuonStub()->r - 413; //r of the ref hit - r of RB1in
+
+          if (refLayerLogicNum == iLogicLayer)
+            hit.deltaR = stubResult.getMuonStub()->r - 413;  //r of the ref hit - r of RB1in
           else
             hit.deltaR = stubResult.getMuonStub()->r - gpResult.getStubResults()[refLayerLogicNum].getMuonStub()->r;
 
-
-          LogTrace("l1tOmtfEventPrint")<<" muonPt "<<omtfEvent.muonPt<<" omtfPt "<<omtfEvent.omtfPt<<" RefLayer "<<int(omtfEvent.omtfRefLayer)
-                <<" layer "<<int(hit.layer)<<" PdfBin "<<stubResult.getPdfBin()<<" hit.phiDist "<<hit.phiDist<<" valid "<<int(hit.valid)<<" " //<<" phiDist "<<phiDist
-                <<" hit.deltaR "<<hit.deltaR
-                //<<" getDistPhiBitShift "<<procMuon->getGoldenPatern()->getDistPhiBitShift(iLogicLayer, procMuon->getRefLayer())
-                //<<" meanDistPhiValue   "<<procMuon->getGoldenPatern()->meanDistPhiValue(iLogicLayer, procMuon->getRefLayer())//<<(phiDist != hit.phiDist? "!!!!!!!<<<<<" : "")
-                <<endl;
+          LogTrace("l1tOmtfEventPrint")
+              << " muonPt " << omtfEvent.muonPt << " omtfPt " << omtfEvent.omtfPt << " RefLayer "
+              << int(omtfEvent.omtfRefLayer) << " layer " << int(hit.layer) << " PdfBin " << stubResult.getPdfBin()
+              << " hit.phiDist " << hit.phiDist << " valid " << int(hit.valid) << " "  //<<" phiDist "<<phiDist
+              << " hit.deltaR "
+              << hit.deltaR
+              //<<" getDistPhiBitShift "<<procMuon->getGoldenPatern()->getDistPhiBitShift(iLogicLayer, procMuon->getRefLayer())
+              //<<" meanDistPhiValue   "<<procMuon->getGoldenPatern()->meanDistPhiValue(iLogicLayer, procMuon->getRefLayer())//<<(phiDist != hit.phiDist? "!!!!!!!<<<<<" : "")
+              << endl;
 
           if (hit.phiDist > 504 || hit.phiDist < -512) {
             LogTrace("l1tOmtfEventPrint")

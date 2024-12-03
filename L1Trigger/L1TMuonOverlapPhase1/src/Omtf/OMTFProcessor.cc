@@ -62,7 +62,8 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
 
   if (this->myOmtfConfig->getGhostBusterType() == "GhostBusterPreferRefDt" ||
       this->myOmtfConfig->getGhostBusterType() == "byLLH" || this->myOmtfConfig->getGhostBusterType() == "byFPLLH" ||
-      this->myOmtfConfig->getGhostBusterType() == "byRefLayer" || this->myOmtfConfig->getGhostBusterType() == "byRefLayerAndHitQual") {
+      this->myOmtfConfig->getGhostBusterType() == "byRefLayer" ||
+      this->myOmtfConfig->getGhostBusterType() == "byRefLayerAndHitQual") {
     setGhostBuster(new GhostBusterPreferRefDt(this->myOmtfConfig));
     edm::LogVerbatim("OMTFReconstruction") << "setting " << this->myOmtfConfig->getGhostBusterType() << std::endl;
   } else {
@@ -357,8 +358,9 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
                                                                   const int& targetStubR,
                                                                   const OMTFConfiguration* omtfConfig) {
   LogTrace("l1tOmtfEventPrint") << "\n"
-                                << __FUNCTION__ << ":" << __LINE__ << " refLogicLayer " << refLogicLayer << " refHitSuperLayer " << refHitSuperLayer
-                                << " targetLayer " << targetLayer << std::endl;
+                                << __FUNCTION__ << ":" << __LINE__ << " refLogicLayer " << refLogicLayer
+                                << " refHitSuperLayer " << refHitSuperLayer << " targetLayer " << targetLayer
+                                << std::endl;
   LogTrace("l1tOmtfEventPrint") << "refPhi " << refPhi << " refPhiB " << refPhiB << " targetStubPhi " << targetStubPhi
                                 << " targetStubQuality " << targetStubQuality << std::endl;
 
@@ -374,13 +376,12 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
 
   int reflLayerIndex = refLogicLayer == 0 ? 0 : 1;
   if (useStubQualInExtr) {
-  	//the phase-2 DT Trigger Primitives, since CMSSW_14_2_0_pre1 define phi always in "the middle of the chamber"
-  	//also for the uncorrelated stubs
-  	//so the below correction has sense only of the phase-1
-    if(refHitSuperLayer == 1) {
+    //the phase-2 DT Trigger Primitives, since CMSSW_14_2_0_pre1 define phi always in "the middle of the chamber"
+    //also for the uncorrelated stubs
+    //so the below correction has sense only of the phase-1
+    if (refHitSuperLayer == 1) {
       rRefLayer = rRefLayer - 23.5 / 2;  //inner superlayer
-    }
-    else if (refHitSuperLayer == 3) { //using 3 here as in the L1Phase2MuDTPhDigi::slNum(), so value 2 is not used, what might not be optimal for FW,
+    } else if (refHitSuperLayer == 3) {  //using refHitSuperLayer = 3 here as in the L1Phase2MuDTPhDigi::slNum()
       rRefLayer = rRefLayer + 23.5 / 2;  //inner superlayer
     }
 
@@ -392,10 +393,10 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(const int& ref
     float rTargetLayer = 512.475;  //MB2
 
     if (targetLayer == 0)
-      rTargetLayer = 431.175;  //MB1
-    else if (targetLayer == 4) {//MB3
+      rTargetLayer = 431.175;     //MB1
+    else if (targetLayer == 4) {  //MB3
       //it is different than in the phase-1, as in the phase-2 it is a middle of the DT chamber, not muon station
-      if(omtfConfig->usePhase2DTPrimitives())
+      if (omtfConfig->usePhase2DTPrimitives())
         rTargetLayer = 619.675;
       else
         rTargetLayer = 617.946;
@@ -593,10 +594,10 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const MuonStubPtr& refSt
   // 1 is inner SL, 2 is outer.
   //N.B. that in L1Phase2MuDTPhDigi::slNum() out SL is 3
   int refHitSuperLayer = 0;
-  if(refStub->qualityHw == 2 || refStub->qualityHw == 0)
-    refHitSuperLayer =  1;
-  else if(refStub->qualityHw == 3 || refStub->qualityHw == 1)
-    refHitSuperLayer =  2;
+  if (refStub->qualityHw == 2 || refStub->qualityHw == 0)
+    refHitSuperLayer = 1;
+  else if (refStub->qualityHw == 3 || refStub->qualityHw == 1)
+    refHitSuperLayer = 2;
 
   if (useFloatingPointExtrapolation)
     return OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFloatPoint(refStub->logicLayer,

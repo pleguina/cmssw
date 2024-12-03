@@ -24,7 +24,6 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                              int bxFrom,
                                              int bxTo,
                                              std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
-
   boost::property_tree::ptree procDataTree;
 
   for (const auto& digiIt : *dtPhDigis->getContainer()) {
@@ -82,14 +81,14 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   MuonStub stub;
 
   //converting the quality to the same encoding as in phase-1, as it is important for extrapolation
-  if (digi.quality() >= 6) // correlated stub
+  if (digi.quality() >= 6)  // correlated stub
     stub.qualityHw = digi.quality() - 2;
-  else if (digi.quality() >= 3) { // 4 hit uncorrelated stub
+  else if (digi.quality() >= 3) {  // 4 hit uncorrelated stub
     if (digi.slNum() == 3)
       stub.qualityHw = 3;
     else if (digi.slNum() == 1)
       stub.qualityHw = 2;
-  } else { //quality 1 (3 hits) or 2 (3+2 hits)
+  } else {  //quality 1 (3 hits) or 2 (3+2 hits)
     if (digi.slNum() == 3)
       stub.qualityHw = 1;
     else if (digi.slNum() == 1)
@@ -119,9 +118,9 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
     stub.r = 431.175;  //MB1
   else if (iLayer == 2) {
     stub.r = 512.475;  //MB2
-  }
-  else if (iLayer == 4) {
-    stub.r = 620; //round(619.675); //MB3, it is different than in the phase-1, as in the phase-2 it is a middle of the DT chamber, not muon station
+  } else if (iLayer == 4) {
+    stub.r = 620;  //round(619.675); 
+    //MB3, it is different than in the phase-1, as in the phase-2 it is a middle of the DT chamber, not muon station
   }
 
   //in phase2, the phiB is 13 bits, and range is [-2, 2 rad] so 4 rad, 2^13 units/(4 rad) =  1^11/rad.

@@ -9,7 +9,7 @@
 #define L1Trigger_L1TMuonOverlapPhase2_PtAssigmentNNRegression_h
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/PtAssignmentBase.h"
-#include "L1Trigger/L1TMuonOverlapPhase2/interface/LutNetworkFixedPointRegression2Outputs.h"
+#include "L1Trigger/L1TMuonOverlapPhase2/interface/LutNetworkFixedPointCommon.h"
 
 class PtAssignmentNNRegression : public PtAssignmentBase {
 public:

@@ -26,36 +26,32 @@
 namespace lutNN {
   // constexpr for ceil(log2) from stackoverflow
   constexpr size_t floorlog2(size_t i) {
-    if (!(i > 0))
-      throw cms::Exception("Incorrect input")
-          << "Argument of floorlog2 must be grater than 0, while " << i << " used.\n";
     return i == 1 ? 0 : 1 + floorlog2(i >> 1);
   }
   constexpr size_t ceillog2(size_t i) {
-    if (!(i > 0))
-      throw cms::Exception("Incorrect input")
-          << "Argument of ceillog2 must be grater than 0, while " << i << " used.\n";
     return i == 1 ? 0 : floorlog2(i - 1) + 1;
   }
 
-  template <int input_I, int input_F, size_t inputSize, int lut_I, int lut_F, int neurons, int output_I, int output_F>
+  template <int input_I, int input_F, std::size_t inputSize, int lut_I, int lut_F, int neurons, int output_I, int output_F>
   class LutNeuronLayerFixedPoint {
   public:
     static constexpr int input_W = input_I + input_F;
     static constexpr int lut_W = lut_I + lut_F;
 
     //the lut out values sum
-    //static const int lutOutSum_I = lut_I + ceil(log2(inputSize)); //MB: ceil(log2(inputSize)) is not constexpr which makes issue for code-checks
+    //static const int lutOutSum_I = lut_I + ceil(log2(inputSize)); //ceil(log2(inputSize)) is not constexpr which makes issue for code-checks
+    static_assert(inputSize > 0);
     static constexpr int lutOutSum_I = lut_I + ceillog2(inputSize);
     static constexpr int lutOutSum_W = lutOutSum_I + output_F;
 
     static constexpr int output_W = output_I + output_F;
 
     //static_assert( (1<<input_I) <= lutSize);
-    static constexpr size_t lutSize = 1 << input_I;
+    static constexpr std::size_t lutSize = 1 << input_I;
 
     typedef std::array<ap_ufixed<input_W, input_I, AP_TRN, AP_SAT>, inputSize> inputArrayType;
 
+    //the lutSumArrayType lutOutSum_I is such that no overflow in summation is possible
     typedef std::array<ap_fixed<lutOutSum_W, lutOutSum_I>, neurons> lutSumArrayType;
 
     LutNeuronLayerFixedPoint() {  //FIXME initialise name(name)
@@ -166,7 +162,7 @@ namespace lutNN {
     }
 
     //Output without offset
-    auto& getLutOutSum() { return lutOutSumArray; }
+    lutSumArrayType& getLutOutSum() { return lutOutSumArray; }
 
     //converts the output values from signed to unsigned by adding the offset = 1 << (output_I-1)
     //these values can be then directly used as inputs of the next LUT layer

@@ -159,7 +159,7 @@ void PatternGenerator::updateStat() {
 
         bool fired = false;
         if (gpResult.getStubResults()[iLayer].getMuonStub()) {
-            fired = true;
+          fired = true;
         }
 
         if (fired) {  //the result is not empty

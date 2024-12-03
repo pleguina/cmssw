@@ -116,19 +116,20 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
 
     int aRefLayerLogicNum = omtfConfig->getRefToLogicNumber()[a->getRefLayer()];
     int aRefHitQual = 0;
-    if(aRefLayerLogicNum == 0 || aRefLayerLogicNum == 2) {//MB1 or MB2, i.e. the station for which extrapolation is done
+    //MB1 or MB2, i.e. the station for which extrapolation is done
+    if (aRefLayerLogicNum == 0 || aRefLayerLogicNum == 2) {
       aRefHitQual = a->getStubResult(aRefLayerLogicNum).getMuonStub()->qualityHw;
       aRefHitQual = aRefHitQual >= 4 ? 1 : 0;
     }
 
     int bRefLayerLogicNum = omtfConfig->getRefToLogicNumber()[b->getRefLayer()];
     int bRefHitQual = 0;
-    if(bRefLayerLogicNum == 0 || bRefLayerLogicNum == 2) {
+    if (bRefLayerLogicNum == 0 || bRefLayerLogicNum == 2) {
       bRefHitQual = b->getStubResult(bRefLayerLogicNum).getMuonStub()->qualityHw;
       bRefHitQual = bRefHitQual >= 4 ? 1 : 0;
     }
 
-    if(aRefHitQual > bRefHitQual)
+    if (aRefHitQual > bRefHitQual)
       return false;
     else if (aRefHitQual == bRefHitQual && aRefLayerLogicNum < bRefLayerLogicNum)
       return false;
@@ -136,7 +137,7 @@ AlgoMuons GhostBusterPreferRefDt::select(AlgoMuons muonsIN, int charge) {
       return false;
     else if (aRefHitQual == bRefHitQual && aRefLayerLogicNum == bRefLayerLogicNum && a->getPdfSum() == b->getPdfSum() &&
              a->getPatternNumConstr() > b->getPatternNumConstr())
-             //should be rather getPatternNum(), but for FW getPatternNumConstr() is easier
+      //should be rather getPatternNum(), but for FW getPatternNumConstr() is easier
       return false;
     else if (aRefHitQual == bRefHitQual && aRefLayerLogicNum == bRefLayerLogicNum && a->getPdfSum() == b->getPdfSum() &&
              a->getPatternNumConstr() == b->getPatternNumConstr())
