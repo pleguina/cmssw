@@ -25,12 +25,8 @@
 
 namespace lutNN {
   // constexpr for ceil(log2) from stackoverflow
-  constexpr size_t floorlog2(size_t i) {
-    return i == 1 ? 0 : 1 + floorlog2(i >> 1);
-  }
-  constexpr size_t ceillog2(size_t i) {
-    return i == 1 ? 0 : floorlog2(i - 1) + 1;
-  }
+  constexpr size_t floorlog2(size_t i) { return i == 1 ? 0 : 1 + floorlog2(i >> 1); }
+  constexpr size_t ceillog2(size_t i) { return i == 1 ? 0 : floorlog2(i - 1) + 1; }
 
   template <int input_I, int input_F, std::size_t inputSize, int lut_I, int lut_F, int neurons, int output_I, int output_F>
   class LutNeuronLayerFixedPoint {

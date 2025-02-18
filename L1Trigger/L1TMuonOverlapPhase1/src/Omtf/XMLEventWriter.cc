@@ -55,11 +55,11 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
                                               const std::shared_ptr<OMTFinput>& input,
                                               const AlgoMuons& algoCandidates,
                                               const AlgoMuons& gbCandidates,
-                                              const std::vector<l1t::RegionalMuonCand>& candMuons) {
+                                              const FinalMuons& finalMuons) {
   int endcap = (mtfType == l1t::omtf_neg) ? -1 : ((mtfType == l1t::omtf_pos) ? +1 : 0);
   OmtfName board(iProcessor, endcap, omtfConfig);
 
-  if (candMuons.empty())
+  if (finalMuons.empty())
     return;
 
   for (unsigned int iLayer = 0; iLayer < omtfConfig->nLayers(); ++iLayer) {
@@ -168,26 +168,27 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
     }
   }
 
-  for (auto& candMuon : candMuons) {
+  for (auto& finalMuon : finalMuons) {
     auto& candMuonTree = procTree.add("CandMuon", "");
-    candMuonTree.add("<xmlattr>.hwEta", candMuon.hwEta());
-    candMuonTree.add("<xmlattr>.hwPhi", candMuon.hwPhi());
-    candMuonTree.add("<xmlattr>.hwPt", candMuon.hwPt());
-    candMuonTree.add("<xmlattr>.hwUPt", candMuon.hwPtUnconstrained());
-    candMuonTree.add("<xmlattr>.hwQual", candMuon.hwQual());
-    candMuonTree.add("<xmlattr>.hwSign", candMuon.hwSign());
-    candMuonTree.add("<xmlattr>.hwSignValid", candMuon.hwSignValid());
-    candMuonTree.add("<xmlattr>.hwTrackAddress", std::bitset<29>(candMuon.trackAddress().at(0)));
-    candMuonTree.add("<xmlattr>.link", candMuon.link());
-    candMuonTree.add("<xmlattr>.processor", candMuon.processor());
+    candMuonTree.add("<xmlattr>.hwEta", finalMuon.getEta());
+    candMuonTree.add("<xmlattr>.hwPhi", finalMuon.getPhi());
+    candMuonTree.add("<xmlattr>.hwPt", finalMuon.getPt());
+    candMuonTree.add("<xmlattr>.hwUPt", finalMuon.getPtUnconstr());
+    candMuonTree.add("<xmlattr>.hwQual", finalMuon.getQuality());
+    candMuonTree.add("<xmlattr>.hwSign", finalMuon.getSign());
+    candMuonTree.add("<xmlattr>.hwSignValid", 1);
+    candMuonTree.add("<xmlattr>.hwTrackAddress",
+                     std::bitset<29>(finalMuon.getAlgoMuon()->getFiredLayerBits()));  //TODO has no sense for phase-2
+    candMuonTree.add("<xmlattr>.link",
+                     (mtfType == l1t::omtf_neg ? 60 + iProcessor : 42 + iProcessor));  //TODO has no sense for phase-2
+    candMuonTree.add("<xmlattr>.processor", iProcessor);
 
     std::ostringstream stringStr;
-    if (candMuon.trackFinderType() == l1t::omtf_neg)
+    if (mtfType == l1t::omtf_neg)
       stringStr << "OMTF_NEG";
-    else if (candMuon.trackFinderType() == l1t::omtf_pos)
+    else if (mtfType == l1t::omtf_pos)
       stringStr << "OMTF_POS";
-    else
-      stringStr << candMuon.trackFinderType();
+
     candMuonTree.add("<xmlattr>.trackFinderType", stringStr.str());
   }
 

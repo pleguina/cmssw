@@ -79,7 +79,7 @@ void EventCapture::observeProcesorEmulation(unsigned int iProcessor,
                                             const std::shared_ptr<OMTFinput>& input,
                                             const AlgoMuons& algoCandidates,
                                             const AlgoMuons& gbCandidates,
-                                            const std::vector<l1t::RegionalMuonCand>& candMuons) {
+                                            const FinalMuons& finalMuons) {
   unsigned int procIndx = omtfConfig->getProcIndx(iProcessor, mtfType);
   edm::LogImportant("l1tOmtfEventPrint") << "EventCapture::observeProcesorEmulation : iProcessor" << iProcessor
                                          << " mtfType " << mtfType << " procIndx " << procIndx << " OmtfName(procIndx) "

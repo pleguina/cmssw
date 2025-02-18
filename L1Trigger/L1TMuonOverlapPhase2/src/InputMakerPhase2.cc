@@ -119,7 +119,7 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   else if (iLayer == 2) {
     stub.r = 512.475;  //MB2
   } else if (iLayer == 4) {
-    stub.r = 620;  //round(619.675); 
+    stub.r = 620;  //round(619.675);
     //MB3, it is different than in the phase-1, as in the phase-2 it is a middle of the DT chamber, not muon station
   }
 

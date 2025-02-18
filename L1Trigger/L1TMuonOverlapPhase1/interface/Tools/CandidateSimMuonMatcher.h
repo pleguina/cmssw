@@ -52,7 +52,7 @@ public:
 
   MatchingResult() {}
 
-  MatchingResult(const SimTrack& simTrack) : simTrack(&simTrack) {
+  MatchingResult(const SimTrack& simTrack, const SimVertex* simVertex) : simTrack(&simTrack), simVertex(simVertex) {
     pdgId = simTrack.type();
     genPt = simTrack.momentum().pt();
     genEta = simTrack.momentum().eta();
@@ -110,7 +110,7 @@ public:
                                 const std::shared_ptr<OMTFinput>&,
                                 const AlgoMuons& algoCandidates,
                                 const AlgoMuons& gbCandidates,
-                                const std::vector<l1t::RegionalMuonCand>& candMuons) override;
+                                const FinalMuons& finalMuons) override;
 
   void observeEventBegin(const edm::Event& event) override;
 
@@ -132,6 +132,8 @@ public:
 
   FreeTrajectoryState simTrackToFts(const TrackingParticle& trackingParticle);
 
+  TrajectoryStateOnSurface atStation1(const FreeTrajectoryState& ftsStart) const;
+
   TrajectoryStateOnSurface atStation2(const FreeTrajectoryState& ftsStart) const;
 
   TrajectoryStateOnSurface propagate(const SimTrack& simTrack, const edm::SimVertexContainer* simVertices);
@@ -139,15 +141,10 @@ public:
   TrajectoryStateOnSurface propagate(const TrackingParticle& trackingParticle);
 
   //tsof should be the result of track propagation
-  MatchingResult match(const l1t::RegionalMuonCand* omtfCand,
-                       const AlgoMuonPtr& procMuon,
-                       const SimTrack& simTrack,
-                       TrajectoryStateOnSurface& tsof);
-
-  MatchingResult match(const l1t::RegionalMuonCand* omtfCand,
-                       const AlgoMuonPtr& procMuon,
-                       const TrackingParticle& trackingParticle,
-                       TrajectoryStateOnSurface& tsof);
+  void match(const l1t::RegionalMuonCand* omtfCand,
+             const AlgoMuonPtr& procMuon,
+             MatchingResult& result,
+             TrajectoryStateOnSurface& tsof);
 
   std::vector<MatchingResult> cleanMatching(std::vector<MatchingResult> matchingResults,
                                             std::vector<const l1t::RegionalMuonCand*>& muonCands,

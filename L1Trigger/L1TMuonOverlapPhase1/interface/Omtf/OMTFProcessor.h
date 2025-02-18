@@ -2,6 +2,7 @@
 #define L1T_OmtfP1_OMTFProcessor_H
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/FinalMuon.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPattern.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IGhostBuster.h"
@@ -99,10 +100,11 @@ public:
     return ghostBuster->select(refHitCands, charge);
   }
 
-  //convert algo muon to outgoing Candidates
-  std::vector<l1t::RegionalMuonCand> getFinalcandidates(unsigned int iProcessor,
-                                                        l1t::tftype mtfType,
-                                                        const AlgoMuons& algoCands) override;
+  FinalMuons convertToOuputScalesPhase1(l1t::tftype mtfType, const AlgoMuons& gbCandidates);
+
+  std::vector<l1t::RegionalMuonCand> getRegionalMuonCands(unsigned int iProcessor,
+                                                          l1t::tftype mtfType,
+                                                          FinalMuons& finalMuons);
 
   ///allows to use other sorter implementation than the default one
   virtual void setSorter(SorterBase<GoldenPatternType>* sorter) { this->sorter.reset(sorter); }
@@ -112,11 +114,16 @@ public:
 
   virtual void setPtAssignment(PtAssignmentBase* ptAssignment) { this->ptAssignment = ptAssignment; }
 
-  std::vector<l1t::RegionalMuonCand> run(unsigned int iProcessor,
-                                         l1t::tftype mtfType,
-                                         int bx,
-                                         OMTFinputMaker* inputMaker,
-                                         std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+  void setOutpuConversionFunction(
+      std::function<FinalMuons(l1t::tftype mtfType, const AlgoMuons& gbCandidates)> convertToOuputScales) {
+    this->convertToOuputScales = convertToOuputScales;
+  }
+
+  FinalMuons run(unsigned int iProcessor,
+                 l1t::tftype mtfType,
+                 int bx,
+                 OMTFinputMaker* inputMaker,
+                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
 
   void printInfo() const override;
 
@@ -132,11 +139,13 @@ private:
   ///Candidate with invalid hit patterns is assigned quality=0.
   ///Currently the list of invalid patterns is hardcoded.
   ///This has to be read from configuration.
-  bool checkHitPatternValidity(unsigned int hits) override;
+  static bool checkHitPatternValidity(unsigned int hits);
 
   std::unique_ptr<SorterBase<GoldenPatternType> > sorter;
 
   std::unique_ptr<IGhostBuster> ghostBuster;
+
+  std::function<FinalMuons(l1t::tftype mtfType, const AlgoMuons& gbCandidates)> convertToOuputScales;
 
   //ptAssignment should be destroyed where it is created, i.e. by OmtfEmulation or OMTFReconstruction
   PtAssignmentBase* ptAssignment = nullptr;

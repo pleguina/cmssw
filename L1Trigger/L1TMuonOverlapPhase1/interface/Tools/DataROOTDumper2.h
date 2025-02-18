@@ -88,7 +88,7 @@ public:
                                 const std::shared_ptr<OMTFinput>&,
                                 const AlgoMuons& algoCandidates,
                                 const AlgoMuons& gbCandidates,
-                                const std::vector<l1t::RegionalMuonCand>& candMuons) override;
+                                const FinalMuons& finalMuons) override;
 
   void observeEventEnd(const edm::Event& iEvent,
                        std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) override;
@@ -109,7 +109,7 @@ private:
   TH1I* ptGenPos = nullptr;
   TH1I* ptGenNeg = nullptr;
 
-  std::vector<TH2*> hitVsPt;
+  //std::vector<TH2*> hitVsPt;
 
   bool dumpKilledOmtfCands = false;
 

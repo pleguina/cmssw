@@ -34,7 +34,7 @@ public:
                                 const std::shared_ptr<OMTFinput>&,
                                 const AlgoMuons& algoCandidates,
                                 const AlgoMuons& gbCandidates,
-                                const std::vector<l1t::RegionalMuonCand>& candMuons) override;
+                                const FinalMuons& finalMuons) override;
 
   void observeEventBegin(const edm::Event& event) override;
 

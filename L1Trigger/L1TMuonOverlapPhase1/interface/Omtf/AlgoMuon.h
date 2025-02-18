@@ -141,6 +141,18 @@ public:
 
   void setPtNNUnconstr(int ptNnUnconstr = 0) { ptNNUnconstr = ptNnUnconstr; }
 
+  int getDxyNn() const { return dxyNN; }
+
+  void setDxyNn(int dxyNn = 0) { dxyNN = dxyNn; }
+
+  const std::vector<double>& getNnOutputs() const { return nnOutputs; }
+
+  void setNnOutputs(const std::vector<double>& nnOutputs) { this->nnOutputs = nnOutputs; }
+
+  int getQualityNN() const { return qualityNN; }
+
+  void setQualityNN(int qualityNn = 0) { qualityNN = qualityNn; }
+
 private:
   ///FIXME maybe the gpResult cannot be a reference or pointer, ad not a copy
   GoldenPatternResult gpResultConstr;
@@ -170,6 +182,11 @@ private:
 
   int ptNNUnconstr = 0;
   int chargeNNUnconstr = 0;
+
+  int qualityNN = 0;
+  int dxyNN = 0;
+
+  std::vector<double> nnOutputs;
 };
 
 typedef std::shared_ptr<AlgoMuon> AlgoMuonPtr;

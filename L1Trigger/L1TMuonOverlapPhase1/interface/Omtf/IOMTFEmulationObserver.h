@@ -9,6 +9,7 @@
 #define L1T_OmtfP1_IOMTFRECONSTRUCTIONOBSERVER_H_
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/FinalMuon.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
 
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -40,7 +41,7 @@ public:
                                         const std::shared_ptr<OMTFinput>& input,
                                         const AlgoMuons& algoCandidates,
                                         const AlgoMuons& gbCandidates,
-                                        const std::vector<l1t::RegionalMuonCand>& candMuons) = 0;
+                                        const FinalMuons& finalMuons) = 0;
 
   virtual void observeEventBegin(const edm::Event& iEvent) {}
 

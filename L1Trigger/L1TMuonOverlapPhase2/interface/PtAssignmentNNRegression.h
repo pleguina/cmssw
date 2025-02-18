@@ -18,8 +18,7 @@ public:
                            std::string networkFile);
   ~PtAssignmentNNRegression() override = default;
 
-  std::vector<float> getPts(AlgoMuons::value_type& algoMuon,
-                            std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+  void run(AlgoMuons::value_type& algoMuon, std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
 
 private:
   unique_ptr<lutNN::LutNetworkFixedPointRegressionBase> lutNetworkFP;

@@ -13,6 +13,7 @@
 
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/PtAssignmentNNRegression.h"
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/LutNetworkFixedPointRegressionMultipleOutputs.h"
+#include "DataFormats/L1TMuonPhase2/interface/Constants.h"
 #include "DataFormats/L1TMuonPhase2/interface/SAMuon.h"
 
 #include <boost/archive/text_oarchive.hpp>
@@ -37,7 +38,7 @@ namespace lutNN {
   //4 bits are for the count of the noHit layers which goes to the input of the layer2
   const int layer2_input_I = layer1_output_I + 4;
 
-  const int layer2_neurons = 8 * 2 + 1 + 3;//8 neurons for pt0, pt1 (each), 1 for charge, 3s for p_displ
+  const int layer2_neurons = 8 * 2 + 1 + 3;  //8 neurons for pt0, pt1 (each), 1 for charge, 3s for p_displ
   const int layer2_lut_I = 5;
   const int layer2_lut_F = 7;
 
@@ -48,11 +49,11 @@ namespace lutNN {
   const int layer3_0_lut_I = 8;
   const int layer3_0_lut_F = 5 + 5;
   const int output0_I = 8;
-  const int output0_F = 5 + 5; //layer3_0_lut_F + 2;
+  const int output0_F = 5 + 5;  //layer3_0_lut_F + 2;
   const int layer3_0_multiplicity = 2;
 
   const int layer3_1_inputCnt = 1;
-  const int layer3_1_lut_I = 8; //TODO it should be smaller than 4 bits
+  const int layer3_1_lut_I = 8;  //TODO it should be smaller than 4 bits
   const int layer3_1_lut_F = 5 + 5;
 
   const int output1_I = 8;
@@ -60,31 +61,31 @@ namespace lutNN {
   const int layer3_1_multiplicity = 4;
 
   typedef LutNetworkFixedPointRegressionMultipleOutputs<input_I,
-                                                       input_F,
-                                                       networkInputSize,
-                                                       layer1_lut_I,
-                                                       layer1_lut_F,
-                                                       layer1_neurons,  //layer1_lutSize = 2 ^ input_I
-                                                       layer1_output_I,
-                                                       layer1_output_F,
-                                                       layer2_input_I,
-                                                       layer2_lut_I,
-                                                       layer2_lut_F,
-                                                       layer2_neurons,
-                                                       layer3_input_I,
-                                                       layer3_input_F,
-                                                       layer3_0_inputCnt,
-                                                       layer3_0_lut_I,
-                                                       layer3_0_lut_F,
-                                                       output0_I,
-                                                       output0_F,
-                                                       layer3_0_multiplicity,
-                                                       layer3_1_inputCnt,
-                                                       layer3_1_lut_I,
-                                                       layer3_1_lut_F,
-                                                       output1_I,
-                                                       output1_F,
-                                                       layer3_1_multiplicity>
+                                                        input_F,
+                                                        networkInputSize,
+                                                        layer1_lut_I,
+                                                        layer1_lut_F,
+                                                        layer1_neurons,  //layer1_lutSize = 2 ^ input_I
+                                                        layer1_output_I,
+                                                        layer1_output_F,
+                                                        layer2_input_I,
+                                                        layer2_lut_I,
+                                                        layer2_lut_F,
+                                                        layer2_neurons,
+                                                        layer3_input_I,
+                                                        layer3_input_F,
+                                                        layer3_0_inputCnt,
+                                                        layer3_0_lut_I,
+                                                        layer3_0_lut_F,
+                                                        output0_I,
+                                                        output0_F,
+                                                        layer3_0_multiplicity,
+                                                        layer3_1_inputCnt,
+                                                        layer3_1_lut_I,
+                                                        layer3_1_lut_F,
+                                                        output1_I,
+                                                        output1_F,
+                                                        layer3_1_multiplicity>
       LutNetworkFP;
 }  // namespace lutNN
 
@@ -120,100 +121,99 @@ struct OmtfHit {
 };
 
 bool omtfHitWithQualAndRToEventInput(OmtfHit& hit, std::vector<float>& inputs, unsigned int omtfRefLayer, bool print) {
-  int lustSize = 1024; //TODO change it if needed
+  int lustSize = 1024;  //TODO change it if needed
   int refLayers = 8;
   float rangeSize = lustSize / (refLayers * 2);
   //float offset = (omtfRefLayer<<7) + rangeMiddle;
-  float offset = omtfRefLayer * rangeSize * 2 + rangeSize/2; //two ranges for each omtfRefLayer, so that two qualites can be used for each omtfRefLayer
+  float offset =
+      omtfRefLayer * rangeSize * 2 +
+      rangeSize / 2;  //two ranges for each omtfRefLayer, so that two qualites can be used for each omtfRefLayer
 
-  int rangeFactor = 2; //rangeFactor scales the hit.phiDist such that the event->inputs is smaller then 63
+  int rangeFactor = 2;  //rangeFactor scales the hit.phiDist such that the event->inputs is smaller then 63
 
   //if(!hit.valid)
   //    return false; ///TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  if(hit.layer <= 5) { //DT hits
-    rangeFactor = 2; //rangeFactor scales the hit.phiDist such that the event->inputs is smaller then 63
-    offset = omtfRefLayer * rangeSize * 2 + rangeSize/2; //two ranges for each omtfRefLayer, so that two qualites can be used for each omtfRefLayer
-    if( (hit.layer == 1 || hit.layer == 3 || hit.layer == 5) ) { //phiB
+  if (hit.layer <= 5) {  //DT hits
+    rangeFactor = 2;     //rangeFactor scales the hit.phiDist such that the event->inputs is smaller then 63
+    //two ranges for each omtfRefLayer, so that two qualites can be used for each omtfRefLayer
+    offset = omtfRefLayer * rangeSize * 2 + rangeSize / 2;  
+    if ((hit.layer == 1 || hit.layer == 3 || hit.layer == 5)) {  //phiB
       //if(!hit.valid)
       //    return false; ///TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-      if(hit.quality < 2) ///TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      if (hit.quality < 2)  ///TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         return false;
 
-      if(hit.layer == 1) {
-        rangeFactor = 8 *2;
-      }
-      else if(hit.layer == 3) {
-        rangeFactor = 8 *2;
+      if (hit.layer == 1) {
+        rangeFactor = 8 * 2;
+      } else if (hit.layer == 3) {
+        rangeFactor = 8 * 2;
       }
 
-
-      else if(hit.layer == 5) {
-        rangeFactor = 8 *2;
+      else if (hit.layer == 5) {
+        rangeFactor = 8 * 2;
       }
-    }
-    else { //phi
+    } else {  //phi
       rangeFactor *= 4;
     }
 
-    if(hit.quality >= 4) {
+    if (hit.quality >= 4) {
       offset += rangeSize;
       //rangeFactor *= 4;
     }
 
-  }
-  else if( (hit.layer >= 6 && hit.layer <= 9) || (hit.layer >= 15) ) { //CSC hits and RPCe hits
+  } else if ((hit.layer >= 6 && hit.layer <= 9) || (hit.layer >= 15)) {  //CSC hits and RPCe hits
     int rBins = 16;
     rangeSize = lustSize / (refLayers * rBins);
     rangeFactor = 4;
     int rBin = std::abs(hit.r) >> 4;
-    if(rBin >= rBins) {
+    if (rBin >= rBins) {
       //cout<<"rBin "<<rBin<<" hit.eta "<<hit.eta<<" hit.layer "<<(int)hit.layer<<" omtfRefLayer "<<omtfRefLayer<<endl;
       rBin = rBins - 1;
     }
 
-    offset = (omtfRefLayer << 7) + (rBin<<3)  + rangeSize/2;
+    offset = (omtfRefLayer << 7) + (rBin << 3) + rangeSize / 2;
 
-    if(hit.layer == 9)
+    if (hit.layer == 9)
       rangeFactor = 4;
 
     rangeFactor = rangeFactor * rBins;
 
-  }
-  else if(hit.layer >= 10 || hit.layer <= 14) { //RPCb hits
+  } else if (hit.layer >= 10 || hit.layer <= 14) {  //RPCb hits
     rangeFactor *= 4;
   }
 
+  rangeFactor *= 2;  //TODO !!!!!!!!!!!!!!!!!!!
 
-  rangeFactor *= 2; //TODO !!!!!!!!!!!!!!!!!!!
-
-  if(abs(hit.phiDist) >= ((rangeSize/2-1) * rangeFactor) ) {
-    if(hit.valid)
-      cout   //<<" muonPt "<<omtfEvent.muonPt<<" omtfPt "<<omtfEvent.omtfPt
-      <<" RefLayer "<<omtfRefLayer<<" layer "
-      <<int(hit.layer)<<" hit.phiDist "<<hit.phiDist
-      <<" valid "<<((short)hit.valid)<<" quality "<<((short)hit.quality)<<" hit.phiDist outside the range !!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
-    hit.phiDist = copysign((rangeSize/2-1) * rangeFactor, hit.phiDist);
+  if (abs(hit.phiDist) >= ((rangeSize / 2 - 1) * rangeFactor)) {
+    if (hit.valid)
+      cout  //<<" muonPt "<<omtfEvent.muonPt<<" omtfPt "<<omtfEvent.omtfPt
+          << " RefLayer " << omtfRefLayer << " layer " << int(hit.layer) << " hit.phiDist " << hit.phiDist << " valid "
+          << ((short)hit.valid) << " quality " << ((short)hit.quality)
+          << " hit.phiDist outside the range !!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+    hit.phiDist = copysign((rangeSize / 2 - 1) * rangeFactor, hit.phiDist);
   }
 
   inputs.at(hit.layer) = (float)hit.phiDist / (float)rangeFactor + offset;
 
-  if(inputs.at(hit.layer) >= lustSize-2) //the last address i.e. 1023 is reserved for the no-hit value, so interpolation between the 1022 and 1023 has no sense
-    inputs.at(hit.layer) = lustSize-2;
+  if (inputs.at(hit.layer) >=
+      lustSize -
+          2)  //the last address i.e. 1023 is reserved for the no-hit value, so interpolation between the 1022 and 1023 has no sense
+    inputs.at(hit.layer) = lustSize - 2;
 
-  if(print || inputs.at(hit.layer) < 0) {
-    cout//<<"rawData "<<hex<<setw(16)<<hit.rawData
-    <<" layer "<<dec<<int(hit.layer);
-    cout<<" phiDist "<<hit.phiDist<<" inputVal "<<inputs.at(hit.layer)<<" hit.z "<<int(hit.z)<<" valid "<<((short)hit.valid)
-                    <<" quality "<<(short)hit.quality<<" omtfRefLayer "<<omtfRefLayer
-                    <<" offset "<<offset;
-    if(inputs.at(hit.layer) < 0)
-      cout<<" event->inputs.at(hit.layer) < 0 !!!!!!!!!!!!!!!!!"<<endl;
-    cout<<endl;
+  if (print || inputs.at(hit.layer) < 0) {
+    cout  //<<"rawData "<<hex<<setw(16)<<hit.rawData
+        << " layer " << dec << int(hit.layer);
+    cout << " phiDist " << hit.phiDist << " inputVal " << inputs.at(hit.layer) << " hit.z " << int(hit.z) << " valid "
+         << ((short)hit.valid) << " quality " << (short)hit.quality << " omtfRefLayer " << omtfRefLayer << " offset "
+         << offset;
+    if (inputs.at(hit.layer) < 0)
+      cout << " event->inputs.at(hit.layer) < 0 !!!!!!!!!!!!!!!!!" << endl;
+    cout << endl;
   }
 
-  if(inputs[hit.layer] >= lustSize) { //TODO should be the size of the LUT of the first layer
-    cout<<" event->inputs[hit.layer] >= "<< lustSize <<" !!!!!!!!!!!!!!!!!"<<endl;
+  if (inputs[hit.layer] >= lustSize) {  //TODO should be the size of the LUT of the first layer
+    cout << " event->inputs[hit.layer] >= " << lustSize << " !!!!!!!!!!!!!!!!!" << endl;
   }
   return true;
 }
@@ -356,8 +356,8 @@ bool omtfHitToEventInput(OmtfHit& hit, std::vector<float>& inputs, unsigned int 
   return false;
 }
 
-std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoMuon,
-                                                    std::vector<std::unique_ptr<IOMTFEmulationObserver>>& observers) {
+void PtAssignmentNNRegression::run(AlgoMuons::value_type& algoMuon,
+                                   std::vector<std::unique_ptr<IOMTFEmulationObserver>>& observers) {
   LogTrace("l1tOmtfEventPrint") << " " << __FUNCTION__ << ":" << __LINE__ << std::endl;
   auto& gpResult = algoMuon->getGpResultConstr();
   //int pdfMiddle = 1<<(omtfConfig->nPdfAddrBits()-1);
@@ -389,7 +389,6 @@ std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoM
       //hit.eta = stubResult.getMuonStub()->etaHw;  //in which scale?
       hit.r = stubResult.getMuonStub()->r;  //in cm
       hit.valid = stubResult.getValid();
-
 
       //TODO the hit.phiDist should be set in the same way as in DataROOTDumper2, for the root files used for the NN training
       //so either hit.phiDist = hitPhi - phiRefHit; or hit.phiDist = stubResult.getDeltaPhi();
@@ -440,17 +439,53 @@ std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoM
   LogTrace("l1tOmtfEventPrint") << " " << __FUNCTION__ << ":" << __LINE__ << " nnResult.at(0) " << nnResult.at(0)
                                 << " nnResult.at(1) " << nnResult.at(1) << " pt " << pt << std::endl;
 
-  std::vector<float> pts;
-  pts.emplace_back(pt);
-
   //algoMuon->setPtNN(omtfConfig->ptGevToHw(nnResult.at(0)));
-  auto calibratedHwPt = lutNetworkFP->getCalibratedHwPt();
+  //auto calibratedHwPt = lutNetworkFP->getCalibratedHwPt();
   //pt in the hardware scale, ptGeV = (ptHw -1) / 2
 
   //algoMuon->setPtNNConstr(omtfConfig->ptGevToHw(calibratedHwPt));
 
-  algoMuon->setPtNNConstr(omtfConfig->ptGevToHw(nnResult.at(0)));
+  int ptHw = round(nnResult.at(0) / Phase2L1GMT::LSBpt);
+  int maxPtHw =
+      (1 << 13) - 1;  //TODO take it from DataFormats/L1TMuonPhase2/interface/Constants.h once it is established there
+  if (ptHw >= maxPtHw)
+    ptHw = maxPtHw;
+  algoMuon->setPtNNConstr(ptHw);
+
+  if (algoMuon->getQ() <= 1)
+    algoMuon->setQualityNN(algoMuon->getQ());
+  else {
+    auto pt1 = nnResult.at(1);
+    int qual = 2;
+    //LUT from this formula:
+    //int nnQuality = 0.0403 * pow(pt1, 3) - 0.9192 * pow(pt1, 2) + 7.9698 * pt1 - 10.586;
+    if (pt1 <= 2.00) qual = 2 ;
+    else if (pt1 <= 2.22) qual = 3 ;
+    else if (pt1 <= 2.45) qual = 4 ;
+    else if (pt1 <= 2.7 ) qual = 5 ;
+    else if (pt1 <= 2.97) qual = 6 ;
+    else if (pt1 <= 3.26) qual = 7 ;
+    else if (pt1 <= 3.58) qual = 8 ;
+    else if (pt1 <= 3.94) qual = 9 ;
+    else if (pt1 <= 4.35) qual = 10;
+    else if (pt1 <= 4.83) qual = 11;
+    else if (pt1 <= 5.40) qual = 12;
+    else if (pt1 <= 6.13) qual = 13;
+    else if (pt1 <= 7.00) qual = 14;
+    else if (pt1 <= 8.00) qual = 15;
+
+    algoMuon->setQualityNN(qual);
+  }
+
   algoMuon->setChargeNNConstr(charge);
+
+  //TODO this is placeholder, the PtNNUnconstr should be set based on the NN outputs with p_displ
+  int ptHwUnconstr = round(nnResult.at(0) / Phase2L1GMT::LSBpt);
+  if (ptHwUnconstr >= maxPtHw)
+    ptHwUnconstr = maxPtHw;
+  algoMuon->setPtNNUnconstr(ptHwUnconstr);
+
+  algoMuon->setNnOutputs(nnResult);
 
   //TODO add some if here, such that the property_tree is filled only when needed
   boost::property_tree::ptree procDataTree;
@@ -461,21 +496,22 @@ std::vector<float> PtAssignmentNNRegression::getPts(AlgoMuons::value_type& algoM
   }
 
   std::ostringstream ostr;
-  ostr << std::fixed << std::setprecision(19) << nnResult.at(0);
-  procDataTree.add("output0.<xmlattr>.val", ostr.str());
 
-  ostr.str("");
-  ostr << std::fixed << std::setprecision(19) << nnResult.at(1);
-  procDataTree.add("output1.<xmlattr>.val", ostr.str());
+  for (unsigned int i = 0; i < nnResult.size(); i++) {
+    auto& inputTree = procDataTree.add("output", "");
+    ostr.str("");
+    ostr << std::fixed << std::setprecision(19) << nnResult.at(i);
 
-  procDataTree.add("calibratedHwPt.<xmlattr>.val", calibratedHwPt);
+    inputTree.add("<xmlattr>.num", i);
+    inputTree.add("<xmlattr>.val", ostr.str());
+  }
+
+  //procDataTree.add("calibratedHwPt.<xmlattr>.val", calibratedHwPt);
 
   procDataTree.add("hwSign.<xmlattr>.val", algoMuon->getChargeNNConstr() < 0 ? 1 : 0);
 
   for (auto& obs : observers)
     obs->addProcesorData("regressionNN", procDataTree);
-
-  return pts;
 
   //event.print();
   /*

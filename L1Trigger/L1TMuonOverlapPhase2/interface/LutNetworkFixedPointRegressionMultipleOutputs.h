@@ -48,20 +48,21 @@ namespace lutNN {
       int layer3_1_lut_I,
       int layer3_1_lut_F,
       int output1_I,
-      int output1_F, 
-     int layer3_1_multiplicity>
+      int output1_F,
+      int layer3_1_multiplicity>
   class LutNetworkFixedPointRegressionMultipleOutputs : public LutNetworkFixedPointRegressionBase {
   public:
     LutNetworkFixedPointRegressionMultipleOutputs() {
-      static_assert(layer2_neurons == (layer3_0_inputCnt * layer3_0_multiplicity + layer3_1_inputCnt * layer3_1_multiplicity));
+      static_assert(layer2_neurons ==
+                    (layer3_0_inputCnt * layer3_0_multiplicity + layer3_1_inputCnt * layer3_1_multiplicity));
 
       //std::cout << "LutNetworkFixedPoint" << std::endl;
       lutLayer1.setName("lutLayer1");
       lutLayer2.setName("lutLayer2");
-      for(unsigned int iSubLayer = 0; iSubLayer <  lutLayer3_0.size(); iSubLayer++) {
+      for (unsigned int iSubLayer = 0; iSubLayer < lutLayer3_0.size(); iSubLayer++) {
         lutLayer3_0[iSubLayer].setName("lutLayer3_0_" + std::to_string(iSubLayer));
       }
-      for(unsigned int iSubLayer = 0; iSubLayer <  lutLayer3_1.size(); iSubLayer++) {
+      for (unsigned int iSubLayer = 0; iSubLayer < lutLayer3_1.size(); iSubLayer++) {
         lutLayer3_1[iSubLayer].setName("lutLayer3_1_" + std::to_string(iSubLayer));
       }
     };
@@ -129,21 +130,25 @@ namespace lutNN {
       lutLayer2.runWithInterpolation(layer1OutWithBias);
       auto& layer2Out = lutLayer2.getOutWithOffset();
 
-        for (unsigned int iSubLayer = 0; iSubLayer < lutLayer3_0.size(); iSubLayer++) {
-            typename LutLayer3_0::inputArrayType lutLayer3_0_input;
-            std::copy(layer2Out.begin() + lutLayer3_0_input.size() *  iSubLayer, //from
-                      layer2Out.begin() + lutLayer3_0_input.size() * (iSubLayer +1), lutLayer3_0_input.begin());
+      for (unsigned int iSubLayer = 0; iSubLayer < lutLayer3_0.size(); iSubLayer++) {
+        typename LutLayer3_0::inputArrayType lutLayer3_0_input;
+        std::copy(layer2Out.begin() + lutLayer3_0_input.size() * iSubLayer,  //from
+                  layer2Out.begin() + lutLayer3_0_input.size() * (iSubLayer + 1),
+                  lutLayer3_0_input.begin());
 
-            lutLayer3_0[iSubLayer].runWithInterpolation(lutLayer3_0_input);
-        }
+        lutLayer3_0[iSubLayer].runWithInterpolation(lutLayer3_0_input);
+      }
 
-        for (unsigned int iSubLayer = 0; iSubLayer < lutLayer3_1.size(); iSubLayer++) {
-            typename LutLayer3_1::inputArrayType lutLayer3_1_input;
-            std::copy(layer2Out.begin() + lutLayer3_1_input.size() *  iSubLayer     + layer3_0_inputCnt * layer3_0_multiplicity, //from
-                      layer2Out.begin() + lutLayer3_1_input.size() * (iSubLayer +1) + layer3_0_inputCnt * layer3_0_multiplicity, lutLayer3_1_input.begin());
-            
-            lutLayer3_1[iSubLayer].runWithInterpolation(lutLayer3_1_input);
-        }
+      for (unsigned int iSubLayer = 0; iSubLayer < lutLayer3_1.size(); iSubLayer++) {
+        typename LutLayer3_1::inputArrayType lutLayer3_1_input;
+        std::copy(
+            layer2Out.begin() + lutLayer3_1_input.size() * iSubLayer +
+                layer3_0_inputCnt * layer3_0_multiplicity,  //from
+            layer2Out.begin() + lutLayer3_1_input.size() * (iSubLayer + 1) + layer3_0_inputCnt * layer3_0_multiplicity,
+            lutLayer3_1_input.begin());
+
+        lutLayer3_1[iSubLayer].runWithInterpolation(lutLayer3_1_input);
+      }
     }
 
     void run(std::vector<float>& inputs, float noHitVal, std::vector<double>& nnResult) override {
@@ -172,14 +177,14 @@ namespace lutNN {
       //auto layer3_0_out = ap_ufixed<output0_I+output0_F, output0_I, AP_RND_CONV, AP_SAT>(lutLayer3_0.getLutOutSum()[0]); //TODO should be AP_RND_CONV rather, but it affect the rate
       //auto layer3_1_out = ap_fixed <output1_I+output1_F, output1_I, AP_RND_CONV, AP_SAT>(lutLayer3_1.getLutOutSum()[0]); //here layer3_0_out has size 1
 
-        for(unsigned int iSubLayer = 0; iSubLayer <  lutLayer3_0.size(); iSubLayer++) {
-            nnResult[iSubLayer] = lutLayer3_0[iSubLayer].getLutOutSum()[0].to_float(); //here layer3_0_out has size 1
-            //std::cout<<"nnResult["<<iSubLayer<<"] "<<nnResult[iSubLayer] <<std::endl;
-        }
-        for(unsigned int iSubLayer = 0; iSubLayer <  lutLayer3_1.size(); iSubLayer++) {
-            nnResult[iSubLayer + layer3_0_multiplicity] = lutLayer3_1[iSubLayer].getLutOutSum()[0].to_float(); 
-            //std::cout<<"nnResult["<<iSubLayer<<"] "<<nnResult[iSubLayer + layer3_0_multiplicity] <<std::endl;
-        }
+      for (unsigned int iSubLayer = 0; iSubLayer < lutLayer3_0.size(); iSubLayer++) {
+        nnResult[iSubLayer] = lutLayer3_0[iSubLayer].getLutOutSum()[0].to_float();  //here layer3_0_out has size 1
+        //std::cout<<"nnResult["<<iSubLayer<<"] "<<nnResult[iSubLayer] <<std::endl;
+      }
+      for (unsigned int iSubLayer = 0; iSubLayer < lutLayer3_1.size(); iSubLayer++) {
+        nnResult[iSubLayer + layer3_0_multiplicity] = lutLayer3_1[iSubLayer].getLutOutSum()[0].to_float();
+        //std::cout<<"nnResult["<<iSubLayer<<"] "<<nnResult[iSubLayer + layer3_0_multiplicity] <<std::endl;
+      }
     }
 
     //pt in the hardware scale, ptGeV = (ptHw -1) / 2
@@ -204,10 +209,10 @@ namespace lutNN {
 
       lutLayer1.save(tree, name);
       lutLayer2.save(tree, name);
-      for(unsigned int iSubLayer = 0; iSubLayer <  lutLayer3_0.size(); iSubLayer++) {
+      for (unsigned int iSubLayer = 0; iSubLayer < lutLayer3_0.size(); iSubLayer++) {
         lutLayer3_0[iSubLayer].save(tree, name);
       }
-      for(unsigned int iSubLayer = 0; iSubLayer <  lutLayer3_1.size(); iSubLayer++) {
+      for (unsigned int iSubLayer = 0; iSubLayer < lutLayer3_1.size(); iSubLayer++) {
         lutLayer3_1[iSubLayer].save(tree, name);
       }
 
@@ -239,10 +244,10 @@ namespace lutNN {
 
       lutLayer1.load(tree, name);
       lutLayer2.load(tree, name);
-      for(unsigned int iSubLayer = 0; iSubLayer <  lutLayer3_0.size(); iSubLayer++) {
+      for (unsigned int iSubLayer = 0; iSubLayer < lutLayer3_0.size(); iSubLayer++) {
         lutLayer3_0[iSubLayer].load(tree, name);
       }
-      for(unsigned int iSubLayer = 0; iSubLayer <  lutLayer3_1.size(); iSubLayer++) {
+      for (unsigned int iSubLayer = 0; iSubLayer < lutLayer3_1.size(); iSubLayer++) {
         lutLayer3_1[iSubLayer].load(tree, name);
       }
 
@@ -260,7 +265,8 @@ namespace lutNN {
           a = std::stoul(item, nullptr, 10);
         } else {
           throw std::runtime_error(
-              "LutNetworkFixedPointRegressionMultipleOutputs::read: number of items get from file is smaller than lut size");
+              "LutNetworkFixedPointRegressionMultipleOutputs::read: number of items get from file is smaller than lut "
+              "size");
         }
       }
     }

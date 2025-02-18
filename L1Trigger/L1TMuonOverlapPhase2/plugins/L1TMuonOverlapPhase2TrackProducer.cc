@@ -12,6 +12,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/PluginManager/interface/PluginFactory.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+#include "DataFormats/L1TMuonPhase2/interface/SAMuon.h"
 
 #include <algorithm>
 #include <iostream>
@@ -36,6 +37,7 @@ L1TMuonOverlapPhase2TrackProducer::L1TMuonOverlapPhase2TrackProducer(const edm::
           edm::ESInputTag("", "SteppingHelixPropagatorAlong"))),
       omtfEmulation(edmParameterSet, muStubsInputTokens, muStubsPhase2InputTokens) {
   produces<l1t::RegionalMuonCandBxCollection>("OMTF");
+  produces<l1t::SAMuonCollection>("OMTF");  //phase-2 collection
 
   //it is needed for pattern generation and RootDataDumper
   if (edmParameterSet.exists("simTracksTag"))
@@ -60,8 +62,11 @@ void L1TMuonOverlapPhase2TrackProducer::beginRun(edm::Run const& run, edm::Event
 void L1TMuonOverlapPhase2TrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSetup) {
   std::ostringstream str;
 
-  std::unique_ptr<l1t::RegionalMuonCandBxCollection> candidates = omtfEmulation.reconstruct(iEvent, evSetup);
+  std::unique_ptr<l1t::RegionalMuonCandBxCollection> candidates = std::make_unique<l1t::RegionalMuonCandBxCollection>();
 
+  std::unique_ptr<l1t::SAMuonCollection> saMuons = omtfEmulation.run(iEvent, evSetup, candidates);
+
+  iEvent.put(std::move(saMuons), "OMTF");
   iEvent.put(std::move(candidates), "OMTF");
 }
 /////////////////////////////////////////////////////
