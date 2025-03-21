@@ -37,8 +37,8 @@ EventCapture::EventCapture(const edm::ParameterSet& edmCfg,
         << "EventCapture::EventCapture: no InputTag simTracksTag found" << std::endl;
 
   //stubsSimHitsMatcher works only with the trackingParticle, because only them are stored in the pilup events
-  if (this->candidateSimMuonMatcher && edmCfg.exists("trackingParticleTag"))
-    stubsSimHitsMatcher = std::make_unique<StubsSimHitsMatcher>(edmCfg, omtfConfig, muonGeometryTokens);
+  //if (this->candidateSimMuonMatcher && edmCfg.exists("trackingParticleTag"))
+  //  stubsSimHitsMatcher = std::make_unique<StubsSimHitsMatcher>(edmCfg, omtfConfig, muonGeometryTokens);
 }
 
 EventCapture::~EventCapture() {
@@ -51,7 +51,7 @@ void EventCapture::beginRun(edm::EventSetup const& eventSetup) {
 }
 
 void EventCapture::observeEventBegin(const edm::Event& event) {
-  edm::LogImportant("l1tOmtfEventPrint") << "EventCapture::observeEventBegin event " << event.id() << std::endl;
+  edm::LogImportant("l1tOmtfEventPrint") << "EventCapture::observeEventBegin event " << event.id() <<    "*************************" << std::endl;
   simMuons.clear();
 
   if (!simTracksTag.label().empty()) {
@@ -106,6 +106,7 @@ void EventCapture::observeEventEnd(const edm::Event& iEvent,
     for (auto& matchingResult : matchingResults) {
       //TODO choose a condition, to print the desired candidates
       if (matchingResult.muonCand) {
+        dump = true;
         bool runStubsSimHitsMatcher = false;
         if (matchingResult.trackingParticle) {
           auto trackingParticle = matchingResult.trackingParticle;

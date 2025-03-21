@@ -31,17 +31,6 @@ DataROOTDumper2::DataROOTDumper2(const edm::ParameterSet& edmCfg,
     if (edmCfg.getParameter<bool>("dumpKilledOmtfCands"))
       dumpKilledOmtfCands = true;
 
-  if (edmCfg.exists("candidateSimMuonMatcherType")) {
-    if (edmCfg.getParameter<std::string>("candidateSimMuonMatcherType") == "propagation")
-      usePropagation = true;
-    else if (edmCfg.getParameter<std::string>("candidateSimMuonMatcherType") == "matchSimple")
-      usePropagation = false;
-
-    edm::LogImportant("l1tOmtfEventPrint")
-        << " CandidateSimMuonMatcher: candidateSimMuonMatcherType "
-        << edmCfg.getParameter<std::string>("candidateSimMuonMatcherType") << std::endl;
-  }
-
   edm::LogVerbatim("l1tOmtfEventPrint") << " DataROOTDumper2 created. dumpKilledOmtfCands " << dumpKilledOmtfCands
                                         << std::endl;
 }
@@ -65,6 +54,7 @@ void DataROOTDumper2::initializeTTree() {
 
   rootTree->Branch("muonDxy", &omtfEvent.muonDxy);
   rootTree->Branch("muonRho", &omtfEvent.muonRho);
+  rootTree->Branch("parentPdgId", &omtfEvent.parentPdgId);
 
   rootTree->Branch("omtfPt", &omtfEvent.omtfPt);
   rootTree->Branch("omtfUPt", &omtfEvent.omtfUPt);
@@ -79,6 +69,7 @@ void DataROOTDumper2::initializeTTree() {
   rootTree->Branch("omtfQuality", &omtfEvent.omtfQuality);
   rootTree->Branch("omtfRefLayer", &omtfEvent.omtfRefLayer);
   rootTree->Branch("omtfRefHitNum", &omtfEvent.omtfRefHitNum);
+  rootTree->Branch("omtfRefHitPhi", &omtfEvent.omtfRefHitPhi);
 
   rootTree->Branch("omtfFiredLayers", &omtfEvent.omtfFiredLayers);  //<<<<<<<<<<<<<<<<<<<<<<!!!!TODOO
 
@@ -141,7 +132,9 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
   //So we assume here that when the propagation is not used it is a single mu sample and this filter has sense
   //the propagation is used for multi-muon sample, so then this filter cannot be used
   //TODO add a flag to enable this filter? Disable it if not needed
-  if (!usePropagation && matchingResults.size() > 1) {  //omtfConfig->cleanStubs() &&
+  //in the single Mu sample, if there are two matchingResults, and the second has genPt 0, so it is easy to fitler it out when reading the dump. 
+  //so better would be to remove this condition, as it may be activated unintentionly 
+  if (candidateSimMuonMatcher->getMatchingType() == CandidateSimMuonMatcher::MatchingType::simpleMatching && matchingResults.size() > 1) {  //omtfConfig->cleanStubs() &&
     edm::LogVerbatim("l1tOmtfEventPrint")
         << "\nDataROOTDumper2::observeEventEnd matchingResults.size() " << matchingResults.size() << std::endl;
 
@@ -175,10 +168,17 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
       omtfEvent.muonPropEta = matchingResult.propagatedEta;
       omtfEvent.muonPropPhi = matchingResult.propagatedPhi;
       omtfEvent.muonCharge = (std::abs(trackingParticle->pdgId()) == 13) ? trackingParticle->pdgId() / -13 : 0;
+      omtfEvent.muonCharge = trackingParticle->charge();
 
       if (trackingParticle->parentVertex().isNonnull()) {
         omtfEvent.muonDxy = trackingParticle->dxy();
         omtfEvent.muonRho = trackingParticle->parentVertex()->position().Rho();
+
+        for(auto& parentTrack : trackingParticle->parentVertex()->sourceTracks() ) {
+          omtfEvent.parentPdgId = parentTrack->pdgId();
+          LogTrace("l1MuonAnalyzerOmtf")<<" DataROOTDumper2 parentTrackPdgId "<<omtfEvent.parentPdgId <<std::endl;
+        }
+
       }
 
       omtfEvent.deltaEta = matchingResult.deltaEta;
@@ -253,7 +253,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
       omtfEvent.muonRho = 0;
     }
 
-    auto addOmtfCand = [&](AlgoMuonPtr& procMuon) {
+    auto addOmtfCand = [&](AlgoMuonPtr& procMuon, const l1t::RegionalMuonCand* muonCand) {
       //the charge is only for the constrained measurement. The constrained measurement is always defined for a valid candidate
       if (procMuon->getPdfSumConstr() > 0 && procMuon->getFiredLayerCntConstr() >= 3)
         omtfEvent.omtfPt = omtfConfig->hwPtToGev(procMuon->getPtConstr());
@@ -270,7 +270,8 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
       //for candidate with no unconstrained measurement, hardware upt = 0
       //so then omtfEvent.omtfUPt is -1
       omtfEvent.omtfUPt = omtfConfig->hwUPtToGev(procMuon->getPtUnconstr());
-      omtfEvent.omtfEta = omtfConfig->hwEtaToEta(procMuon->getEtaHw());
+      //omtfEvent.omtfEta = omtfConfig->hwEtaToEta(procMuon->getEtaHw());
+      omtfEvent.omtfEta = omtfConfig->hwEtaToEta(muonCand->hwEta());
       omtfEvent.omtfPhi = procMuon->getPhi();
       omtfEvent.omtfCharge = procMuon->getChargeConstr();
       omtfEvent.omtfScore = procMuon->getPdfSum();
@@ -288,6 +289,8 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
       auto& gpResult = (procMuon->getGpResultUnconstr().getPdfSumUnconstr() > procMuon->getGpResultConstr().getPdfSum())
                            ? procMuon->getGpResultUnconstr()
                            : procMuon->getGpResultConstr();
+
+      omtfEvent.omtfRefHitPhi =  gpResult.getRefHitPhi();
 
       /*
         edm::LogVerbatim("l1tOmtfEventPrint")<<"DataROOTDumper2:;observeEventEnd muonPt "<<event.muonPt<<" muonCharge "<<event.muonCharge
@@ -380,9 +383,10 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
         omtfEvent.omtfProcessor *= -1;
       }
 
-      addOmtfCand(matchingResult.procMuon);
+      addOmtfCand(matchingResult.procMuon, matchingResult.muonCand);
       rootTree->Fill();
 
+     /* TODO there are a few problems with dumping the killed muons: there is no procMuon for them, so the global eta and omtfProcessor are not available
       if (dumpKilledOmtfCands) {
         for (auto& killedCand : matchingResult.procMuon->getKilledMuons()) {
           omtfEvent.omtfQuality = 0;
@@ -393,7 +397,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
           addOmtfCand(killedCand);
           rootTree->Fill();
         }
-      }
+      }*/
     } else if (omtfEvent.muonPt > 0) {  //checking if there was a simMuon
       LogTrace("l1tOmtfEventPrint") << "DataROOTDumper2::observeEventEnd no matching omtfCand" << std::endl;
 

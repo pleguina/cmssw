@@ -223,7 +223,7 @@ void OMTFReconstruction::addObservers(
   if (edmParameterSet.exists("candidateSimMuonMatcher")) {
     if (edmParameterSet.getParameter<bool>("candidateSimMuonMatcher")) {
       observers.emplace_back(std::make_unique<CandidateSimMuonMatcher>(
-          edmParameterSet, omtfConfig.get(), magneticFieldEsToken, propagatorEsToken));
+          edmParameterSet, omtfConfig->nProcessors(), magneticFieldEsToken, propagatorEsToken));
       candidateSimMuonMatcher = static_cast<CandidateSimMuonMatcher*>(observers.back().get());
     }
   }

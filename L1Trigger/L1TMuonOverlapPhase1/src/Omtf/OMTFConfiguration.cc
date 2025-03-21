@@ -528,25 +528,16 @@ int OMTFConfiguration::etaBit2Code(unsigned int bit) {
 ///////////////////////////////////////////////
 // phiRad should be in the range [-pi,pi]
 int OMTFConfiguration::getProcScalePhi(unsigned int iProcessor, double phiRad) const {
-  double phi15deg =
-      M_PI / 3. * (iProcessor) + M_PI / 12.;  // "0" is 15degree moved cyclically to each processor, note [0,2pi]
+  // "0" is 15degree moved cyclically to each processor, note [0,2pi]
+  double phi15deg = 2 * M_PI / nProcessors() * (iProcessor) + M_PI / 12.;
 
   const double phiUnit = 2 * M_PI / nPhiBins();  //rad/unit
 
   // adjust [0,2pi] and [-pi,pi] to get deltaPhi difference properly
-  switch (iProcessor + 1) {
-    case 1:
-      break;
-    case 6: {
-      phi15deg -= 2 * M_PI;
-      break;
-    }
-    default: {
-      if (phiRad < 0)
-        phiRad += 2 * M_PI;
-      break;
-    }
-  }
+	if( (iProcessor + 1) == nProcessors() )
+		phi15deg -= 2 * M_PI;
+  else if (phiRad < 0)
+    phiRad += 2 * M_PI;
 
   // local angle in CSC halfStrip usnits
   return lround((phiRad - phi15deg) / phiUnit);  //FIXME lround or floor ???

@@ -6,6 +6,7 @@
 #include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 #include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
+#include "SimDataFormats/TrackingAnalysis/interface/TrackingParticleFwd.h"
 #include "FWCore/Framework/interface/EDConsumerBase.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ProductRegistryHelper.h"
@@ -44,6 +45,8 @@ L1TMuonOverlapPhase2TrackProducer::L1TMuonOverlapPhase2TrackProducer(const edm::
     mayConsume<edm::SimTrackContainer>(edmParameterSet.getParameter<edm::InputTag>("simTracksTag"));
   if (edmParameterSet.exists("simVertexesTag"))
     mayConsume<edm::SimVertexContainer>(edmParameterSet.getParameter<edm::InputTag>("simVertexesTag"));
+  if (edmParameterSet.exists("trackingParticleTag"))
+    mayConsume<TrackingParticleCollection>(edmParameterSet.getParameter<edm::InputTag>("trackingParticleTag"));
 }
 
 /////////////////////////////////////////////////////
