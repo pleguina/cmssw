@@ -38,7 +38,11 @@ private:
   MuStubsPhase2InputTokens& muStubsPhase2InputTokens;
   unique_ptr<PtAssignmentBase> ptAssignment;
 
-  FinalMuons convertToOuputScalesPhase2(l1t::tftype mtfType, const AlgoMuons& gbCandidates);
+  std::map<unsigned int, int> firedLayersToQuality;
+
+  void getQualityFromFiredLayers(FinalMuon& finalMuon);
+
+  FinalMuons convertToOuputScalesPhase2(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& gbCandidates);
 
   l1t::SAMuonCollection getSAMuons(unsigned int iProcessor,
                                    l1t::tftype mtfType,

@@ -44,7 +44,8 @@ public:
                          std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) = 0;
 
   virtual void setOutpuConversionFunction(
-      std::function<FinalMuons(l1t::tftype mtfType, const AlgoMuons& gbCandidates)> convertToOuputScales) = 0;
+      std::function<FinalMuons(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& gbCandidates)>
+          convertToOuputScales) = 0;
 
   virtual void printInfo() const = 0;
 };

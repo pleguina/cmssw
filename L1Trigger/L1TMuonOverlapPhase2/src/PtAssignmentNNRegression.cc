@@ -112,7 +112,7 @@ struct OmtfHit {
       char quality;
       char z;
       char valid;
-      short r;
+      short deltaR;
       short phiDist;
     };
   };
@@ -125,10 +125,9 @@ bool omtfHitWithQualAndRToEventInput(OmtfHit& hit, std::vector<float>& inputs, u
   int refLayers = 8;
   float rangeSize = lustSize / (refLayers * 2);
   //float offset = (omtfRefLayer<<7) + rangeMiddle;
-  float offset =
-      omtfRefLayer * rangeSize * 2 +
-      rangeSize / 2;  //two ranges for each omtfRefLayer, so that two qualites can be used for each omtfRefLayer
 
+  //two ranges for each omtfRefLayer, so that two qualites can be used for each omtfRefLayer
+  float offset = omtfRefLayer * rangeSize * 2 + rangeSize / 2;
   int rangeFactor = 2;  //rangeFactor scales the hit.phiDist such that the event->inputs is smaller then 63
 
   //if(!hit.valid)
@@ -136,7 +135,7 @@ bool omtfHitWithQualAndRToEventInput(OmtfHit& hit, std::vector<float>& inputs, u
   if (hit.layer <= 5) {  //DT hits
     rangeFactor = 2;     //rangeFactor scales the hit.phiDist such that the event->inputs is smaller then 63
     //two ranges for each omtfRefLayer, so that two qualites can be used for each omtfRefLayer
-    offset = omtfRefLayer * rangeSize * 2 + rangeSize / 2;  
+    offset = omtfRefLayer * rangeSize * 2 + rangeSize / 2;
     if ((hit.layer == 1 || hit.layer == 3 || hit.layer == 5)) {  //phiB
       //if(!hit.valid)
       //    return false; ///TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -166,7 +165,7 @@ bool omtfHitWithQualAndRToEventInput(OmtfHit& hit, std::vector<float>& inputs, u
     int rBins = 16;
     rangeSize = lustSize / (refLayers * rBins);
     rangeFactor = 4;
-    int rBin = std::abs(hit.r) >> 4;
+    int rBin = std::abs(hit.deltaR) >> 4;
     if (rBin >= rBins) {
       //cout<<"rBin "<<rBin<<" hit.eta "<<hit.eta<<" hit.layer "<<(int)hit.layer<<" omtfRefLayer "<<omtfRefLayer<<endl;
       rBin = rBins - 1;
@@ -196,9 +195,8 @@ bool omtfHitWithQualAndRToEventInput(OmtfHit& hit, std::vector<float>& inputs, u
 
   inputs.at(hit.layer) = (float)hit.phiDist / (float)rangeFactor + offset;
 
-  if (inputs.at(hit.layer) >=
-      lustSize -
-          2)  //the last address i.e. 1023 is reserved for the no-hit value, so interpolation between the 1022 and 1023 has no sense
+  //the last address i.e. 1023 is reserved for the no-hit value, so interpolation between the 1022 and 1023 has no sense
+  if (inputs.at(hit.layer) >= lustSize - 2)
     inputs.at(hit.layer) = lustSize - 2;
 
   if (print || inputs.at(hit.layer) < 0) {
@@ -380,6 +378,7 @@ void PtAssignmentNNRegression::run(AlgoMuons::value_type& algoMuon,
 
   std::vector<float> inputs(inputCnt, noHitVal);
   int hitCnt = 0;
+  unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[algoMuon->getRefLayer()];
   for (unsigned int iLogicLayer = 0; iLogicLayer < gpResult.getStubResults().size(); ++iLogicLayer) {
     auto& stubResult = gpResult.getStubResults()[iLogicLayer];
     if (stubResult.getMuonStub()) {  //&& stubResult.getValid() //TODO!!!!!!!!!!!!!!!!1
@@ -387,7 +386,11 @@ void PtAssignmentNNRegression::run(AlgoMuons::value_type& algoMuon,
       hit.layer = iLogicLayer;
       hit.quality = stubResult.getMuonStub()->qualityHw;
       //hit.eta = stubResult.getMuonStub()->etaHw;  //in which scale?
-      hit.r = stubResult.getMuonStub()->r;  //in cm
+      if (refLayerLogicNum == iLogicLayer)
+        hit.deltaR = stubResult.getMuonStub()->r - 413;  //r of the ref hit - r of RB1in
+      else
+        hit.deltaR = stubResult.getMuonStub()->r - gpResult.getStubResults()[refLayerLogicNum].getMuonStub()->r;
+
       hit.valid = stubResult.getValid();
 
       //TODO the hit.phiDist should be set in the same way as in DataROOTDumper2, for the root files used for the NN training
@@ -459,20 +462,34 @@ void PtAssignmentNNRegression::run(AlgoMuons::value_type& algoMuon,
     int qual = 2;
     //LUT from this formula:
     //int nnQuality = 0.0403 * pow(pt1, 3) - 0.9192 * pow(pt1, 2) + 7.9698 * pt1 - 10.586;
-    if (pt1 <= 2.00) qual = 2 ;
-    else if (pt1 <= 2.22) qual = 3 ;
-    else if (pt1 <= 2.45) qual = 4 ;
-    else if (pt1 <= 2.7 ) qual = 5 ;
-    else if (pt1 <= 2.97) qual = 6 ;
-    else if (pt1 <= 3.26) qual = 7 ;
-    else if (pt1 <= 3.58) qual = 8 ;
-    else if (pt1 <= 3.94) qual = 9 ;
-    else if (pt1 <= 4.35) qual = 10;
-    else if (pt1 <= 4.83) qual = 11;
-    else if (pt1 <= 5.40) qual = 12;
-    else if (pt1 <= 6.13) qual = 13;
-    else if (pt1 <= 7.00) qual = 14;
-    else if (pt1 <= 8.00) qual = 15;
+    if (pt1 <= 2.00)
+      qual = 2;
+    else if (pt1 <= 2.22)
+      qual = 3;
+    else if (pt1 <= 2.45)
+      qual = 4;
+    else if (pt1 <= 2.7)
+      qual = 5;
+    else if (pt1 <= 2.97)
+      qual = 6;
+    else if (pt1 <= 3.26)
+      qual = 7;
+    else if (pt1 <= 3.58)
+      qual = 8;
+    else if (pt1 <= 3.94)
+      qual = 9;
+    else if (pt1 <= 4.35)
+      qual = 10;
+    else if (pt1 <= 4.83)
+      qual = 11;
+    else if (pt1 <= 5.40)
+      qual = 12;
+    else if (pt1 <= 6.13)
+      qual = 13;
+    else if (pt1 <= 7.00)
+      qual = 14;
+    else if (pt1 <= 8.00)
+      qual = 15;
 
     algoMuon->setQualityNN(qual);
   }

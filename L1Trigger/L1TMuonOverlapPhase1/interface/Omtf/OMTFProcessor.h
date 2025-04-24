@@ -100,7 +100,7 @@ public:
     return ghostBuster->select(refHitCands, charge);
   }
 
-  FinalMuons convertToOuputScalesPhase1(l1t::tftype mtfType, const AlgoMuons& gbCandidates);
+  FinalMuons convertToOuputScalesPhase1(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& gbCandidates);
 
   std::vector<l1t::RegionalMuonCand> getRegionalMuonCands(unsigned int iProcessor,
                                                           l1t::tftype mtfType,
@@ -115,7 +115,8 @@ public:
   virtual void setPtAssignment(PtAssignmentBase* ptAssignment) { this->ptAssignment = ptAssignment; }
 
   void setOutpuConversionFunction(
-      std::function<FinalMuons(l1t::tftype mtfType, const AlgoMuons& gbCandidates)> convertToOuputScales) {
+      std::function<FinalMuons(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& gbCandidates)>
+          convertToOuputScales) {
     this->convertToOuputScales = convertToOuputScales;
   }
 
@@ -145,7 +146,8 @@ private:
 
   std::unique_ptr<IGhostBuster> ghostBuster;
 
-  std::function<FinalMuons(l1t::tftype mtfType, const AlgoMuons& gbCandidates)> convertToOuputScales;
+  std::function<FinalMuons(unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& gbCandidates)>
+      convertToOuputScales;
 
   //ptAssignment should be destroyed where it is created, i.e. by OmtfEmulation or OMTFReconstruction
   PtAssignmentBase* ptAssignment = nullptr;

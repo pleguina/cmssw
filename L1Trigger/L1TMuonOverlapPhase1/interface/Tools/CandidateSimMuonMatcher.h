@@ -52,21 +52,9 @@ public:
 
   MatchingResult() {}
 
-  MatchingResult(const SimTrack& simTrack, const SimVertex* simVertex) : simTrack(&simTrack), simVertex(simVertex) {
-    pdgId = simTrack.type();
-    genPt = simTrack.momentum().pt();
-    genEta = simTrack.momentum().eta();
-    genPhi = simTrack.momentum().phi();
-    genCharge = simTrack.charge();
-  }
+  MatchingResult(const SimTrack& simTrack, const SimVertex* simVertex);
 
-  MatchingResult(const TrackingParticle& trackingParticle) : trackingParticle(&trackingParticle) {
-    pdgId = trackingParticle.pdgId();
-    genPt = trackingParticle.pt();
-    genEta = trackingParticle.momentum().eta();
-    genPhi = trackingParticle.momentum().phi();
-    genCharge = trackingParticle.charge();
-  }
+  MatchingResult(const TrackingParticle& trackingParticle);
 
   ResultType result = ResultType::notMatched;
   //bool propagationFailed = false;
@@ -88,6 +76,12 @@ public:
   double genEta = 0;
   double genPhi = 0;
   int genCharge = 0;
+
+  float vertexEta = 0;
+  float vertexPhi = 0;
+  float muonDxy = 0;
+  float muonRho = 0;
+  int parentPdgId = 0;
 
   const SimTrack* simTrack = nullptr;
   const SimVertex* simVertex = nullptr;
@@ -149,16 +143,12 @@ public:
 
   void propagate(MatchingResult& result);
 
-
   void match(std::vector<const l1t::RegionalMuonCand*>& muonCands,
-                                    AlgoMuons& ghostBustedProcMuons,
-                                    MatchingResult& result, std::vector<MatchingResult>& matchingResults);
+             AlgoMuons& ghostBustedProcMuons,
+             MatchingResult& result,
+             std::vector<MatchingResult>& matchingResults);
 
-  void match(const l1t::RegionalMuonCand* omtfCand,
-             const AlgoMuonPtr& procMuon,
-             MatchingResult& result);
-
-
+  void match(const l1t::RegionalMuonCand* omtfCand, const AlgoMuonPtr& procMuon, MatchingResult& result);
 
   std::vector<MatchingResult> cleanMatching(std::vector<MatchingResult> matchingResults,
                                             std::vector<const l1t::RegionalMuonCand*>& muonCands,
@@ -184,18 +174,21 @@ public:
                                           const edm::SimVertexContainer* simVertices,
                                           std::function<bool(const SimTrack&)> const& simTrackFilter);
 
+  //no matching, just collect muonCands
+  std::vector<MatchingResult> collectMuonCands(std::vector<const l1t::RegionalMuonCand*>& muonCands,
+                                               AlgoMuons& ghostBustedProcMuons);
+
   std::vector<MatchingResult> getMatchingResults() { return matchingResults; }
 
-  enum class MatchingType: short {
+  enum class MatchingType : short {
     noMatcher = -1,
     withPropagator = 0,
     simplePropagation = 1,
-    simpleMatching = 2
+    simpleMatching = 2,
+    collectMuonCands = 3
   };
 
-  MatchingType getMatchingType() const {
-    return matchingType;
-  }
+  MatchingType getMatchingType() const { return matchingType; }
 
 private:
   //const OMTFConfiguration* omtfConfig;

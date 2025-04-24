@@ -33,6 +33,109 @@ void OmtfEmulation::beginJob() {
     inputMaker = std::make_unique<OMTFinputMaker>(
         edmParameterSet, muStubsInputTokens, omtfConfig.get(), std::make_unique<OmtfAngleConverter>());
   }
+
+  //.....................rrrrrrrrccccdddddd
+  //.....................765432109876543210
+  firedLayersToQuality[0b000000110000000011] = 1;
+  firedLayersToQuality[0b000000100000000011] = 1;
+  firedLayersToQuality[0b000000010000000011] = 1;
+  firedLayersToQuality[0b000000110000000001] = 1;
+  firedLayersToQuality[0b000001000000001100] = 1;
+  firedLayersToQuality[0b000011000000001100] = 1;
+  firedLayersToQuality[0b000010000000001100] = 1;
+  firedLayersToQuality[0b000011000000000100] = 1;
+  firedLayersToQuality[0b000000011000000001] = 1;
+  firedLayersToQuality[0b001000010000000001] = 1;
+
+  firedLayersToQuality[0b000100000000110000] = 1;
+  firedLayersToQuality[0b001100000000010000] = 1;
+
+  firedLayersToQuality[0b010000110000000001] = 8;
+  firedLayersToQuality[0b000000111110000001] = 8;
+  firedLayersToQuality[0b000000001000000011] = 8;
+  firedLayersToQuality[0b000000111000000001] = 8;
+  firedLayersToQuality[0b000000101000000001] = 8;
+  firedLayersToQuality[0b010000011000000001] = 8;
+  firedLayersToQuality[0b010000100000000001] = 8;
+  firedLayersToQuality[0b000000110100000001] = 8;
+  firedLayersToQuality[0b000000100100000001] = 8;
+  firedLayersToQuality[0b001000100000000001] = 8;
+  firedLayersToQuality[0b010000010000000001] = 8;
+  firedLayersToQuality[0b001000110000000001] = 8;
+  firedLayersToQuality[0b001000110000000000] = 8;
+  firedLayersToQuality[0b000000010100000001] = 8;
+  firedLayersToQuality[0b000010100000000001] = 8;
+  firedLayersToQuality[0b000000100010000001] = 8;
+  firedLayersToQuality[0b001010010000000101] = 8;
+  firedLayersToQuality[0b100000000000000011] = 8;
+  firedLayersToQuality[0b011011000000000000] = 8;
+  firedLayersToQuality[0b000010110000000001] = 8;
+  firedLayersToQuality[0b001001110000000001] = 8;
+  firedLayersToQuality[0b000010100000000101] = 8;
+  firedLayersToQuality[0b000011110000000001] = 8;
+  firedLayersToQuality[0b000011110000001101] = 8;
+  firedLayersToQuality[0b000011100000000101] = 8;
+  firedLayersToQuality[0b000011110000000101] = 8;
+  firedLayersToQuality[0b000100000001110000] = 8;
+  firedLayersToQuality[0b000001110000001101] = 8;
+  firedLayersToQuality[0b000000110110000001] = 8;
+  firedLayersToQuality[0b000001110000000001] = 8;
+  firedLayersToQuality[0b001000010001000001] = 8;
+  firedLayersToQuality[0b000001100000000101] = 8;
+  firedLayersToQuality[0b000001100000000001] = 8;
+  firedLayersToQuality[0b000001110000000101] = 8;
+  firedLayersToQuality[0b001001110001000001] = 8;
+  firedLayersToQuality[0b000010110000000101] = 8;
+  firedLayersToQuality[0b000000010001000001] = 8;
+  firedLayersToQuality[0b000000100110000001] = 8;
+  firedLayersToQuality[0b001001100000001100] = 8;
+  firedLayersToQuality[0b000001010000000001] = 8;
+  firedLayersToQuality[0b000010100000000011] = 8;
+  firedLayersToQuality[0b000000100001000001] = 8;
+  firedLayersToQuality[0b001000110001000001] = 8;
+  firedLayersToQuality[0b000000010010000001] = 8;
+  firedLayersToQuality[0b000001010000000101] = 8;
+  firedLayersToQuality[0b100000100110000001] = 8;
+  firedLayersToQuality[0b000010010000000101] = 8;
+  firedLayersToQuality[0b000000110010000001] = 8;
+  firedLayersToQuality[0b000000000000110100] = 8;
+  firedLayersToQuality[0b000000010000000101] = 8;
+  firedLayersToQuality[0b000000110001000001] = 8;
+  firedLayersToQuality[0b000000010000001100] = 8;
+  firedLayersToQuality[0b000010110000001101] = 8;
+  firedLayersToQuality[0b000011010000001101] = 8;
+  firedLayersToQuality[0b000000100000010001] = 8;
+  firedLayersToQuality[0b000000110000000101] = 8;
+  firedLayersToQuality[0b000001100000000111] = 8;
+  firedLayersToQuality[0b000000100000000101] = 8;
+  firedLayersToQuality[0b010000010010000001] = 8;
+  firedLayersToQuality[0b000001100000001101] = 8;
+  firedLayersToQuality[0b000011100000000111] = 8;
+  firedLayersToQuality[0b000000010110000001] = 8;
+  firedLayersToQuality[0b000011110000000111] = 8;
+  firedLayersToQuality[0b000000011100000000] = 8;
+  firedLayersToQuality[0b001000010000000011] = 8;
+  firedLayersToQuality[0b000001110000000011] = 8;
+  firedLayersToQuality[0b000100000000110000] = 8;
+  firedLayersToQuality[0b000111100000110100] = 8;
+  firedLayersToQuality[0b010000010010000000] = 8;
+  firedLayersToQuality[0b100000010100000000] = 8;
+  firedLayersToQuality[0b001000100000000011] = 8;
+  firedLayersToQuality[0b000011100000001101] = 8;
+  firedLayersToQuality[0b100000011100000000] = 8;
+  firedLayersToQuality[0b110000011110000001] = 8;
+  //firedLayersToQuality[0b000000000000110011] = 8;
+  //firedLayersToQuality[0b000000100110000011] = 8;
+  //firedLayersToQuality[0b110000000100000000] = 8;
+  //firedLayersToQuality[0b001011110001001101] = 8;
+  //firedLayersToQuality[0b010000100001000011] = 8;
+  //firedLayersToQuality[0b000001100000001100] = 8;
+  //firedLayersToQuality[0b000001110001000011] = 8;
+  //firedLayersToQuality[0b011000000010000000] = 8;
+  //firedLayersToQuality[0b001000110100000011] = 8;
+  //firedLayersToQuality[0b010001000011000000] = 8;
+  //firedLayersToQuality[0b100000000110000000] = 8;
+  //firedLayersToQuality[0b000000000000111100] = 8;
 }
 
 void OmtfEmulation::addObservers(const MuonGeometryTokens& muonGeometryTokens,
@@ -64,21 +167,35 @@ void OmtfEmulation::addObservers(const MuonGeometryTokens& muonGeometryTokens,
   omtfProc->setOutpuConversionFunction([&](l1t::tftype mtfType, const AlgoMuons& gbCandidates) {
     return this->convertToOuputScalesPhase2(mtfType, gbCandidates);
   }); */
-
 }
 
-FinalMuons OmtfEmulation::convertToOuputScalesPhase2(l1t::tftype mtfType, const AlgoMuons& gbCandidates) {
+void OmtfEmulation::getQualityFromFiredLayers(FinalMuon& finalMuon) {
+  auto it = firedLayersToQuality.find(finalMuon.getAlgoMuon()->getFiredLayerBits());
+  if (it != firedLayersToQuality.end()) {
+    finalMuon.setQuality(it->second);
+  } else {
+    finalMuon.setQuality(12);  //default value
+  }
+};
+
+FinalMuons OmtfEmulation::convertToOuputScalesPhase2(unsigned int iProcessor,
+                                                     l1t::tftype mtfType,
+                                                     const AlgoMuons& gbCandidates) {
   FinalMuons finalMuons;
   auto omtfProcGoldenPat = dynamic_cast<OMTFProcessor<GoldenPattern>*>(omtfProc.get());
   if (omtfProcGoldenPat) {
-    finalMuons = omtfProcGoldenPat->convertToOuputScalesPhase1(mtfType, gbCandidates);  //temporary solution, TODO remove
+    finalMuons = omtfProcGoldenPat->convertToOuputScalesPhase1(
+        iProcessor, mtfType, gbCandidates);  //temporary solution, TODO remove
+
     if (ptAssignment) {
       for (auto& finalMuon : finalMuons) {
         //TODO convert the pts to the GMT output scales
         finalMuon.setPt(finalMuon.getAlgoMuon()->getPtNNConstr());
         finalMuon.setPtUnconstr(finalMuon.getAlgoMuon()->getPtNNUnconstr());
         finalMuon.setSign(finalMuon.getAlgoMuon()->getChargeNNConstr() < 0 ? 1 : 0);
-        finalMuon.setQuality(finalMuon.getAlgoMuon()->getQualityNN());
+        //finalMuon.setQuality(finalMuon.getAlgoMuon()->getQualityNN());
+
+        getQualityFromFiredLayers(finalMuon);
       }
     }
     //TODO add conversion of eta anf phi from gbCandidates to the GMT output scales

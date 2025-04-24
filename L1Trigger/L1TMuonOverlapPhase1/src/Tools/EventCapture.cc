@@ -51,7 +51,8 @@ void EventCapture::beginRun(edm::EventSetup const& eventSetup) {
 }
 
 void EventCapture::observeEventBegin(const edm::Event& event) {
-  edm::LogImportant("l1tOmtfEventPrint") << "EventCapture::observeEventBegin event " << event.id() <<    "*************************" << std::endl;
+  edm::LogImportant("l1tOmtfEventPrint") << "EventCapture::observeEventBegin event " << event.id()
+                                         << "*************************" << std::endl;
   simMuons.clear();
 
   if (!simTracksTag.label().empty()) {

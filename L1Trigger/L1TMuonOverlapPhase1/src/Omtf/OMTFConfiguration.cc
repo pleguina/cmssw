@@ -534,8 +534,8 @@ int OMTFConfiguration::getProcScalePhi(unsigned int iProcessor, double phiRad) c
   const double phiUnit = 2 * M_PI / nPhiBins();  //rad/unit
 
   // adjust [0,2pi] and [-pi,pi] to get deltaPhi difference properly
-	if( (iProcessor + 1) == nProcessors() )
-		phi15deg -= 2 * M_PI;
+  if ((iProcessor + 1) == nProcessors())
+    phi15deg -= 2 * M_PI;
   else if (phiRad < 0)
     phiRad += 2 * M_PI;
 

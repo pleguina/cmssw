@@ -72,8 +72,8 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
     edm::LogVerbatim("OMTFReconstruction") << "setting GhostBuster" << std::endl;
   }
 
-  convertToOuputScales = [&](l1t::tftype mtfType, const AlgoMuons& gbCandidates) {
-    return this->convertToOuputScalesPhase1(mtfType, gbCandidates);
+  convertToOuputScales = [&](unsigned int iProcessor, l1t::tftype mtfType, const AlgoMuons& gbCandidates) {
+    return this->convertToOuputScalesPhase1(iProcessor, mtfType, gbCandidates);
   };
 
   edm::LogVerbatim("OMTFReconstruction") << "fwVersion 0x" << hex << this->myOmtfConfig->fwVersion() << std::endl;
@@ -104,7 +104,8 @@ void OMTFProcessor<GoldenPatternType>::init(const edm::ParameterSet& edmCfg, edm
 }
 
 template <class GoldenPatternType>
-FinalMuons OMTFProcessor<GoldenPatternType>::convertToOuputScalesPhase1(l1t::tftype mtfType,
+FinalMuons OMTFProcessor<GoldenPatternType>::convertToOuputScalesPhase1(unsigned int iProcessor,
+                                                                        l1t::tftype mtfType,
                                                                         const AlgoMuons& gbCandidates) {
   LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " gbCandidates.size() " << gbCandidates.size()
                                 << std::endl;
@@ -873,7 +874,7 @@ FinalMuons OMTFProcessor<GoldenPatternType>::run(unsigned int iProcessor,
 
   //LogTrace("l1tOmtfEventPrint")<<"ghostBust"; t.report();
 
-  FinalMuons finalMuons = convertToOuputScales(mtfType, gbCandidates);
+  FinalMuons finalMuons = convertToOuputScales(iProcessor, mtfType, gbCandidates);
 
   // fill RegionalMuonCand colleciton
   //std::vector<l1t::RegionalMuonCand> candMuons = getFinalcandidates(iProcessor, mtfType, gbCandidates);

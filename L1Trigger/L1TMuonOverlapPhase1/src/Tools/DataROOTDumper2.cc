@@ -55,6 +55,8 @@ void DataROOTDumper2::initializeTTree() {
   rootTree->Branch("muonDxy", &omtfEvent.muonDxy);
   rootTree->Branch("muonRho", &omtfEvent.muonRho);
   rootTree->Branch("parentPdgId", &omtfEvent.parentPdgId);
+  rootTree->Branch("vertexEta", &omtfEvent.vertexEta);
+  rootTree->Branch("vertexPhi", &omtfEvent.vertexPhi);
 
   rootTree->Branch("omtfPt", &omtfEvent.omtfPt);
   rootTree->Branch("omtfUPt", &omtfEvent.omtfUPt);
@@ -132,9 +134,10 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
   //So we assume here that when the propagation is not used it is a single mu sample and this filter has sense
   //the propagation is used for multi-muon sample, so then this filter cannot be used
   //TODO add a flag to enable this filter? Disable it if not needed
-  //in the single Mu sample, if there are two matchingResults, and the second has genPt 0, so it is easy to fitler it out when reading the dump. 
-  //so better would be to remove this condition, as it may be activated unintentionly 
-  if (candidateSimMuonMatcher->getMatchingType() == CandidateSimMuonMatcher::MatchingType::simpleMatching && matchingResults.size() > 1) {  //omtfConfig->cleanStubs() &&
+  //in the single Mu sample, if there are two matchingResults, and the second has genPt 0, so it is easy to fitler it out when reading the dump.
+  //so better would be to remove this condition, as it may be activated unintentionly
+  if (candidateSimMuonMatcher->getMatchingType() == CandidateSimMuonMatcher::MatchingType::simpleMatching &&
+      matchingResults.size() > 1) {  //omtfConfig->cleanStubs() &&
     edm::LogVerbatim("l1tOmtfEventPrint")
         << "\nDataROOTDumper2::observeEventEnd matchingResults.size() " << matchingResults.size() << std::endl;
 
@@ -174,12 +177,14 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
         omtfEvent.muonDxy = trackingParticle->dxy();
         omtfEvent.muonRho = trackingParticle->parentVertex()->position().Rho();
 
-        for(auto& parentTrack : trackingParticle->parentVertex()->sourceTracks() ) {
+        for (auto& parentTrack : trackingParticle->parentVertex()->sourceTracks()) {
           omtfEvent.parentPdgId = parentTrack->pdgId();
-          LogTrace("l1MuonAnalyzerOmtf")<<" DataROOTDumper2 parentTrackPdgId "<<omtfEvent.parentPdgId <<std::endl;
+          LogTrace("l1MuonAnalyzerOmtf") << " DataROOTDumper2 parentTrackPdgId " << omtfEvent.parentPdgId << std::endl;
         }
-
       }
+
+      omtfEvent.vertexPhi = matchingResult.vertexPhi;
+      omtfEvent.vertexEta = matchingResult.vertexEta;
 
       omtfEvent.deltaEta = matchingResult.deltaEta;
       omtfEvent.deltaPhi = matchingResult.deltaPhi;
@@ -212,12 +217,18 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
       omtfEvent.muonPropPhi = matchingResult.propagatedPhi;
       omtfEvent.muonCharge = simTrack->charge();
 
-      if (!simTrack->noVertex() && matchingResult.simVertex) {
+      /*if (!simTrack->noVertex() && matchingResult.simVertex) {
         const math::XYZTLorentzVectorD& vtxPos = matchingResult.simVertex->position();
         omtfEvent.muonDxy = (-vtxPos.X() * simTrack->momentum().py() + vtxPos.Y() * simTrack->momentum().px()) /
                             simTrack->momentum().pt();
         omtfEvent.muonRho = vtxPos.Rho();
-      }
+      }*/
+
+      omtfEvent.muonDxy = matchingResult.muonDxy;
+      omtfEvent.muonRho = matchingResult.muonRho;
+
+      omtfEvent.vertexPhi = matchingResult.vertexPhi;
+      omtfEvent.vertexEta = matchingResult.vertexEta;
 
       omtfEvent.deltaEta = matchingResult.deltaEta;
       omtfEvent.deltaPhi = matchingResult.deltaPhi;
@@ -259,9 +270,9 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
         omtfEvent.omtfPt = omtfConfig->hwPtToGev(procMuon->getPtConstr());
       else if (procMuon->getPtUnconstr() > 0)
         //if myCand->getPdfSumConstr() == 0, the myCand->getPtConstr() might not be 0, see the end of GhostBusterPreferRefDt::select
-        //but hwPt=0 means empty candidate, hwPt=1 maens pt=0,
+        //but hwPt=0 means empty candidate, hwPt=1 means pt=0,
         //but omtfPt = 0 means empty candidate
-        //therefore here we set omtfPt=0.5 GeV, as the PtUnconstr > 0
+        //therefore here we set omtfPt=0.5 GeV, if the PtUnconstr > 0
         //N.B it is different than in the OMTFProcessor<GoldenPatternType>::convertToOuputScalesPhase1, where hwPt=1
         omtfEvent.omtfPt = 0.5;
       else
@@ -290,7 +301,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
                            ? procMuon->getGpResultUnconstr()
                            : procMuon->getGpResultConstr();
 
-      omtfEvent.omtfRefHitPhi =  gpResult.getRefHitPhi();
+      omtfEvent.omtfRefHitPhi = gpResult.getRefHitPhi();
 
       /*
         edm::LogVerbatim("l1tOmtfEventPrint")<<"DataROOTDumper2:;observeEventEnd muonPt "<<event.muonPt<<" muonCharge "<<event.muonCharge
@@ -349,11 +360,21 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
                 << " valid " << stubResult.getValid() << " !!!!!!!!!!!!!!!!!!!!!!!!" << endl;
           }
 
-          DetId detId(stubResult.getMuonStub()->detId);
+          /*DetId detId(stubResult.getMuonStub()->detId);
           if (detId.subdetId() == MuonSubdetId::CSC) {
             CSCDetId cscId(detId);
             hit.z = cscId.chamber() % 2;
-          }
+          }*/
+
+          //hit.etaHw is char, so we must limit the value being assigned
+          //it char range is ok with valueP1Scale
+          //for the phase2 scale something will have to be done TODO
+          if (stubResult.getMuonStub()->etaHw > 127)
+            hit.etaHw = 127;
+          else if (stubResult.getMuonStub()->etaHw < -127)
+            hit.etaHw = -127;
+          else
+            hit.etaHw = stubResult.getMuonStub()->etaHw;
 
           omtfEvent.hits.push_back(hit.rawData);
           //edm::LogVerbatim("l1tOmtfEventPrint")<<" hit.layer "<<(int)hit.layer<<" hit.phiDist "<<hit.phiDist<<" hit.rawData "<<hit.rawData << std::endl;
@@ -386,7 +407,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
       addOmtfCand(matchingResult.procMuon, matchingResult.muonCand);
       rootTree->Fill();
 
-     /* TODO there are a few problems with dumping the killed muons: there is no procMuon for them, so the global eta and omtfProcessor are not available
+      /* TODO there are a few problems with dumping the killed muons: there is no procMuon for them, so the global eta and omtfProcessor are not available
       if (dumpKilledOmtfCands) {
         for (auto& killedCand : matchingResult.procMuon->getKilledMuons()) {
           omtfEvent.omtfQuality = 0;

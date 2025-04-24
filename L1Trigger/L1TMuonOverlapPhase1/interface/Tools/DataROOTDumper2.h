@@ -37,6 +37,8 @@ public:
   float muonRho = 0;
   //pdgId in principle should be int
   short parentPdgId = 0;
+  float vertexEta = 0;
+  float vertexPhi = 0;
 
   float omtfPt = 0, omtfEta = 0, omtfPhi = 0, omtfUPt = 0;
   char omtfCharge = 0;
@@ -65,7 +67,7 @@ public:
       struct {
         char layer;
         char quality;
-        char z;
+        char etaHw;
         char valid;
         short deltaR;
         short phiDist;
@@ -115,7 +117,6 @@ private:
   //std::vector<TH2*> hitVsPt;
 
   bool dumpKilledOmtfCands = false;
-
 };
 
 #endif /* L1T_OmtfP1_TOOLS_DATAROOTDUMPER2_H_ */
