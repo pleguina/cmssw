@@ -125,6 +125,12 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
         cscDigi.add("<xmlattr>.stripType", digi->getStripType());
         cscDigi.add("<xmlattr>.bxData", digi->getBXData());
         cscDigi.add("<xmlattr>.type", digi->getType());
+        
+        // CSC angle conversion parameters
+        CscConversionInfo convInfo = getCscConversionInfo(rawid, *digi, iProcessor, procTyp);
+        cscDigi.add("<xmlattr>.offset", convInfo.offset);
+        cscDigi.add("<xmlattr>.scale", convInfo.scale);
+        cscDigi.add("<xmlattr>.order", convInfo.order);
       }
     }
   }

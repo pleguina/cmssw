@@ -95,8 +95,15 @@ void CscDigiToStubsConverterOmtf::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers,
   float r = 0;
   MuonStub stub;
   stub.type = MuonStub::CSC_PHI_ETA;
-  stub.phiHw = angleConverter->getProcessorPhi(
+  
+  // Get phi and conversion parameters
+  CscConversionInfo convInfo = angleConverter->getProcessorPhiWithInfo(
       OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, CSCDetId(rawid), digi, iInput);
+  
+  stub.phiHw = convInfo.phi;
+  stub.cscOffset = convInfo.offset;
+  stub.cscScale = convInfo.scale;
+  stub.cscOrder = convInfo.order;
   stub.etaHw = angleConverter->getGlobalEta(rawid, digi, r);
   stub.r = round(r);
   stub.phiBHw = digi.getPattern();  //TODO change to phiB when implemented
@@ -154,6 +161,15 @@ bool CscDigiToStubsConverterOmtf::acceptDigi(const CSCDetId& csc, unsigned int i
     return true;
 
   return false;
+}
+
+CscConversionInfo CscDigiToStubsConverterOmtf::getCscConversionInfo(unsigned int rawid,
+                                                                   const CSCCorrelatedLCTDigi& digi,
+                                                                   unsigned int iProcessor,
+                                                                   l1t::tftype procTyp) {
+  unsigned int iInput = OMTFinputMaker::getInputNumber(config, rawid, iProcessor, procTyp);
+  return angleConverter->getProcessorPhiWithInfo(
+      OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, CSCDetId(rawid), digi, iInput);
 }
 
 void RpcDigiToStubsConverterOmtf::addRPCstub(MuonStubPtrs2D& muonStubsInLayers,

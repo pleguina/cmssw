@@ -40,6 +40,13 @@ struct EtaValue {
   int timing = 0;  //sub-bx timing, should be already in scale common for all muon subsystems
 };
 
+struct CscConversionInfo {
+  int phi = 0;
+  int offset = 0;  // fixOff
+  double scale = 0;
+  int order = 0;
+};
+
 struct MuonGeometryTokens {
   edm::ESGetToken<RPCGeometry, MuonGeometryRecord> rpcGeometryEsToken;
   edm::ESGetToken<CSCGeometry, MuonGeometryRecord> cscGeometryEsToken;
@@ -62,6 +69,9 @@ public:
   virtual int getProcessorPhi(int phiZero, l1t::tftype part, int dtScNum, int dtPhi) const;
 
   virtual int getProcessorPhi(
+      int phiZero, l1t::tftype part, const CSCDetId& csc, const CSCCorrelatedLCTDigi& digi, unsigned int iInput) const;
+
+  virtual CscConversionInfo getProcessorPhiWithInfo(
       int phiZero, l1t::tftype part, const CSCDetId& csc, const CSCCorrelatedLCTDigi& digi, unsigned int iInput) const;
 
   virtual int getProcessorPhi(unsigned int iProcessor,

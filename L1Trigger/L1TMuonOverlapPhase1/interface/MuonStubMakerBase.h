@@ -13,6 +13,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Utilities/interface/EDGetToken.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/AngleConverterBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/RpcClusterization.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
 #include <cstdint>
@@ -118,6 +119,15 @@ public:
                            l1t::tftype procTyp) = 0;
 
   virtual bool acceptDigi(const CSCDetId& cscDetId, unsigned int iProcessor, l1t::tftype procType) { return true; }
+
+  // Virtual method to get CSC conversion parameters for XML export
+  virtual CscConversionInfo getCscConversionInfo(unsigned int rawid,
+                                                 const CSCCorrelatedLCTDigi& digi,
+                                                 unsigned int iProcessor,
+                                                 l1t::tftype procTyp) { 
+    CscConversionInfo info; // Return default (empty) info if not implemented
+    return info;
+  }
 
 protected:
   const ProcConfigurationBase* config;

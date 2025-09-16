@@ -65,6 +65,11 @@ public:
 
   bool acceptDigi(const CSCDetId& cscDetId, unsigned int iProcessor, l1t::tftype procType) override;
 
+  CscConversionInfo getCscConversionInfo(unsigned int rawid,
+                                         const CSCCorrelatedLCTDigi& digi,
+                                         unsigned int iProcessor,
+                                         l1t::tftype procTyp) override;
+
 private:
   const OMTFConfiguration* config = nullptr;
   const OmtfAngleConverter* angleConverter = nullptr;

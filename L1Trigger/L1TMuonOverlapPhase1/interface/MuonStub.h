@@ -58,6 +58,11 @@ public:
 
   int detId = 0;
 
+  // CSC conversion parameters (only valid for CSC stubs)
+  int cscOffset = 0;     // fixOff from angle conversion
+  double cscScale = 0;   // scale from angle conversion  
+  int cscOrder = 0;      // order from angle conversion
+
   friend std::ostream& operator<<(std::ostream& out, const MuonStub& stub);
 };
 

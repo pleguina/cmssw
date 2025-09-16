@@ -103,7 +103,8 @@ void HLSDigiExporter::writeCSVHeaders() {
   cscDigiFile_ << "event,run,processor,tftype,endcap,station,ring,chamber,layer,"
                << "trknmb,valid,quality,keywire,strip,pattern,bend,bx,mpclink,bx0,syncErr,cscID,"
                << "isRun3,quartStripBit,eighthStripBit,run3Pattern,slope,hmt,"
-               << "fractionalStrip,fractionalSlope,clctPattern,stripType,bxData,type\n";
+               << "fractionalStrip,fractionalSlope,clctPattern,stripType,bxData,type,"
+               << "offset,scale,order\n";
   
   // RPC Digi header - comprehensive fields
   rpcDigiFile_ << "event,run,processor,tftype,region,ring,station,sector,layer,subsector,roll,"
@@ -212,7 +213,11 @@ void HLSDigiExporter::exportCSCDigis(const boost::property_tree::ptree& procData
                      << digi.get<int>("<xmlattr>.clctPattern", 0) << ","
                      << digi.get<int>("<xmlattr>.stripType", 0) << ","
                      << digi.get<int>("<xmlattr>.bxData", 0) << ","
-                     << digi.get<int>("<xmlattr>.type", 0) << "\n";
+                     << digi.get<int>("<xmlattr>.type", 0) << ","
+                     // CSC conversion parameters
+                     << digi.get<int>("<xmlattr>.offset", 0) << ","
+                     << digi.get<double>("<xmlattr>.scale", 0.0) << ","
+                     << digi.get<int>("<xmlattr>.order", 0) << "\n";
       }
     }
   } catch (const std::exception& e) {

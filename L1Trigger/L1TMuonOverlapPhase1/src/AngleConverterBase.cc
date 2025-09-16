@@ -163,6 +163,72 @@ int AngleConverterBase::getProcessorPhi(
 
 ///////////////////////////////////////
 ///////////////////////////////////////
+CscConversionInfo AngleConverterBase::getProcessorPhiWithInfo(
+    int phiZero, l1t::tftype part, const CSCDetId& csc, const CSCCorrelatedLCTDigi& digi, unsigned int iInput) const {
+  const double hsPhiPitch = 2 * M_PI / nPhiBins;
+  //
+  // get offset for each chamber.
+  // FIXME: These parameters depends on processor and chamber only so may be precomputed and put in map
+  //
+
+  int halfStrip = digi.getStrip();  // returns halfStrip 0..159
+
+  const CSCChamber* chamber = _geocsc->chamber(csc);
+
+  //in the PhaseIITDRSpring19DR dataset (generated with CMSSW_10_6_1_patch2?), in case of the ME1/1 ring 4 (higher eta) the detId in the CSCCorrelatedLCTDigiCollection is ME1/1 ring 1 (instead ME1/1/4 as it was before),
+  //and the digi.getStrip() is increased by 2*64 (i.e. number of half strips in the chamber roll)
+  if (csc.station() == 1 && csc.ring() == 1 && halfStrip > 128) {
+    CSCDetId cscME11 = CSCDetId(csc.endcap(), csc.station(), 4, csc.chamber());  //changing ring  to 4
+    chamber = _geocsc->chamber(cscME11);
+  }
+
+  const CSCChamberSpecs* cspec = chamber->specs();
+  const CSCLayer* layer = chamber->layer(3);
+  int order = (layer->centerOfStrip(2).phi() - layer->centerOfStrip(1).phi() > 0) ? 1 : -1;
+  double stripPhiPitch = cspec->stripPhiPitch();
+  double scale = std::abs(stripPhiPitch / hsPhiPitch / 2.);
+  if (std::abs(scale - 1.) < 0.0002)
+    scale = 1.;
+
+  double phiHalfStrip0 = layer->centerOfStrip(1).phi() - order * stripPhiPitch / 4.;
+
+  int offsetLoc = lround((phiHalfStrip0) / hsPhiPitch - phiZero);
+  offsetLoc = config->foldPhi(offsetLoc);
+
+  if (csc.station() == 1 && csc.ring() == 1 && halfStrip > 128) {  //ME1/1/
+    halfStrip -= 128;
+  }
+
+  //FIXME: to be checked (only important for ME1/3) keep more bits for offset, truncate at the end
+
+  int fixOff = offsetLoc;
+  // a quick fix for towards geometry changes due to global tag.
+  // in case of MC tag fixOff should be identical to offsetLoc
+
+  if (config->getFixCscGeometryOffset()) {
+    if (config->nProcessors() == 6)          //phase1
+      fixOff = fixCscOffsetGeom(offsetLoc);  //TODO does not work in when phiZero is always 0. Fix this
+    else if (config->nProcessors() == 3) {   //phase2
+      //TODO fix this bricolage!!!!!!!!!!!!!!
+      if (iInput >= 14)
+        fixOff = fixCscOffsetGeom(offsetLoc - 900) + 900;
+      else
+        fixOff = fixCscOffsetGeom(offsetLoc);
+    }
+  }
+  int phi = fixOff + order * scale * halfStrip;
+
+  CscConversionInfo info;
+  info.phi = config->foldPhi(phi);
+  info.offset = fixOff;
+  info.scale = scale;
+  info.order = order;
+
+  return info;
+}
+
+///////////////////////////////////////
+///////////////////////////////////////
 int AngleConverterBase::getProcessorPhi(
     int phiZero, l1t::tftype part, const RPCDetId& rollId, const unsigned int& digi1, const unsigned int& digi2) const {
   const double hsPhiPitch = 2 * M_PI / nPhiBins;
