@@ -22,6 +22,10 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   readEventsFromXML = cms.bool(False),
   eventsXMLFiles = cms.vstring("TestEvents.xml"),
   
+  # === HLS CSV EXPORT OPTIONS ===
+  dumpDigisToCSV = cms.bool(False),
+  csvOutputDir = cms.string("hls_test_input_digis"),
+  
 
   dropRPCPrimitives = cms.bool(False),                                    
   dropCSCPrimitives = cms.bool(False),

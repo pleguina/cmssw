@@ -46,6 +46,7 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       dtP2PhiDigi.add("<xmlattr>.rpcFlag", digiIt.rpcFlag());
       dtP2PhiDigi.add("<xmlattr>.phi", digiIt.phi());
       dtP2PhiDigi.add("<xmlattr>.phiBend", digiIt.phiBend());
+      dtP2PhiDigi.add("<xmlattr>.bx", digiIt.bxNum() - 20);  // ADD BX for CSV export
     }
   }
 
@@ -63,6 +64,27 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       dtP2ThDigi.add("<xmlattr>.rpcFlag", thetaDigi.rpcFlag());
       dtP2ThDigi.add("<xmlattr>.k", thetaDigi.k());
       dtP2ThDigi.add("<xmlattr>.z", thetaDigi.z());
+      dtP2ThDigi.add("<xmlattr>.bx", thetaDigi.bxNum() - 20);  // ADD BX for CSV export
+    }
+  }
+
+  // Capture golden results (ALL stubs that were created - DT, CSC, RPC)
+  for (unsigned int iLayer = 0; iLayer < muonStubsInLayers.size(); iLayer++) {
+    for (unsigned int iInput = 0; iInput < muonStubsInLayers[iLayer].size(); iInput++) {
+      if (muonStubsInLayers[iLayer][iInput]) {
+        const auto& stub = muonStubsInLayers[iLayer][iInput];
+        auto& goldenStub = procDataTree.add_child("goldenStub", boost::property_tree::ptree());
+        goldenStub.add("<xmlattr>.type", static_cast<int>(stub->type));
+        goldenStub.add("<xmlattr>.logicLayer", stub->logicLayer);
+        goldenStub.add("<xmlattr>.phiHw", stub->phiHw);
+        goldenStub.add("<xmlattr>.etaHw", stub->etaHw);
+        goldenStub.add("<xmlattr>.qualityHw", stub->qualityHw);
+        goldenStub.add("<xmlattr>.phiBHw", stub->phiBHw);
+        goldenStub.add("<xmlattr>.bx", stub->bx);
+        goldenStub.add("<xmlattr>.timing", stub->timing);
+        goldenStub.add("<xmlattr>.r", stub->r);
+        goldenStub.add("<xmlattr>.detId", stub->detId);
+      }
     }
   }
 
@@ -145,6 +167,7 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   LogTrace("l1tOmtfEventPrint") << board.name() << " stub: detid " << detid << " phi " << stub.phiHw << " eta "
                                 << stub.etaHw << " phiB " << stub.phiBHw << " bx " << stub.bx << " quality "
                                 << stub.qualityHw << " logicLayer " << stub.logicLayer << std::endl;
+  
   OMTFinputMaker::addStub(&config, muonStubsInLayers, iLayer, iInput, stub);
 }
 

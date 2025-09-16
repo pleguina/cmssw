@@ -4,6 +4,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/ProcessorBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLEventWriter.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/HLSDigiExporter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/CandidateSimMuonMatcher.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper2.h"
@@ -216,6 +217,18 @@ void OMTFReconstruction::addObservers(
     if (edmParameterSet.getParameter<bool>("dumpResultToXML"))
       observers.emplace_back(std::make_unique<XMLEventWriter>(
           omtfConfig.get(), edmParameterSet.getParameter<std::string>("XMLDumpFileName")));
+  }
+
+  // === ADD HLS DIGI EXPORTER ===
+  if (edmParameterSet.exists("dumpDigisToCSV")) {
+    if (edmParameterSet.getParameter<bool>("dumpDigisToCSV")) {
+      std::string csvOutputDir = "hls_test_input_digis";
+      if (edmParameterSet.exists("csvOutputDir"))
+        csvOutputDir = edmParameterSet.getParameter<std::string>("csvOutputDir");
+      
+      observers.emplace_back(std::make_unique<HLSDigiExporter>(csvOutputDir));
+      edm::LogInfo("OMTFReconstruction") << "Added HLS Digi Exporter with output dir: " << csvOutputDir;
+    }
   }
 
   CandidateSimMuonMatcher* candidateSimMuonMatcher = nullptr;

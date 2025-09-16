@@ -84,6 +84,9 @@ process.load('L1Trigger.L1TMuonOverlapPhase2.simOmtfPhase2Digis_cfi')
 
 process.simOmtfPhase2Digis.dumpResultToXML = cms.bool(True)
 process.simOmtfPhase2Digis.eventCaptureDebug = cms.bool(True)
+# === ENABLE HLS CSV EXPORT ===
+process.simOmtfPhase2Digis.dumpDigisToCSV = cms.bool(True)
+process.simOmtfPhase2Digis.csvOutputDir = cms.string("./hls_test_digis")
 
 process.simOmtfPhase2Digis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
 
