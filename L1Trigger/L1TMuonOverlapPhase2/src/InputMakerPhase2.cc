@@ -38,6 +38,7 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       addDTphiDigi(muonStubsInLayers, digiIt, dtThDigis.product(), iProcessor, procTyp);
 
       auto& dtP2PhiDigi = procDataTree.add_child("dtP2PhiDigi", boost::property_tree::ptree());
+      dtP2PhiDigi.add("<xmlattr>.dtID", detid.rawId());
       dtP2PhiDigi.add("<xmlattr>.whNum", digiIt.whNum());
       dtP2PhiDigi.add("<xmlattr>.scNum", digiIt.scNum());
       dtP2PhiDigi.add("<xmlattr>.stNum", digiIt.stNum());
@@ -57,6 +58,7 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       }
 
       auto& dtP2ThDigi = procDataTree.add_child("dtP2ThDigi", boost::property_tree::ptree());
+      dtP2ThDigi.add("<xmlattr>.dtID", DTChamberId(thetaDigi.whNum(), thetaDigi.stNum(), thetaDigi.scNum() + 1).rawId());
       dtP2ThDigi.add("<xmlattr>.whNum", thetaDigi.whNum());
       dtP2ThDigi.add("<xmlattr>.scNum", thetaDigi.scNum());
       dtP2ThDigi.add("<xmlattr>.stNum", thetaDigi.stNum());

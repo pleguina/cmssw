@@ -94,12 +94,12 @@ void HLSDigiExporter::openCSVFiles() {
 
 void HLSDigiExporter::writeCSVHeaders() {
   // DT Phi Digi header
-  dtPhiDigiFile_ << "event,run,processor,tftype,whNum,scNum,stNum,slNum,quality,rpcFlag,phi,phiBend,bx\n";
+  dtPhiDigiFile_ << "event,run,processor,tftype,dtID,whNum,scNum,stNum,slNum,quality,rpcFlag,phi,phiBend,bx\n";
   
   // DT Theta Digi header  
-  dtThetaDigiFile_ << "event,run,processor,tftype,whNum,scNum,stNum,quality,rpcFlag,k,z,bx\n";
+  dtThetaDigiFile_ << "event,run,processor,tftype,dtID,whNum,scNum,stNum,quality,rpcFlag,k,z,bx\n";
   
-  // CSC Digi header - comprehensive fields
+  // CSC Digi header - comprehensive fields (cscID already included)
   cscDigiFile_ << "event,run,processor,tftype,endcap,station,ring,chamber,layer,"
                << "trknmb,valid,quality,keywire,strip,pattern,bend,bx,mpclink,bx0,syncErr,cscID,"
                << "isRun3,quartStripBit,eighthStripBit,run3Pattern,slope,hmt,"
@@ -107,7 +107,7 @@ void HLSDigiExporter::writeCSVHeaders() {
                << "offset,scale,order\n";
   
   // RPC Digi header - comprehensive fields
-  rpcDigiFile_ << "event,run,processor,tftype,region,ring,station,sector,layer,subsector,roll,"
+  rpcDigiFile_ << "event,run,processor,tftype,rpcID,region,ring,station,sector,layer,subsector,roll,"
                << "strip,bx,time,coordinateX,coordinateY,deltaTime,deltaX,deltaY,"
                << "hasTime,hasX,hasY,isPseudoDigi\n";
                
@@ -128,6 +128,7 @@ void HLSDigiExporter::exportDTPhiDigis(const boost::property_tree::ptree& procDa
                        << currentProcessor_ << ","
                        << (currentMtfType_ == l1t::omtf_neg ? "NEG" : 
                           (currentMtfType_ == l1t::omtf_pos ? "POS" : "BARREL")) << ","
+                       << digi.get<unsigned int>("<xmlattr>.dtID", 0) << ","
                        << digi.get<int>("<xmlattr>.whNum") << ","
                        << digi.get<int>("<xmlattr>.scNum") << ","
                        << digi.get<int>("<xmlattr>.stNum") << ","
@@ -155,6 +156,7 @@ void HLSDigiExporter::exportDTThetaDigis(const boost::property_tree::ptree& proc
                          << currentProcessor_ << ","
                          << (currentMtfType_ == l1t::omtf_neg ? "NEG" : 
                             (currentMtfType_ == l1t::omtf_pos ? "POS" : "BARREL")) << ","
+                         << digi.get<unsigned int>("<xmlattr>.dtID", 0) << ","
                          << digi.get<int>("<xmlattr>.whNum") << ","
                          << digi.get<int>("<xmlattr>.scNum") << ","
                          << digi.get<int>("<xmlattr>.stNum") << ","
@@ -236,6 +238,8 @@ void HLSDigiExporter::exportRPCDigis(const boost::property_tree::ptree& procData
                      << currentProcessor_ << ","
                      << (currentMtfType_ == l1t::omtf_neg ? "NEG" : 
                         (currentMtfType_ == l1t::omtf_pos ? "POS" : "BARREL")) << ","
+                     // Detector ID 
+                     << digi.get<unsigned int>("<xmlattr>.rpcID", 0) << ","
                      // Detector ID fields
                      << digi.get<int>("<xmlattr>.region", 0) << ","
                      << digi.get<int>("<xmlattr>.ring", 0) << ","

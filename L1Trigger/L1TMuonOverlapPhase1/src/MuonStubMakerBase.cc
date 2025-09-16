@@ -184,6 +184,7 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
         // === ADD XML DATA COLLECTION FOR CSV EXPORT ===
         auto& rpcDigi = procDataTree.add_child("rpcDigi", boost::property_tree::ptree());
         // Detector ID fields
+        rpcDigi.add("<xmlattr>.rpcID", roll.rawId());
         rpcDigi.add("<xmlattr>.region", roll.region());
         rpcDigi.add("<xmlattr>.ring", roll.ring());
         rpcDigi.add("<xmlattr>.station", roll.station());
