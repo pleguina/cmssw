@@ -24,6 +24,8 @@
 // Forward declarations
 class RefHitDef;
 class StubResult;
+class Key;
+class GoldenPatternResult;
 
 namespace edm {
   class Event;
@@ -59,6 +61,12 @@ public:
                                           unsigned int iLayer,
                                           const StubResult& stubResult,
                                           int phiDistMin) {}
+
+  virtual void observeGoldenPatternFinalResults(unsigned int iProcessor,
+                                               unsigned int iGP,
+                                               const Key& gpKey,
+                                               unsigned int iRefHit,
+                                               const GoldenPatternResult& gpResult) {}
 
   virtual void endJob() = 0;
 };

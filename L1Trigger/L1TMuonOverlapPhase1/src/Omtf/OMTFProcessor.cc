@@ -873,6 +873,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
   //////////////////////////////////////
   //////////////////////////////////////
   {
+    unsigned int iGPIndex = 0;
     for (auto& itGP : this->theGPs) {
       itGP->finalise(procIndx);
       //debug
@@ -881,6 +882,16 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
           LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<"__LINE__"<<itGP->getResults()[procIndx][iRefHit]<<std::endl;
         }
       }*/
+      
+      // Collect GP final results for CSV export
+      auto gpResults = itGP->getResults()[procIndx];
+      for (unsigned int iRefHit = 0; iRefHit < gpResults.size(); iRefHit++) {
+        for (auto& observer : observers) {
+          observer->observeGoldenPatternFinalResults(iProcessor, iGPIndex, itGP->key(), iRefHit, gpResults[iRefHit]);
+        }
+      }
+      
+      iGPIndex++;
     }
   }
 

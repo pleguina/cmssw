@@ -22,6 +22,7 @@ HLSDigiExporter::~HLSDigiExporter() {
   if (goldenResultsFile_.is_open()) goldenResultsFile_.close();
   if (refHitsFile_.is_open()) refHitsFile_.close();
   if (gpResultsFile_.is_open()) gpResultsFile_.close();
+  if (gpFinalResultsFile_.is_open()) gpFinalResultsFile_.close();
 }
 
 void HLSDigiExporter::observeEventBegin(const edm::Event& iEvent) {
@@ -48,6 +49,7 @@ void HLSDigiExporter::observeEventEnd(const edm::Event& iEvent,
   if (goldenResultsFile_.is_open()) goldenResultsFile_.flush();
   if (refHitsFile_.is_open()) refHitsFile_.flush();
   if (gpResultsFile_.is_open()) gpResultsFile_.flush();
+  if (gpFinalResultsFile_.is_open()) gpFinalResultsFile_.flush();
 }
 
 void HLSDigiExporter::observeProcesorBegin(unsigned int iProcessor, l1t::tftype mtfType) {
@@ -84,6 +86,7 @@ void HLSDigiExporter::openCSVFiles() {
   std::string goldenFile = outputDir_ + "/golden_results.csv";
   std::string refHitsFile = outputDir_ + "/reference_hits.csv";
   std::string gpResultsFile = outputDir_ + "/gp_processing_results.csv";
+  std::string gpFinalResultsFile = outputDir_ + "/gp_final_results.csv";
   
   dtPhiDigiFile_.open(dtPhiFile);
   dtThetaDigiFile_.open(dtThetaFile);
@@ -92,10 +95,12 @@ void HLSDigiExporter::openCSVFiles() {
   goldenResultsFile_.open(goldenFile);
   refHitsFile_.open(refHitsFile);
   gpResultsFile_.open(gpResultsFile);
+  gpFinalResultsFile_.open(gpFinalResultsFile);
   
   if (!dtPhiDigiFile_.is_open() || !dtThetaDigiFile_.is_open() || 
       !cscDigiFile_.is_open() || !rpcDigiFile_.is_open() || 
-      !goldenResultsFile_.is_open() || !refHitsFile_.is_open() || !gpResultsFile_.is_open()) {
+      !goldenResultsFile_.is_open() || !refHitsFile_.is_open() || 
+      !gpResultsFile_.is_open() || !gpFinalResultsFile_.is_open()) {
     edm::LogError("HLSDigiExporter") << "Failed to open CSV files!";
   } else {
     edm::LogInfo("HLSDigiExporter") << "Opened CSV files for digi export";
@@ -133,6 +138,11 @@ void HLSDigiExporter::writeCSVHeaders() {
   gpResultsFile_ << "event,run,processor,refHitIndex,refHitLayer,refHitInput,refHitRegion,"
                  << "gpIndex,gpKey,layer,pdfValue,firedFlag,pdfBin,deltaPhiValue,"
                  << "selectedStubPhi,selectedStubEta,selectedStubQuality,selectedStubDetId,phiDistMin\n";
+                 
+  // Golden Pattern Final Results header - GoldenPatternResult after finalise
+  gpFinalResultsFile_ << "event,run,processor,gpIndex,gpNumber,gpEtaCode,gpPt,gpCharge,"
+                      << "refHitIndex,refLayer,phi,eta,refHitPhi,valid,pdfSum,pdfSumUnconstr,"
+                      << "firedLayerCnt,firedLayerBits,gpProbability1,gpProbability2\n";
 }
 
 void HLSDigiExporter::exportDTPhiDigis(const boost::property_tree::ptree& procDataTree) {
@@ -466,4 +476,57 @@ void HLSDigiExporter::exportGPResultsEntry(unsigned int iProcessor,
   }
   
   gpResultsFile_ << phiDistMin << "\n";
+}
+
+void HLSDigiExporter::observeGoldenPatternFinalResults(unsigned int iProcessor,
+                                                       unsigned int iGP,
+                                                       const Key& gpKey,
+                                                       unsigned int iRefHit,
+                                                       const GoldenPatternResult& gpResult) {
+  exportGPFinalResultsEntry(iProcessor, iGP, gpKey, iRefHit, gpResult);
+}
+
+void HLSDigiExporter::exportGPFinalResultsEntry(unsigned int iProcessor,
+                                                 unsigned int iGP,
+                                                 const Key& gpKey,
+                                                 unsigned int iRefHit,
+                                                 const GoldenPatternResult& gpResult) {
+  if (!gpFinalResultsFile_.is_open()) {
+    edm::LogWarning("HLSDigiExporter") << "GP Final Results file not open!";
+    return;
+  }
+
+  // Filter out entries with refLayer = -1
+  if (gpResult.getRefLayer() == -1) {
+    return;
+  }
+
+  // Format fired layer bits as 18-bit one-hot vector
+  std::string firedLayerBitsStr = "";
+  unsigned int firedLayerBits = gpResult.getFiredLayerBits();
+  for (int bit = 17; bit >= 0; bit--) {
+    firedLayerBitsStr += ((firedLayerBits & (1 << bit)) ? "1" : "0");
+  }
+
+  // Write GP final result to CSV
+  gpFinalResultsFile_ << currentEvent_ << ","
+                      << currentRun_ << ","
+                      << iProcessor << ","
+                      << iGP << ","
+                      << gpKey.theNumber << ","
+                      << gpKey.theEtaCode << ","
+                      << gpKey.thePt << ","
+                      << gpKey.theCharge << ","
+                      << iRefHit << ","
+                      << gpResult.getRefLayer() << ","
+                      << gpResult.getPhi() << ","
+                      << gpResult.getEta() << ","
+                      << gpResult.getRefHitPhi() << ","
+                      << (gpResult.isValid() ? 1 : 0) << ","
+                      << gpResult.getPdfSum() << ","
+                      << gpResult.getPdfSumUnconstr() << ","
+                      << gpResult.getFiredLayerCnt() << ","
+                      << firedLayerBitsStr << ","
+                      << gpResult.getGpProbability1() << ","
+                      << gpResult.getGpProbability2() << "\n";
 }

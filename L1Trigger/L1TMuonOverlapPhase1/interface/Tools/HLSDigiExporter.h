@@ -5,6 +5,8 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/StubResult.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternBase.h"
 #include "FWCore/Framework/interface/Event.h"
 
 #include <fstream>
@@ -57,6 +59,13 @@ public:
                                    const StubResult& stubResult,
                                    int phiDistMin);
 
+  // New method to observe Golden Pattern final results after finalise
+  void observeGoldenPatternFinalResults(unsigned int iProcessor,
+                                        unsigned int iGP,
+                                        const Key& gpKey,
+                                        unsigned int iRefHit,
+                                        const GoldenPatternResult& gpResult);
+
   void endJob() override;
 
 private:
@@ -74,6 +83,7 @@ private:
   std::ofstream goldenResultsFile_;  // For converted MuonStub objects
   std::ofstream refHitsFile_;       // For reference hits and restricted stubs
   std::ofstream gpResultsFile_;     // For Golden Pattern processing results
+  std::ofstream gpFinalResultsFile_; // For Golden Pattern final results after finalise
   
   bool filesOpened_;
   
@@ -97,6 +107,11 @@ private:
                             unsigned int iLayer,
                             const StubResult& stubResult,
                             int phiDistMin);
+  void exportGPFinalResultsEntry(unsigned int iProcessor,
+                                 unsigned int iGP,
+                                 const Key& gpKey,
+                                 unsigned int iRefHit,
+                                 const GoldenPatternResult& gpResult);
   void createOutputDirectory();
 };
 
