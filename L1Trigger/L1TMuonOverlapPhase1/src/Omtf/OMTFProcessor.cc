@@ -941,6 +941,11 @@ FinalMuons OMTFProcessor<GoldenPatternType>::run(unsigned int iProcessor,
   //LogTrace("l1tOmtfEventPrint")<<"processInput       "; t.report();
   AlgoMuons algoCandidates = sortResults(iProcessor, mtfType);
 
+  // Collect sorted candidate results for CSV export
+  for (auto& observer : observers) {
+    observer->observeSortedCandidates(iProcessor, mtfType, algoCandidates);
+  }
+
   if (ptAssignment) {
     for (auto& myCand : algoCandidates) {
       if (myCand->isValid()) {

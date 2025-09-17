@@ -7,6 +7,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/StubResult.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternBase.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/AlgoMuon.h"
 #include "FWCore/Framework/interface/Event.h"
 
 #include <fstream>
@@ -66,6 +67,11 @@ public:
                                         unsigned int iRefHit,
                                         const GoldenPatternResult& gpResult);
 
+  // New method to observe sorted AlgoMuon candidates (winners)
+  void observeSortedCandidates(unsigned int iProcessor,
+                               l1t::tftype mtfType,
+                               const AlgoMuons& algoCandidates);
+
   void endJob() override;
 
 private:
@@ -84,6 +90,7 @@ private:
   std::ofstream refHitsFile_;       // For reference hits and restricted stubs
   std::ofstream gpResultsFile_;     // For Golden Pattern processing results
   std::ofstream gpFinalResultsFile_; // For Golden Pattern final results after finalise
+  std::ofstream sortedCandidatesFile_; // For sorted AlgoMuon candidates (winners)
   
   bool filesOpened_;
   
@@ -112,6 +119,10 @@ private:
                                  const Key& gpKey,
                                  unsigned int iRefHit,
                                  const GoldenPatternResult& gpResult);
+  void exportSortedCandidateEntry(unsigned int iProcessor,
+                                  l1t::tftype mtfType,
+                                  unsigned int iCandidate,
+                                  const AlgoMuonPtr& algoMuon);
   void createOutputDirectory();
 };
 

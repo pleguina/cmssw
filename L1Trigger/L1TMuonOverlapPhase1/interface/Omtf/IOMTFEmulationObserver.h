@@ -26,6 +26,9 @@ class RefHitDef;
 class StubResult;
 class Key;
 class GoldenPatternResult;
+class AlgoMuon;
+typedef std::shared_ptr<AlgoMuon> AlgoMuonPtr;
+typedef std::vector<AlgoMuonPtr> AlgoMuons;
 
 namespace edm {
   class Event;
@@ -67,6 +70,10 @@ public:
                                                const Key& gpKey,
                                                unsigned int iRefHit,
                                                const GoldenPatternResult& gpResult) {}
+
+  virtual void observeSortedCandidates(unsigned int iProcessor,
+                                      l1t::tftype mtfType,
+                                      const AlgoMuons& algoCandidates) {}
 
   virtual void endJob() = 0;
 };

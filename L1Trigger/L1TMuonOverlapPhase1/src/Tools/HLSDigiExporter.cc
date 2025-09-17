@@ -23,6 +23,7 @@ HLSDigiExporter::~HLSDigiExporter() {
   if (refHitsFile_.is_open()) refHitsFile_.close();
   if (gpResultsFile_.is_open()) gpResultsFile_.close();
   if (gpFinalResultsFile_.is_open()) gpFinalResultsFile_.close();
+  if (sortedCandidatesFile_.is_open()) sortedCandidatesFile_.close();
 }
 
 void HLSDigiExporter::observeEventBegin(const edm::Event& iEvent) {
@@ -50,6 +51,7 @@ void HLSDigiExporter::observeEventEnd(const edm::Event& iEvent,
   if (refHitsFile_.is_open()) refHitsFile_.flush();
   if (gpResultsFile_.is_open()) gpResultsFile_.flush();
   if (gpFinalResultsFile_.is_open()) gpFinalResultsFile_.flush();
+  if (sortedCandidatesFile_.is_open()) sortedCandidatesFile_.flush();
 }
 
 void HLSDigiExporter::observeProcesorBegin(unsigned int iProcessor, l1t::tftype mtfType) {
@@ -87,6 +89,7 @@ void HLSDigiExporter::openCSVFiles() {
   std::string refHitsFile = outputDir_ + "/reference_hits.csv";
   std::string gpResultsFile = outputDir_ + "/gp_processing_results.csv";
   std::string gpFinalResultsFile = outputDir_ + "/gp_final_results.csv";
+  std::string sortedCandidatesFile = outputDir_ + "/sorted_candidates.csv";
   
   dtPhiDigiFile_.open(dtPhiFile);
   dtThetaDigiFile_.open(dtThetaFile);
@@ -96,11 +99,13 @@ void HLSDigiExporter::openCSVFiles() {
   refHitsFile_.open(refHitsFile);
   gpResultsFile_.open(gpResultsFile);
   gpFinalResultsFile_.open(gpFinalResultsFile);
+  sortedCandidatesFile_.open(sortedCandidatesFile);
   
   if (!dtPhiDigiFile_.is_open() || !dtThetaDigiFile_.is_open() || 
       !cscDigiFile_.is_open() || !rpcDigiFile_.is_open() || 
       !goldenResultsFile_.is_open() || !refHitsFile_.is_open() || 
-      !gpResultsFile_.is_open() || !gpFinalResultsFile_.is_open()) {
+      !gpResultsFile_.is_open() || !gpFinalResultsFile_.is_open() ||
+      !sortedCandidatesFile_.is_open()) {
     edm::LogError("HLSDigiExporter") << "Failed to open CSV files!";
   } else {
     edm::LogInfo("HLSDigiExporter") << "Opened CSV files for digi export";
@@ -143,6 +148,11 @@ void HLSDigiExporter::writeCSVHeaders() {
   gpFinalResultsFile_ << "event,run,processor,gpIndex,gpNumber,gpEtaCode,gpPt,gpCharge,"
                       << "refHitIndex,refLayer,phi,eta,refHitPhi,valid,pdfSum,pdfSumUnconstr,"
                       << "firedLayerCnt,firedLayerBits,gpProbability1,gpProbability2\n";
+                      
+  // Sorted Candidates header - AlgoMuon winners after sorting
+  sortedCandidatesFile_ << "event,run,processor,tftype,candidateIndex,refLayer,phi,eta,pt,ptUnconstr,"
+                        << "charge,quality,disc,pdfSum,pdfSumConstr,pdfSumUnconstr,firedLayerCnt,"
+                        << "firedLayerBits,hwPatternNumber,refHitNumber\n";
 }
 
 void HLSDigiExporter::exportDTPhiDigis(const boost::property_tree::ptree& procDataTree) {
@@ -529,4 +539,53 @@ void HLSDigiExporter::exportGPFinalResultsEntry(unsigned int iProcessor,
                       << firedLayerBitsStr << ","
                       << gpResult.getGpProbability1() << ","
                       << gpResult.getGpProbability2() << "\n";
+}
+
+void HLSDigiExporter::observeSortedCandidates(unsigned int iProcessor,
+                                              l1t::tftype mtfType,
+                                              const AlgoMuons& algoCandidates) {
+  for (unsigned int iCandidate = 0; iCandidate < algoCandidates.size(); iCandidate++) {
+    if (algoCandidates[iCandidate] && algoCandidates[iCandidate]->isValid()) {
+      exportSortedCandidateEntry(iProcessor, mtfType, iCandidate, algoCandidates[iCandidate]);
+    }
+  }
+}
+
+void HLSDigiExporter::exportSortedCandidateEntry(unsigned int iProcessor,
+                                                 l1t::tftype mtfType,
+                                                 unsigned int iCandidate,
+                                                 const AlgoMuonPtr& algoMuon) {
+  if (!sortedCandidatesFile_.is_open()) {
+    edm::LogWarning("HLSDigiExporter") << "Sorted Candidates file not open!";
+    return;
+  }
+
+  // Convert tftype to string
+  std::string tfTypeStr = (mtfType == l1t::omtf_neg ? "NEG" : 
+                          (mtfType == l1t::omtf_pos ? "POS" : "BARREL"));
+
+  // Format fired layer bits as 18-bit binary string
+  std::bitset<18> firedLayerBitset(algoMuon->getFiredLayerBits());
+
+  // Write sorted candidate to CSV
+  sortedCandidatesFile_ << currentEvent_ << ","
+                        << currentRun_ << ","
+                        << iProcessor << ","
+                        << tfTypeStr << ","
+                        << iCandidate << ","
+                        << algoMuon->getRefLayer() << ","
+                        << algoMuon->getPhi() << ","
+                        << algoMuon->getEtaHw() << ","
+                        << algoMuon->getPtConstr() << ","
+                        << algoMuon->getPtUnconstr() << ","
+                        << algoMuon->getChargeConstr() << ","
+                        << algoMuon->getQ() << ","
+                        << algoMuon->getDisc() << ","
+                        << algoMuon->getPdfSum() << ","
+                        << algoMuon->getPdfSumConstr() << ","
+                        << algoMuon->getGpResultUnconstr().getPdfSumUnconstr() << ","
+                        << algoMuon->getFiredLayerCnt() << ","
+                        << firedLayerBitset << ","
+                        << algoMuon->getHwPatternNumConstr() << ","
+                        << algoMuon->getRefHitNumber() << "\n";
 }
