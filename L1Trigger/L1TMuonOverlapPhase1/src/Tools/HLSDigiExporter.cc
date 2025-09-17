@@ -19,6 +19,7 @@ HLSDigiExporter::~HLSDigiExporter() {
   if (cscDigiFile_.is_open()) cscDigiFile_.close();
   if (rpcDigiFile_.is_open()) rpcDigiFile_.close();
   if (goldenResultsFile_.is_open()) goldenResultsFile_.close();
+  if (refHitsFile_.is_open()) refHitsFile_.close();
 }
 
 void HLSDigiExporter::observeEventBegin(const edm::Event& iEvent) {
@@ -43,6 +44,7 @@ void HLSDigiExporter::observeEventEnd(const edm::Event& iEvent,
   if (cscDigiFile_.is_open()) cscDigiFile_.flush();
   if (rpcDigiFile_.is_open()) rpcDigiFile_.flush();
   if (goldenResultsFile_.is_open()) goldenResultsFile_.flush();
+  if (refHitsFile_.is_open()) refHitsFile_.flush();
 }
 
 void HLSDigiExporter::observeProcesorBegin(unsigned int iProcessor, l1t::tftype mtfType) {
@@ -77,15 +79,18 @@ void HLSDigiExporter::openCSVFiles() {
   std::string cscFile = outputDir_ + "/csc_digis.csv";
   std::string rpcFile = outputDir_ + "/rpc_digis.csv";
   std::string goldenFile = outputDir_ + "/golden_results.csv";
+  std::string refHitsFile = outputDir_ + "/reference_hits.csv";
   
   dtPhiDigiFile_.open(dtPhiFile);
   dtThetaDigiFile_.open(dtThetaFile);
   cscDigiFile_.open(cscFile);
   rpcDigiFile_.open(rpcFile);
   goldenResultsFile_.open(goldenFile);
+  refHitsFile_.open(refHitsFile);
   
   if (!dtPhiDigiFile_.is_open() || !dtThetaDigiFile_.is_open() || 
-      !cscDigiFile_.is_open() || !rpcDigiFile_.is_open() || !goldenResultsFile_.is_open()) {
+      !cscDigiFile_.is_open() || !rpcDigiFile_.is_open() || 
+      !goldenResultsFile_.is_open() || !refHitsFile_.is_open()) {
     edm::LogError("HLSDigiExporter") << "Failed to open CSV files!";
   } else {
     edm::LogInfo("HLSDigiExporter") << "Opened CSV files for digi export";
@@ -114,6 +119,10 @@ void HLSDigiExporter::writeCSVHeaders() {
   // Golden Results header - MuonStub objects after conversion
   goldenResultsFile_ << "event,run,processor,tftype,type,logicLayer,phiHw,etaHw,qualityHw,"
                      << "phiBHw,bx,timing,r,detId,hwName\n";
+                     
+  // Reference Hits header - RefHit and all restricted stubs from all layers
+  refHitsFile_ << "event,run,processor,refHitIndex,refHitLayer,refHitInput,refHitRegion,"
+               << "refHitPhiMin,refHitPhiMax,totalRestrictedStubs,allLayersStubsData\n";
 }
 
 void HLSDigiExporter::exportDTPhiDigis(const boost::property_tree::ptree& procDataTree) {
@@ -305,4 +314,71 @@ void HLSDigiExporter::createOutputDirectory() {
     boost::filesystem::create_directories(dir);
     edm::LogInfo("HLSDigiExporter") << "Created output directory: " << outputDir_;
   }
+}
+
+void HLSDigiExporter::observeRefHitProcessing(unsigned int iProcessor,
+                                              unsigned int iRefHit,
+                                              const RefHitDef& refHitDef,
+                                              const std::vector<std::pair<unsigned int, MuonStubPtrs1D>>& allLayerStubs) {
+  exportRefHitsEntry(iProcessor, iRefHit, refHitDef, allLayerStubs);
+}
+
+void HLSDigiExporter::exportRefHitsEntry(unsigned int iProcessor,
+                                         unsigned int iRefHit,
+                                         const RefHitDef& refHitDef,
+                                         const std::vector<std::pair<unsigned int, MuonStubPtrs1D>>& allLayerStubs) {
+  if (!refHitsFile_.is_open()) {
+    edm::LogWarning("HLSDigiExporter") << "Reference hits file not open!";
+    return;
+  }
+
+  // Build combined stubs data string from all layers
+  std::stringstream allStubsData;
+  allStubsData << "[";
+  bool firstStub = true;
+  unsigned int totalStubCount = 0;
+  
+  for (const auto& layerPair : allLayerStubs) {
+    unsigned int layerNum = layerPair.first;
+    const MuonStubPtrs1D& restrictedStubs = layerPair.second;
+    
+    for (size_t i = 0; i < restrictedStubs.size(); ++i) {
+      if (restrictedStubs[i]) {
+        if (!firstStub) allStubsData << ",";
+        allStubsData << "{layer:" << layerNum
+                    << ",phi:" << restrictedStubs[i]->phiHw
+                    << ",eta:" << restrictedStubs[i]->etaHw
+                    << ",qual:" << restrictedStubs[i]->qualityHw
+                    << ",logicLayer:" << restrictedStubs[i]->logicLayer
+                    << ",detId:" << restrictedStubs[i]->detId;
+        
+        // Add hwName if available - need to determine from logic layer
+        std::string hwName = "Unknown";
+        try {
+          // Get hardware layer number from logic layer mapping
+          // This would need OMTFConfiguration access - for now use Unknown
+          hwName = "L" + std::to_string(restrictedStubs[i]->logicLayer);
+        } catch (...) {
+          hwName = "Unknown";
+        }
+        allStubsData << ",hwName:" << hwName << "}";
+        firstStub = false;
+        totalStubCount++;
+      }
+    }
+  }
+  allStubsData << "]";
+
+  // Write single row to CSV with all layer data combined
+  refHitsFile_ << currentEvent_ << ","
+               << currentRun_ << ","
+               << iProcessor << ","
+               << iRefHit << ","
+               << refHitDef.iRefLayer << ","
+               << refHitDef.iInput << ","
+               << refHitDef.iRegion << ","
+               << refHitDef.range.first << ","
+               << refHitDef.range.second << ","
+               << totalStubCount << ","
+               << "\"" << allStubsData.str() << "\"\n";
 }

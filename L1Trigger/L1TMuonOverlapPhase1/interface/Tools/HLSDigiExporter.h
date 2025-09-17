@@ -2,11 +2,14 @@
 #define L1T_OmtfP1_HLSDIGIEXPORTER_H_
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
 #include "FWCore/Framework/interface/Event.h"
 
 #include <fstream>
 #include <string>
 #include <memory>
+#include <vector>
 
 /**
  * HLS Digi Exporter
@@ -36,6 +39,12 @@ public:
                                 const AlgoMuons& gbCandidates,
                                 const FinalMuons& finalMuons) override {}
 
+  // New method to observe reference hit processing
+  void observeRefHitProcessing(unsigned int iProcessor,
+                               unsigned int iRefHit,
+                               const RefHitDef& refHitDef,
+                               const std::vector<std::pair<unsigned int, MuonStubPtrs1D>>& allLayerStubs);
+
   void endJob() override;
 
 private:
@@ -51,6 +60,7 @@ private:
   std::ofstream cscDigiFile_;
   std::ofstream rpcDigiFile_;
   std::ofstream goldenResultsFile_;  // For converted MuonStub objects
+  std::ofstream refHitsFile_;       // For reference hits and restricted stubs
   
   bool filesOpened_;
   
@@ -61,6 +71,10 @@ private:
   void exportCSCDigis(const boost::property_tree::ptree& procDataTree);
   void exportRPCDigis(const boost::property_tree::ptree& procDataTree);
   void exportGoldenResults(const boost::property_tree::ptree& procDataTree);
+  void exportRefHitsEntry(unsigned int iProcessor,
+                          unsigned int iRefHit,
+                          const RefHitDef& refHitDef,
+                          const std::vector<std::pair<unsigned int, MuonStubPtrs1D>>& allLayerStubs);
   void createOutputDirectory();
 };
 

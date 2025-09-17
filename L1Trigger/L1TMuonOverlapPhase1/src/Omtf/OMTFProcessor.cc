@@ -14,6 +14,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/StubResult.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/HLSDigiExporter.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -685,6 +686,28 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
 
   boost::property_tree::ptree procDataTree;
   LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << " " << __LINE__ << std::endl;
+  
+  // New: Collect reference hits data for HLS export BEFORE the main processing loops
+  // This creates one row per reference hit with all layer data combined
+  for (unsigned int iRefHit = 0; iRefHit < refHitDefs.size(); iRefHit++) {
+    const RefHitDef& aRefHitDef = *(refHitDefs[iRefHit]);
+    unsigned int iRegion = aRefHitDef.iRegion;
+    
+    // Collect restricted stubs from all layers for this reference hit
+    std::vector<std::pair<unsigned int, MuonStubPtrs1D>> allLayerStubs;
+    for (unsigned int iLayer = 0; iLayer < this->myOmtfConfig->nLayers(); ++iLayer) {
+      MuonStubPtrs1D restrictedLayerStubs = this->restrictInput(iProcessor, iRegion, iLayer, aInput);
+      allLayerStubs.emplace_back(iLayer, restrictedLayerStubs);
+    }
+    
+    // Notify observers with complete reference hit data (all layers combined)
+    for (auto& obs : observers) {
+      if (auto* hlsExporter = dynamic_cast<HLSDigiExporter*>(obs.get())) {
+        hlsExporter->observeRefHitProcessing(iProcessor, iRefHit, aRefHitDef, allLayerStubs);
+      }
+    }
+  }
+  
   for (unsigned int iLayer = 0; iLayer < this->myOmtfConfig->nLayers(); ++iLayer) {
     //debug
     /*for(auto& h : layerHits) {
