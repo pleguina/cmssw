@@ -4,6 +4,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/StubResult.h"
 #include "FWCore/Framework/interface/Event.h"
 
 #include <fstream>
@@ -47,6 +48,15 @@ public:
                                const std::vector<std::pair<unsigned int, std::vector<int>>>& allLayerExtrapolatedPhi,
                                const std::vector<std::pair<unsigned int, std::vector<unsigned int>>>& allLayerHwNumbers);
 
+  // New method to observe Golden Pattern processing results
+  void observeGoldenPatternResults(unsigned int iProcessor,
+                                   unsigned int iRefHit,
+                                   const RefHitDef& refHitDef,
+                                   unsigned int iGP,
+                                   unsigned int iLayer,
+                                   const StubResult& stubResult,
+                                   int phiDistMin);
+
   void endJob() override;
 
 private:
@@ -63,6 +73,7 @@ private:
   std::ofstream rpcDigiFile_;
   std::ofstream goldenResultsFile_;  // For converted MuonStub objects
   std::ofstream refHitsFile_;       // For reference hits and restricted stubs
+  std::ofstream gpResultsFile_;     // For Golden Pattern processing results
   
   bool filesOpened_;
   
@@ -79,6 +90,13 @@ private:
                           const std::vector<std::pair<unsigned int, MuonStubPtrs1D>>& allLayerStubs,
                           const std::vector<std::pair<unsigned int, std::vector<int>>>& allLayerExtrapolatedPhi,
                           const std::vector<std::pair<unsigned int, std::vector<unsigned int>>>& allLayerHwNumbers);
+  void exportGPResultsEntry(unsigned int iProcessor,
+                            unsigned int iRefHit,
+                            const RefHitDef& refHitDef,
+                            unsigned int iGP,
+                            unsigned int iLayer,
+                            const StubResult& stubResult,
+                            int phiDistMin);
   void createOutputDirectory();
 };
 

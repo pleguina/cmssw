@@ -821,6 +821,13 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
                                      <<" pdfVal "<<stubResult.getPdfVal()
                                      <<std::endl;*/
 
+        // Collect GP processing results for CSV export
+        for (auto& observer : observers) {
+          observer->observeGoldenPatternResults(iProcessor, iRefHit, aRefHitDef, 
+                                                itGP->key().theNumber, iLayer, 
+                                                stubResult, stubResult.getPdfBin());
+        }
+
         itGP->getResults()[procIndx][iRefHit].setStubResult(iLayer, stubResult);
       }
     }

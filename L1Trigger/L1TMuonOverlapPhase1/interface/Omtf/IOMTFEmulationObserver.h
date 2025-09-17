@@ -21,6 +21,10 @@
 #include <memory>
 #include <vector>
 
+// Forward declarations
+class RefHitDef;
+class StubResult;
+
 namespace edm {
   class Event;
 } /* namespace edm */
@@ -47,6 +51,14 @@ public:
 
   virtual void observeEventEnd(const edm::Event& iEvent,
                                std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {};
+
+  virtual void observeGoldenPatternResults(unsigned int iProcessor,
+                                          unsigned int iRefHit,
+                                          const RefHitDef& refHitDef,
+                                          unsigned int iGP,
+                                          unsigned int iLayer,
+                                          const StubResult& stubResult,
+                                          int phiDistMin) {}
 
   virtual void endJob() = 0;
 };

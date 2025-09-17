@@ -21,6 +21,7 @@ HLSDigiExporter::~HLSDigiExporter() {
   if (rpcDigiFile_.is_open()) rpcDigiFile_.close();
   if (goldenResultsFile_.is_open()) goldenResultsFile_.close();
   if (refHitsFile_.is_open()) refHitsFile_.close();
+  if (gpResultsFile_.is_open()) gpResultsFile_.close();
 }
 
 void HLSDigiExporter::observeEventBegin(const edm::Event& iEvent) {
@@ -46,6 +47,7 @@ void HLSDigiExporter::observeEventEnd(const edm::Event& iEvent,
   if (rpcDigiFile_.is_open()) rpcDigiFile_.flush();
   if (goldenResultsFile_.is_open()) goldenResultsFile_.flush();
   if (refHitsFile_.is_open()) refHitsFile_.flush();
+  if (gpResultsFile_.is_open()) gpResultsFile_.flush();
 }
 
 void HLSDigiExporter::observeProcesorBegin(unsigned int iProcessor, l1t::tftype mtfType) {
@@ -81,6 +83,7 @@ void HLSDigiExporter::openCSVFiles() {
   std::string rpcFile = outputDir_ + "/rpc_digis.csv";
   std::string goldenFile = outputDir_ + "/golden_results.csv";
   std::string refHitsFile = outputDir_ + "/reference_hits.csv";
+  std::string gpResultsFile = outputDir_ + "/gp_processing_results.csv";
   
   dtPhiDigiFile_.open(dtPhiFile);
   dtThetaDigiFile_.open(dtThetaFile);
@@ -88,10 +91,11 @@ void HLSDigiExporter::openCSVFiles() {
   rpcDigiFile_.open(rpcFile);
   goldenResultsFile_.open(goldenFile);
   refHitsFile_.open(refHitsFile);
+  gpResultsFile_.open(gpResultsFile);
   
   if (!dtPhiDigiFile_.is_open() || !dtThetaDigiFile_.is_open() || 
       !cscDigiFile_.is_open() || !rpcDigiFile_.is_open() || 
-      !goldenResultsFile_.is_open() || !refHitsFile_.is_open()) {
+      !goldenResultsFile_.is_open() || !refHitsFile_.is_open() || !gpResultsFile_.is_open()) {
     edm::LogError("HLSDigiExporter") << "Failed to open CSV files!";
   } else {
     edm::LogInfo("HLSDigiExporter") << "Opened CSV files for digi export";
@@ -121,9 +125,14 @@ void HLSDigiExporter::writeCSVHeaders() {
   goldenResultsFile_ << "event,run,processor,tftype,type,logicLayer,phiHw,etaHw,qualityHw,"
                      << "phiBHw,bx,timing,r,detId,hwName\n";
                      
-  // Reference Hits header - RefHit and all restricted stubs from all layers
+    // Reference Hits header - RefHit and corresponding restricted stubs per layer
   refHitsFile_ << "event,run,processor,refHitIndex,refHitLayer,refHitInput,refHitRegion,"
-               << "refHitPhiMin,refHitPhiMax,totalRestrictedStubs,allLayersStubsData\n";
+               << "refHitPhiMin,refHitPhiMax,allLayersRestrictedStubsData\n";
+               
+  // Golden Pattern Results header - StubResult from each GP processing
+  gpResultsFile_ << "event,run,processor,refHitIndex,refHitLayer,refHitInput,refHitRegion,"
+                 << "gpIndex,gpKey,layer,pdfValue,firedFlag,pdfBin,deltaPhiValue,"
+                 << "selectedStubPhi,selectedStubEta,selectedStubQuality,selectedStubDetId,phiDistMin\n";
 }
 
 void HLSDigiExporter::exportDTPhiDigis(const boost::property_tree::ptree& procDataTree) {
@@ -326,6 +335,16 @@ void HLSDigiExporter::observeRefHitProcessing(unsigned int iProcessor,
   exportRefHitsEntry(iProcessor, iRefHit, refHitDef, allLayerStubs, allLayerExtrapolatedPhi, allLayerHwNumbers);
 }
 
+void HLSDigiExporter::observeGoldenPatternResults(unsigned int iProcessor,
+                                                  unsigned int iRefHit,
+                                                  const RefHitDef& refHitDef,
+                                                  unsigned int iGP,
+                                                  unsigned int iLayer,
+                                                  const StubResult& stubResult,
+                                                  int phiDistMin) {
+  exportGPResultsEntry(iProcessor, iRefHit, refHitDef, iGP, iLayer, stubResult, phiDistMin);
+}
+
 void HLSDigiExporter::exportRefHitsEntry(unsigned int iProcessor,
                                          unsigned int iRefHit,
                                          const RefHitDef& refHitDef,
@@ -406,4 +425,45 @@ void HLSDigiExporter::exportRefHitsEntry(unsigned int iProcessor,
                << refHitDef.range.second << ","
                << totalStubCount << ","
                << "\"" << allStubsData.str() << "\"\n";
+}
+
+void HLSDigiExporter::exportGPResultsEntry(unsigned int iProcessor,
+                                           unsigned int iRefHit,
+                                           const RefHitDef& refHitDef,
+                                           unsigned int iGP,
+                                           unsigned int iLayer,
+                                           const StubResult& stubResult,
+                                           int phiDistMin) {
+  if (!gpResultsFile_.is_open()) {
+    edm::LogWarning("HLSDigiExporter") << "GP Results file not open!";
+    return;
+  }
+
+  // Write GP processing result to CSV
+  gpResultsFile_ << currentEvent_ << ","
+                 << currentRun_ << ","
+                 << iProcessor << ","
+                 << iRefHit << ","
+                 << refHitDef.iRefLayer << ","
+                 << refHitDef.iInput << ","
+                 << refHitDef.iRegion << ","
+                 << iGP << ","
+                 << iGP << "," // Use GP number as GP key for now
+                 << iLayer << ","
+                 << stubResult.getPdfVal() << ","
+                 << (stubResult.getValid() ? 1 : 0) << ","
+                 << stubResult.getPdfBin() << ","
+                 << stubResult.getDeltaPhi() << ",";
+  
+  // Add selected stub information if available
+  if (stubResult.getMuonStub()) {
+    gpResultsFile_ << stubResult.getMuonStub()->phiHw << ","
+                   << stubResult.getMuonStub()->etaHw << ","
+                   << stubResult.getMuonStub()->qualityHw << ","
+                   << stubResult.getMuonStub()->detId << ",";
+  } else {
+    gpResultsFile_ << ",,,,";  // Empty stub fields
+  }
+  
+  gpResultsFile_ << phiDistMin << "\n";
 }
