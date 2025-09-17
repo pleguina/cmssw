@@ -39,11 +39,13 @@ public:
                                 const AlgoMuons& gbCandidates,
                                 const FinalMuons& finalMuons) override {}
 
-  // New method to observe reference hit processing
+  // New method to observe reference hit processing with extrapolated phi
   void observeRefHitProcessing(unsigned int iProcessor,
                                unsigned int iRefHit,
                                const RefHitDef& refHitDef,
-                               const std::vector<std::pair<unsigned int, MuonStubPtrs1D>>& allLayerStubs);
+                               const std::vector<std::pair<unsigned int, MuonStubPtrs1D>>& allLayerStubs,
+                               const std::vector<std::pair<unsigned int, std::vector<int>>>& allLayerExtrapolatedPhi,
+                               const std::vector<std::pair<unsigned int, std::vector<unsigned int>>>& allLayerHwNumbers);
 
   void endJob() override;
 
@@ -74,7 +76,9 @@ private:
   void exportRefHitsEntry(unsigned int iProcessor,
                           unsigned int iRefHit,
                           const RefHitDef& refHitDef,
-                          const std::vector<std::pair<unsigned int, MuonStubPtrs1D>>& allLayerStubs);
+                          const std::vector<std::pair<unsigned int, MuonStubPtrs1D>>& allLayerStubs,
+                          const std::vector<std::pair<unsigned int, std::vector<int>>>& allLayerExtrapolatedPhi,
+                          const std::vector<std::pair<unsigned int, std::vector<unsigned int>>>& allLayerHwNumbers);
   void createOutputDirectory();
 };
 

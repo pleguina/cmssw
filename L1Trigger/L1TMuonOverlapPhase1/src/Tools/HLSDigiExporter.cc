@@ -1,4 +1,5 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/HLSDigiExporter.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include <boost/filesystem.hpp>
@@ -319,20 +320,24 @@ void HLSDigiExporter::createOutputDirectory() {
 void HLSDigiExporter::observeRefHitProcessing(unsigned int iProcessor,
                                               unsigned int iRefHit,
                                               const RefHitDef& refHitDef,
-                                              const std::vector<std::pair<unsigned int, MuonStubPtrs1D>>& allLayerStubs) {
-  exportRefHitsEntry(iProcessor, iRefHit, refHitDef, allLayerStubs);
+                                              const std::vector<std::pair<unsigned int, MuonStubPtrs1D>>& allLayerStubs,
+                                              const std::vector<std::pair<unsigned int, std::vector<int>>>& allLayerExtrapolatedPhi,
+                                              const std::vector<std::pair<unsigned int, std::vector<unsigned int>>>& allLayerHwNumbers) {
+  exportRefHitsEntry(iProcessor, iRefHit, refHitDef, allLayerStubs, allLayerExtrapolatedPhi, allLayerHwNumbers);
 }
 
 void HLSDigiExporter::exportRefHitsEntry(unsigned int iProcessor,
                                          unsigned int iRefHit,
                                          const RefHitDef& refHitDef,
-                                         const std::vector<std::pair<unsigned int, MuonStubPtrs1D>>& allLayerStubs) {
+                                         const std::vector<std::pair<unsigned int, MuonStubPtrs1D>>& allLayerStubs,
+                                         const std::vector<std::pair<unsigned int, std::vector<int>>>& allLayerExtrapolatedPhi,
+                                         const std::vector<std::pair<unsigned int, std::vector<unsigned int>>>& allLayerHwNumbers) {
   if (!refHitsFile_.is_open()) {
     edm::LogWarning("HLSDigiExporter") << "Reference hits file not open!";
     return;
   }
 
-  // Build combined stubs data string from all layers
+  // Build combined stubs data string from all layers with extrapolated phi
   std::stringstream allStubsData;
   allStubsData << "[";
   bool firstStub = true;
@@ -341,6 +346,23 @@ void HLSDigiExporter::exportRefHitsEntry(unsigned int iProcessor,
   for (const auto& layerPair : allLayerStubs) {
     unsigned int layerNum = layerPair.first;
     const MuonStubPtrs1D& restrictedStubs = layerPair.second;
+    
+    // Find corresponding extrapolated phi data for this layer
+    std::vector<int> extrapolatedPhi;
+    for (const auto& phiData : allLayerExtrapolatedPhi) {
+      if (phiData.first == layerNum) {
+        extrapolatedPhi = phiData.second;
+        break;
+      }
+    }
+    // Get hardware layer numbers for this layer
+    std::vector<unsigned int> hwNumbers;
+    for (const auto& hwData : allLayerHwNumbers) {
+      if (hwData.first == layerNum) {
+        hwNumbers = hwData.second;
+        break;
+      }
+    }
     
     for (size_t i = 0; i < restrictedStubs.size(); ++i) {
       if (restrictedStubs[i]) {
@@ -352,14 +374,17 @@ void HLSDigiExporter::exportRefHitsEntry(unsigned int iProcessor,
                     << ",logicLayer:" << restrictedStubs[i]->logicLayer
                     << ",detId:" << restrictedStubs[i]->detId;
         
-        // Add hwName if available - need to determine from logic layer
+        // Add extrapolated phi if available
+        if (i < extrapolatedPhi.size()) {
+          allStubsData << ",phiExtr:" << extrapolatedPhi[i];
+        } else {
+          allStubsData << ",phiExtr:0";  // Default value when no extrapolation
+        }
+        
+        // Add hwName using proper hardware layer mapping from OMTFConfiguration
         std::string hwName = "Unknown";
-        try {
-          // Get hardware layer number from logic layer mapping
-          // This would need OMTFConfiguration access - for now use Unknown
-          hwName = "L" + std::to_string(restrictedStubs[i]->logicLayer);
-        } catch (...) {
-          hwName = "Unknown";
+        if (i < hwNumbers.size() && hwNumbers[i] != 0) {
+          hwName = getHwNameFromHwNumber(hwNumbers[i]);
         }
         allStubsData << ",hwName:" << hwName << "}";
         firstStub = false;

@@ -693,17 +693,58 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
     const RefHitDef& aRefHitDef = *(refHitDefs[iRefHit]);
     unsigned int iRegion = aRefHitDef.iRegion;
     
+    // Get reference stub for extrapolation calculations
+    unsigned int refLayerLogicNum = this->myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer];
+    const MuonStubPtr refStub = aInput.getMuonStub(refLayerLogicNum, aRefHitDef.iInput);
+    
     // Collect restricted stubs from all layers for this reference hit
     std::vector<std::pair<unsigned int, MuonStubPtrs1D>> allLayerStubs;
+    std::vector<std::pair<unsigned int, std::vector<int>>> allLayerExtrapolatedPhi;
+    std::vector<std::pair<unsigned int, std::vector<unsigned int>>> allLayerHwNumbers; // Hardware layer numbers
+    
     for (unsigned int iLayer = 0; iLayer < this->myOmtfConfig->nLayers(); ++iLayer) {
       MuonStubPtrs1D restrictedLayerStubs = this->restrictInput(iProcessor, iRegion, iLayer, aInput);
+      
+      // Calculate extrapolated phi for each restricted stub in this layer
+      std::vector<int> extrapolatedPhi(restrictedLayerStubs.size(), 0);
+      
+      // Get hardware layer numbers for each stub in this layer
+      std::vector<unsigned int> hwNumbers;
+      for (auto& stub : restrictedLayerStubs) {
+        if (stub) {
+          // Get hardware layer number from logic layer mapping
+          auto& logicToHwMap = this->myOmtfConfig->getLogicToHwLayer();
+          auto hwIt = logicToHwMap.find(stub->logicLayer);
+          unsigned int hwNumber = (hwIt != logicToHwMap.end()) ? hwIt->second : 0;
+          hwNumbers.push_back(hwNumber);
+        } else {
+          hwNumbers.push_back(0); // Default for null stubs
+        }
+      }
+      
+      //TODO make sure the that the iRefLayer numbers used here corresponds to this in the hwToLogicLayer_0x000X.xml
+      if ((this->myOmtfConfig->usePhiBExtrapolationMB1() && aRefHitDef.iRefLayer == 0) ||
+          (this->myOmtfConfig->usePhiBExtrapolationMB2() && aRefHitDef.iRefLayer == 2)) {
+        if ((iLayer != refLayerLogicNum) && (iLayer != refLayerLogicNum + 1)) {
+          unsigned int iStub = 0;
+          for (auto& targetStub : restrictedLayerStubs) {
+            if (targetStub) {
+              extrapolatedPhi[iStub] = extrapolateDtPhiB(refStub, targetStub, iLayer, this->myOmtfConfig);
+            }
+            iStub++;
+          }
+        }
+      }
+      
       allLayerStubs.emplace_back(iLayer, restrictedLayerStubs);
+      allLayerExtrapolatedPhi.emplace_back(iLayer, extrapolatedPhi);
+      allLayerHwNumbers.emplace_back(iLayer, hwNumbers);
     }
     
-    // Notify observers with complete reference hit data (all layers combined)
+    // Notify observers with complete reference hit data (all layers combined + extrapolated phi + hw numbers)
     for (auto& obs : observers) {
       if (auto* hlsExporter = dynamic_cast<HLSDigiExporter*>(obs.get())) {
-        hlsExporter->observeRefHitProcessing(iProcessor, iRefHit, aRefHitDef, allLayerStubs);
+        hlsExporter->observeRefHitProcessing(iProcessor, iRefHit, aRefHitDef, allLayerStubs, allLayerExtrapolatedPhi, allLayerHwNumbers);
       }
     }
   }
