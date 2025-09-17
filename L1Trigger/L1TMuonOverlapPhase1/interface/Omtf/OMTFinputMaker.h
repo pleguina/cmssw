@@ -18,6 +18,9 @@
 #include <cstdint>
 #include <memory>
 
+// Helper function to map hwNumber to hwName based on the layer mapping
+std::string getHwNameFromHwNumber(unsigned int hwNumber);
+
 class DtDigiToStubsConverterOmtf : public DtDigiToStubsConverter {
 public:
   DtDigiToStubsConverterOmtf(const OMTFConfiguration* config,
@@ -130,6 +133,35 @@ public:
                                      unsigned int rawId,
                                      unsigned int iProcessor,
                                      l1t::tftype type);
+
+  ///Reverse mapping: given layer, input number, processor and type, 
+  ///return the detector chamber information (rawId and chamber details)
+  ///NOTE: This function provides the most common stub type for each detector:
+  ///- DT: DT_PHI_ETA (as used in OMTF Phase1)
+  ///- CSC: CSC_PHI_ETA (as used in OMTF Phase1) 
+  ///- RPC: RPC
+  ///For exact stub type determination, the original MuonStub object should be consulted
+  struct DetectorInfo {
+    unsigned int rawId = 0;
+    int sector = -1;
+    int station = -1; 
+    int wheel = -1;    // For DT
+    int endcap = -1;   // For CSC
+    int ring = -1;     // For CSC/RPC
+    int chamber = -1;
+    int layer = -1;    // For CSC
+    int roll = -1;     // For RPC
+    int subsector = -1; // For RPC
+    MuonStub::Type detectorType = MuonStub::EMPTY;
+    std::string detectorName = "";
+    std::string hwName = "";
+  };
+
+  static DetectorInfo getDetectorInfo(const OMTFConfiguration* config,
+                                      unsigned int iLayer,
+                                      unsigned int iInput,
+                                      unsigned int iProcessor,
+                                      l1t::tftype type);
 
   //is in the OMTFinputMakerand not in the DtDigiToStubsConverterOmtf because is also used for the phase2 DT stubs
   //it is here, because this function is needed both for the DtDigiToStubsConverterOmtf and DtPhase2DigiToStubsConverter

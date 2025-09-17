@@ -113,7 +113,7 @@ void HLSDigiExporter::writeCSVHeaders() {
                
   // Golden Results header - MuonStub objects after conversion
   goldenResultsFile_ << "event,run,processor,tftype,type,logicLayer,phiHw,etaHw,qualityHw,"
-                     << "phiBHw,bx,timing,r,detId\n";
+                     << "phiBHw,bx,timing,r,detId,hwName\n";
 }
 
 void HLSDigiExporter::exportDTPhiDigis(const boost::property_tree::ptree& procDataTree) {
@@ -290,7 +290,8 @@ void HLSDigiExporter::exportGoldenResults(const boost::property_tree::ptree& pro
                            << stub.get<int>("<xmlattr>.bx", 0) << ","
                            << stub.get<int>("<xmlattr>.timing", 0) << ","
                            << stub.get<int>("<xmlattr>.r", 0) << ","
-                           << stub.get<unsigned long>("<xmlattr>.detId", 0) << "\n";
+                           << stub.get<unsigned long>("<xmlattr>.detId", 0) << ","
+                           << stub.get<std::string>("<xmlattr>.hwName", "Unknown") << "\n";
       }
     }
   } catch (const std::exception& e) {

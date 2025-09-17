@@ -1,5 +1,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubMakerBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
 
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigi.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhDigi.h"
@@ -13,6 +15,31 @@
 #include <iostream>
 #include <iterator>
 #include <utility>
+
+// Helper function to map hwNumber to hwName based on the layer mapping
+std::string getHwNameFromHwNumber(unsigned int hwNumber) {
+  switch (hwNumber) {
+    case 101: return "MB1";
+    case 1101: return "MB1b";
+    case 102: return "MB2";
+    case 1102: return "MB2b";
+    case 103: return "MB3";
+    case 1103: return "MB3b";
+    case 201: return "ME1/3";
+    case 202: return "ME2/2";
+    case 203: return "ME3/2";
+    case 2011: return "ME1/2";
+    case 301: return "RB1in";
+    case 302: return "RB1out";
+    case 303: return "RB2in";
+    case 304: return "RB2out";
+    case 305: return "RB3";
+    case 311: return "RE1/3";
+    case 312: return "RE2/3";
+    case 313: return "RE3/3";
+    default: return "Unknown";
+  }
+}
 
 /////////////////////////////////////
 void DtDigiToStubsConverter::loadDigis(const edm::Event& event) {
@@ -131,6 +158,40 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
         cscDigi.add("<xmlattr>.offset", convInfo.offset);
         cscDigi.add("<xmlattr>.scale", convInfo.scale);
         cscDigi.add("<xmlattr>.order", convInfo.order);
+        
+        // === ADD GOLDEN STUB DATA ===
+        // Check if a CSC stub was added to muonStubsInLayers
+        const OMTFConfiguration* omtfConfig = dynamic_cast<const OMTFConfiguration*>(config);
+        if (omtfConfig) {
+          unsigned int hwNumber = omtfConfig->getLayerNumber(rawid);
+          if (omtfConfig->getHwToLogicLayer().find(hwNumber) != omtfConfig->getHwToLogicLayer().end()) {
+            unsigned int iLayer = omtfConfig->getHwToLogicLayer().at(hwNumber);
+            if (iLayer < muonStubsInLayers.size()) {
+              unsigned int iInput = OMTFinputMaker::getInputNumber(omtfConfig, rawid, iProcessor, procTyp);
+              if (iInput < muonStubsInLayers[iLayer].size() && muonStubsInLayers[iLayer][iInput]) {
+                auto& stub = muonStubsInLayers[iLayer][iInput];
+                
+                // Add golden stub data to XML
+                auto& goldenStub = procDataTree.add_child("goldenStub", boost::property_tree::ptree());
+                goldenStub.add("<xmlattr>.type", static_cast<int>(stub->type));
+                goldenStub.add("<xmlattr>.logicLayer", stub->logicLayer);
+                goldenStub.add("<xmlattr>.phiHw", stub->phiHw);
+                goldenStub.add("<xmlattr>.etaHw", stub->etaHw);
+                goldenStub.add("<xmlattr>.qualityHw", stub->qualityHw);
+                goldenStub.add("<xmlattr>.phiBHw", stub->phiBHw);
+                goldenStub.add("<xmlattr>.bx", stub->bx);
+                goldenStub.add("<xmlattr>.timing", stub->timing);
+                goldenStub.add("<xmlattr>.r", stub->r);
+                goldenStub.add("<xmlattr>.detId", stub->detId);
+                
+                // Find hwNumber from logic layer and get hwName
+                unsigned int stubHwNumber = omtfConfig->getLogicToHwLayer().at(stub->logicLayer);
+                std::string hwName = getHwNameFromHwNumber(stubHwNumber);
+                goldenStub.add("<xmlattr>.hwName", hwName);
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -217,6 +278,40 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
 
     for (auto& cluster : clusters) {
       addRPCstub(muonStubsInLayers, roll, cluster, iProcessor, procTyp);
+      
+      // === ADD GOLDEN STUB DATA FOR RPC ===
+      // Check if an RPC stub was added to muonStubsInLayers
+      const OMTFConfiguration* omtfConfig = dynamic_cast<const OMTFConfiguration*>(config);
+      if (omtfConfig) {
+        unsigned int hwNumber = omtfConfig->getLayerNumber(roll.rawId());
+        if (omtfConfig->getHwToLogicLayer().find(hwNumber) != omtfConfig->getHwToLogicLayer().end()) {
+          unsigned int iLayer = omtfConfig->getHwToLogicLayer().at(hwNumber);
+          if (iLayer < muonStubsInLayers.size()) {
+            unsigned int iInput = OMTFinputMaker::getInputNumber(omtfConfig, roll.rawId(), iProcessor, procTyp);
+            if (iInput < muonStubsInLayers[iLayer].size() && muonStubsInLayers[iLayer][iInput]) {
+              auto& stub = muonStubsInLayers[iLayer][iInput];
+              
+              // Add golden stub data to XML
+              auto& goldenStub = procDataTree.add_child("goldenStub", boost::property_tree::ptree());
+              goldenStub.add("<xmlattr>.type", static_cast<int>(stub->type));
+              goldenStub.add("<xmlattr>.logicLayer", stub->logicLayer);
+              goldenStub.add("<xmlattr>.phiHw", stub->phiHw);
+              goldenStub.add("<xmlattr>.etaHw", stub->etaHw);
+              goldenStub.add("<xmlattr>.qualityHw", stub->qualityHw);
+              goldenStub.add("<xmlattr>.phiBHw", stub->phiBHw);
+              goldenStub.add("<xmlattr>.bx", stub->bx);
+              goldenStub.add("<xmlattr>.timing", stub->timing);
+              goldenStub.add("<xmlattr>.r", stub->r);
+              goldenStub.add("<xmlattr>.detId", stub->detId);
+              
+              // Find hwNumber from logic layer and get hwName
+              unsigned int stubHwNumber = omtfConfig->getLogicToHwLayer().at(stub->logicLayer);
+              std::string hwName = getHwNameFromHwNumber(stubHwNumber);
+              goldenStub.add("<xmlattr>.hwName", hwName);
+            }
+          }
+        }
+      }
     }
   }
 

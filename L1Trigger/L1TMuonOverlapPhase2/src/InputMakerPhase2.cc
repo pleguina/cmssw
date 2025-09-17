@@ -9,6 +9,7 @@
 #include "DataFormats/MuonDetId/interface/DTChamberId.h"
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/InputMakerPhase2.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OmtfName.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
 
 #include <iostream>
 
@@ -86,6 +87,10 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
         goldenStub.add("<xmlattr>.timing", stub->timing);
         goldenStub.add("<xmlattr>.r", stub->r);
         goldenStub.add("<xmlattr>.detId", stub->detId);
+        
+        // Add hwName mapping - use virtual method to get the name
+        std::string hwName = getHwNameForStub(stub->logicLayer);
+        goldenStub.add("<xmlattr>.hwName", hwName);
       }
     }
   }
@@ -185,6 +190,12 @@ bool DtPhase2DigiToStubsConverterOmtf::acceptDigi(const DTChamberId& dTChamberId
                                                   unsigned int iProcessor,
                                                   l1t::tftype procType) {
   return OMTFinputMaker::acceptDtDigi(&config, dTChamberId, iProcessor, procType);
+}
+
+std::string DtPhase2DigiToStubsConverterOmtf::getHwNameForStub(unsigned int logicLayer) {
+  // Use the same mapping logic as Phase 1
+  unsigned int stubHwNumber = config.getLogicToHwLayer().at(logicLayer);
+  return getHwNameFromHwNumber(stubHwNumber);
 }
 
 InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,

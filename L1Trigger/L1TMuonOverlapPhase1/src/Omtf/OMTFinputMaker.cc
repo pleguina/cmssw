@@ -465,6 +465,152 @@ unsigned int OMTFinputMaker::getInputNumber(const OMTFConfiguration* config,
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 
+// Reverse mapping: from layer number and input number to detector information
+// NOTE: This function assigns the most common stub types used in OMTF Phase1:
+// - DT_PHI_ETA for DT chambers (combines phi and eta information)
+// - CSC_PHI_ETA for CSC chambers (combines phi and eta information)  
+// - RPC for RPC chambers
+// In reality, stub types can vary (e.g., DT_PHI, DT_THETA, CSC_PHI, CSC_ETA)
+// but this provides the predominant types used in the current implementation
+OMTFinputMaker::DetectorInfo OMTFinputMaker::getDetectorInfo(const OMTFConfiguration* config,
+                                                            unsigned int layerNumber,
+                                                            unsigned int inputNumber,
+                                                            unsigned int iProcessor,
+                                                            l1t::tftype type) {
+  DetectorInfo detInfo;
+  
+  // Decode layer number to get detector type and layer
+  unsigned int hwNumber = layerNumber;
+  unsigned int subdetId = hwNumber / 100;
+  unsigned int aLayer = hwNumber % 100;
+  
+  // Set hwName from hwNumber
+  detInfo.hwName = getHwNameFromHwNumber(hwNumber);
+  
+  // Get processor sector ranges
+  int aMin = 0;
+  int nInputsPerSector = 2;
+  
+  switch (subdetId) {
+    case MuonSubdetId::RPC: {
+      detInfo.detectorType = MuonStub::RPC;
+      
+      // Determine if barrel or endcap
+      bool isBarrel = (aLayer < 10);
+      
+      if (isBarrel) {
+        detInfo.detectorName = "RPC_Barrel";
+        nInputsPerSector = 4;
+        aMin = config->getBarrelMin()[iProcessor];
+        
+        // Decode barrel layer to station and layer
+        if (aLayer <= 4) {
+          detInfo.station = (aLayer + 1) / 2;
+          detInfo.layer = ((aLayer - 1) % 2) + 1;
+        } else {
+          detInfo.station = aLayer - 2;
+          detInfo.layer = 1;
+        }
+        
+        // Station 3 special case
+        if (detInfo.station == 3) {
+          nInputsPerSector = 2;
+        }
+        
+      } else {
+        detInfo.detectorName = "RPC_Endcap";
+        detInfo.station = aLayer - 10;
+        aMin = config->getEndcap10DegMin()[iProcessor];
+      }
+      
+      break;
+    }
+    
+    case MuonSubdetId::DT: {
+      // DT can have different stub types: DT_PHI, DT_THETA, DT_PHI_ETA, DT_HIT
+      // Default to DT_PHI_ETA as it's the most common in OMTF Phase1
+      detInfo.detectorType = MuonStub::DT_PHI_ETA;
+      detInfo.detectorName = "DT_Barrel";
+      detInfo.station = aLayer;
+      aMin = config->getBarrelMin()[iProcessor];
+      break;
+    }
+    
+    case MuonSubdetId::CSC: {
+      // CSC can have different stub types: CSC_PHI, CSC_ETA, CSC_PHI_ETA
+      // Default to CSC_PHI_ETA as it's the most common in OMTF Phase1
+      detInfo.detectorType = MuonStub::CSC_PHI_ETA;
+      detInfo.detectorName = "CSC_Endcap";
+      
+      // Handle special layer encoding
+      if (aLayer == 1811) {
+        detInfo.station = 1;
+        detInfo.ring = 2;
+      } else {
+        detInfo.station = aLayer;
+        detInfo.ring = 1; // Default, may need refinement
+      }
+      
+      aMin = config->getEndcap10DegMin()[iProcessor];
+      
+      // Special case for EMTF 20-degree sectors
+      if ((type == l1t::tftype::emtf_pos || type == l1t::tftype::emtf_neg) && 
+          detInfo.station > 1 && detInfo.ring == 1) {
+        aMin = config->getEndcap20DegMin()[iProcessor];
+      }
+      
+      break;
+    }
+    
+    default:
+      detInfo.detectorType = MuonStub::EMPTY;
+      detInfo.detectorName = "Unknown";
+      detInfo.hwName = "Unknown";
+      return detInfo;
+  }
+  
+  // Calculate sector from input number
+  int iRoll = (inputNumber % nInputsPerSector) + 1;
+  int aSector = (inputNumber / nInputsPerSector) + aMin;
+  
+  // Handle wrap-around for processor boundaries
+  if (subdetId == MuonSubdetId::RPC || subdetId == MuonSubdetId::DT) {
+    // Barrel case: 30-degree sectors
+    if (iProcessor == (config->nProcessors() - 1) && aSector >= 12) {
+      aSector -= 12;
+    }
+    detInfo.sector = aSector;
+  } else if (subdetId == MuonSubdetId::CSC) {
+    // Endcap case: 10-degree or 20-degree sectors
+    if ((type == l1t::tftype::emtf_pos || type == l1t::tftype::emtf_neg) && 
+        detInfo.station > 1 && detInfo.ring == 1) {
+      // 20-degree sectors
+      if (iProcessor == (config->nProcessors() - 1) && aSector >= 18) {
+        aSector -= 18;
+      }
+    } else {
+      // 10-degree sectors  
+      if (iProcessor == (config->nProcessors() - 1) && aSector >= 36) {
+        aSector -= 36;
+      }
+    }
+    detInfo.chamber = aSector;
+  }
+  
+  // Set additional fields
+  detInfo.roll = iRoll;
+  detInfo.wheel = 0; // Would need additional logic to determine
+  detInfo.endcap = (subdetId == MuonSubdetId::CSC) ? 1 : 0;
+  detInfo.subsector = 0; // Would need additional logic for RPC endcap
+  
+  // Generate a placeholder rawId (would need proper reconstruction)
+  detInfo.rawId = 0;
+  
+  return detInfo;
+}
+
+////////////////////////////////////////////
+
 //iProcessor counted from 0
 int OMTFinputMaker::getProcessorPhiZero(const OMTFConfiguration* config, unsigned int iProcessor) {
   unsigned int nPhiBins = config->nPhiBins();

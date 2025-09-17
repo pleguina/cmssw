@@ -59,6 +59,11 @@ public:
     return true;
   }
 
+  // Virtual method to get hardware name from logic layer - to be implemented by derived classes
+  virtual std::string getHwNameForStub(unsigned int logicLayer) {
+    return "Unknown";  // Default implementation
+  }
+
 protected:
   bool mergePhiAndTheta = true;
 
@@ -94,6 +99,9 @@ public:
                      l1t::tftype procTyp) override;
 
   bool acceptDigi(const DTChamberId& dTChamberId, unsigned int iProcessor, l1t::tftype procType) override;
+
+  // Implementation of hwName mapping for OMTF
+  std::string getHwNameForStub(unsigned int logicLayer) override;
 
 private:
   const OMTFConfiguration& config;
