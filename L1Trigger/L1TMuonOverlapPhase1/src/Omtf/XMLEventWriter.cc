@@ -62,6 +62,8 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
   if (finalMuons.empty())
     return;
 
+  // Layer/Hit generation removed per user request
+  /*
   for (unsigned int iLayer = 0; iLayer < omtfConfig->nLayers(); ++iLayer) {
     boost::property_tree::ptree layerTree;
 
@@ -91,6 +93,7 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
       procTree.add_child("Layer", layerTree);
     }
   }
+  */
 
   for (auto& algoCand : algoCandidates) {
     ///Dump only regions, where a candidate was found

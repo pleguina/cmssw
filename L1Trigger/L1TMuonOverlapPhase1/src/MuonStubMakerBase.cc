@@ -75,9 +75,9 @@ void DtDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     }
   }
   
-  // Notify observers
+  // Notify observers - DT XML generation happens in InputMakerPhase2, not here
   for (auto& observer : observers) {
-    observer->addProcesorData("linkData", procDataTree);
+    observer->addProcesorData("DTdigis", procDataTree);
   }
   //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<__LINE__<<" iProcessor "<<iProcessor<<std::endl;
 }
@@ -90,7 +90,11 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                         int bxFrom,
                                         int bxTo,
                                         std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
-  boost::property_tree::ptree procDataTree;
+  boost::property_tree::ptree cscDigisTree;
+  boost::property_tree::ptree cscStubsTree;
+  
+  // Track order of digis per chamber for ordering information
+  std::map<unsigned int, unsigned int> chamberDigiOrder;
 
   auto chamber = cscDigis->begin();
   auto chend = cscDigis->end();
@@ -100,6 +104,9 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     CSCDetId csc(rawid);
     if (!acceptDigi(csc, iProcessor, procTyp))
       continue;
+
+    // Reset order counter for each chamber
+    chamberDigiOrder[rawid] = 0;
 
     auto digi = (*chamber).second.first;
     auto dend = (*chamber).second.second;
@@ -111,13 +118,16 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
         addCSCstubs(muonStubsInLayers, rawid, *digi, iProcessor, procTyp);
 
         // === ADD XML DATA COLLECTION FOR CSV EXPORT ===
-        auto& cscDigi = procDataTree.add_child("cscDigi", boost::property_tree::ptree());
+        auto& cscDigi = cscDigisTree.add_child("cscDigi", boost::property_tree::ptree());
         // Detector ID fields
         cscDigi.add("<xmlattr>.endcap", csc.endcap());
         cscDigi.add("<xmlattr>.station", csc.station());
         cscDigi.add("<xmlattr>.ring", csc.ring());
         cscDigi.add("<xmlattr>.chamber", csc.chamber());
         cscDigi.add("<xmlattr>.layer", csc.layer());
+        
+        // Add ordering information within chamber
+        cscDigi.add("<xmlattr>.chamberOrder", chamberDigiOrder[rawid]++);
         
         // Core LCT data fields
         cscDigi.add("<xmlattr>.trknmb", digi->getTrknmb());
@@ -158,6 +168,17 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
         cscDigi.add("<xmlattr>.offset", convInfo.offset);
         cscDigi.add("<xmlattr>.scale", convInfo.scale);
         cscDigi.add("<xmlattr>.order", convInfo.order);
+        cscDigi.add("<xmlattr>.halfStrip", convInfo.halfStrip);
+        
+        // ADD hwName attribute for CSC digi
+        const OMTFConfiguration* omtfConfigHw = dynamic_cast<const OMTFConfiguration*>(config);
+        if (omtfConfigHw) {
+          unsigned int hwNumber = omtfConfigHw->getLayerNumber(rawid);
+          if (omtfConfigHw->getHwToLogicLayer().find(hwNumber) != omtfConfigHw->getHwToLogicLayer().end()) {
+            std::string hwName = getHwNameFromHwNumber(hwNumber);
+            cscDigi.add("<xmlattr>.hwName", hwName);
+          }
+        }
         
         // === ADD GOLDEN STUB DATA ===
         // Check if a CSC stub was added to muonStubsInLayers
@@ -171,23 +192,23 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
               if (iInput < muonStubsInLayers[iLayer].size() && muonStubsInLayers[iLayer][iInput]) {
                 auto& stub = muonStubsInLayers[iLayer][iInput];
                 
-                // Add golden stub data to XML
-                auto& goldenStub = procDataTree.add_child("goldenStub", boost::property_tree::ptree());
-                goldenStub.add("<xmlattr>.type", static_cast<int>(stub->type));
-                goldenStub.add("<xmlattr>.logicLayer", stub->logicLayer);
-                goldenStub.add("<xmlattr>.phiHw", stub->phiHw);
-                goldenStub.add("<xmlattr>.etaHw", stub->etaHw);
-                goldenStub.add("<xmlattr>.qualityHw", stub->qualityHw);
-                goldenStub.add("<xmlattr>.phiBHw", stub->phiBHw);
-                goldenStub.add("<xmlattr>.bx", stub->bx);
-                goldenStub.add("<xmlattr>.timing", stub->timing);
-                goldenStub.add("<xmlattr>.r", stub->r);
-                goldenStub.add("<xmlattr>.detId", stub->detId);
+                // Add golden stub data to separate XML tree
+                auto& cscStub = cscStubsTree.add_child("CSCstub", boost::property_tree::ptree());
+                cscStub.add("<xmlattr>.type", static_cast<int>(stub->type));
+                cscStub.add("<xmlattr>.logicLayer", stub->logicLayer);
+                cscStub.add("<xmlattr>.phiHw", stub->phiHw);
+                cscStub.add("<xmlattr>.etaHw", stub->etaHw);
+                cscStub.add("<xmlattr>.qualityHw", stub->qualityHw);
+                cscStub.add("<xmlattr>.phiBHw", stub->phiBHw);
+                cscStub.add("<xmlattr>.bx", stub->bx);
+                cscStub.add("<xmlattr>.timing", stub->timing);
+                cscStub.add("<xmlattr>.r", stub->r);
+                cscStub.add("<xmlattr>.detId", stub->detId);
                 
                 // Find hwNumber from logic layer and get hwName
                 unsigned int stubHwNumber = omtfConfig->getLogicToHwLayer().at(stub->logicLayer);
                 std::string hwName = getHwNameFromHwNumber(stubHwNumber);
-                goldenStub.add("<xmlattr>.hwName", hwName);
+                cscStub.add("<xmlattr>.hwName", hwName);
               }
             }
           }
@@ -198,7 +219,8 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
 
   // === NOTIFY OBSERVERS WITH XML DATA ===
   for (auto& observer : observers) {
-    observer->addProcesorData("CSC", procDataTree);
+    observer->addProcesorData("CSCdigis", cscDigisTree);
+    observer->addProcesorData("CSCstubs", cscStubsTree);
   }
 }
 
@@ -210,7 +232,11 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                         std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
   //LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ <<" RPC HITS, processor : " << iProcessor<<" "<<std::endl;
 
-  boost::property_tree::ptree procDataTree;
+  boost::property_tree::ptree rpcDigisTree;
+  boost::property_tree::ptree rpcStubsTree;
+  
+  // Track order of digis per roll for ordering information
+  std::map<unsigned int, unsigned int> rollDigiOrder;
 
   const RPCDigiCollection& rpcDigiCollection = *rpcDigis;
   for (auto rollDigis : rpcDigiCollection) {
@@ -234,6 +260,9 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     if (!acceptDigi(roll, iProcessor, procTyp))
       continue;
 
+    // Reset order counter for each roll
+    rollDigiOrder[roll.rawId()] = 0;
+
     ///To find the clusters we have to copy the digis in chamber to sort them (not optimal).
     //  for (auto tdigi = rollDigis.second.first; tdigi != rollDigis.second.second; tdigi++) { std::cout << "RPC DIGIS: " << roll.rawId()<< " "<<roll<<" digi: " << tdigi->strip() <<" bx: " << tdigi->bx() << std::endl; }
     std::vector<RPCDigi> digisCopy;
@@ -243,7 +272,7 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
         digisCopy.push_back(*pDigi);
 
         // === ADD XML DATA COLLECTION FOR CSV EXPORT ===
-        auto& rpcDigi = procDataTree.add_child("rpcDigi", boost::property_tree::ptree());
+        auto& rpcDigi = rpcDigisTree.add_child("rpcDigi", boost::property_tree::ptree());
         // Detector ID fields
         rpcDigi.add("<xmlattr>.rpcID", roll.rawId());
         rpcDigi.add("<xmlattr>.region", roll.region());
@@ -253,6 +282,9 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
         rpcDigi.add("<xmlattr>.layer", roll.layer());
         rpcDigi.add("<xmlattr>.subsector", roll.subsector());
         rpcDigi.add("<xmlattr>.roll", roll.roll());
+        
+        // Add ordering information within roll
+        rpcDigi.add("<xmlattr>.rollOrder", rollDigiOrder[roll.rawId()]++);
         
         // Core RPC digi fields
         rpcDigi.add("<xmlattr>.strip", pDigi->strip());
@@ -291,23 +323,23 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
             if (iInput < muonStubsInLayers[iLayer].size() && muonStubsInLayers[iLayer][iInput]) {
               auto& stub = muonStubsInLayers[iLayer][iInput];
               
-              // Add golden stub data to XML
-              auto& goldenStub = procDataTree.add_child("goldenStub", boost::property_tree::ptree());
-              goldenStub.add("<xmlattr>.type", static_cast<int>(stub->type));
-              goldenStub.add("<xmlattr>.logicLayer", stub->logicLayer);
-              goldenStub.add("<xmlattr>.phiHw", stub->phiHw);
-              goldenStub.add("<xmlattr>.etaHw", stub->etaHw);
-              goldenStub.add("<xmlattr>.qualityHw", stub->qualityHw);
-              goldenStub.add("<xmlattr>.phiBHw", stub->phiBHw);
-              goldenStub.add("<xmlattr>.bx", stub->bx);
-              goldenStub.add("<xmlattr>.timing", stub->timing);
-              goldenStub.add("<xmlattr>.r", stub->r);
-              goldenStub.add("<xmlattr>.detId", stub->detId);
+              // Add golden stub data to separate XML tree
+              auto& rpcStub = rpcStubsTree.add_child("RPCstub", boost::property_tree::ptree());
+              rpcStub.add("<xmlattr>.type", static_cast<int>(stub->type));
+              rpcStub.add("<xmlattr>.logicLayer", stub->logicLayer);
+              rpcStub.add("<xmlattr>.phiHw", stub->phiHw);
+              rpcStub.add("<xmlattr>.etaHw", stub->etaHw);
+              rpcStub.add("<xmlattr>.qualityHw", stub->qualityHw);
+              rpcStub.add("<xmlattr>.phiBHw", stub->phiBHw);
+              rpcStub.add("<xmlattr>.bx", stub->bx);
+              rpcStub.add("<xmlattr>.timing", stub->timing);
+              rpcStub.add("<xmlattr>.r", stub->r);
+              rpcStub.add("<xmlattr>.detId", stub->detId);
               
               // Find hwNumber from logic layer and get hwName
               unsigned int stubHwNumber = omtfConfig->getLogicToHwLayer().at(stub->logicLayer);
               std::string hwName = getHwNameFromHwNumber(stubHwNumber);
-              goldenStub.add("<xmlattr>.hwName", hwName);
+              rpcStub.add("<xmlattr>.hwName", hwName);
             }
           }
         }
@@ -331,7 +363,8 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
 
   // === NOTIFY OBSERVERS WITH XML DATA ===
   for (auto& observer : observers) {
-    observer->addProcesorData("RPC", procDataTree);
+    observer->addProcesorData("RPCdigis", rpcDigisTree);
+    observer->addProcesorData("RPCstubs", rpcStubsTree);
   }
 }
 
