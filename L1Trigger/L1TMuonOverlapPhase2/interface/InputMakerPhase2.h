@@ -59,6 +59,9 @@ public:
     return true;
   }
 
+  // Virtual method to get hwName for a DT chamber - implemented in derived class
+  virtual std::string getHwNameForDtChamber(const DTChamberId& detid) { return ""; }
+
   // Virtual method to get hardware name from logic layer - to be implemented by derived classes
   virtual std::string getHwNameForStub(unsigned int logicLayer) {
     return "Unknown";  // Default implementation
@@ -102,6 +105,9 @@ public:
 
   // Implementation of hwName mapping for OMTF
   std::string getHwNameForStub(unsigned int logicLayer) override;
+  
+  // Implementation of hwName for DT chamber
+  std::string getHwNameForDtChamber(const DTChamberId& detid) override;
 
 private:
   const OMTFConfiguration& config;

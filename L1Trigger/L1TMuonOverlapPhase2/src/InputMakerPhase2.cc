@@ -12,6 +12,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
 
 #include <iostream>
+#include <algorithm>
 
 /////////////////////////////////////
 void DtPhase2DigiToStubsConverter::loadDigis(const edm::Event& event) {
@@ -25,7 +26,12 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                              int bxFrom,
                                              int bxTo,
                                              std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
-  boost::property_tree::ptree procDataTree;
+  boost::property_tree::ptree dtDigisTree;
+  boost::property_tree::ptree dtStubsTree;
+  
+  // Maps to track DT digi ordering from the same chamber
+  std::map<DTChamberId, int> chamberPhiDigiOrder;
+  std::map<DTChamberId, int> chamberThDigiOrder;
 
   for (const auto& digiIt : *dtPhDigis->getContainer()) {
     DTChamberId detid(digiIt.whNum(), digiIt.stNum(), digiIt.scNum() + 1);
@@ -38,7 +44,13 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     if (digiIt.bxNum() - 20 >= bxFrom && digiIt.bxNum() - 20 <= bxTo) {
       addDTphiDigi(muonStubsInLayers, digiIt, dtThDigis.product(), iProcessor, procTyp);
 
-      auto& dtP2PhiDigi = procDataTree.add_child("dtP2PhiDigi", boost::property_tree::ptree());
+      // Track ordering for multiple digis from the same chamber
+      int chamberOrder = chamberPhiDigiOrder[detid]++;
+
+      // Get hardware name for this DT chamber
+      std::string hwName = getHwNameForDtChamber(detid);
+
+      auto& dtP2PhiDigi = dtDigisTree.add_child("dtP2PhiDigi", boost::property_tree::ptree());
       dtP2PhiDigi.add("<xmlattr>.dtID", detid.rawId());
       dtP2PhiDigi.add("<xmlattr>.whNum", digiIt.whNum());
       dtP2PhiDigi.add("<xmlattr>.scNum", digiIt.scNum());
@@ -49,6 +61,8 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       dtP2PhiDigi.add("<xmlattr>.phi", digiIt.phi());
       dtP2PhiDigi.add("<xmlattr>.phiBend", digiIt.phiBend());
       dtP2PhiDigi.add("<xmlattr>.bx", digiIt.bxNum() - 20);  // ADD BX for CSV export
+      dtP2PhiDigi.add("<xmlattr>.chamberOrder", chamberOrder);
+      dtP2PhiDigi.add("<xmlattr>.hwName", hwName);  // ADD hwName attribute
     }
   }
 
@@ -58,7 +72,14 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
         addDTetaStubs(muonStubsInLayers, thetaDigi, iProcessor, procTyp);
       }
 
-      auto& dtP2ThDigi = procDataTree.add_child("dtP2ThDigi", boost::property_tree::ptree());
+      // Track ordering for multiple digis from the same chamber
+      DTChamberId thetaDetid(thetaDigi.whNum(), thetaDigi.stNum(), thetaDigi.scNum() + 1);
+      int chamberOrder = chamberThDigiOrder[thetaDetid]++;
+
+      // Get hardware name for this DT chamber
+      std::string hwName = getHwNameForDtChamber(thetaDetid);
+
+      auto& dtP2ThDigi = dtDigisTree.add_child("dtP2ThDigi", boost::property_tree::ptree());
       dtP2ThDigi.add("<xmlattr>.dtID", DTChamberId(thetaDigi.whNum(), thetaDigi.stNum(), thetaDigi.scNum() + 1).rawId());
       dtP2ThDigi.add("<xmlattr>.whNum", thetaDigi.whNum());
       dtP2ThDigi.add("<xmlattr>.scNum", thetaDigi.scNum());
@@ -68,35 +89,52 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       dtP2ThDigi.add("<xmlattr>.k", thetaDigi.k());
       dtP2ThDigi.add("<xmlattr>.z", thetaDigi.z());
       dtP2ThDigi.add("<xmlattr>.bx", thetaDigi.bxNum() - 20);  // ADD BX for CSV export
+      dtP2ThDigi.add("<xmlattr>.chamberOrder", chamberOrder);
+      dtP2ThDigi.add("<xmlattr>.hwName", hwName);  // ADD hwName attribute
     }
   }
 
-  // Capture golden results (ALL stubs that were created - DT, CSC, RPC)
+  // Capture DT golden stubs specifically (filter by stub type)
+  // Track order per chamber (detId)
+  std::map<uint32_t, int> chamberStubOrder;
+  
   for (unsigned int iLayer = 0; iLayer < muonStubsInLayers.size(); iLayer++) {
     for (unsigned int iInput = 0; iInput < muonStubsInLayers[iLayer].size(); iInput++) {
       if (muonStubsInLayers[iLayer][iInput]) {
         const auto& stub = muonStubsInLayers[iLayer][iInput];
-        auto& goldenStub = procDataTree.add_child("goldenStub", boost::property_tree::ptree());
-        goldenStub.add("<xmlattr>.type", static_cast<int>(stub->type));
-        goldenStub.add("<xmlattr>.logicLayer", stub->logicLayer);
-        goldenStub.add("<xmlattr>.phiHw", stub->phiHw);
-        goldenStub.add("<xmlattr>.etaHw", stub->etaHw);
-        goldenStub.add("<xmlattr>.qualityHw", stub->qualityHw);
-        goldenStub.add("<xmlattr>.phiBHw", stub->phiBHw);
-        goldenStub.add("<xmlattr>.bx", stub->bx);
-        goldenStub.add("<xmlattr>.timing", stub->timing);
-        goldenStub.add("<xmlattr>.r", stub->r);
-        goldenStub.add("<xmlattr>.detId", stub->detId);
-        
-        // Add hwName mapping - use virtual method to get the name
-        std::string hwName = getHwNameForStub(stub->logicLayer);
-        goldenStub.add("<xmlattr>.hwName", hwName);
+        // Only add DT stubs (DT types: DT_PHI, DT_THETA, DT_PHI_ETA, DT_HIT)
+        if (stub->type == MuonStub::DT_PHI || stub->type == MuonStub::DT_THETA || 
+            stub->type == MuonStub::DT_PHI_ETA || stub->type == MuonStub::DT_HIT) {
+          
+          // Track stub order per chamber
+          uint32_t detId = stub->detId;
+          int stubOrder = chamberStubOrder[detId]++;
+          
+          auto& dtStub = dtStubsTree.add_child("DTstub", boost::property_tree::ptree());
+          dtStub.add("<xmlattr>.type", static_cast<int>(stub->type));
+          dtStub.add("<xmlattr>.logicLayer", stub->logicLayer);
+          dtStub.add("<xmlattr>.phiHw", stub->phiHw);
+          dtStub.add("<xmlattr>.etaHw", stub->etaHw);
+          dtStub.add("<xmlattr>.qualityHw", stub->qualityHw);
+          dtStub.add("<xmlattr>.phiBHw", stub->phiBHw);
+          dtStub.add("<xmlattr>.bx", stub->bx);
+          dtStub.add("<xmlattr>.timing", stub->timing);
+          dtStub.add("<xmlattr>.r", stub->r);
+          dtStub.add("<xmlattr>.detId", stub->detId);
+          dtStub.add("<xmlattr>.order", stubOrder);  // ADD stub order
+          
+          // Add hwName mapping - use virtual method to get the name
+          std::string hwName = getHwNameForStub(stub->logicLayer);
+          dtStub.add("<xmlattr>.hwName", hwName);
+        }
       }
     }
   }
 
-  for (auto& obs : observers)
-    obs->addProcesorData("linkData", procDataTree);
+  for (auto& obs : observers) {
+    obs->addProcesorData("DTdigis", dtDigisTree);
+    obs->addProcesorData("DTstubs", dtStubsTree);
+  }
 }
 
 //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
@@ -206,6 +244,30 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
     : OMTFinputMaker(edmParameterSet, muStubsInputTokens, config, std::move(angleConverter)) {
   edm::LogImportant("OMTFReconstruction") << "constructing InputMakerPhase2" << std::endl;
 
+  // Phase2 Fix: Check dropRPCPrimitives parameter
+  if (edmParameterSet.getParameter<bool>("dropRPCPrimitives")) {
+    // Remove RPC converter if dropRPCPrimitives is true
+    digiToStubsConverters.erase(
+        std::remove_if(digiToStubsConverters.begin(), digiToStubsConverters.end(),
+                       [](const std::unique_ptr<DigiToStubsConverterBase>& converter) {
+                         return dynamic_cast<RpcDigiToStubsConverterOmtf*>(converter.get()) != nullptr;
+                       }),
+        digiToStubsConverters.end());
+    edm::LogImportant("OMTFReconstruction") << " dropping RPC primitives in Phase2" << std::endl;
+  }
+
+  // Phase2 Fix: Check dropCSCPrimitives parameter
+  if (edmParameterSet.getParameter<bool>("dropCSCPrimitives")) {
+    // Remove CSC converter if dropCSCPrimitives is true
+    digiToStubsConverters.erase(
+        std::remove_if(digiToStubsConverters.begin(), digiToStubsConverters.end(),
+                       [](const std::unique_ptr<DigiToStubsConverterBase>& converter) {
+                         return dynamic_cast<CscDigiToStubsConverterOmtf*>(converter.get()) != nullptr;
+                       }),
+        digiToStubsConverters.end());
+    edm::LogImportant("OMTFReconstruction") << " dropping CSC primitives in Phase2" << std::endl;
+  }
+
   if (edmParameterSet.exists("usePhase2DTPrimitives") && edmParameterSet.getParameter<bool>("usePhase2DTPrimitives")) {
     if (edmParameterSet.getParameter<bool>("dropDTPrimitives") != true)
       throw cms::Exception(
@@ -220,4 +282,9 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
         muStubsPhase2InputTokens.inputTokenDtPh,
         muStubsPhase2InputTokens.inputTokenDtTh));
   }
+}
+
+std::string DtPhase2DigiToStubsConverterOmtf::getHwNameForDtChamber(const DTChamberId& detid) {
+  unsigned int hwNumber = config.getLayerNumber(detid.rawId());
+  return getHwNameFromHwNumber(hwNumber);
 }
