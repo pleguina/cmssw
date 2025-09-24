@@ -223,6 +223,7 @@ CscConversionInfo AngleConverterBase::getProcessorPhiWithInfo(
   info.offset = fixOff;
   info.scale = scale;
   info.order = order;
+  info.halfStrip = halfStrip;  // Export the halfStrip value
 
   return info;
 }

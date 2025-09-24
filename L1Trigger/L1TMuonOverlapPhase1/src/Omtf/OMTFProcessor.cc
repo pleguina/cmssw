@@ -12,6 +12,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/StubResult.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/HLSDigiExporter.h"
@@ -685,6 +686,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
   }
 
   boost::property_tree::ptree procDataTree;
+  boost::property_tree::ptree refHitsDataTree; // Separate tree for reference hits data
   LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << " " << __LINE__ << std::endl;
   
   // New: Collect reference hits data for HLS export BEFORE the main processing loops
@@ -712,9 +714,10 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       std::vector<unsigned int> hwNumbers;
       for (auto& stub : restrictedLayerStubs) {
         if (stub) {
-          // Get hardware layer number from logic layer mapping
+          // Use the current iLayer to get the hwNumber, not the stub's original logicLayer
+          // This is important because DT stubs can be used in multiple layers
           auto& logicToHwMap = this->myOmtfConfig->getLogicToHwLayer();
-          auto hwIt = logicToHwMap.find(stub->logicLayer);
+          auto hwIt = logicToHwMap.find(iLayer);
           unsigned int hwNumber = (hwIt != logicToHwMap.end()) ? hwIt->second : 0;
           hwNumbers.push_back(hwNumber);
         } else {
@@ -739,6 +742,59 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       allLayerStubs.emplace_back(iLayer, restrictedLayerStubs);
       allLayerExtrapolatedPhi.emplace_back(iLayer, extrapolatedPhi);
       allLayerHwNumbers.emplace_back(iLayer, hwNumbers);
+    }
+    
+    // === ADD REFERENCE HIT DATA TO XML ===
+    auto& refHitTree = refHitsDataTree.add_child("referenceHit", boost::property_tree::ptree());
+    refHitTree.add("<xmlattr>.iRefHit", iRefHit);
+    refHitTree.add("<xmlattr>.iRefLayer", aRefHitDef.iRefLayer);
+    refHitTree.add("<xmlattr>.iRegion", iRegion);
+    refHitTree.add("<xmlattr>.iInput", aRefHitDef.iInput);
+    
+    // Add reference stub data
+    if (refStub) {
+      refHitTree.add("<xmlattr>.refPhi", refStub->phiHw);
+      refHitTree.add("<xmlattr>.refPhiB", refStub->phiBHw);
+      refHitTree.add("<xmlattr>.refEta", refStub->etaHw);
+      refHitTree.add("<xmlattr>.refQuality", refStub->qualityHw);
+      refHitTree.add("<xmlattr>.refLogicLayer", refStub->logicLayer);
+    }
+    
+    // Add all layer data for this reference hit (only non-empty stubs)
+    // Put stubs directly under referenceHit without layer wrapper
+    for (unsigned int layerIdx = 0; layerIdx < allLayerStubs.size(); layerIdx++) {
+      unsigned int iLayer = allLayerStubs[layerIdx].first;
+      const auto& layerStubs = allLayerStubs[layerIdx].second;
+      const auto& layerExtrapolatedPhi = allLayerExtrapolatedPhi[layerIdx].second;
+      const auto& layerHwNumbers = allLayerHwNumbers[layerIdx].second;
+      
+      // Add each non-empty stub directly under referenceHit
+      for (unsigned int iStub = 0; iStub < layerStubs.size(); iStub++) {
+        const auto& stub = layerStubs[iStub];
+        if (stub) { // Only add non-empty stubs
+          auto& stubTree = refHitTree.add_child("stub", boost::property_tree::ptree());
+          stubTree.add("<xmlattr>.iStub", iStub);
+          stubTree.add("<xmlattr>.iLayer", iLayer);
+          stubTree.add("<xmlattr>.phi", stub->phiHw);
+          stubTree.add("<xmlattr>.phiB", stub->phiBHw);
+          stubTree.add("<xmlattr>.eta", stub->etaHw);
+          stubTree.add("<xmlattr>.quality", stub->qualityHw);
+          stubTree.add("<xmlattr>.r", stub->r);
+          stubTree.add("<xmlattr>.logicLayer", stub->logicLayer);
+          stubTree.add("<xmlattr>.hwNumber", layerHwNumbers[iStub]);
+          stubTree.add("<xmlattr>.extrapolatedPhi", layerExtrapolatedPhi[iStub]);
+          stubTree.add("<xmlattr>.timing", stub->timing);
+          stubTree.add("<xmlattr>.bx", stub->bx);
+          stubTree.add("<xmlattr>.detId", stub->detId);
+          stubTree.add("<xmlattr>.type", static_cast<int>(stub->type));
+          
+          // Add hwName using the hwNumber from layerHwNumbers
+          std::string hwName = getHwNameFromHwNumber(layerHwNumbers[iStub]);
+          if (!hwName.empty()) {
+            stubTree.add("<xmlattr>.hwName", hwName);
+          }
+        }
+      }
     }
     
     // Notify observers with complete reference hit data (all layers combined + extrapolated phi + hw numbers)
@@ -895,8 +951,14 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
     }
   }
 
-  for (auto& obs : observers)
+  for (auto& obs : observers) {
     obs->addProcesorData("extrapolation", procDataTree);
+    
+    // Add reference hits data as a separate top-level section (outside extrapolation)
+    if (!refHitsDataTree.empty()) {
+      obs->addProcesorData("referenceHits", refHitsDataTree);
+    }
+  }
 
   return;
 }

@@ -91,6 +91,7 @@ private:
   std::ofstream gpResultsFile_;     // For Golden Pattern processing results
   std::ofstream gpFinalResultsFile_; // For Golden Pattern final results after finalise
   std::ofstream sortedCandidatesFile_; // For sorted AlgoMuon candidates (winners)
+  std::ofstream stubsFile_;        // For exported stubs with correct etaHw values
   
   bool filesOpened_;
   
@@ -101,6 +102,7 @@ private:
   void exportCSCDigis(const boost::property_tree::ptree& procDataTree);
   void exportRPCDigis(const boost::property_tree::ptree& procDataTree);
   void exportGoldenResults(const boost::property_tree::ptree& procDataTree);
+  void exportStubs(const boost::property_tree::ptree& procDataTree);
   void exportRefHitsEntry(unsigned int iProcessor,
                           unsigned int iRefHit,
                           const RefHitDef& refHitDef,

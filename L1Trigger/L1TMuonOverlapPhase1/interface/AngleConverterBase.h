@@ -45,6 +45,7 @@ struct CscConversionInfo {
   int offset = 0;  // fixOff
   double scale = 0;
   int order = 0;
+  int halfStrip = 0;  // halfStrip value used in phi calculation
 };
 
 struct MuonGeometryTokens {

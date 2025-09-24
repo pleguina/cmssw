@@ -24,6 +24,7 @@ HLSDigiExporter::~HLSDigiExporter() {
   if (gpResultsFile_.is_open()) gpResultsFile_.close();
   if (gpFinalResultsFile_.is_open()) gpFinalResultsFile_.close();
   if (sortedCandidatesFile_.is_open()) sortedCandidatesFile_.close();
+  if (stubsFile_.is_open()) stubsFile_.close();
 }
 
 void HLSDigiExporter::observeEventBegin(const edm::Event& iEvent) {
@@ -52,6 +53,7 @@ void HLSDigiExporter::observeEventEnd(const edm::Event& iEvent,
   if (gpResultsFile_.is_open()) gpResultsFile_.flush();
   if (gpFinalResultsFile_.is_open()) gpFinalResultsFile_.flush();
   if (sortedCandidatesFile_.is_open()) sortedCandidatesFile_.flush();
+  if (stubsFile_.is_open()) stubsFile_.flush();
 }
 
 void HLSDigiExporter::observeProcesorBegin(unsigned int iProcessor, l1t::tftype mtfType) {
@@ -67,12 +69,21 @@ void HLSDigiExporter::addProcesorData(std::string key, boost::property_tree::ptr
     exportDTThetaDigis(procDataTree);
     // Also export golden results (converted stubs) that come with DT data
     exportGoldenResults(procDataTree);
-  } else if (key == "CSC") {
-    // CSC digis come through separate CSC key
+  } else if (key == "CSCdigis") {
+    // CSC digis come through CSCdigis key
     exportCSCDigis(procDataTree);
-  } else if (key == "RPC") {
-    // RPC digis come through separate RPC key
+  } else if (key == "CSCstubs") {
+    // CSC stubs come through CSCstubs key - handled in stubs.csv
+    exportStubs(procDataTree);
+  } else if (key == "RPCdigis") {
+    // RPC digis come through RPCdigis key
     exportRPCDigis(procDataTree);
+  } else if (key == "RPCstubs") {
+    // RPC stubs come through RPCstubs key - handled in stubs.csv
+    exportStubs(procDataTree);
+  } else if (key == "DTstubs") {
+    // DT stubs come through DTstubs key - handled in stubs.csv
+    exportStubs(procDataTree);
   }
 }
 
@@ -90,6 +101,7 @@ void HLSDigiExporter::openCSVFiles() {
   std::string gpResultsFile = outputDir_ + "/gp_processing_results.csv";
   std::string gpFinalResultsFile = outputDir_ + "/gp_final_results.csv";
   std::string sortedCandidatesFile = outputDir_ + "/sorted_candidates.csv";
+  std::string stubsFile = outputDir_ + "/stubs.csv";
   
   dtPhiDigiFile_.open(dtPhiFile);
   dtThetaDigiFile_.open(dtThetaFile);
@@ -100,12 +112,13 @@ void HLSDigiExporter::openCSVFiles() {
   gpResultsFile_.open(gpResultsFile);
   gpFinalResultsFile_.open(gpFinalResultsFile);
   sortedCandidatesFile_.open(sortedCandidatesFile);
+  stubsFile_.open(stubsFile);
   
   if (!dtPhiDigiFile_.is_open() || !dtThetaDigiFile_.is_open() || 
       !cscDigiFile_.is_open() || !rpcDigiFile_.is_open() || 
       !goldenResultsFile_.is_open() || !refHitsFile_.is_open() || 
       !gpResultsFile_.is_open() || !gpFinalResultsFile_.is_open() ||
-      !sortedCandidatesFile_.is_open()) {
+      !sortedCandidatesFile_.is_open() || !stubsFile_.is_open()) {
     edm::LogError("HLSDigiExporter") << "Failed to open CSV files!";
   } else {
     edm::LogInfo("HLSDigiExporter") << "Opened CSV files for digi export";
@@ -124,7 +137,7 @@ void HLSDigiExporter::writeCSVHeaders() {
                << "trknmb,valid,quality,keywire,strip,pattern,bend,bx,mpclink,bx0,syncErr,cscID,"
                << "isRun3,quartStripBit,eighthStripBit,run3Pattern,slope,hmt,"
                << "fractionalStrip,fractionalSlope,clctPattern,stripType,bxData,type,"
-               << "offset,scale,order\n";
+               << "offset,scale,order,halfStrip\n";
   
   // RPC Digi header - comprehensive fields
   rpcDigiFile_ << "event,run,processor,tftype,rpcID,region,ring,station,sector,layer,subsector,roll,"
@@ -153,6 +166,9 @@ void HLSDigiExporter::writeCSVHeaders() {
   sortedCandidatesFile_ << "event,run,processor,tftype,candidateIndex,refLayer,phi,eta,pt,ptUnconstr,"
                         << "charge,quality,disc,pdfSum,pdfSumConstr,pdfSumUnconstr,firedLayerCnt,"
                         << "firedLayerBits,hwPatternNumber,refHitNumber\n";
+                        
+  // Stubs header - Exported stubs with lookup table etaHw values
+  stubsFile_ << "event,run,processor,tftype,type,logicLayer,phiHw,etaHw,qualityHw,phiBHw,bx,timing,r,detId,hwName\n";
 }
 
 void HLSDigiExporter::exportDTPhiDigis(const boost::property_tree::ptree& procDataTree) {
@@ -258,7 +274,8 @@ void HLSDigiExporter::exportCSCDigis(const boost::property_tree::ptree& procData
                      // CSC conversion parameters
                      << digi.get<int>("<xmlattr>.offset", 0) << ","
                      << digi.get<double>("<xmlattr>.scale", 0.0) << ","
-                     << digi.get<int>("<xmlattr>.order", 0) << "\n";
+                     << digi.get<int>("<xmlattr>.order", 0) << ","
+                     << digi.get<int>("<xmlattr>.halfStrip", 0) << "\n";
       }
     }
   } catch (const std::exception& e) {
@@ -588,4 +605,42 @@ void HLSDigiExporter::exportSortedCandidateEntry(unsigned int iProcessor,
                         << firedLayerBitset << ","
                         << algoMuon->getHwPatternNumConstr() << ","
                         << algoMuon->getRefHitNumber() << "\n";
+}
+
+void HLSDigiExporter::exportStubs(const boost::property_tree::ptree& procDataTree) {
+  std::cout << "DEBUG: exportStubs called with " << procDataTree.size() << " entries" << std::endl;
+  
+  try {
+    for (const auto& child : procDataTree) {
+      std::cout << "DEBUG: Processing stub child: " << child.first << std::endl;
+      
+      // Use the same logic as exportGoldenResults but for different stub types
+      if (child.first == "CSCstub" || child.first == "RPCstub" || child.first == "DTstub") {
+        const auto& stub = child.second;
+        
+        int etaHw = stub.get<int>("<xmlattr>.etaHw", 0);
+        std::cout << "DEBUG: Exporting " << child.first << " with etaHw=" << etaHw << std::endl;
+        
+        stubsFile_ << currentEvent_ << ","
+                   << currentRun_ << ","
+                   << currentProcessor_ << ","
+                   << (currentMtfType_ == l1t::omtf_neg ? "NEG" : 
+                      (currentMtfType_ == l1t::omtf_pos ? "POS" : "BARREL")) << ","
+                   << stub.get<int>("<xmlattr>.type", 0) << ","
+                   << stub.get<int>("<xmlattr>.logicLayer", 0) << ","
+                   << stub.get<int>("<xmlattr>.phiHw", 0) << ","
+                   << etaHw << ","
+                   << stub.get<int>("<xmlattr>.qualityHw", 0) << ","
+                   << stub.get<int>("<xmlattr>.phiBHw", 0) << ","
+                   << stub.get<int>("<xmlattr>.bx", 0) << ","
+                   << stub.get<int>("<xmlattr>.timing", 0) << ","
+                   << stub.get<int>("<xmlattr>.r", 0) << ","
+                   << stub.get<unsigned long>("<xmlattr>.detId", 0) << ","
+                   << stub.get<std::string>("<xmlattr>.hwName", "Unknown") << "\n";
+      }
+    }
+    stubsFile_.flush();  // Ensure data is written immediately
+  } catch (const std::exception& e) {
+    edm::LogWarning("HLSDigiExporter") << "Error exporting stubs: " << e.what();
+  }
 }
