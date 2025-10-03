@@ -83,8 +83,9 @@ public:
   RpcDigiToStubsConverterOmtf(const OMTFConfiguration* config,
                               const OmtfAngleConverter* angleConverter,
                               const RpcClusterization* rpcClusterization,
-                              edm::EDGetTokenT<RPCDigiCollection> inputTokenRpc)
-      : RpcDigiToStubsConverter(config, inputTokenRpc, rpcClusterization),
+                              edm::EDGetTokenT<RPCDigiCollection> inputTokenRpc,
+                              bool dumpRPCDigis = true)
+      : RpcDigiToStubsConverter(config, inputTokenRpc, rpcClusterization, dumpRPCDigis),
         config(config),
         angleConverter(angleConverter) {}
 

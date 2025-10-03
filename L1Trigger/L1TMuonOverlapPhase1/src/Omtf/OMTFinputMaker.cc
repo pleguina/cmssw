@@ -370,7 +370,8 @@ OMTFinputMaker::OMTFinputMaker(const edm::ParameterSet& edmParameterSet,
 
   if (!edmParameterSet.getParameter<bool>("dropRPCPrimitives"))
     digiToStubsConverters.emplace_back(std::make_unique<RpcDigiToStubsConverterOmtf>(
-        config, this->angleConverter.get(), &rpcClusterization, muStubsInputTokens.inputTokenRPC));
+        config, this->angleConverter.get(), &rpcClusterization, muStubsInputTokens.inputTokenRPC, 
+        edmParameterSet.getParameter<bool>("dumpRPCDigis")));
 }
 
 void OMTFinputMaker::initialize(const edm::ParameterSet& edmCfg,

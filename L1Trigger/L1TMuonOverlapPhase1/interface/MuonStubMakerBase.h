@@ -188,7 +188,7 @@ class OMTFConfiguration;
 std::string getHwNameFromHwNumber(unsigned int hwNumber);
 unsigned int calculateCSCChamberWrapped(const CSCDetId& cscId, unsigned int iProcessor, l1t::tftype procTyp, const OMTFConfiguration* omtfConfig);
 unsigned int calculateRPCSectorWrapped(const RPCDetId& rpc, unsigned int iProcessor, const OMTFConfiguration* omtfConfig);
-unsigned int calculateLogicRegion(int phiHw, unsigned int iRefLayer, const OMTFConfiguration* omtfConfig);
+unsigned int calculateLogicRegion(int phiHw, unsigned int iRefLayer, unsigned int iInput, const OMTFConfiguration* omtfConfig);
 
 class MuonStubMakerBase {
 public:

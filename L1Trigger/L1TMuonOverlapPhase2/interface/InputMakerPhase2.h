@@ -89,6 +89,14 @@ public:
 
   ~DtPhase2DigiToStubsConverterOmtf() override = default;
 
+  // Override makeStubs to add reference stub functionality
+  void makeStubs(MuonStubPtrs2D& muonStubsInLayers,
+                 unsigned int iProcessor,
+                 l1t::tftype procTyp,
+                 int bxFrom,
+                 int bxTo,
+                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+
   //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
   void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
                     const L1Phase2MuDTPhDigi& digi,
@@ -108,6 +116,9 @@ public:
   
   // Implementation of hwName for DT chamber
   std::string getHwNameForDtChamber(const DTChamberId& detid) override;
+  
+  // Helper function to calculate DT sector_wrapped for hardware compatibility
+  unsigned int calculateDTSectorWrapped(const DTChamberId& dtId, unsigned int iProcessor, l1t::tftype procTyp);
 
 private:
   const OMTFConfiguration& config;

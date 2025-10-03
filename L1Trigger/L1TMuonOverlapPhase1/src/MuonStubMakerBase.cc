@@ -118,7 +118,7 @@ unsigned int calculateRPCSectorWrapped(const RPCDetId& rpc, unsigned int iProces
 
 // Helper function to calculate the logic region based on phi value
 // Uses the phi ranges from the configuration to determine the correct region (0-11)
-unsigned int calculateLogicRegion(int phiHw, unsigned int iRefLayer, const OMTFConfiguration* omtfConfig) {
+unsigned int calculateLogicRegion(int phiHw, unsigned int iRefLayer, unsigned int iInput, const OMTFConfiguration* omtfConfig) {
   if (!omtfConfig) {
     return 0;
   }
@@ -130,13 +130,15 @@ unsigned int calculateLogicRegion(int phiHw, unsigned int iRefLayer, const OMTFC
     return 0;
   }
   
-  // Use processor 0 (positive endcap)
+  // Use processor 0 (positive endcap) configuration
   const auto& processor0RefHits = refHitDefs[0];
   
-  // Loop through all reference hits for processor 0 to find those for our reference layer
+  // Loop through all reference hits for processor 0 to find the exact match
+  // Must match BOTH iRefLayer AND iInput to get the correct region
   for (const auto& refHitDef : processor0RefHits) {
-    if (refHitDef.iRefLayer == iRefLayer) {
-      if (phiHw >= refHitDef.range.first && phiHw <= refHitDef.range.second) {
+    if (refHitDef.iRefLayer == iRefLayer && refHitDef.iInput == iInput) {
+      // Found the matching RefHitDef, verify phi is in range
+      if (refHitDef.fitsRange(phiHw)) {
         return refHitDef.iRegion;
       }
     }
@@ -345,6 +347,7 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                 auto& cscStub = cscStubsTree.add_child("CSCstub", boost::property_tree::ptree());
                 cscStub.add("<xmlattr>.type", static_cast<int>(stub->type));
                 cscStub.add("<xmlattr>.logicLayer", stub->logicLayer);
+                cscStub.add("<xmlattr>.inputNumber", iInput);
                 cscStub.add("<xmlattr>.phiHw", stub->phiHw);
                 cscStub.add("<xmlattr>.etaHw", stub->etaHw);
                 cscStub.add("<xmlattr>.qualityHw", stub->qualityHw);
@@ -377,7 +380,7 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                   if (refToLogicNumbers[iRefLayer] == (int)stub->logicLayer) {
                     // This is a reference layer stub - add to reference collection
                     unsigned int chamberWrapped = calculateCSCChamberWrapped(cscId, iProcessor, procTyp, omtfConfig);
-                    unsigned int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, omtfConfig);
+                    unsigned int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, iInput, omtfConfig);
                     
                     MuonStubMakerBase::addGlobalReferenceStub("CSC", iProcessor, iRefLayer, stub->logicLayer, stub->phiHw, stub->phiBHw, stub->etaHw, 
                                                              stub->qualityHw, stub->detId, hwName, cscId.endcap(), cscId.station(), 
@@ -512,6 +515,7 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
               auto& rpcStub = rpcStubsTree.add_child(stubNodeName, boost::property_tree::ptree());
               rpcStub.add("<xmlattr>.type", static_cast<int>(stub->type));
               rpcStub.add("<xmlattr>.logicLayer", stub->logicLayer);
+              rpcStub.add("<xmlattr>.inputNumber", iInput);
               rpcStub.add("<xmlattr>.phiHw", stub->phiHw);
               rpcStub.add("<xmlattr>.etaHw", stub->etaHw);
               rpcStub.add("<xmlattr>.qualityHw", stub->qualityHw);
@@ -561,7 +565,7 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                 if (refToLogicNumbers[iRefLayer] == (int)stub->logicLayer) {
                   // This is a reference layer stub - add to reference collection
                   RPCDetId rpcId(roll.rawId());
-                  unsigned int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, omtfConfig);
+                  unsigned int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, iInput, omtfConfig);
                   
                   // RPC parameters depend on barrel vs endcap
                   // Initialize to -1 (not applicable) before setting detector-specific values

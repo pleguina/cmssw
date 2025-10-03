@@ -133,7 +133,7 @@ void HLSDigiExporter::writeCSVHeaders() {
   dtThetaDigiFile_ << "event,run,processor,tftype,dtID,whNum,scNum,stNum,quality,rpcFlag,k,z,bx\n";
   
   // CSC Digi header - comprehensive fields (cscID already included)
-  cscDigiFile_ << "event,run,processor,tftype,endcap,station,ring,chamber,layer,"
+  cscDigiFile_ << "event,run,processor,tftype,detId,endcap,station,ring,chamber,layer,"
                << "trknmb,valid,quality,keywire,strip,pattern,bend,bx,mpclink,bx0,syncErr,cscID,"
                << "isRun3,quartStripBit,eighthStripBit,run3Pattern,slope,hmt,"
                << "fractionalStrip,fractionalSlope,clctPattern,stripType,bxData,type,"
@@ -239,6 +239,7 @@ void HLSDigiExporter::exportCSCDigis(const boost::property_tree::ptree& procData
                      << (currentMtfType_ == l1t::omtf_neg ? "NEG" : 
                         (currentMtfType_ == l1t::omtf_pos ? "POS" : "BARREL")) << ","
                      // Detector ID fields
+                     << digi.get<unsigned long>("<xmlattr>.detId", 0) << ","
                      << digi.get<int>("<xmlattr>.endcap", 0) << ","
                      << digi.get<int>("<xmlattr>.station", 0) << ","
                      << digi.get<int>("<xmlattr>.ring", 0) << ","

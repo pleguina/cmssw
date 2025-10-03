@@ -114,6 +114,7 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
           auto& dtStub = dtStubsTree.add_child("DTstub", boost::property_tree::ptree());
           dtStub.add("<xmlattr>.type", static_cast<int>(stub->type));
           dtStub.add("<xmlattr>.logicLayer", stub->logicLayer);
+          dtStub.add("<xmlattr>.inputNumber", iInput);
           dtStub.add("<xmlattr>.phiHw", stub->phiHw);
           dtStub.add("<xmlattr>.etaHw", stub->etaHw);
           dtStub.add("<xmlattr>.qualityHw", stub->qualityHw);
@@ -351,7 +352,7 @@ void DtPhase2DigiToStubsConverterOmtf::makeStubs(MuonStubPtrs2D& muonStubsInLaye
               std::string hwName = getHwNameForStub(stub->logicLayer);
               
               // Add region classification based on phi value
-              unsigned int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, &config);
+              unsigned int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, iInput, &config);
               
               // Use static method to add reference stub
               MuonStubMakerBase::addGlobalReferenceStub("DT", iProcessor, iRefLayer, stub->logicLayer, stub->phiHw, stub->phiBHw, stub->etaHw, 
