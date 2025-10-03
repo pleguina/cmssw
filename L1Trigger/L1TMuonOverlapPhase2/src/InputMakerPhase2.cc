@@ -10,6 +10,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/InputMakerPhase2.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OmtfName.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubMakerBase.h"
 
 #include <iostream>
 #include <algorithm>
@@ -122,6 +123,34 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
           dtStub.add("<xmlattr>.r", stub->r);
           dtStub.add("<xmlattr>.detId", stub->detId);
           dtStub.add("<xmlattr>.order", stubOrder);  // ADD stub order
+          
+          // Add DT chamber identification fields
+          DTChamberId dtId(stub->detId);
+          dtStub.add("<xmlattr>.wheel", dtId.wheel());
+          dtStub.add("<xmlattr>.station", dtId.station());
+          dtStub.add("<xmlattr>.sector", dtId.sector());
+          
+          // Calculate sector_wrapped based on sector number
+          // Configuration: Proc 0: sectors {1,2,3,4,5}, Proc 1: {5,6,7,8,9}, Proc 2: {9,10,11,12,1}
+          // Sectors 1, 5, and 9 are shared (overlap) between adjacent processors
+          // Hardware expects indices 0-4 for each processor
+          // Formula: sector_wrapped = sector - barrelMin[iProcessor]
+          int sector = dtId.sector();
+          int sector_wrapped = 0;
+          
+          // Get barrel minimum for this processor
+          int aMin = config.getBarrelMin()[iProcessor];
+          
+          // Handle wrap-around for last processor (sectors 1,2 belong to proc 2)
+          int aSector = sector;
+          if (iProcessor == (config.nProcessors() - 1) && aSector < 3) {
+            aSector += 12;  // 12 sectors total in barrel
+          }
+          
+          // Calculate sector_wrapped using the standard formula
+          sector_wrapped = aSector - aMin;
+          
+          dtStub.add("<xmlattr>.sector_wrapped", sector_wrapped);
           
           // Add hwName mapping - use virtual method to get the name
           std::string hwName = getHwNameForStub(stub->logicLayer);
@@ -288,3 +317,76 @@ std::string DtPhase2DigiToStubsConverterOmtf::getHwNameForDtChamber(const DTCham
   unsigned int hwNumber = config.getLayerNumber(detid.rawId());
   return getHwNameFromHwNumber(hwNumber);
 }
+
+// Override makeStubs to add reference stub functionality
+void DtPhase2DigiToStubsConverterOmtf::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
+                                                 unsigned int iProcessor,
+                                                 l1t::tftype procTyp,
+                                                 int bxFrom,
+                                                 int bxTo,
+                                                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+  // Call the base class implementation first
+  DtPhase2DigiToStubsConverter::makeStubs(muonStubsInLayers, iProcessor, procTyp, bxFrom, bxTo, observers);
+  
+  // Now handle reference stubs specifically for OMTF - use global tree
+  
+  // Capture DT reference stubs specifically (filter by stub type)
+  for (unsigned int iLayer = 0; iLayer < muonStubsInLayers.size(); iLayer++) {
+    for (unsigned int iInput = 0; iInput < muonStubsInLayers[iLayer].size(); iInput++) {
+      if (muonStubsInLayers[iLayer][iInput]) {
+        const auto& stub = muonStubsInLayers[iLayer][iInput];
+        // Only add DT stubs (DT types: DT_PHI, DT_THETA, DT_PHI_ETA, DT_HIT)
+        if (stub->type == MuonStub::DT_PHI || stub->type == MuonStub::DT_THETA || 
+            stub->type == MuonStub::DT_PHI_ETA || stub->type == MuonStub::DT_HIT) {
+          
+          // Check if this is a reference layer stub and add to reference collection
+          const auto& refToLogicNumbers = config.getRefToLogicNumber();
+          for (unsigned int iRefLayer = 0; iRefLayer < refToLogicNumbers.size(); ++iRefLayer) {
+            if (refToLogicNumbers[iRefLayer] == (int)stub->logicLayer) {
+              // This is a reference layer stub - add to reference collection
+              DTChamberId dtId(stub->detId);
+              
+              // Calculate sector_wrapped based on sector number
+              // Configuration: Proc 0: sectors {1,2,3,4,5}, Proc 1: {5,6,7,8,9}, Proc 2: {9,10,11,12,1}
+              // Sectors 1, 5, and 9 are shared (overlap) between adjacent processors
+              // Hardware expects indices 0-4 for each processor
+              // Formula: sector_wrapped = sector - barrelMin[iProcessor]
+              int sector = dtId.sector();
+              int sector_wrapped = 0;
+              
+              // Get barrel minimum for this processor
+              int aMin = config.getBarrelMin()[iProcessor];
+              
+              // Handle wrap-around for last processor (sectors 1,2 belong to proc 2)
+              int aSector = sector;
+              if (iProcessor == (config.nProcessors() - 1) && aSector < 3) {
+                aSector += 12;  // 12 sectors total in barrel
+              }
+              
+              // Calculate sector_wrapped using the standard formula
+              sector_wrapped = aSector - aMin;
+              
+              // Add hwName mapping
+              std::string hwName = getHwNameForStub(stub->logicLayer);
+              
+              // Add region classification based on phi value
+              unsigned int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, &config);
+              
+              // Use static method to add reference stub
+              MuonStubMakerBase::addGlobalReferenceStub("DT", iProcessor, iRefLayer, stub->logicLayer, stub->phiHw, stub->phiBHw, stub->etaHw, 
+                                                       stub->qualityHw, stub->detId, hwName, dtId.wheel(), dtId.station(), 
+                                                       0, 0, 0,  // CSC fields: ring=0, chamber=0, chamber_wrapped=0
+                                                       dtId.sector(), sector_wrapped,  // DT fields: sector=dtId.sector(), sector_wrapped=sector_wrapped
+                                                       logicRegion);
+              break; // Found the reference layer, no need to continue
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Reference stubs will be output by MuonStubMakerBase::flushReferenceStubs()
+}
+
+
