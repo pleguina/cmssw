@@ -3,6 +3,7 @@
 
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigiCollection.h"
+#include "DataFormats/MuonDetId/interface/CSCDetId.h"
 #include "DataFormats/GEMDigi/interface/GEMPadDigiCollection.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhContainer.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
@@ -142,8 +143,9 @@ class RpcDigiToStubsConverter : public DigiToStubsConverterBase {
 public:
   RpcDigiToStubsConverter(const ProcConfigurationBase* config,
                           edm::EDGetTokenT<RPCDigiCollection> inputTokenRpc,
-                          const RpcClusterization* rpcClusterization)
-      : config(config), inputTokenRpc(inputTokenRpc), rpcClusterization(rpcClusterization) {}
+                          const RpcClusterization* rpcClusterization,
+                          bool dumpRPCDigis = true)
+      : config(config), inputTokenRpc(inputTokenRpc), rpcClusterization(rpcClusterization), dumpRPCDigis(dumpRPCDigis) {}
 
   ~RpcDigiToStubsConverter() override {}
 
@@ -175,10 +177,18 @@ protected:
   edm::Handle<RPCDigiCollection> rpcDigis;
 
   const RpcClusterization* rpcClusterization;
+  bool dumpRPCDigis;
 };
 
 //forward declaration - MuonGeometryTokens is defined and used in the AngleConverterBase
 struct MuonGeometryTokens;
+class OMTFConfiguration;
+
+// Helper functions for hardware compatibility fields
+std::string getHwNameFromHwNumber(unsigned int hwNumber);
+unsigned int calculateCSCChamberWrapped(const CSCDetId& cscId, unsigned int iProcessor, l1t::tftype procTyp, const OMTFConfiguration* omtfConfig);
+unsigned int calculateRPCSectorWrapped(const RPCDetId& rpc, unsigned int iProcessor, const OMTFConfiguration* omtfConfig);
+unsigned int calculateLogicRegion(int phiHw, unsigned int iRefLayer, const OMTFConfiguration* omtfConfig);
 
 class MuonStubMakerBase {
 public:
@@ -199,6 +209,32 @@ public:
                               int bxFrom,
                               int bxTo,
                               std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers);
+  
+  /// Method to add reference stub from external classes (like InputMakerPhase2)
+  void addReferenceStub(const std::string& detectorType, unsigned int processor, unsigned int refLayerNumber, 
+                        unsigned int logicLayer, int phiHw, int phiBHw, int etaHw, unsigned int qualityHw, 
+                        unsigned int detId, const std::string& hwName, unsigned int endcap, 
+                        unsigned int station, unsigned int ring, unsigned int chamber, 
+                        unsigned int chamber_wrapped, unsigned int logicRegion);
+                        
+  /// Method to flush accumulated reference stubs to observers
+  void flushReferenceStubs(std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers);
+  
+  /// Static methods for global reference stub management accessible by all converter classes
+  static void addGlobalReferenceStub(const std::string& detectorType, unsigned int processor, unsigned int refLayerNumber, 
+                                     unsigned int logicLayer, int phiHw, int phiBHw, int etaHw, unsigned int qualityHw, 
+                                     unsigned int detId, const std::string& hwName, unsigned int endcap, 
+                                     unsigned int station, 
+                                     unsigned int cscRing, unsigned int cscChamber, unsigned int cscChamberWrapped,
+                                     unsigned int dtSector, unsigned int dtSectorWrapped,
+                                     unsigned int logicRegion);
+  static void clearGlobalReferenceStubs();
+  static const boost::property_tree::ptree& getGlobalReferenceStubs();
+  
+  boost::property_tree::ptree globalReferenceStubsTree; // Accumulate all reference stubs
+
+private:
+  static boost::property_tree::ptree globalReferenceStubsTreeStatic; // Static global reference stubs
 
 protected:
   const ProcConfigurationBase* config = nullptr;
@@ -206,6 +242,8 @@ protected:
   std::vector<std::unique_ptr<DigiToStubsConverterBase> > digiToStubsConverters;
 
   RpcClusterization rpcClusterization;
+
+  bool dumpRPCDigis = true;  // Control RPC digi export to XML/CSV
 };
 
 #endif
