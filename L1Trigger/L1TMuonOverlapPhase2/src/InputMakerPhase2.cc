@@ -130,27 +130,8 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
           dtStub.add("<xmlattr>.station", dtId.station());
           dtStub.add("<xmlattr>.sector", dtId.sector());
           
-          // Calculate sector_wrapped based on sector number
-          // Configuration: Proc 0: sectors {1,2,3,4,5}, Proc 1: {5,6,7,8,9}, Proc 2: {9,10,11,12,1}
-          // Sectors 1, 5, and 9 are shared (overlap) between adjacent processors
-          // Hardware expects indices 0-4 for each processor
-          // Formula: sector_wrapped = sector - barrelMin[iProcessor]
-          int sector = dtId.sector();
-          int sector_wrapped = 0;
-          
-          // Get barrel minimum for this processor
-          int aMin = config.getBarrelMin()[iProcessor];
-          
-          // Handle wrap-around for last processor (sectors 1,2 belong to proc 2)
-          int aSector = sector;
-          if (iProcessor == (config.nProcessors() - 1) && aSector < 3) {
-            aSector += 12;  // 12 sectors total in barrel
-          }
-          
-          // Calculate sector_wrapped using the standard formula
-          sector_wrapped = aSector - aMin;
-          
-          dtStub.add("<xmlattr>.sector_wrapped", sector_wrapped);
+          // Note: sector_wrapped is not added here because it requires config access
+          // It will be handled in derived class implementations that have config access
           
           // Add hwName mapping - use virtual method to get the name
           std::string hwName = getHwNameForStub(stub->logicLayer);
