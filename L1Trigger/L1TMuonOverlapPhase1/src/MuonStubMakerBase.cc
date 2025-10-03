@@ -148,10 +148,10 @@ unsigned int calculateLogicRegion(int phiHw, unsigned int iRefLayer, const OMTFC
 
 void MuonStubMakerBase::addGlobalReferenceStub(const std::string& detectorType, unsigned int processor, unsigned int refLayerNumber, 
                                                unsigned int logicLayer, int phiHw, int phiBHw, int etaHw, unsigned int qualityHw, 
-                                               unsigned int detId, const std::string& hwName, unsigned int endcap, 
+                                               unsigned int detId, const std::string& hwName, int endcap, 
                                                unsigned int station, 
-                                               unsigned int cscRing, unsigned int cscChamber, unsigned int cscChamberWrapped,
-                                               unsigned int dtSector, unsigned int dtSectorWrapped,
+                                               int cscRing, int cscChamber, int cscChamberWrapped,
+                                               int dtSector, int dtSectorWrapped,
                                                unsigned int logicRegion) {
   // Create a reference stub element in the static global tree
   boost::property_tree::ptree stub;
@@ -382,7 +382,7 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                     MuonStubMakerBase::addGlobalReferenceStub("CSC", iProcessor, iRefLayer, stub->logicLayer, stub->phiHw, stub->phiBHw, stub->etaHw, 
                                                              stub->qualityHw, stub->detId, hwName, cscId.endcap(), cscId.station(), 
                                                              cscId.ring(), cscId.chamber(), chamberWrapped,
-                                                             0, 0,  // DT fields: dtSector=0, dtSectorWrapped=0
+                                                             -1, -1,  // DT fields: not applicable for CSC
                                                              logicRegion);
                     break; // Found the reference layer, no need to continue
                   }
@@ -564,20 +564,21 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                   unsigned int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, omtfConfig);
                   
                   // RPC parameters depend on barrel vs endcap
-                  unsigned int cscRing = 0;
-                  unsigned int cscChamber = 0;
-                  unsigned int cscChamberWrapped = 0;
-                  unsigned int dtSector = 0;
-                  unsigned int dtSectorWrapped = 0;
+                  // Initialize to -1 (not applicable) before setting detector-specific values
+                  int cscRing = -1;
+                  int cscChamber = -1;
+                  int cscChamberWrapped = -1;
+                  int dtSector = -1;
+                  int dtSectorWrapped = -1;
                   
                   if (isBarrel) {
                     // RPC Barrel: Use sector and sector_wrapped (like DT)
                     dtSector = rpcId.sector();
                     dtSectorWrapped = calculateRPCSectorWrapped(rpcId, iProcessor, omtfConfig);
-                    // CSC fields get 0 for barrel
-                    cscRing = 0;
-                    cscChamber = 0;
-                    cscChamberWrapped = 0;
+                    // CSC fields not applicable for barrel
+                    cscRing = -1;
+                    cscChamber = -1;
+                    cscChamberWrapped = -1;
                   } else {
                     // RPC Endcap: Use chamber and chamber_wrapped (like CSC)
                     // Effective chamber = (sector-1)*6 + subsector
@@ -592,9 +593,9 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                     cscRing = rpcId.ring();
                     cscChamber = effectiveChamber;
                     cscChamberWrapped = effectiveChamber - aMin;
-                    // DT fields get 0 for endcap
-                    dtSector = 0;
-                    dtSectorWrapped = 0;
+                    // DT fields not applicable for endcap
+                    dtSector = -1;
+                    dtSectorWrapped = -1;
                   }
                   
                   MuonStubMakerBase::addGlobalReferenceStub("RPC", iProcessor, iRefLayer, stub->logicLayer, stub->phiHw, stub->phiBHw, stub->etaHw, 

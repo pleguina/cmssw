@@ -223,10 +223,10 @@ public:
   /// Static methods for global reference stub management accessible by all converter classes
   static void addGlobalReferenceStub(const std::string& detectorType, unsigned int processor, unsigned int refLayerNumber, 
                                      unsigned int logicLayer, int phiHw, int phiBHw, int etaHw, unsigned int qualityHw, 
-                                     unsigned int detId, const std::string& hwName, unsigned int endcap, 
+                                     unsigned int detId, const std::string& hwName, int endcap, 
                                      unsigned int station, 
-                                     unsigned int cscRing, unsigned int cscChamber, unsigned int cscChamberWrapped,
-                                     unsigned int dtSector, unsigned int dtSectorWrapped,
+                                     int cscRing, int cscChamber, int cscChamberWrapped,
+                                     int dtSector, int dtSectorWrapped,
                                      unsigned int logicRegion);
   static void clearGlobalReferenceStubs();
   static const boost::property_tree::ptree& getGlobalReferenceStubs();

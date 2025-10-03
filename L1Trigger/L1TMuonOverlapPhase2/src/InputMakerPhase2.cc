@@ -356,7 +356,7 @@ void DtPhase2DigiToStubsConverterOmtf::makeStubs(MuonStubPtrs2D& muonStubsInLaye
               // Use static method to add reference stub
               MuonStubMakerBase::addGlobalReferenceStub("DT", iProcessor, iRefLayer, stub->logicLayer, stub->phiHw, stub->phiBHw, stub->etaHw, 
                                                        stub->qualityHw, stub->detId, hwName, dtId.wheel(), dtId.station(), 
-                                                       0, 0, 0,  // CSC fields: ring=0, chamber=0, chamber_wrapped=0
+                                                       -1, -1, -1,  // CSC fields: not applicable for DT
                                                        dtId.sector(), sector_wrapped,  // DT fields: sector=dtId.sector(), sector_wrapped=sector_wrapped
                                                        logicRegion);
               break; // Found the reference layer, no need to continue
