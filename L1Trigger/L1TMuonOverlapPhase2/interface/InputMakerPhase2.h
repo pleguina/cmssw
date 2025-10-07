@@ -67,6 +67,21 @@ public:
     return "Unknown";  // Default implementation
   }
 
+  // Virtual method to calculate sector_wrapped for DT - to be implemented by derived classes with config access
+  virtual int calculateDtSectorWrapped(int sector, unsigned int iProcessor) {
+    return -1;  // Default: no calculation (derived class should override)
+  }
+
+  // Virtual method to check if a layer is a bending layer - to be implemented by derived classes
+  virtual bool isBendingLayer(unsigned int iLayer) {
+    return false;  // Default: no bending layers (derived class should override)
+  }
+
+  // Virtual method to get minimum DT phiB quality for bending layers
+  virtual int getMinDtPhiBQuality() {
+    return 0;  // Default: no quality cut (derived class should override)
+  }
+
 protected:
   bool mergePhiAndTheta = true;
 
@@ -117,8 +132,14 @@ public:
   // Implementation of hwName for DT chamber
   std::string getHwNameForDtChamber(const DTChamberId& detid) override;
   
-  // Helper function to calculate DT sector_wrapped for hardware compatibility
-  unsigned int calculateDTSectorWrapped(const DTChamberId& dtId, unsigned int iProcessor, l1t::tftype procTyp);
+  // Override to calculate sector_wrapped for DT using OMTF config
+  int calculateDtSectorWrapped(int sector, unsigned int iProcessor) override;
+
+  // Override to check if layer is a bending layer using OMTF config
+  bool isBendingLayer(unsigned int iLayer) override;
+
+  // Override to get minimum DT phiB quality from OMTF config
+  int getMinDtPhiBQuality() override;
 
 private:
   const OMTFConfiguration& config;

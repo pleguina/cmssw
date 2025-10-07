@@ -7,6 +7,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFProcessor.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubsInput.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubMakerBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GhostBuster.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GhostBusterPreferRefDt.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
@@ -18,6 +19,9 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/HLSDigiExporter.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "DataFormats/MuonDetId/interface/DTChamberId.h"
+#include "DataFormats/MuonDetId/interface/CSCDetId.h"
+#include "DataFormats/MuonDetId/interface/RPCDetId.h"
 
 #include <bitset>
 #include <cmath>
@@ -689,6 +693,10 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
   boost::property_tree::ptree refHitsDataTree; // Separate tree for reference hits data
   LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << " " << __LINE__ << std::endl;
   
+  // Track ordering for reference hits per chamber/sector (based on wrapped value)
+  // Key format: "sector_X_layer_Y" or "chamber_X_layer_Y" where X is wrapped value and Y is logicLayer
+  std::map<std::string, int> refHitWrappedOrder;
+  
   // New: Collect reference hits data for HLS export BEFORE the main processing loops
   // This creates one row per reference hit with all layer data combined
   for (unsigned int iRefHit = 0; iRefHit < refHitDefs.size(); iRefHit++) {
@@ -758,6 +766,57 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       refHitTree.add("<xmlattr>.refEta", refStub->etaHw);
       refHitTree.add("<xmlattr>.refQuality", refStub->qualityHw);
       refHitTree.add("<xmlattr>.refLogicLayer", refStub->logicLayer);
+      
+      // Add sector_wrapped and chamber_wrapped based on detector type using helper functions
+      int sectorWrapped = -1;
+      int chamberWrapped = -1;
+      
+      if (refStub->type == MuonStub::DT_PHI || refStub->type == MuonStub::DT_THETA || 
+          refStub->type == MuonStub::DT_PHI_ETA || refStub->type == MuonStub::DT_HIT) {
+        // DT stub: use helper function
+        DTChamberId dtId(refStub->detId);
+        sectorWrapped = calculateDTSectorWrapped(dtId, iProcessor, this->myOmtfConfig);
+        chamberWrapped = -1;  // Not applicable for DT
+      } 
+      else if (refStub->type == MuonStub::CSC_PHI || refStub->type == MuonStub::CSC_ETA || 
+               refStub->type == MuonStub::CSC_PHI_ETA) {
+        // CSC stub: use helper function
+        CSCDetId cscId(refStub->detId);
+        chamberWrapped = calculateCSCChamberWrapped(cscId, iProcessor, mtfType, this->myOmtfConfig);
+        sectorWrapped = -1;  // Not applicable for CSC
+      }
+      else if (refStub->type == MuonStub::RPC) {
+        // RPC stub: use appropriate helper function based on barrel vs endcap
+        RPCDetId rpcId(refStub->detId);
+        
+        if (rpcId.region() == 0) {
+          // Barrel RPC: use sector_wrapped helper
+          sectorWrapped = calculateRPCSectorWrapped(rpcId, iProcessor, this->myOmtfConfig);
+          chamberWrapped = -1;  // Not applicable for barrel RPC
+        } else {
+          // Endcap RPC: use chamber_wrapped helper
+          chamberWrapped = calculateRPCEndcapChamberWrapped(rpcId, iProcessor, this->myOmtfConfig);
+          sectorWrapped = -1;  // Not applicable for endcap RPC
+        }
+      }
+      
+      // Add the calculated wrapped values to the XML
+      refHitTree.add("<xmlattr>.sector_wrapped", sectorWrapped);
+      refHitTree.add("<xmlattr>.chamber_wrapped", chamberWrapped);
+      
+      // Add order within the same chamber/sector AND refLogicLayer (based on wrapped value + layer)
+      std::string wrappedKey;
+      if (sectorWrapped != -1) {
+        wrappedKey = "sector_" + std::to_string(sectorWrapped) + "_layer_" + std::to_string(aRefHitDef.iRefLayer);
+      } else if (chamberWrapped != -1) {
+        wrappedKey = "chamber_" + std::to_string(chamberWrapped) + "_layer_" + std::to_string(aRefHitDef.iRefLayer);
+      }
+      
+      int refHitOrder = 0;
+      if (!wrappedKey.empty()) {
+        refHitOrder = refHitWrappedOrder[wrappedKey]++;
+      }
+      refHitTree.add("<xmlattr>.refHit_order", refHitOrder);
     }
     
     // Add all layer data for this reference hit (only non-empty stubs)
@@ -775,7 +834,10 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
           auto& stubTree = refHitTree.add_child("stub", boost::property_tree::ptree());
           stubTree.add("<xmlattr>.iStub", iStub);
           stubTree.add("<xmlattr>.iLayer", iLayer);
-          stubTree.add("<xmlattr>.phi", stub->phiHw);
+          // For bending layers, phi should be the phiBHw from the previous layer's stub
+          // (restrictInput returns the previous layer's stub for bending layers)
+          int phiValue = this->myOmtfConfig->isBendingLayer(iLayer) ? stub->phiBHw : stub->phiHw;
+          stubTree.add("<xmlattr>.phi", phiValue);
           stubTree.add("<xmlattr>.phiB", stub->phiBHw);
           stubTree.add("<xmlattr>.eta", stub->etaHw);
           stubTree.add("<xmlattr>.quality", stub->qualityHw);
@@ -793,6 +855,41 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
           if (!hwName.empty()) {
             stubTree.add("<xmlattr>.hwName", hwName);
           }
+          
+          // Calculate and add sector_wrapped and chamber_wrapped based on stub type
+          int stubSectorWrapped = -1;
+          int stubChamberWrapped = -1;
+          
+          if (stub->type == MuonStub::DT_PHI_ETA || stub->type == MuonStub::DT_HIT) {
+            // DT stub: use sector_wrapped
+            DTChamberId dtId(stub->detId);
+            stubSectorWrapped = calculateDTSectorWrapped(dtId, iProcessor, this->myOmtfConfig);
+            stubChamberWrapped = -1;
+          } else if (stub->type == MuonStub::CSC_PHI_ETA) {
+            // CSC stub: use chamber_wrapped
+            CSCDetId cscId(stub->detId);
+            stubChamberWrapped = calculateCSCChamberWrapped(cscId, iProcessor, this->myOmtfConfig->nProcessors() == 3 ? l1t::tftype::omtf_pos : l1t::tftype::omtf_neg, this->myOmtfConfig);
+            stubSectorWrapped = -1;
+          } else if (stub->type == MuonStub::RPC) {
+            // RPC stub: depends on region (barrel uses sector_wrapped, endcap uses chamber_wrapped)
+            RPCDetId rpcId(stub->detId);
+            if (rpcId.region() == 0) {
+              // Barrel RPC: use sector_wrapped
+              stubSectorWrapped = calculateRPCSectorWrapped(rpcId, iProcessor, this->myOmtfConfig);
+              stubChamberWrapped = -1;
+            } else {
+              // Endcap RPC: use chamber_wrapped
+              stubChamberWrapped = calculateRPCEndcapChamberWrapped(rpcId, iProcessor, this->myOmtfConfig);
+              stubSectorWrapped = -1;
+            }
+          }
+          
+          // Add the wrapped fields to XML
+          stubTree.add("<xmlattr>.sector_wrapped", stubSectorWrapped);
+          stubTree.add("<xmlattr>.chamber_wrapped", stubChamberWrapped);
+          
+          // Note: stub_order is NOT added for stubs inside referenceHits
+          // Only standalone stubs (DTstubs, CSCstubs, RPCstubs) have stub_order
         }
       }
     }

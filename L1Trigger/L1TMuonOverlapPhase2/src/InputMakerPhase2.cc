@@ -96,13 +96,32 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
   }
 
   // Capture DT golden stubs specifically (filter by stub type)
+  // This loops through ALL layers including bending layers
+  // For bending layers, it uses the stub from the previous layer (same as restrictInput() does)
+  // AND applies the phi transformation (phiHw becomes phiBHw) as per OMTFinput::getPhiHw()
   // Track order per chamber (detId)
   std::map<uint32_t, int> chamberStubOrder;
+  // Track stub_order per (sector_wrapped + logicLayer) combination
+  // Key format: "sector_X_layer_Y" where X is sector_wrapped and Y is logicLayer
+  std::map<std::string, int> dtStubOrder;
   
   for (unsigned int iLayer = 0; iLayer < muonStubsInLayers.size(); iLayer++) {
-    for (unsigned int iInput = 0; iInput < muonStubsInLayers[iLayer].size(); iInput++) {
-      if (muonStubsInLayers[iLayer][iInput]) {
-        const auto& stub = muonStubsInLayers[iLayer][iInput];
+    // For bending layers, use stubs from previous layer (same as restrictInput does)
+    unsigned int sourceLayer = iLayer;
+    bool isBending = isBendingLayer(iLayer) && iLayer > 0;
+    if (isBending) {
+      sourceLayer = iLayer - 1;
+    }
+    
+    for (unsigned int iInput = 0; iInput < muonStubsInLayers[sourceLayer].size(); iInput++) {
+      if (muonStubsInLayers[sourceLayer][iInput]) {
+        const auto& stub = muonStubsInLayers[sourceLayer][iInput];
+        
+        // For bending layers, apply quality check (same as restrictInput does)
+        if (isBending && stub->qualityHw < getMinDtPhiBQuality()) {
+          continue;  // Skip this stub if it doesn't pass quality check for bending layer
+        }
+        
         // Only add DT stubs (DT types: DT_PHI, DT_THETA, DT_PHI_ETA, DT_HIT)
         if (stub->type == MuonStub::DT_PHI || stub->type == MuonStub::DT_THETA || 
             stub->type == MuonStub::DT_PHI_ETA || stub->type == MuonStub::DT_HIT) {
@@ -111,11 +130,14 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
           uint32_t detId = stub->detId;
           int stubOrder = chamberStubOrder[detId]++;
           
+          // For bending layers, transform phi to use phiBHw (as per OMTFinput::getPhiHw())
+          int phiValue = isBending ? stub->phiBHw : stub->phiHw;
+          
           auto& dtStub = dtStubsTree.add_child("DTstub", boost::property_tree::ptree());
           dtStub.add("<xmlattr>.type", static_cast<int>(stub->type));
-          dtStub.add("<xmlattr>.logicLayer", stub->logicLayer);
+          dtStub.add("<xmlattr>.logicLayer", iLayer);  // Use current iLayer, not stub->logicLayer
           dtStub.add("<xmlattr>.inputNumber", iInput);
-          dtStub.add("<xmlattr>.phiHw", stub->phiHw);
+          dtStub.add("<xmlattr>.phiHw", phiValue);  // Use transformed phi for bending layers
           dtStub.add("<xmlattr>.etaHw", stub->etaHw);
           dtStub.add("<xmlattr>.qualityHw", stub->qualityHw);
           dtStub.add("<xmlattr>.phiBHw", stub->phiBHw);
@@ -123,7 +145,7 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
           dtStub.add("<xmlattr>.timing", stub->timing);
           dtStub.add("<xmlattr>.r", stub->r);
           dtStub.add("<xmlattr>.detId", stub->detId);
-          dtStub.add("<xmlattr>.order", stubOrder);  // ADD stub order
+          dtStub.add("<xmlattr>.order", stubOrder);  // ADD stub order per chamber
           
           // Add DT chamber identification fields
           DTChamberId dtId(stub->detId);
@@ -131,12 +153,19 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
           dtStub.add("<xmlattr>.station", dtId.station());
           dtStub.add("<xmlattr>.sector", dtId.sector());
           
-          // Note: sector_wrapped is not added here because it requires config access
-          // It will be handled in derived class implementations that have config access
-          
-          // Add hwName mapping - use virtual method to get the name
-          std::string hwName = getHwNameForStub(stub->logicLayer);
+          // Add hwName mapping - use iLayer (not stub->logicLayer) to get correct hwName
+          std::string hwName = getHwNameForStub(iLayer);
           dtStub.add("<xmlattr>.hwName", hwName);
+          
+          // Calculate sector_wrapped for DT (derived classes with config can override)
+          int sector_wrapped = calculateDtSectorWrapped(dtId.sector(), iProcessor);
+          dtStub.add("<xmlattr>.sector_wrapped", sector_wrapped);
+          dtStub.add("<xmlattr>.chamber_wrapped", -1);  // DT uses sector_wrapped, not chamber_wrapped
+          
+          // Add stub_order based on (sector_wrapped + iLayer) combination
+          std::string stubKey = "sector_" + std::to_string(sector_wrapped) + "_layer_" + std::to_string(iLayer);
+          int stub_order = dtStubOrder[stubKey]++;
+          dtStub.add("<xmlattr>.stub_order", stub_order);
         }
       }
     }
@@ -300,6 +329,32 @@ std::string DtPhase2DigiToStubsConverterOmtf::getHwNameForDtChamber(const DTCham
   return getHwNameFromHwNumber(hwNumber);
 }
 
+int DtPhase2DigiToStubsConverterOmtf::calculateDtSectorWrapped(int sector, unsigned int iProcessor) {
+  // Calculate sector_wrapped for DT based on processor and sector
+  // Configuration: Proc 0: sectors {1,2,3,4,5}, Proc 1: {5,6,7,8,9}, Proc 2: {9,10,11,12,1}
+  // Formula: sector_wrapped = sector - barrelMin[iProcessor]
+  
+  // Get barrel minimum for this processor
+  int aMin = config.getBarrelMin()[iProcessor];
+  
+  // Handle wrap-around for last processor (sectors 1,2 belong to proc 2)
+  int aSector = sector;
+  if (iProcessor == (config.nProcessors() - 1) && aSector < 3) {
+    aSector += 12;  // 12 sectors total in barrel
+  }
+  
+  // Calculate sector_wrapped using the standard formula
+  return aSector - aMin;
+}
+
+bool DtPhase2DigiToStubsConverterOmtf::isBendingLayer(unsigned int iLayer) {
+  return config.isBendingLayer(iLayer);
+}
+
+int DtPhase2DigiToStubsConverterOmtf::getMinDtPhiBQuality() {
+  return config.getMinDtPhiBQuality();
+}
+
 // Override makeStubs to add reference stub functionality
 void DtPhase2DigiToStubsConverterOmtf::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                                  unsigned int iProcessor,
@@ -351,8 +406,8 @@ void DtPhase2DigiToStubsConverterOmtf::makeStubs(MuonStubPtrs2D& muonStubsInLaye
               // Add hwName mapping
               std::string hwName = getHwNameForStub(stub->logicLayer);
               
-              // Add region classification based on phi value
-              unsigned int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, iInput, &config);
+              // Add region classification based on phi value (-1 if not a reference hit)
+              int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, iInput, &config);
               
               // Use static method to add reference stub
               MuonStubMakerBase::addGlobalReferenceStub("DT", iProcessor, iRefLayer, stub->logicLayer, stub->phiHw, stub->phiBHw, stub->etaHw, 

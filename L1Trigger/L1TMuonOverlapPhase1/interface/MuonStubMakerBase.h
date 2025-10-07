@@ -186,9 +186,11 @@ class OMTFConfiguration;
 
 // Helper functions for hardware compatibility fields
 std::string getHwNameFromHwNumber(unsigned int hwNumber);
+unsigned int calculateDTSectorWrapped(const DTChamberId& dtId, unsigned int iProcessor, const OMTFConfiguration* omtfConfig);
 unsigned int calculateCSCChamberWrapped(const CSCDetId& cscId, unsigned int iProcessor, l1t::tftype procTyp, const OMTFConfiguration* omtfConfig);
 unsigned int calculateRPCSectorWrapped(const RPCDetId& rpc, unsigned int iProcessor, const OMTFConfiguration* omtfConfig);
-unsigned int calculateLogicRegion(int phiHw, unsigned int iRefLayer, unsigned int iInput, const OMTFConfiguration* omtfConfig);
+unsigned int calculateRPCEndcapChamberWrapped(const RPCDetId& rpc, unsigned int iProcessor, const OMTFConfiguration* omtfConfig);
+int calculateLogicRegion(int phiHw, unsigned int iRefLayer, unsigned int iInput, const OMTFConfiguration* omtfConfig);
 
 class MuonStubMakerBase {
 public:
@@ -227,7 +229,7 @@ public:
                                      unsigned int station, 
                                      int cscRing, int cscChamber, int cscChamberWrapped,
                                      int dtSector, int dtSectorWrapped,
-                                     unsigned int logicRegion);
+                                     int logicRegion);
   static void clearGlobalReferenceStubs();
   static const boost::property_tree::ptree& getGlobalReferenceStubs();
   

@@ -74,6 +74,37 @@ unsigned int calculateCSCChamberWrapped(const CSCDetId& csc, unsigned int iProce
 // For Barrel RPC: sectors 1-12 (30-degree), wraps to 0-4 per processor (similar to DT)
 // For Endcap RPC: 10-degree sectors (1-36), wraps to 0-12 per processor (similar to CSC)
 // Note: The roll parameter is NOT used here - it only affects input number within a sector
+// Helper function to calculate sector_wrapped for DT chambers
+unsigned int calculateDTSectorWrapped(const DTChamberId& dtId, unsigned int iProcessor, const OMTFConfiguration* omtfConfig) {
+  int sector = dtId.sector();
+  int aMin = omtfConfig->getBarrelMin()[iProcessor];
+  
+  // Handle wrap-around for last processor (sectors 1,2 belong to proc 2)
+  int aSector = sector;
+  if (iProcessor == (omtfConfig->nProcessors() - 1) && aSector < 3) {
+    aSector += 12;  // 12 sectors total in barrel
+  }
+  
+  // Calculate sector_wrapped = sector - aMin
+  // This gives the correct hardware index 0-4
+  return aSector - aMin;
+}
+
+// Helper function to calculate chamber_wrapped for endcap RPC chambers
+unsigned int calculateRPCEndcapChamberWrapped(const RPCDetId& rpc, unsigned int iProcessor, const OMTFConfiguration* omtfConfig) {
+  // For endcap RPC: convert sector/subsector to effective chamber
+  // Effective chamber = (sector-1)*6 + subsector
+  unsigned int effectiveChamber = (rpc.sector() - 1) * 6 + rpc.subsector();
+  unsigned int aMin = omtfConfig->getEndcap10DegMin()[iProcessor];
+  
+  // Handle boundary wrapping for last processor
+  if (iProcessor == (omtfConfig->nProcessors() - 1) && effectiveChamber < 5) {
+    effectiveChamber += 36;  // 36 chambers total in 10-degree system
+  }
+  
+  return effectiveChamber - aMin;
+}
+
 unsigned int calculateRPCSectorWrapped(const RPCDetId& rpc, unsigned int iProcessor, const OMTFConfiguration* omtfConfig) {
   unsigned int aSector = 0;
   unsigned int sectorWrapped = 0;
@@ -118,16 +149,17 @@ unsigned int calculateRPCSectorWrapped(const RPCDetId& rpc, unsigned int iProces
 
 // Helper function to calculate the logic region based on phi value
 // Uses the phi ranges from the configuration to determine the correct region (0-11)
-unsigned int calculateLogicRegion(int phiHw, unsigned int iRefLayer, unsigned int iInput, const OMTFConfiguration* omtfConfig) {
+// Returns -1 if no matching RefHitDef is found (since 0 is a valid region)
+int calculateLogicRegion(int phiHw, unsigned int iRefLayer, unsigned int iInput, const OMTFConfiguration* omtfConfig) {
   if (!omtfConfig) {
-    return 0;
+    return -1;
   }
   
   const auto& refHitDefs = omtfConfig->getRefHitsDefs();
   
   // The refHitDefs is indexed by [processor][refHit], need to check processor 0
   if (refHitDefs.empty()) {
-    return 0;
+    return -1;
   }
   
   // Use processor 0 (positive endcap) configuration
@@ -144,8 +176,8 @@ unsigned int calculateLogicRegion(int phiHw, unsigned int iRefLayer, unsigned in
     }
   }
   
-  // No match found
-  return 0;
+  // No match found - return -1 since region 0 is a valid region value
+  return -1;
 }
 
 void MuonStubMakerBase::addGlobalReferenceStub(const std::string& detectorType, unsigned int processor, unsigned int refLayerNumber, 
@@ -154,7 +186,7 @@ void MuonStubMakerBase::addGlobalReferenceStub(const std::string& detectorType, 
                                                unsigned int station, 
                                                int cscRing, int cscChamber, int cscChamberWrapped,
                                                int dtSector, int dtSectorWrapped,
-                                               unsigned int logicRegion) {
+                                               int logicRegion) {
   // Create a reference stub element in the static global tree
   boost::property_tree::ptree stub;
   stub.add("<xmlattr>.processor", processor);
@@ -241,6 +273,10 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
   
   // Track order of digis per chamber for ordering information
   std::map<unsigned int, unsigned int> chamberDigiOrder;
+  
+  // Track stub_order per (chamber_wrapped + logicLayer) combination
+  // Key format: "chamber_X_layer_Y" where X is chamber_wrapped and Y is logicLayer
+  std::map<std::string, int> cscStubOrder;
 
   auto chamber = cscDigis->begin();
   auto chend = cscDigis->end();
@@ -374,6 +410,11 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                 unsigned int chamberWrapped = calculateCSCChamberWrapped(cscId, iProcessor, procTyp, omtfConfig);
                 cscStub.add("<xmlattr>.chamber_wrapped", chamberWrapped);
                 
+                // Add stub_order based on (chamber_wrapped + logicLayer) combination
+                std::string stubKey = "chamber_" + std::to_string(chamberWrapped) + "_layer_" + std::to_string(stub->logicLayer);
+                int stubOrder = cscStubOrder[stubKey]++;
+                cscStub.add("<xmlattr>.stub_order", stubOrder);
+                
                 // Check if this is a reference layer stub and add to reference collection
                 const auto& refToLogicNumbers = omtfConfig->getRefToLogicNumber();
                 for (unsigned int iRefLayer = 0; iRefLayer < refToLogicNumbers.size(); ++iRefLayer) {
@@ -420,6 +461,10 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
   
   // Track order of digis per roll for ordering information
   std::map<unsigned int, unsigned int> rollDigiOrder;
+  
+  // Track stub_order per (sector_wrapped/chamber_wrapped + logicLayer) combination
+  // Key format: "sector_X_layer_Y" or "chamber_X_layer_Y"
+  std::map<std::string, int> rpcStubOrder;
 
   const RPCDigiCollection& rpcDigiCollection = *rpcDigis;
   for (auto rollDigis : rpcDigiCollection) {
@@ -540,10 +585,13 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
               rpcStub.add("<xmlattr>.hwName", hwName);
               
               // Add wrapped field based on barrel/endcap
+              std::string stubKey;
               if (isBarrel) {
                 // RPCb: Calculate sector_wrapped (0-4, like DT)
                 unsigned int sectorWrapped = calculateRPCSectorWrapped(rpcId, iProcessor, omtfConfig);
                 rpcStub.add("<xmlattr>.sector_wrapped", sectorWrapped);
+                rpcStub.add("<xmlattr>.chamber_wrapped", -1);
+                stubKey = "sector_" + std::to_string(sectorWrapped) + "_layer_" + std::to_string(stub->logicLayer);
               } else {
                 // RPCe: Calculate chamber_wrapped (0-12, like CSC)
                 // For endcap RPC: effective chamber = (sector-1)*6 + subsector
@@ -556,8 +604,14 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                 }
                 
                 unsigned int chamberWrapped = effectiveChamber - aMin;
+                rpcStub.add("<xmlattr>.sector_wrapped", -1);
                 rpcStub.add("<xmlattr>.chamber_wrapped", chamberWrapped);
+                stubKey = "chamber_" + std::to_string(chamberWrapped) + "_layer_" + std::to_string(stub->logicLayer);
               }
+              
+              // Add stub_order based on (sector_wrapped/chamber_wrapped + logicLayer) combination
+              int stubOrder = rpcStubOrder[stubKey]++;
+              rpcStub.add("<xmlattr>.stub_order", stubOrder);
               
               // Check if this is a reference layer stub and add to reference collection
               const auto& refToLogicNumbers = omtfConfig->getRefToLogicNumber();
