@@ -19,6 +19,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubMakerBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XmlIOCache.h"
 #include "L1Trigger/L1TMuonOverlapPhase2/interface/OmtfPhase2AngleConverter.h"
 
 struct MuStubsPhase2InputTokens {
@@ -41,7 +42,8 @@ public:
                  l1t::tftype procTyp,
                  int bxFrom,
                  int bxTo,
-                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                 XmlIOCache& xmlCache) override;
 
   //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
   virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
@@ -110,7 +112,8 @@ public:
                  l1t::tftype procTyp,
                  int bxFrom,
                  int bxTo,
-                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                 XmlIOCache& xmlCache) override;
 
   //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
   void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,

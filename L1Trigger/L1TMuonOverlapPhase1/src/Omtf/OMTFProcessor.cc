@@ -686,7 +686,8 @@ template <class GoldenPatternType>
 void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
                                                     l1t::tftype mtfType,
                                                     const OMTFinput& aInput,
-                                                    std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+                                                    std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                                                    XmlIOCache& xmlCache) {
   unsigned int procIndx = this->myOmtfConfig->getProcIndx(iProcessor, mtfType);
   for (auto& itGP : this->theGPs) {
     for (auto& result : itGP->getResults()[procIndx]) {
@@ -738,6 +739,11 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
     // Get reference stub for extrapolation calculations
     unsigned int refLayerLogicNum = this->myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer];
     const MuonStubPtr refStub = aInput.getMuonStub(refLayerLogicNum, aRefHitDef.iInput);
+
+    // Mark this stub as a reference in the XmlIOCache
+    if (refStub) {
+      xmlCache.markReference(iProcessor, omtf::makeStubKey(*refStub));
+    }
     
     // Collect restricted stubs from all layers for this reference hit
     std::vector<std::pair<unsigned int, MuonStubPtrs1D>> allLayerStubs;
@@ -944,6 +950,24 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
         hlsExporter->observeRefHitProcessing(iProcessor, iRefHit, aRefHitDef, allLayerStubs, allLayerExtrapolatedPhi, allLayerHwNumbers);
       }
     }
+
+    // === ADD REFERENCE HIT TO XMLIOCACHE ===
+    omtf::ReferenceHitRecord rhRec;
+    rhRec.attrs = refHitTree;
+
+    // Build RestrictedStubRecords from the refHitTree's stub children
+    for (const auto& child : refHitTree) {
+      if (child.first == "stub") {
+        omtf::RestrictedStubRecord rsRec;
+        rsRec.attrs = child.second;
+        // Extract extrapolatedPhi from attributes
+        rsRec.extrapolatedPhi = child.second.get<int>("<xmlattr>.extrapolatedPhi");
+        rhRec.restrictedStubs.push_back(rsRec);
+      }
+    }
+
+    // Note: extrapCalcs will be populated during the second loop below for layers 0 and 2
+    xmlCache.addReferenceHit(iProcessor, rhRec);
   }
   
   for (unsigned int iLayer = 0; iLayer < this->myOmtfConfig->nLayers(); ++iLayer) {
@@ -986,37 +1010,31 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
                   << " value " << extrapolatedPhi[iStub] << std::endl;
 
               if (this->myOmtfConfig->getDumpResultToXML()) {
-                auto& extrapolatedPhiTree = procDataTree.add_child("extrapolatedPhi", boost::property_tree::ptree());
+                // === ADD TO XMLIOCACHE FOR LAYERS 0 AND 2 ===
+                // Build calc record and add to the reference hit's extrapCalcs
+                boost::property_tree::ptree calcTree;
+                calcTree.add("<xmlattr>.targetLayer", iLayer);
+                calcTree.add("<xmlattr>.method", "fixed"); // phiB extrapolation uses fixed-point
+                calcTree.add("<xmlattr>.refLogicLayer", refStub->logicLayer);
+                calcTree.add("<xmlattr>.refPhi", refStub->phiHw);
+                calcTree.add("<xmlattr>.refPhiB", refStub->phiBHw);
+                calcTree.add("<xmlattr>.targetStubPhi", targetStub->phiHw);
+                calcTree.add("<xmlattr>.targetStubQuality", targetStub->qualityHw);
+                calcTree.add("<xmlattr>.targetStubEta", targetStub->etaHw);
+                calcTree.add("<xmlattr>.targetStubR", targetStub->r);
 
-                // ADD ALL INPUT PARAMETERS FOR DEBUGGING
-                extrapolatedPhiTree.add("<xmlattr>.refLayer", refLayerLogicNum);
-                extrapolatedPhiTree.add("<xmlattr>.layer", iLayer);
-                extrapolatedPhiTree.add("<xmlattr>.refLogicLayer", refStub->logicLayer);
-                extrapolatedPhiTree.add("<xmlattr>.refPhi", refStub->phiHw);
-                extrapolatedPhiTree.add("<xmlattr>.refPhiBHw", refStub->phiBHw);
-                extrapolatedPhiTree.add("<xmlattr>.refQuality", refStub->qualityHw);
-                extrapolatedPhiTree.add("<xmlattr>.iStub", iStub);
-                extrapolatedPhiTree.add("<xmlattr>.targetStubPhi", targetStub->phiHw);
-                extrapolatedPhiTree.add("<xmlattr>.targetStubPhiB", targetStub->phiBHw);
-                extrapolatedPhiTree.add("<xmlattr>.qualityHw", targetStub->qualityHw);
-                extrapolatedPhiTree.add("<xmlattr>.etaHw", targetStub->etaHw);
-                extrapolatedPhiTree.add("<xmlattr>.targetStubR", targetStub->r);
-                extrapolatedPhiTree.add("<xmlattr>.phiExtr", extrapolatedPhi[iStub]);
-
-                // Add scaleFactor for non-bending layers
                 if (iLayer == 1 || iLayer == 3 || iLayer == 5) {
                   int scaleFactor = this->myOmtfConfig->omtfPhiUnit() * this->myOmtfConfig->dtPhiBUnitsRad() * 512;
                   int deltaPhi_raw = targetStub->phiHw - refStub->phiHw;
                   int deltaPhi_scaled = (deltaPhi_raw * scaleFactor) / 512;
-                  extrapolatedPhiTree.add("<xmlattr>.scaleFactor", scaleFactor);
-                  extrapolatedPhiTree.add("<xmlattr>.deltaPhi_raw", deltaPhi_raw);
-                  extrapolatedPhiTree.add("<xmlattr>.deltaPhi_scaled", deltaPhi_scaled);
+                  calcTree.add("<xmlattr>.scaleFactor", scaleFactor);
+                  calcTree.add("<xmlattr>.deltaPhi_raw", deltaPhi_raw);
+                  calcTree.add("<xmlattr>.deltaPhi_scaled", deltaPhi_scaled);
                 }
 
-                if (this->myOmtfConfig->isBendingLayer(iLayer))
-                  extrapolatedPhiTree.add("<xmlattr>.dist_phi", targetStub->phiBHw - extrapolatedPhi[iStub]);
-                else
-                  extrapolatedPhiTree.add("<xmlattr>.dist_phi", targetStub->phiHw - extrapolatedPhi[iStub]);
+                calcTree.add("<xmlattr>.phiExtr", extrapolatedPhi[iStub]);
+
+                xmlCache.addExtrapolationCalc(iProcessor, iRefHit, calcTree);
               }
             }
             iStub++;
@@ -1110,12 +1128,79 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
     }
   }
 
-  for (auto& obs : observers) {
-    obs->addProcesorData("extrapolation", procDataTree);
-    
-    // Add reference hits data as a separate top-level section (outside extrapolation)
-    if (!refHitsDataTree.empty()) {
-      obs->addProcesorData("referenceHits", refHitsDataTree);
+  // === EMIT UNIFIED XML FROM XMLIOCACHE ===
+  auto bucket = xmlCache.get(iProcessor);
+  if (bucket) {
+    // Build <inputDigis> tree
+    boost::property_tree::ptree inputDigisTree;
+    for (const auto& digiRec : bucket->digis) {
+      boost::property_tree::ptree digiNode;
+      // Add type as FIRST attribute
+      digiNode.add("<xmlattr>.type", digiRec.type);
+      // Copy remaining attributes
+      for (const auto& attr : digiRec.attrs.get_child("<xmlattr>")) {
+        digiNode.add("<xmlattr>." + attr.first, attr.second.data());
+      }
+      inputDigisTree.add_child("digi", digiNode);
+    }
+
+    // Build <inputStubs> tree
+    boost::property_tree::ptree inputStubsTree;
+    for (const auto& stubRec : bucket->stubs) {
+      boost::property_tree::ptree stubNode;
+      // Add type as FIRST attribute
+      stubNode.add("<xmlattr>.type", stubRec.type);
+      // Add isReference as SECOND attribute
+      bool isRef = (bucket->referenceKeys.find(stubRec.key) != bucket->referenceKeys.end());
+      stubNode.add("<xmlattr>.isReference", isRef);
+      // Copy remaining attributes
+      for (const auto& attr : stubRec.attrs.get_child("<xmlattr>")) {
+        stubNode.add("<xmlattr>." + attr.first, attr.second.data());
+      }
+
+      inputStubsTree.add_child("stub", stubNode);
+    }
+
+    // Build <referenceHits> tree
+    boost::property_tree::ptree referenceHitsTree;
+    for (const auto& rh : bucket->refHits) {
+      boost::property_tree::ptree rhNode;
+
+      // Copy refHit attributes (excluding the stub children which we'll rebuild)
+      if (rh.attrs.find("<xmlattr>") != rh.attrs.not_found()) {
+        for (const auto& attr : rh.attrs.get_child("<xmlattr>")) {
+          rhNode.add("<xmlattr>." + attr.first, attr.second.data());
+        }
+      }
+
+      // Add <extrapolatedPhiCalcs> (currently empty in this implementation, would be populated from procDataTree)
+      // TODO: Populate this from the extrapolation loop if needed for detailed calculations
+      if (!rh.extrapCalcs.empty()) {
+        boost::property_tree::ptree calcsNode;
+        for (const auto& calc : rh.extrapCalcs) {
+          calcsNode.add_child("calc", calc);
+        }
+        rhNode.add_child("extrapolatedPhiCalcs", calcsNode);
+      }
+
+      // Add <restrictedStubs>
+      boost::property_tree::ptree restrictedStubsNode;
+      for (const auto& rs : rh.restrictedStubs) {
+        restrictedStubsNode.add_child("stub", rs.attrs);
+      }
+      rhNode.add_child("restrictedStubs", restrictedStubsNode);
+
+      referenceHitsTree.add_child("referenceHit", rhNode);
+    }
+
+    // Emit unified XML to observers
+    for (auto& obs : observers) {
+      obs->addProcesorData("inputDigis", inputDigisTree);
+      obs->addProcesorData("inputStubs", inputStubsTree);
+      obs->addProcesorData("referenceHits", referenceHitsTree);
+
+      // Keep extrapolation tree for backwards compatibility
+      obs->addProcesorData("extrapolation", procDataTree);
     }
   }
 
@@ -1129,16 +1214,20 @@ FinalMuons OMTFProcessor<GoldenPatternType>::run(unsigned int iProcessor,
                                                  l1t::tftype mtfType,
                                                  int bx,
                                                  OMTFinputMaker* inputMaker,
-                                                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+                                                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                                                 XmlIOCache& xmlCache) {
   //uncomment if you want to check execution time of each method
   //boost::timer::auto_cpu_timer t("%ws wall, %us user in getProcessorCandidates\n");
+
+  // Clear cache for this processor before processing
+  xmlCache.clearProcessor(iProcessor);
 
   for (auto& obs : observers)
     obs->observeProcesorBegin(iProcessor, mtfType);
 
   //input is shared_ptr because the observers may need them after the run() method execution is finished
   std::shared_ptr<OMTFinput> input = std::make_shared<OMTFinput>(this->myOmtfConfig);
-  inputMaker->buildInputForProcessor(input->getMuonStubs(), iProcessor, mtfType, bx, bx, observers);
+  inputMaker->buildInputForProcessor(input->getMuonStubs(), iProcessor, mtfType, bx, bx, observers, xmlCache);
 
   if (this->myOmtfConfig->cleanStubs()) {
     //this has sense for the pattern generation from the tracks with the secondaries
@@ -1157,7 +1246,7 @@ FinalMuons OMTFProcessor<GoldenPatternType>::run(unsigned int iProcessor,
   }
 
   //LogTrace("l1tOmtfEventPrint")<<"buildInputForProce "; t.report();
-  processInput(iProcessor, mtfType, *(input.get()), observers);
+  processInput(iProcessor, mtfType, *(input.get()), observers, xmlCache);
 
   //LogTrace("l1tOmtfEventPrint")<<"processInput       "; t.report();
   AlgoMuons algoCandidates = sortResults(iProcessor, mtfType);

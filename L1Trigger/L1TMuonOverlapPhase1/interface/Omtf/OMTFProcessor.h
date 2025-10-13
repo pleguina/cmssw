@@ -11,6 +11,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/ProcessorBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/SorterBase.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XmlIOCache.h"
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/PtAssignmentBase.h"
 
@@ -92,7 +93,8 @@ public:
   void processInput(unsigned int iProcessor,
                     l1t::tftype mtfType,
                     const OMTFinput& aInput,
-                    std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+                    std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                    XmlIOCache& xmlCache);
 
   AlgoMuons sortResults(unsigned int iProcessor, l1t::tftype mtfType, int charge = 0) override;
 
@@ -124,7 +126,8 @@ public:
                  l1t::tftype mtfType,
                  int bx,
                  OMTFinputMaker* inputMaker,
-                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                 XmlIOCache& xmlCache);
 
   void printInfo() const override;
 

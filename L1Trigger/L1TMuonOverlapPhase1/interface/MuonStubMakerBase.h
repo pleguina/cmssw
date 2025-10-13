@@ -17,6 +17,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/AngleConverterBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/RpcClusterization.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XmlIOCache.h"
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -45,7 +46,8 @@ public:
                          l1t::tftype procTyp,
                          int bxFrom,
                          int bxTo,
-                         std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) = 0;
+                         std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                         XmlIOCache& xmlCache) = 0;
 };
 
 class DtDigiToStubsConverter : public DigiToStubsConverterBase {
@@ -65,7 +67,8 @@ public:
                  l1t::tftype procTyp,
                  int bxFrom,
                  int bxTo,
-                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                 XmlIOCache& xmlCache) override;
 
   //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
   virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
@@ -110,7 +113,8 @@ public:
                  l1t::tftype procTyp,
                  int bxFrom,
                  int bxTo,
-                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                 XmlIOCache& xmlCache) override;
 
   //can add both phi and eta stubs
   virtual void addCSCstubs(MuonStubPtrs2D& muonStubsInLayers,
@@ -158,7 +162,8 @@ public:
                  l1t::tftype procTyp,
                  int bxFrom,
                  int bxTo,
-                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                 XmlIOCache& xmlCache) override;
 
   virtual void addRPCstub(MuonStubPtrs2D& muonStubsInLayers,
                           const RPCDetId& roll,
@@ -210,7 +215,8 @@ public:
                               l1t::tftype procTyp,
                               int bxFrom,
                               int bxTo,
-                              std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers);
+                              std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                              XmlIOCache& xmlCache);
   
   /// Method to add reference stub from external classes (like InputMakerPhase2)
   void addReferenceStub(const std::string& detectorType, unsigned int processor, unsigned int refLayerNumber, 

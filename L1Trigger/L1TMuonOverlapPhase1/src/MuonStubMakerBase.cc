@@ -229,9 +229,10 @@ void DtDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                        l1t::tftype procTyp,
                                        int bxFrom,
                                        int bxTo,
-                                       std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+                                       std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                                       XmlIOCache& xmlCache) {
   boost::property_tree::ptree procDataTree;
-  
+
   for (const auto& digiIt : *dtPhDigis->getContainer()) {
     DTChamberId detid(digiIt.whNum(), digiIt.stNum(), digiIt.scNum() + 1);
 
@@ -251,8 +252,9 @@ void DtDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       }
     }
   }
-  
+
   // Notify observers - DT XML generation happens in InputMakerPhase2, not here
+  // Note: Phase-1 DT does not use XmlIOCache as Phase-2 handles DT stubs
   for (auto& observer : observers) {
     observer->addProcesorData("DTdigis", procDataTree);
   }
@@ -266,7 +268,8 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                         l1t::tftype procTyp,
                                         int bxFrom,
                                         int bxTo,
-                                        std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+                                        std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                                        XmlIOCache& xmlCache) {
   boost::property_tree::ptree cscDigisTree;
   boost::property_tree::ptree cscStubsTree;
   // Use global reference stubs tree instead of local one
@@ -439,12 +442,32 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     }
   }
 
-  // === NOTIFY OBSERVERS WITH XML DATA ===
-  for (auto& observer : observers) {
-    observer->addProcesorData("CSCdigis", cscDigisTree);
-    observer->addProcesorData("CSCstubs", cscStubsTree);
-    // ReferenceStubs will be added later in a consolidated manner
+  // === ADD DATA TO XMLIOCACHE ===
+  // Add CSC digis to cache
+  for (const auto& digiNode : cscDigisTree) {
+    xmlCache.addDigi(iProcessor, "CSC", digiNode.second);
   }
+
+  // Add CSC stubs to cache
+  for (const auto& stubNode : cscStubsTree) {
+    const auto& stubAttrs = stubNode.second;
+    omtf::StubRecord srec;
+    srec.type = "CSC";
+
+    // Extract key fields from attributes
+    unsigned int detId = stubAttrs.get<unsigned int>("<xmlattr>.detId");
+    int logicLayer = stubAttrs.get<int>("<xmlattr>.logicLayer");
+    int inputNumber = stubAttrs.get<int>("<xmlattr>.inputNumber");
+    int bx = stubAttrs.get<int>("<xmlattr>.bx");
+
+    srec.key = {detId, logicLayer, inputNumber, bx};
+    srec.attrs = stubAttrs;
+
+    xmlCache.addStub(iProcessor, srec);
+    // Note: References will be marked by OMTFProcessor, not here
+  }
+
+  // Old XML sections removed - now using unified XML output via XmlIOCache
 }
 
 void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
@@ -452,7 +475,8 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                         l1t::tftype procTyp,
                                         int bxFrom,
                                         int bxTo,
-                                        std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+                                        std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                                        XmlIOCache& xmlCache) {
   //LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ <<" RPC HITS, processor : " << iProcessor<<" "<<std::endl;
 
   boost::property_tree::ptree rpcDigisTree;
@@ -685,13 +709,34 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     }
   }
 
-  // === NOTIFY OBSERVERS WITH XML DATA ===
-  for (auto& observer : observers) {
-    if (dumpRPCDigis) {
-      observer->addProcesorData("RPCdigis", rpcDigisTree);
+  // === ADD DATA TO XMLIOCACHE ===
+  // Add RPC digis to cache
+  if (dumpRPCDigis) {
+    for (const auto& digiNode : rpcDigisTree) {
+      xmlCache.addDigi(iProcessor, "RPC", digiNode.second);
     }
-    observer->addProcesorData("RPCstubs", rpcStubsTree);  // Always export RPC stubs
   }
+
+  // Add RPC stubs to cache
+  for (const auto& stubNode : rpcStubsTree) {
+    const auto& stubAttrs = stubNode.second;
+    omtf::StubRecord srec;
+    srec.type = "RPC";
+
+    // Extract key fields from attributes
+    unsigned int detId = stubAttrs.get<unsigned int>("<xmlattr>.detId");
+    int logicLayer = stubAttrs.get<int>("<xmlattr>.logicLayer");
+    int inputNumber = stubAttrs.get<int>("<xmlattr>.inputNumber");
+    int bx = stubAttrs.get<int>("<xmlattr>.bx");
+
+    srec.key = {detId, logicLayer, inputNumber, bx};
+    srec.attrs = stubAttrs;
+
+    xmlCache.addStub(iProcessor, srec);
+    // Note: References will be marked by OMTFProcessor, not here
+  }
+
+  // Old XML sections removed - now using unified XML output via XmlIOCache
 }
 
 ///////////////////////////////////////
@@ -725,15 +770,16 @@ void MuonStubMakerBase::buildInputForProcessor(MuonStubPtrs2D& muonStubsInLayers
                                                l1t::tftype procTyp,
                                                int bxFrom,
                                                int bxTo,
-                                               std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+                                               std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                                               XmlIOCache& xmlCache) {
   //LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " iProcessor " << iProcessor << " preocType "
   //                              << procTyp << std::endl;
 
   // Clear global reference stubs before processing
   clearGlobalReferenceStubs();
-  
+
   for (auto& digiToStubsConverter : digiToStubsConverters)
-    digiToStubsConverter->makeStubs(muonStubsInLayers, iProcessor, procTyp, bxFrom, bxTo, observers);
+    digiToStubsConverter->makeStubs(muonStubsInLayers, iProcessor, procTyp, bxFrom, bxTo, observers, xmlCache);
   
   // Output all collected reference stubs in one consolidated section
   flushReferenceStubs(observers);

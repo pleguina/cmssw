@@ -26,7 +26,8 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                              l1t::tftype procTyp,
                                              int bxFrom,
                                              int bxTo,
-                                             std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+                                             std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                                             XmlIOCache& xmlCache) {
   boost::property_tree::ptree dtDigisTree;
   boost::property_tree::ptree dtStubsTree;
   
@@ -171,10 +172,32 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     }
   }
 
-  for (auto& obs : observers) {
-    obs->addProcesorData("DTdigis", dtDigisTree);
-    obs->addProcesorData("DTstubs", dtStubsTree);
+  // === ADD DATA TO XMLIOCACHE ===
+  // Add DT digis to cache
+  for (const auto& digiNode : dtDigisTree) {
+    xmlCache.addDigi(iProcessor, "DT", digiNode.second);
   }
+
+  // Add DT stubs to cache
+  for (const auto& stubNode : dtStubsTree) {
+    const auto& stubAttrs = stubNode.second;
+    omtf::StubRecord srec;
+    srec.type = "DT";
+
+    // Extract key fields from attributes
+    unsigned int detId = stubAttrs.get<unsigned int>("<xmlattr>.detId");
+    int logicLayer = stubAttrs.get<int>("<xmlattr>.logicLayer");
+    int inputNumber = stubAttrs.get<int>("<xmlattr>.inputNumber");
+    int bx = stubAttrs.get<int>("<xmlattr>.bx");
+
+    srec.key = {detId, logicLayer, inputNumber, bx};
+    srec.attrs = stubAttrs;
+
+    xmlCache.addStub(iProcessor, srec);
+    // Note: References will be marked by OMTFProcessor, not here
+  }
+
+  // Old XML sections removed - now using unified XML output via XmlIOCache
 }
 
 //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
@@ -361,9 +384,10 @@ void DtPhase2DigiToStubsConverterOmtf::makeStubs(MuonStubPtrs2D& muonStubsInLaye
                                                  l1t::tftype procTyp,
                                                  int bxFrom,
                                                  int bxTo,
-                                                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+                                                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                                                 XmlIOCache& xmlCache) {
   // Call the base class implementation first
-  DtPhase2DigiToStubsConverter::makeStubs(muonStubsInLayers, iProcessor, procTyp, bxFrom, bxTo, observers);
+  DtPhase2DigiToStubsConverter::makeStubs(muonStubsInLayers, iProcessor, procTyp, bxFrom, bxTo, observers, xmlCache);
   
   // Now handle reference stubs specifically for OMTF - use global tree
   
