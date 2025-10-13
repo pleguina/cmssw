@@ -26,7 +26,12 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   dumpDigisToCSV = cms.bool(False),
   csvOutputDir = cms.string("hls_test_input_digis"),
   dumpRPCDigis = cms.bool(True),  # Control RPC digi export to XML/CSV (stubs always exported)
-  
+
+  # === DETAILED DEBUG EXPORT OPTIONS (for specific event) ===
+  dumpDetailedDebug = cms.bool(True),
+  debugEventNumber = cms.int32(1),  # Event number to debug (-1 = disabled)
+  debugOutputDir = cms.string("./"),
+
 
   dropRPCPrimitives = cms.bool(False),                                    
   dropCSCPrimitives = cms.bool(False),

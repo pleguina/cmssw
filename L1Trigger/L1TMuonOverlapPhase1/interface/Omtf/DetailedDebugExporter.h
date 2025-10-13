@@ -55,13 +55,15 @@ public:
 
   void observeEventBegin(const edm::Event& iEvent) override {
     currentEventNumber_ = iEvent.id().event();
+
+    // Match based on event ID (not sequential counter)
     isTargetEvent_ = (currentEventNumber_ == targetEventNumber_);
 
     if (isTargetEvent_) {
-      edm::LogInfo("DetailedDebugExporter") << "Target event " << targetEventNumber_
+      edm::LogInfo("DetailedDebugExporter") << "Target event ID=" << currentEventNumber_
                                             << " detected - capturing detailed debug info";
       debugTree_ = boost::property_tree::ptree();
-      debugTree_.add("<xmlattr>.eventNumber", currentEventNumber_);
+      debugTree_.add("<xmlattr>.eventID", currentEventNumber_);
       debugTree_.add("<xmlattr>.run", iEvent.id().run());
       debugTree_.add("<xmlattr>.lumi", iEvent.id().luminosityBlock());
     }
@@ -265,7 +267,7 @@ private:
     filename << outputDir_;
     if (outputDir_.back() != '/')
       filename << "/";
-    filename << "DetailedDebug_Event" << currentEventNumber_ << ".xml";
+    filename << "DetailedDebug_EventID" << currentEventNumber_ << ".xml";
 
     boost::property_tree::ptree eventTree;
     eventTree.add_child("Event", debugTree_);
@@ -277,9 +279,9 @@ private:
   }
 
   const OMTFConfiguration* omtfConfig_;
-  int targetEventNumber_;
+  int targetEventNumber_;  // Target event ID to capture
   std::string outputDir_;
-  int currentEventNumber_;
+  int currentEventNumber_;  // Current event ID from file
   bool isTargetEvent_;
 
   boost::property_tree::ptree debugTree_;
