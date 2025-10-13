@@ -12,12 +12,16 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/StubResult.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/FinalMuon.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/multi_array.hpp>
 #include <map>
 #include <string>
 #include <sstream>
@@ -41,7 +45,7 @@ public:
                                 const std::shared_ptr<OMTFinput>& input,
                                 const AlgoMuons& algoCandidates,
                                 const AlgoMuons& gbCandidates,
-                                const std::vector<l1t::RegionalMuonCand>& finalMuons) override {
+                                const FinalMuons& finalMuons) override {
     // Not used for detailed debug
   }
 
@@ -101,7 +105,7 @@ public:
       patternNode.add("<xmlattr>.patternNumber", patternNumber);
       patternNode.add("<xmlattr>.pt", patternKey.thePt);
       patternNode.add("<xmlattr>.charge", patternKey.theCharge);
-      patternNode.add("<xmlattr>.eta", patternKey.theEta);
+      patternNode.add("<xmlattr>.etaCode", patternKey.theEtaCode);
       patternNode.add("<xmlattr>.iRefLayer", iRefLayer);
 
       // Add reference stub info
@@ -150,16 +154,13 @@ public:
     layerResults_[pathKey.str()].add_child("layerResult", stubResultNode);
   }
 
-  // Capture finalise results
+  // Capture finalise results - takes GoldenPatternResult array instead of AlgoMuons
   void observeFinaliseResults(unsigned int iProcessor,
                               unsigned int patternNumber,
                               const Key& patternKey,
-                              const AlgoMuons& algoMuons) {
+                              const boost::detail::multi_array::sub_array<GoldenPatternResult, 1>& gpResults) {
     if (!isTargetEvent_)
       return;
-
-    std::ostringstream pathKey;
-    pathKey << "proc" << iProcessor << "_pattern" << patternNumber;
 
     boost::property_tree::ptree& processorNode = getOrCreateNode("processor", iProcessor);
     boost::property_tree::ptree finaliseNode;
@@ -167,22 +168,26 @@ public:
     finaliseNode.add("<xmlattr>.patternNumber", patternNumber);
     finaliseNode.add("<xmlattr>.pt", patternKey.thePt);
     finaliseNode.add("<xmlattr>.charge", patternKey.theCharge);
-    finaliseNode.add("<xmlattr>.eta", patternKey.theEta);
+    finaliseNode.add("<xmlattr>.etaCode", patternKey.theEtaCode);
 
-    // Add algoMuons info
-    for (size_t iMuon = 0; iMuon < algoMuons.size(); ++iMuon) {
-      const auto& muon = algoMuons[iMuon];
-      if (muon->isValid()) {
-        boost::property_tree::ptree muonNode;
-        muonNode.add("<xmlattr>.index", iMuon);
-        muonNode.add("<xmlattr>.pt", muon->getPt());
-        muonNode.add("<xmlattr>.phi", muon->getPhi());
-        muonNode.add("<xmlattr>.eta", muon->getEta());
-        muonNode.add("<xmlattr>.charge", muon->getCharge());
-        muonNode.add("<xmlattr>.quality", muon->getQ());
-        muonNode.add("<xmlattr>.disc", muon->getDisc());
-        muonNode.add("<xmlattr>.refLayer", muon->getRefLayer());
-        finaliseNode.add_child("algoMuon", muonNode);
+    // Add GoldenPatternResult info for each refHit
+    for (size_t iRefHit = 0; iRefHit < gpResults.size(); ++iRefHit) {
+      const auto& gpResult = gpResults[iRefHit];
+      if (gpResult.isValid()) {
+        boost::property_tree::ptree resultNode;
+        resultNode.add("<xmlattr>.refHit", iRefHit);
+        resultNode.add("<xmlattr>.refLayer", gpResult.getRefLayer());
+        resultNode.add("<xmlattr>.phi", gpResult.getPhi());
+        resultNode.add("<xmlattr>.eta", gpResult.getEta());
+        resultNode.add("<xmlattr>.refHitPhi", gpResult.getRefHitPhi());
+        resultNode.add("<xmlattr>.pdfSum", gpResult.getPdfSum());
+        resultNode.add("<xmlattr>.pdfSumUnconstr", gpResult.getPdfSumUnconstr());
+        resultNode.add("<xmlattr>.firedLayerCnt", gpResult.getFiredLayerCnt());
+        resultNode.add("<xmlattr>.firedLayerBits", gpResult.getFiredLayerBits());
+        resultNode.add("<xmlattr>.gpProbability1", gpResult.getGpProbability1());
+        resultNode.add("<xmlattr>.gpProbability2", gpResult.getGpProbability2());
+
+        finaliseNode.add_child("gpResult", resultNode);
       }
     }
 
