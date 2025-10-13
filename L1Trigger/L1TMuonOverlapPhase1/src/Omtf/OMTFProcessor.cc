@@ -570,6 +570,35 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
 
   int extrFactor = 0;
 
+  // ==========================================================================
+  // DEBUG: Print configuration ONCE
+  // ==========================================================================
+  static bool config_printed = false;
+  if (!config_printed) {
+    std::cout << "\n========================================================================\n";
+    std::cout << "  FIXED-POINT EXTRAPOLATION CONFIG (for HLS compatibility)\n";
+    std::cout << "========================================================================\n";
+    std::cout << "nProcessors    : " << omtfConfig->nProcessors() << "\n";
+    std::cout << "nLayers        : " << omtfConfig->nLayers() << "\n";
+    std::cout << "nPhiBins       : " << omtfConfig->nPhiBins() << " (GP_N_OF_PHI_BINS)\n";
+    std::cout << "omtfPhiUnit()  : " << std::setprecision(12) << omtfConfig->omtfPhiUnit() << "\n";
+    std::cout << "dtPhiBUnitsRad(): " << std::setprecision(12) << omtfConfig->dtPhiBUnitsRad() << "\n";
+
+    double omtfPhiUnit_val = omtfConfig->omtfPhiUnit();
+    double dtPhiBUnitsRad_val = omtfConfig->dtPhiBUnitsRad();
+    double scaleFactor_fp = omtfPhiUnit_val * dtPhiBUnitsRad_val * 512.0;
+    int scaleFactor_int = (int)scaleFactor_fp;
+
+    std::cout << "\nScaleFactor (for layers 1,3,5):\n";
+    std::cout << "  Floating-point: " << std::setprecision(12) << scaleFactor_fp << "\n";
+    std::cout << "  Integer (cast): " << scaleFactor_int << "\n";
+    std::cout << "  Expected Phase-1: ~305,  Phase-2: ~610\n";
+    std::cout << "extrapolMultiplier: " << extrapolMultiplier << "\n";
+    std::cout << "========================================================================\n\n";
+    config_printed = true;
+  }
+  // ==========================================================================
+
   if (targetLayer == 0 || targetLayer == 2 || targetLayer == 4) {
     if (useStubQualInExtr)
       extrFactor = extrapolFactors[reflLayerIndex][targetLayer][targetStubQuality];
@@ -700,6 +729,9 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
   // New: Collect reference hits data for HLS export BEFORE the main processing loops
   // This creates one row per reference hit with all layer data combined
   for (unsigned int iRefHit = 0; iRefHit < refHitDefs.size(); iRefHit++) {
+    // Reset stub_order counter for each reference hit
+    refHitWrappedOrder.clear();
+    
     const RefHitDef& aRefHitDef = *(refHitDefs[iRefHit]);
     unsigned int iRegion = aRefHitDef.iRegion;
     
@@ -834,6 +866,14 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
           auto& stubTree = refHitTree.add_child("stub", boost::property_tree::ptree());
           stubTree.add("<xmlattr>.iStub", iStub);
           stubTree.add("<xmlattr>.iLayer", iLayer);
+          
+          // Calculate inputNumber from iStub using connections config
+          // restrictInput only keeps stubs in range [iStart, iEnd], so:
+          // inputNumber = iStart + iStub
+          unsigned int iStart = this->myOmtfConfig->getConnections()[iProcessor][iRegion][iLayer].first;
+          unsigned int inputNumber = iStart + iStub;
+          stubTree.add("<xmlattr>.inputNumber", inputNumber);
+          
           // For bending layers, phi should be the phiBHw from the previous layer's stub
           // (restrictInput returns the previous layer's stub for bending layers)
           int phiValue = this->myOmtfConfig->isBendingLayer(iLayer) ? stub->phiBHw : stub->phiHw;
@@ -888,8 +928,12 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
           stubTree.add("<xmlattr>.sector_wrapped", stubSectorWrapped);
           stubTree.add("<xmlattr>.chamber_wrapped", stubChamberWrapped);
           
-          // Note: stub_order is NOT added for stubs inside referenceHits
-          // Only standalone stubs (DTstubs, CSCstubs, RPCstubs) have stub_order
+          // Add stub_order based on (wrapped_value, logicLayer) combination
+          // This matches the logic in InputMakerPhase2.cc for standalone stubs
+          int wrappedValue = (stubSectorWrapped != -1) ? stubSectorWrapped : stubChamberWrapped;
+          std::string stubKey = "wrapped_" + std::to_string(wrappedValue) + "_layer_" + std::to_string(iLayer);
+          int stub_order = refHitWrappedOrder[stubKey]++;
+          stubTree.add("<xmlattr>.stub_order", stub_order);
         }
       }
     }
@@ -943,13 +987,31 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
 
               if (this->myOmtfConfig->getDumpResultToXML()) {
                 auto& extrapolatedPhiTree = procDataTree.add_child("extrapolatedPhi", boost::property_tree::ptree());
+
+                // ADD ALL INPUT PARAMETERS FOR DEBUGGING
                 extrapolatedPhiTree.add("<xmlattr>.refLayer", refLayerLogicNum);
                 extrapolatedPhiTree.add("<xmlattr>.layer", iLayer);
+                extrapolatedPhiTree.add("<xmlattr>.refLogicLayer", refStub->logicLayer);
+                extrapolatedPhiTree.add("<xmlattr>.refPhi", refStub->phiHw);
                 extrapolatedPhiTree.add("<xmlattr>.refPhiBHw", refStub->phiBHw);
+                extrapolatedPhiTree.add("<xmlattr>.refQuality", refStub->qualityHw);
                 extrapolatedPhiTree.add("<xmlattr>.iStub", iStub);
+                extrapolatedPhiTree.add("<xmlattr>.targetStubPhi", targetStub->phiHw);
+                extrapolatedPhiTree.add("<xmlattr>.targetStubPhiB", targetStub->phiBHw);
                 extrapolatedPhiTree.add("<xmlattr>.qualityHw", targetStub->qualityHw);
                 extrapolatedPhiTree.add("<xmlattr>.etaHw", targetStub->etaHw);
+                extrapolatedPhiTree.add("<xmlattr>.targetStubR", targetStub->r);
                 extrapolatedPhiTree.add("<xmlattr>.phiExtr", extrapolatedPhi[iStub]);
+
+                // Add scaleFactor for non-bending layers
+                if (iLayer == 1 || iLayer == 3 || iLayer == 5) {
+                  int scaleFactor = this->myOmtfConfig->omtfPhiUnit() * this->myOmtfConfig->dtPhiBUnitsRad() * 512;
+                  int deltaPhi_raw = targetStub->phiHw - refStub->phiHw;
+                  int deltaPhi_scaled = (deltaPhi_raw * scaleFactor) / 512;
+                  extrapolatedPhiTree.add("<xmlattr>.scaleFactor", scaleFactor);
+                  extrapolatedPhiTree.add("<xmlattr>.deltaPhi_raw", deltaPhi_raw);
+                  extrapolatedPhiTree.add("<xmlattr>.deltaPhi_scaled", deltaPhi_scaled);
+                }
 
                 if (this->myOmtfConfig->isBendingLayer(iLayer))
                   extrapolatedPhiTree.add("<xmlattr>.dist_phi", targetStub->phiBHw - extrapolatedPhi[iStub]);
