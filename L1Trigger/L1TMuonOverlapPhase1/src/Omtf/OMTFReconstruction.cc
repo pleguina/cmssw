@@ -5,6 +5,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLEventWriter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/HLSDigiExporter.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/DetailedDebugExporter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/CandidateSimMuonMatcher.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper2.h"
@@ -225,9 +226,30 @@ void OMTFReconstruction::addObservers(
       std::string csvOutputDir = "hls_test_input_digis";
       if (edmParameterSet.exists("csvOutputDir"))
         csvOutputDir = edmParameterSet.getParameter<std::string>("csvOutputDir");
-      
+
       observers.emplace_back(std::make_unique<HLSDigiExporter>(csvOutputDir));
       edm::LogInfo("OMTFReconstruction") << "Added HLS Digi Exporter with output dir: " << csvOutputDir;
+    }
+  }
+
+  // === ADD DETAILED DEBUG EXPORTER ===
+  if (edmParameterSet.exists("dumpDetailedDebug")) {
+    if (edmParameterSet.getParameter<bool>("dumpDetailedDebug")) {
+      int debugEventNumber = -1;
+      if (edmParameterSet.exists("debugEventNumber"))
+        debugEventNumber = edmParameterSet.getParameter<int>("debugEventNumber");
+
+      std::string debugOutputDir = "./";
+      if (edmParameterSet.exists("debugOutputDir"))
+        debugOutputDir = edmParameterSet.getParameter<std::string>("debugOutputDir");
+
+      if (debugEventNumber >= 0) {
+        observers.emplace_back(std::make_unique<DetailedDebugExporter>(omtfConfig.get(), debugEventNumber, debugOutputDir));
+        edm::LogInfo("OMTFReconstruction") << "Added Detailed Debug Exporter for event " << debugEventNumber
+                                           << " with output dir: " << debugOutputDir;
+      } else {
+        edm::LogWarning("OMTFReconstruction") << "dumpDetailedDebug is true but debugEventNumber is not set or invalid";
+      }
     }
   }
 

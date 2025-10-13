@@ -17,6 +17,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/StubResult.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/HLSDigiExporter.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/DetailedDebugExporter.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "DataFormats/MuonDetId/interface/DTChamberId.h"
@@ -1054,11 +1055,18 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
                                      <<" pdfVal "<<stubResult.getPdfVal()
                                      <<std::endl;*/
 
-        // Collect GP processing results for CSV export
+        // Collect GP processing results for CSV export and detailed debug
         for (auto& observer : observers) {
-          observer->observeGoldenPatternResults(iProcessor, iRefHit, aRefHitDef, 
-                                                itGP->key().theNumber, iLayer, 
+          observer->observeGoldenPatternResults(iProcessor, iRefHit, aRefHitDef,
+                                                itGP->key().theNumber, iLayer,
                                                 stubResult, stubResult.getPdfBin());
+
+          // Detailed debug export - capture all StubResult data
+          if (auto* detailedDebug = dynamic_cast<DetailedDebugExporter*>(observer.get())) {
+            detailedDebug->observeStubResult(iProcessor, iRefHit, aRefHitDef.iRefLayer, iLayer,
+                                             itGP->key().theNumber, itGP->key(),
+                                             stubResult, restrictedLayerStubs, extrapolatedPhi, refStub);
+          }
         }
 
         itGP->getResults()[procIndx][iRefHit].setStubResult(iLayer, stubResult);
@@ -1115,12 +1123,19 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
           LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<"__LINE__"<<itGP->getResults()[procIndx][iRefHit]<<std::endl;
         }
       }*/
-      
-      // Collect GP final results for CSV export
+
+      // Collect GP final results for CSV export and detailed debug
       auto gpResults = itGP->getResults()[procIndx];
       for (unsigned int iRefHit = 0; iRefHit < gpResults.size(); iRefHit++) {
         for (auto& observer : observers) {
           observer->observeGoldenPatternFinalResults(iProcessor, iGPIndex, itGP->key(), iRefHit, gpResults[iRefHit]);
+        }
+      }
+
+      // Detailed debug export - capture finalise results (algoMuons)
+      for (auto& observer : observers) {
+        if (auto* detailedDebug = dynamic_cast<DetailedDebugExporter*>(observer.get())) {
+          detailedDebug->observeFinaliseResults(iProcessor, itGP->key().theNumber, itGP->key(), gpResults);
         }
       }
       
