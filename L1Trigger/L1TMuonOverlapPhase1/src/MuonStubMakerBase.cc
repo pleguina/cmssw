@@ -280,6 +280,10 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
   // Track stub_order per (chamber_wrapped + logicLayer) combination
   // Key format: "chamber_X_layer_Y" where X is chamber_wrapped and Y is logicLayer
   std::map<std::string, int> cscStubOrder;
+  
+  // Track which stubs we've already captured to avoid duplicates
+  // Key: "layer_X_input_Y" uniquely identifies each stub position
+  std::set<std::string> capturedStubs;
 
   auto chamber = cscDigis->begin();
   auto chend = cscDigis->end();
@@ -369,74 +373,90 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
           unsigned int chamberWrapped = calculateCSCChamberWrapped(csc, iProcessor, procTyp, omtfConfigHw);
           cscDigi.add("<xmlattr>.chamber_wrapped", chamberWrapped);
         }
-        
-        // === ADD GOLDEN STUB DATA ===
-        // Check if a CSC stub was added to muonStubsInLayers
-        const OMTFConfiguration* omtfConfig = dynamic_cast<const OMTFConfiguration*>(config);
-        if (omtfConfig) {
-          unsigned int hwNumber = omtfConfig->getLayerNumber(rawid);
-          if (omtfConfig->getHwToLogicLayer().find(hwNumber) != omtfConfig->getHwToLogicLayer().end()) {
-            unsigned int iLayer = omtfConfig->getHwToLogicLayer().at(hwNumber);
-            if (iLayer < muonStubsInLayers.size()) {
-              unsigned int iInput = OMTFinputMaker::getInputNumber(omtfConfig, rawid, iProcessor, procTyp);
-              if (iInput < muonStubsInLayers[iLayer].size() && muonStubsInLayers[iLayer][iInput]) {
-                auto& stub = muonStubsInLayers[iLayer][iInput];
-                
-                // Add golden stub data to separate XML tree
-                auto& cscStub = cscStubsTree.add_child("CSCstub", boost::property_tree::ptree());
-                //cscStub.add("<xmlattr>.type", static_cast<int>(stub->type));
-                cscStub.add("<xmlattr>.logicLayer", stub->logicLayer);
-                cscStub.add("<xmlattr>.inputNumber", iInput);
-                cscStub.add("<xmlattr>.phiHw", stub->phiHw);
-                cscStub.add("<xmlattr>.etaHw", stub->etaHw);
-                cscStub.add("<xmlattr>.qualityHw", stub->qualityHw);
-                cscStub.add("<xmlattr>.phiBHw", stub->phiBHw);
-                cscStub.add("<xmlattr>.bx", stub->bx);
-                cscStub.add("<xmlattr>.timing", stub->timing);
-                cscStub.add("<xmlattr>.r", stub->r);
-                cscStub.add("<xmlattr>.detId", stub->detId);
-                
-                // Add CSC chamber identification fields
-                CSCDetId cscId(stub->detId);
-                cscStub.add("<xmlattr>.endcap", cscId.endcap());
-                cscStub.add("<xmlattr>.station", cscId.station());
-                cscStub.add("<xmlattr>.ring", cscId.ring());
-                cscStub.add("<xmlattr>.chamber", cscId.chamber());
-                cscStub.add("<xmlattr>.layer", cscId.layer());
-                
-                // Find hwNumber from logic layer and get hwName
-                unsigned int stubHwNumber = omtfConfig->getLogicToHwLayer().at(stub->logicLayer);
-                std::string hwName = getHwNameFromHwNumber(stubHwNumber);
-                cscStub.add("<xmlattr>.hwName", hwName);
-                
-                // Add chamber_wrapped for CSC hardware compatibility
+      }
+    }
+    
+    // === ADD GOLDEN STUB DATA ===
+    // Capture stubs once per chamber (after processing all digis from this chamber)
+    // Check if a CSC stub was added to muonStubsInLayers
+    const OMTFConfiguration* omtfConfig = dynamic_cast<const OMTFConfiguration*>(config);
+    if (omtfConfig) {
+      unsigned int hwNumber = omtfConfig->getLayerNumber(rawid);
+      if (omtfConfig->getHwToLogicLayer().find(hwNumber) != omtfConfig->getHwToLogicLayer().end()) {
+        unsigned int iLayer = omtfConfig->getHwToLogicLayer().at(hwNumber);
+        if (iLayer < muonStubsInLayers.size()) {
+          unsigned int baseInput = OMTFinputMaker::getInputNumber(omtfConfig, rawid, iProcessor, procTyp);
+          
+          // Check both baseInput and baseInput+1 for stubs (multiple digis from same chamber)
+          for (unsigned int inputOffset = 0; inputOffset < 2; ++inputOffset) {
+            unsigned int iInput = baseInput + inputOffset;
+            if (iInput >= muonStubsInLayers[iLayer].size() || !muonStubsInLayers[iLayer][iInput])
+              continue;
+            
+            // Check if this stub is from the current chamber's rawid
+            auto& stub = muonStubsInLayers[iLayer][iInput];
+            if (stub->detId != static_cast<int>(rawid))
+              continue;
+            
+            // Check if we've already captured this stub to avoid duplicates
+            std::string stubId = "layer_" + std::to_string(iLayer) + "_input_" + std::to_string(iInput);
+            if (capturedStubs.find(stubId) != capturedStubs.end())
+              continue;  // Already captured this stub
+            capturedStubs.insert(stubId);
+            
+            // Add golden stub data to separate XML tree
+            auto& cscStub = cscStubsTree.add_child("CSCstub", boost::property_tree::ptree());
+            //cscStub.add("<xmlattr>.type", static_cast<int>(stub->type));
+            cscStub.add("<xmlattr>.logicLayer", stub->logicLayer);
+            cscStub.add("<xmlattr>.inputNumber", iInput);
+            cscStub.add("<xmlattr>.phiHw", stub->phiHw);
+            cscStub.add("<xmlattr>.etaHw", stub->etaHw);
+            cscStub.add("<xmlattr>.qualityHw", stub->qualityHw);
+            cscStub.add("<xmlattr>.phiBHw", stub->phiBHw);
+            cscStub.add("<xmlattr>.bx", stub->bx);
+            cscStub.add("<xmlattr>.timing", stub->timing);
+            cscStub.add("<xmlattr>.r", stub->r);
+            cscStub.add("<xmlattr>.detId", stub->detId);
+            
+            // Add CSC chamber identification fields
+            CSCDetId cscId(stub->detId);
+            cscStub.add("<xmlattr>.endcap", cscId.endcap());
+            cscStub.add("<xmlattr>.station", cscId.station());
+            cscStub.add("<xmlattr>.ring", cscId.ring());
+            cscStub.add("<xmlattr>.chamber", cscId.chamber());
+            cscStub.add("<xmlattr>.layer", cscId.layer());
+            
+            // Find hwNumber from logic layer and get hwName
+            unsigned int stubHwNumber = omtfConfig->getLogicToHwLayer().at(stub->logicLayer);
+            std::string hwName = getHwNameFromHwNumber(stubHwNumber);
+            cscStub.add("<xmlattr>.hwName", hwName);
+            
+            // Add chamber_wrapped for CSC hardware compatibility
+            unsigned int chamberWrapped = calculateCSCChamberWrapped(cscId, iProcessor, procTyp, omtfConfig);
+            cscStub.add("<xmlattr>.chamber_wrapped", chamberWrapped);
+            
+            // Add stub_order based on (chamber_wrapped + logicLayer) combination
+            std::string stubKey = "chamber_" + std::to_string(chamberWrapped) + "_layer_" + std::to_string(stub->logicLayer);
+            int stubOrder = cscStubOrder[stubKey]++;
+            cscStub.add("<xmlattr>.stub_order", stubOrder);
+            
+            // Check if this is a reference layer stub and add to reference collection
+            const auto& refToLogicNumbers = omtfConfig->getRefToLogicNumber();
+            for (unsigned int iRefLayer = 0; iRefLayer < refToLogicNumbers.size(); ++iRefLayer) {
+              if (refToLogicNumbers[iRefLayer] == (int)stub->logicLayer) {
+                // This is a reference layer stub - add to reference collection
                 unsigned int chamberWrapped = calculateCSCChamberWrapped(cscId, iProcessor, procTyp, omtfConfig);
-                cscStub.add("<xmlattr>.chamber_wrapped", chamberWrapped);
+                unsigned int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, iInput, omtfConfig);
                 
-                // Add stub_order based on (chamber_wrapped + logicLayer) combination
-                std::string stubKey = "chamber_" + std::to_string(chamberWrapped) + "_layer_" + std::to_string(stub->logicLayer);
-                int stubOrder = cscStubOrder[stubKey]++;
-                cscStub.add("<xmlattr>.stub_order", stubOrder);
-                
-                // Check if this is a reference layer stub and add to reference collection
-                const auto& refToLogicNumbers = omtfConfig->getRefToLogicNumber();
-                for (unsigned int iRefLayer = 0; iRefLayer < refToLogicNumbers.size(); ++iRefLayer) {
-                  if (refToLogicNumbers[iRefLayer] == (int)stub->logicLayer) {
-                    // This is a reference layer stub - add to reference collection
-                    unsigned int chamberWrapped = calculateCSCChamberWrapped(cscId, iProcessor, procTyp, omtfConfig);
-                    unsigned int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, iInput, omtfConfig);
-                    
-                    MuonStubMakerBase::addGlobalReferenceStub("CSC", iProcessor, iRefLayer, stub->logicLayer, stub->phiHw, stub->phiBHw, stub->etaHw, 
-                                                             stub->qualityHw, stub->detId, hwName, cscId.endcap(), cscId.station(), 
-                                                             cscId.ring(), cscId.chamber(), chamberWrapped,
-                                                             -1, -1,  // DT fields: not applicable for CSC
-                                                             logicRegion);
-                    break; // Found the reference layer, no need to continue
-                  }
-                }
+                MuonStubMakerBase::addGlobalReferenceStub("CSC", iProcessor, iRefLayer, stub->logicLayer, stub->phiHw, stub->phiBHw, stub->etaHw, 
+                                                         stub->qualityHw, stub->detId, hwName, cscId.endcap(), cscId.station(), 
+                                                         cscId.ring(), cscId.chamber(), chamberWrapped,
+                                                         -1, -1,  // DT fields: not applicable for CSC
+                                                         logicRegion);
+                break; // Found the reference layer, no need to continue
               }
             }
-          }
+          }  // end of inputOffset loop
         }
       }
     }
@@ -489,6 +509,10 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
   // Track stub_order per (sector_wrapped/chamber_wrapped + logicLayer) combination
   // Key format: "sector_X_layer_Y" or "chamber_X_layer_Y"
   std::map<std::string, int> rpcStubOrder;
+  
+  // Track which stubs we've already captured to avoid duplicates
+  // Key: "layer_X_input_Y" uniquely identifies each stub position
+  std::set<std::string> capturedStubs;
 
   const RPCDigiCollection& rpcDigiCollection = *rpcDigis;
   for (auto rollDigis : rpcDigiCollection) {
@@ -562,135 +586,155 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
 
     for (auto& cluster : clusters) {
       addRPCstub(muonStubsInLayers, roll, cluster, iProcessor, procTyp);
-      
-      // === ADD GOLDEN STUB DATA FOR RPC ===
-      // Check if an RPC stub was added to muonStubsInLayers
-      const OMTFConfiguration* omtfConfig = dynamic_cast<const OMTFConfiguration*>(config);
-      if (omtfConfig) {
-        unsigned int hwNumber = omtfConfig->getLayerNumber(roll.rawId());
-        if (omtfConfig->getHwToLogicLayer().find(hwNumber) != omtfConfig->getHwToLogicLayer().end()) {
-          unsigned int iLayer = omtfConfig->getHwToLogicLayer().at(hwNumber);
-          if (iLayer < muonStubsInLayers.size()) {
-            unsigned int iInput = OMTFinputMaker::getInputNumber(omtfConfig, roll.rawId(), iProcessor, procTyp);
-            if (iInput < muonStubsInLayers[iLayer].size() && muonStubsInLayers[iLayer][iInput]) {
-              auto& stub = muonStubsInLayers[iLayer][iInput];
+    }
+    
+    // === ADD GOLDEN STUB DATA FOR RPC ===
+    // Check if RPC stubs were added to muonStubsInLayers
+    // Need to check after all clusters are processed to capture all stubs from this roll
+    const OMTFConfiguration* omtfConfig = dynamic_cast<const OMTFConfiguration*>(config);
+    if (omtfConfig) {
+      unsigned int hwNumber = omtfConfig->getLayerNumber(roll.rawId());
+      if (omtfConfig->getHwToLogicLayer().find(hwNumber) != omtfConfig->getHwToLogicLayer().end()) {
+        unsigned int iLayer = omtfConfig->getHwToLogicLayer().at(hwNumber);
+        if (iLayer < muonStubsInLayers.size()) {
+          unsigned int baseInput = OMTFinputMaker::getInputNumber(omtfConfig, roll.rawId(), iProcessor, procTyp);
+          
+          // Check up to 4 positions for RPC barrel (which can have 4 rolls), 2 for others
+          // Note: addStub() currently only adds up to 2 stubs, but checking 4 is future-proof
+          RPCDetId rpcId(roll.rawId());
+          unsigned int maxOffset = (rpcId.region() == 0) ? 4 : 2;  // 4 for barrel, 2 for endcap
+          
+          for (unsigned int inputOffset = 0; inputOffset < maxOffset; ++inputOffset) {
+            unsigned int iInput = baseInput + inputOffset;
+            if (iInput >= muonStubsInLayers[iLayer].size() || !muonStubsInLayers[iLayer][iInput])
+              continue;
+            
+            // Check if this stub is from the current roll's rawid
+            auto& stub = muonStubsInLayers[iLayer][iInput];
+            if (stub->detId != static_cast<int>(roll.rawId()))
+              continue;
+            
+            // Check if we've already captured this stub to avoid duplicates
+            std::string stubId = "layer_" + std::to_string(iLayer) + "_input_" + std::to_string(iInput);
+            if (capturedStubs.find(stubId) != capturedStubs.end())
+              continue;  // Already captured this stub
+            capturedStubs.insert(stubId);
+            
+            // Determine if this is barrel (region=0) or endcap (region!=0)
+            RPCDetId rpcId(roll.rawId());
+            bool isBarrel = (rpcId.region() == 0);
+            
+            // Add golden stub data to separate XML tree (RPCbStub for barrel, RPCeStub for endcap)
+            std::string stubNodeName = isBarrel ? "RPCbStub" : "RPCeStub";
+            auto& rpcStub = rpcStubsTree.add_child(stubNodeName, boost::property_tree::ptree());
+            // Add a textual type attribute indicating barrel/endcap RPC
+            // Determine RPC type from logicLayer: <10 => RPCb, >=10 => RPCe
+            rpcStub.add("<xmlattr>.logicLayer", stub->logicLayer);
+            rpcStub.add("<xmlattr>.inputNumber", iInput);
+            rpcStub.add("<xmlattr>.phiHw", stub->phiHw);
+            rpcStub.add("<xmlattr>.etaHw", stub->etaHw);
+            rpcStub.add("<xmlattr>.qualityHw", stub->qualityHw);
+            rpcStub.add("<xmlattr>.phiBHw", stub->phiBHw);
+            rpcStub.add("<xmlattr>.bx", stub->bx);
+            rpcStub.add("<xmlattr>.timing", stub->timing);
+            rpcStub.add("<xmlattr>.r", stub->r);
+            rpcStub.add("<xmlattr>.detId", stub->detId);
+            
+            // Add RPC detector identification fields
+            rpcStub.add("<xmlattr>.region", rpcId.region());
+            rpcStub.add("<xmlattr>.station", rpcId.station());
+            rpcStub.add("<xmlattr>.ring", rpcId.ring());
+            rpcStub.add("<xmlattr>.sector", rpcId.sector());
+            rpcStub.add("<xmlattr>.layer", rpcId.layer());
+            rpcStub.add("<xmlattr>.subsector", rpcId.subsector());
+            rpcStub.add("<xmlattr>.roll", rpcId.roll());
+            
+            // Find hwNumber from logic layer and get hwName
+            unsigned int stubHwNumber = omtfConfig->getLogicToHwLayer().at(stub->logicLayer);
+            std::string hwName = getHwNameFromHwNumber(stubHwNumber);
+            rpcStub.add("<xmlattr>.hwName", hwName);
+            
+            // Add wrapped field based on barrel/endcap
+            std::string stubKey;
+            if (isBarrel) {
+              // RPCb: Calculate sector_wrapped (0-4, like DT)
+              unsigned int sectorWrapped = calculateRPCSectorWrapped(rpcId, iProcessor, omtfConfig);
+              rpcStub.add("<xmlattr>.sector_wrapped", sectorWrapped);
+              rpcStub.add("<xmlattr>.chamber_wrapped", -1);
+              stubKey = "sector_" + std::to_string(sectorWrapped) + "_layer_" + std::to_string(stub->logicLayer);
+            } else {
+              // RPCe: Calculate chamber_wrapped (0-12, like CSC)
+              // For endcap RPC: effective chamber = (sector-1)*6 + subsector
+              unsigned int effectiveChamber = (rpcId.sector() - 1) * 6 + rpcId.subsector();
+              unsigned int aMin = omtfConfig->getEndcap10DegMin()[iProcessor];
               
-              // Determine if this is barrel (region=0) or endcap (region!=0)
-              RPCDetId rpcId(roll.rawId());
-              bool isBarrel = (rpcId.region() == 0);
-              
-              // Add golden stub data to separate XML tree (RPCbStub for barrel, RPCeStub for endcap)
-              std::string stubNodeName = isBarrel ? "RPCbStub" : "RPCeStub";
-              auto& rpcStub = rpcStubsTree.add_child(stubNodeName, boost::property_tree::ptree());
-              // Add a textual type attribute indicating barrel/endcap RPC
-              // Determine RPC type from logicLayer: <10 => RPCb, >=10 => RPCe
-              rpcStub.add("<xmlattr>.logicLayer", stub->logicLayer);
-              rpcStub.add("<xmlattr>.inputNumber", iInput);
-              rpcStub.add("<xmlattr>.phiHw", stub->phiHw);
-              rpcStub.add("<xmlattr>.etaHw", stub->etaHw);
-              rpcStub.add("<xmlattr>.qualityHw", stub->qualityHw);
-              rpcStub.add("<xmlattr>.phiBHw", stub->phiBHw);
-              rpcStub.add("<xmlattr>.bx", stub->bx);
-              rpcStub.add("<xmlattr>.timing", stub->timing);
-              rpcStub.add("<xmlattr>.r", stub->r);
-              rpcStub.add("<xmlattr>.detId", stub->detId);
-              
-              // Add RPC detector identification fields
-              rpcStub.add("<xmlattr>.region", rpcId.region());
-              rpcStub.add("<xmlattr>.station", rpcId.station());
-              rpcStub.add("<xmlattr>.ring", rpcId.ring());
-              rpcStub.add("<xmlattr>.sector", rpcId.sector());
-              rpcStub.add("<xmlattr>.layer", rpcId.layer());
-              rpcStub.add("<xmlattr>.subsector", rpcId.subsector());
-              rpcStub.add("<xmlattr>.roll", rpcId.roll());
-              
-              // Find hwNumber from logic layer and get hwName
-              unsigned int stubHwNumber = omtfConfig->getLogicToHwLayer().at(stub->logicLayer);
-              std::string hwName = getHwNameFromHwNumber(stubHwNumber);
-              rpcStub.add("<xmlattr>.hwName", hwName);
-              
-              // Add wrapped field based on barrel/endcap
-              std::string stubKey;
-              if (isBarrel) {
-                // RPCb: Calculate sector_wrapped (0-4, like DT)
-                unsigned int sectorWrapped = calculateRPCSectorWrapped(rpcId, iProcessor, omtfConfig);
-                rpcStub.add("<xmlattr>.sector_wrapped", sectorWrapped);
-                rpcStub.add("<xmlattr>.chamber_wrapped", -1);
-                stubKey = "sector_" + std::to_string(sectorWrapped) + "_layer_" + std::to_string(stub->logicLayer);
-              } else {
-                // RPCe: Calculate chamber_wrapped (0-12, like CSC)
-                // For endcap RPC: effective chamber = (sector-1)*6 + subsector
-                unsigned int effectiveChamber = (rpcId.sector() - 1) * 6 + rpcId.subsector();
-                unsigned int aMin = omtfConfig->getEndcap10DegMin()[iProcessor];
-                
-                // Handle boundary wrapping for last processor
-                if (iProcessor == (omtfConfig->nProcessors() - 1) && effectiveChamber < 5) {
-                  effectiveChamber += 36;  // 36 chambers total in 10-degree system
-                }
-                
-                unsigned int chamberWrapped = effectiveChamber - aMin;
-                rpcStub.add("<xmlattr>.sector_wrapped", -1);
-                rpcStub.add("<xmlattr>.chamber_wrapped", chamberWrapped);
-                stubKey = "chamber_" + std::to_string(chamberWrapped) + "_layer_" + std::to_string(stub->logicLayer);
+              // Handle boundary wrapping for last processor
+              if (iProcessor == (omtfConfig->nProcessors() - 1) && effectiveChamber < 5) {
+                effectiveChamber += 36;  // 36 chambers total in 10-degree system
               }
               
-              // Add stub_order based on (sector_wrapped/chamber_wrapped + logicLayer) combination
-              int stubOrder = rpcStubOrder[stubKey]++;
-              rpcStub.add("<xmlattr>.stub_order", stubOrder);
-              
-              // Check if this is a reference layer stub and add to reference collection
-              const auto& refToLogicNumbers = omtfConfig->getRefToLogicNumber();
-              for (unsigned int iRefLayer = 0; iRefLayer < refToLogicNumbers.size(); ++iRefLayer) {
-                if (refToLogicNumbers[iRefLayer] == (int)stub->logicLayer) {
-                  // This is a reference layer stub - add to reference collection
-                  RPCDetId rpcId(roll.rawId());
-                  unsigned int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, iInput, omtfConfig);
+              unsigned int chamberWrapped = effectiveChamber - aMin;
+              rpcStub.add("<xmlattr>.sector_wrapped", -1);
+              rpcStub.add("<xmlattr>.chamber_wrapped", chamberWrapped);
+              stubKey = "chamber_" + std::to_string(chamberWrapped) + "_layer_" + std::to_string(stub->logicLayer);
+            }
+            
+            // Add stub_order based on (sector_wrapped/chamber_wrapped + logicLayer) combination
+            int stubOrder = rpcStubOrder[stubKey]++;
+            rpcStub.add("<xmlattr>.stub_order", stubOrder);
+            
+            // Check if this is a reference layer stub and add to reference collection
+            const auto& refToLogicNumbers = omtfConfig->getRefToLogicNumber();
+            for (unsigned int iRefLayer = 0; iRefLayer < refToLogicNumbers.size(); ++iRefLayer) {
+              if (refToLogicNumbers[iRefLayer] == (int)stub->logicLayer) {
+                // This is a reference layer stub - add to reference collection
+                RPCDetId rpcId(roll.rawId());
+                unsigned int logicRegion = calculateLogicRegion(stub->phiHw, iRefLayer, iInput, omtfConfig);
+                
+                // RPC parameters depend on barrel vs endcap
+                // Initialize to -1 (not applicable) before setting detector-specific values
+                int cscRing = -1;
+                int cscChamber = -1;
+                int cscChamberWrapped = -1;
+                int dtSector = -1;
+                int dtSectorWrapped = -1;
+                
+                if (isBarrel) {
+                  // RPC Barrel: Use sector and sector_wrapped (like DT)
+                  dtSector = rpcId.sector();
+                  dtSectorWrapped = calculateRPCSectorWrapped(rpcId, iProcessor, omtfConfig);
+                  // CSC fields not applicable for barrel
+                  cscRing = -1;
+                  cscChamber = -1;
+                  cscChamberWrapped = -1;
+                } else {
+                  // RPC Endcap: Use chamber and chamber_wrapped (like CSC)
+                  // Effective chamber = (sector-1)*6 + subsector
+                  unsigned int effectiveChamber = (rpcId.sector() - 1) * 6 + rpcId.subsector();
+                  unsigned int aMin = omtfConfig->getEndcap10DegMin()[iProcessor];
                   
-                  // RPC parameters depend on barrel vs endcap
-                  // Initialize to -1 (not applicable) before setting detector-specific values
-                  int cscRing = -1;
-                  int cscChamber = -1;
-                  int cscChamberWrapped = -1;
-                  int dtSector = -1;
-                  int dtSectorWrapped = -1;
-                  
-                  if (isBarrel) {
-                    // RPC Barrel: Use sector and sector_wrapped (like DT)
-                    dtSector = rpcId.sector();
-                    dtSectorWrapped = calculateRPCSectorWrapped(rpcId, iProcessor, omtfConfig);
-                    // CSC fields not applicable for barrel
-                    cscRing = -1;
-                    cscChamber = -1;
-                    cscChamberWrapped = -1;
-                  } else {
-                    // RPC Endcap: Use chamber and chamber_wrapped (like CSC)
-                    // Effective chamber = (sector-1)*6 + subsector
-                    unsigned int effectiveChamber = (rpcId.sector() - 1) * 6 + rpcId.subsector();
-                    unsigned int aMin = omtfConfig->getEndcap10DegMin()[iProcessor];
-                    
-                    // Handle boundary wrapping for last processor
-                    if (iProcessor == (omtfConfig->nProcessors() - 1) && effectiveChamber < 5) {
-                      effectiveChamber += 36;  // 36 chambers total in 10-degree system
-                    }
-                    
-                    cscRing = rpcId.ring();
-                    cscChamber = effectiveChamber;
-                    cscChamberWrapped = effectiveChamber - aMin;
-                    // DT fields not applicable for endcap
-                    dtSector = -1;
-                    dtSectorWrapped = -1;
+                  // Handle boundary wrapping for last processor
+                  if (iProcessor == (omtfConfig->nProcessors() - 1) && effectiveChamber < 5) {
+                    effectiveChamber += 36;  // 36 chambers total in 10-degree system
                   }
                   
-                  MuonStubMakerBase::addGlobalReferenceStub("RPC", iProcessor, iRefLayer, stub->logicLayer, stub->phiHw, stub->phiBHw, stub->etaHw, 
-                                                           stub->qualityHw, stub->detId, hwName, rpcId.region(), rpcId.station(), 
-                                                           cscRing, cscChamber, cscChamberWrapped,  // CSC fields: for RPCe only
-                                                           dtSector, dtSectorWrapped,  // DT fields: for RPCb only
-                                                           logicRegion);
-                  break; // Found the reference layer, no need to continue
+                  cscRing = rpcId.ring();
+                  cscChamber = effectiveChamber;
+                  cscChamberWrapped = effectiveChamber - aMin;
+                  // DT fields not applicable for endcap
+                  dtSector = -1;
+                  dtSectorWrapped = -1;
                 }
+                
+                MuonStubMakerBase::addGlobalReferenceStub("RPC", iProcessor, iRefLayer, stub->logicLayer, stub->phiHw, stub->phiBHw, stub->etaHw, 
+                                                         stub->qualityHw, stub->detId, hwName, rpcId.region(), rpcId.station(), 
+                                                         cscRing, cscChamber, cscChamberWrapped,  // CSC fields: for RPCe only
+                                                         dtSector, dtSectorWrapped,  // DT fields: for RPCb only
+                                                         logicRegion);
+                break; // Found the reference layer, no need to continue
               }
             }
-          }
+          }  // end of inputOffset loop
         }
       }
     }
