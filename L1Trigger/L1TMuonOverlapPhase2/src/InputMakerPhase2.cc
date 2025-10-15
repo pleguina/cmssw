@@ -135,7 +135,7 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
           int phiValue = isBending ? stub->phiBHw : stub->phiHw;
           
           auto& dtStub = dtStubsTree.add_child("DTstub", boost::property_tree::ptree());
-          dtStub.add("<xmlattr>.type", static_cast<int>(stub->type));
+          //dtStub.add("<xmlattr>.type", static_cast<int>(stub->type));
           dtStub.add("<xmlattr>.logicLayer", iLayer);  // Use current iLayer, not stub->logicLayer
           dtStub.add("<xmlattr>.inputNumber", iInput);
           dtStub.add("<xmlattr>.phiHw", phiValue);  // Use transformed phi for bending layers
@@ -173,20 +173,29 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
   }
 
   // === ADD DATA TO XMLIOCACHE ===
-  // Add DT digis to cache
+  // Add DT digis to cache, naming as DTphi or DTtheta depending on node type
   for (const auto& digiNode : dtDigisTree) {
-    xmlCache.addDigi(iProcessor, "DT", digiNode.second);
+    const std::string& nodeName = digiNode.first;
+    if (nodeName == "dtP2PhiDigi") {
+      xmlCache.addDigi(iProcessor, "DTphi", digiNode.second);
+    } else if (nodeName == "dtP2ThDigi") {
+      xmlCache.addDigi(iProcessor, "DTtheta", digiNode.second);
+    } else {
+      xmlCache.addDigi(iProcessor, "DT", digiNode.second);
+    }
   }
 
   // Add DT stubs to cache
   for (const auto& stubNode : dtStubsTree) {
     const auto& stubAttrs = stubNode.second;
     omtf::StubRecord srec;
-    srec.type = "DT";
+    // Determine if this stub is from a bending layer
+    int logicLayer = stubAttrs.get<int>("<xmlattr>.logicLayer");
+    std::string stubType = isBendingLayer(logicLayer) ? "DTb" : "DT";
+    srec.type = stubType;
 
     // Extract key fields from attributes
     unsigned int detId = stubAttrs.get<unsigned int>("<xmlattr>.detId");
-    int logicLayer = stubAttrs.get<int>("<xmlattr>.logicLayer");
     int inputNumber = stubAttrs.get<int>("<xmlattr>.inputNumber");
     int bx = stubAttrs.get<int>("<xmlattr>.bx");
 

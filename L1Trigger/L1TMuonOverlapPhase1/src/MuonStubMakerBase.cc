@@ -347,7 +347,7 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
         cscDigi.add("<xmlattr>.clctPattern", digi->getCLCTPattern());
         cscDigi.add("<xmlattr>.stripType", digi->getStripType());
         cscDigi.add("<xmlattr>.bxData", digi->getBXData());
-        cscDigi.add("<xmlattr>.type", digi->getType());
+        //cscDigi.add("<xmlattr>.type", digi->getType());
         
         // CSC angle conversion parameters
         CscConversionInfo convInfo = getCscConversionInfo(rawid, *digi, iProcessor, procTyp);
@@ -384,7 +384,7 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                 
                 // Add golden stub data to separate XML tree
                 auto& cscStub = cscStubsTree.add_child("CSCstub", boost::property_tree::ptree());
-                cscStub.add("<xmlattr>.type", static_cast<int>(stub->type));
+                //cscStub.add("<xmlattr>.type", static_cast<int>(stub->type));
                 cscStub.add("<xmlattr>.logicLayer", stub->logicLayer);
                 cscStub.add("<xmlattr>.inputNumber", iInput);
                 cscStub.add("<xmlattr>.phiHw", stub->phiHw);
@@ -582,7 +582,8 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
               // Add golden stub data to separate XML tree (RPCbStub for barrel, RPCeStub for endcap)
               std::string stubNodeName = isBarrel ? "RPCbStub" : "RPCeStub";
               auto& rpcStub = rpcStubsTree.add_child(stubNodeName, boost::property_tree::ptree());
-              rpcStub.add("<xmlattr>.type", static_cast<int>(stub->type));
+              // Add a textual type attribute indicating barrel/endcap RPC
+              // Determine RPC type from logicLayer: <10 => RPCb, >=10 => RPCe
               rpcStub.add("<xmlattr>.logicLayer", stub->logicLayer);
               rpcStub.add("<xmlattr>.inputNumber", iInput);
               rpcStub.add("<xmlattr>.phiHw", stub->phiHw);
@@ -721,11 +722,18 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
   for (const auto& stubNode : rpcStubsTree) {
     const auto& stubAttrs = stubNode.second;
     omtf::StubRecord srec;
-    srec.type = "RPC";
+  
+    //srec.type = "RPC";
 
     // Extract key fields from attributes
     unsigned int detId = stubAttrs.get<unsigned int>("<xmlattr>.detId");
     int logicLayer = stubAttrs.get<int>("<xmlattr>.logicLayer");
+    if (logicLayer < 15) {
+      srec.type = "RPCb";  // Barrel RPC
+    } else {
+      srec.type = "RPCe";  // Endcap RPC
+    }
+
     int inputNumber = stubAttrs.get<int>("<xmlattr>.inputNumber");
     int bx = stubAttrs.get<int>("<xmlattr>.bx");
 

@@ -871,7 +871,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
         const auto& stub = layerStubs[iStub];
         if (stub) { // Only add non-empty stubs
           auto& stubTree = refHitTree.add_child("stub", boost::property_tree::ptree());
-          stubTree.add("<xmlattr>.iStub", iStub);
+          //stubTree.add("<xmlattr>.iStub", iStub);
           stubTree.add("<xmlattr>.iLayer", iLayer);
           
           // Calculate inputNumber from iStub using connections config
@@ -1215,7 +1215,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       obs->addProcesorData("referenceHits", referenceHitsTree);
 
       // Keep extrapolation tree for backwards compatibility
-      obs->addProcesorData("extrapolation", procDataTree);
+      //obs->addProcesorData("extrapolation", procDataTree);
     }
   }
 
