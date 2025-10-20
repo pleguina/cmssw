@@ -211,19 +211,19 @@ int OmtfAngleConverter::getGlobalEta(unsigned int rawid, const CSCCorrelatedLCTD
   const GlobalPoint gpWg = layer->surface().toGlobal(lpWg);
   r = round(gpWg.perp());
 
-  std::cout << "DEBUG: OmtfAngleConverter::getGlobalEta called for CSC rawid=" << rawid 
-            << " keyWG=" << keyWG << " stubEtaEncoding=" << (int)config->getStubEtaEncoding() << std::endl;
+  //std::cout << "DEBUG: OmtfAngleConverter::getGlobalEta called for CSC rawid=" << rawid 
+  //          << " keyWG=" << keyWG << " stubEtaEncoding=" << (int)config->getStubEtaEncoding() << std::endl;
   
   if (config->getStubEtaEncoding() == ProcConfigurationBase::StubEtaEncoding::bits) {
     int etaCode = abs(etaKeyWG2Code(id, keyWG));
-    std::cout << "DEBUG: Using lookup table, etaCode=" << etaCode << std::endl;
+    //std::cout << "DEBUG: Using lookup table, etaCode=" << etaCode << std::endl;
     return etaCode;
   } else if (config->getStubEtaEncoding() == ProcConfigurationBase::StubEtaEncoding::valueP1Scale) {
     int geometricEta = config->etaToHwEta(abs(gpWg.eta()));
-    std::cout << "DEBUG: Using geometric method, geometricEta=" << geometricEta << std::endl;
+    //std::cout << "DEBUG: Using geometric method, geometricEta=" << geometricEta << std::endl;
     return geometricEta;
   } else {
-    std::cout << "DEBUG: Unknown stubEtaEncoding, returning 0" << std::endl;
+    //std::cout << "DEBUG: Unknown stubEtaEncoding, returning 0" << std::endl;
     return 0;
   }
 }

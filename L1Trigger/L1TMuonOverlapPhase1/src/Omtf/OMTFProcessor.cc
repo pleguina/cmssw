@@ -600,12 +600,12 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
   }
   // ==========================================================================
 
-  if (targetLayer == 0 || targetLayer == 2 || targetLayer == 4) {
+  if (targetLayer == 0 || targetLayer == 2 || targetLayer == 4) { //non-bending layers
     if (useStubQualInExtr)
       extrFactor = extrapolFactors[reflLayerIndex][targetLayer][targetStubQuality];
     else
       extrFactor = extrapolFactors[reflLayerIndex][targetLayer][0];
-  } else if (targetLayer == 1 || targetLayer == 3 || targetLayer == 5) {
+  } else if (targetLayer == 1 || targetLayer == 3 || targetLayer == 5) { //bending layers
     int deltaPhi = targetStubPhi - refPhi;  //here targetStubPhi is phi, not phiB
 
     int scaleFactor = this->myOmtfConfig->omtfPhiUnit() * this->myOmtfConfig->dtPhiBUnitsRad() * 512;
@@ -625,8 +625,15 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
       //TODO change to targetStubR when it is implemented in the FW
       //extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubEta)];
       extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubR)];
+      LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " CSC/RPC lookup with R: reflLayerIndex=" 
+                                    << reflLayerIndex << " targetLayer=" << targetLayer << " R=" << abs(targetStubR)
+                                    << " extrFactor=" << extrFactor << std::endl;
     } else {
-      extrFactor = extrapolFactors[reflLayerIndex][targetLayer][0];
+      // Use eta as key when useEndcapStubsRInExtr is false (matches XML KeyType="eta")
+      extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubEta)];
+      LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " CSC/RPC lookup with ETA: reflLayerIndex=" 
+                                    << reflLayerIndex << " targetLayer=" << targetLayer << " eta=" << abs(targetStubEta)
+                                    << " extrFactor=" << extrFactor << std::endl;
     }
   }
 
@@ -680,6 +687,140 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const MuonStubPtr& refSt
                                                                        targetStub->r,
                                                                        omtfConfig);
 }
+
+///////////////////////////////////////////////
+// Helper functions for outputSlot calculation
+///////////////////////////////////////////////
+
+// Get the number of inputs per sector for a given layer
+// Returns 2 for DT/CSC/RB3/RPCe, 4 for RB1/RB2
+unsigned int getInputsPerSector(unsigned int layer) {
+  // Layers 0-5: DT -> 2 inputs per sector
+  // Layers 6-9: CSC -> 2 inputs per sector  
+  // Layers 10-11: RB1in, RB1out -> 4 inputs per sector
+  // Layers 12-13: RB2in, RB2out -> 4 inputs per sector
+  // Layer 14: RB3 -> 2 inputs per sector
+  // Layers 15-17: RPCe -> 2 inputs per sector
+  
+  if (layer >= 10 && layer <= 13) {
+    return 4;  // RB1 and RB2
+  }
+  return 2;  // DT, CSC, RB3, RPCe
+}
+
+// Get the batch size (depth per channel) for a given layer
+// Returns 2 for DT/CSC/RB3/RPCe, 4 for RPC Barrel (RB1/RB2)
+unsigned int getBatchSize(unsigned int layer) {
+  // Layers 0-5: DT -> batch size 2
+  // Layers 6-9: CSC -> batch size 2
+  // Layers 10-13: RPC Barrel (RB1, RB2) -> batch size 4
+  // Layer 14: RB3 -> batch size 2
+  // Layers 15-17: RPC Endcap -> batch size 2
+  
+  if (layer >= 10 && layer <= 13) {
+    return 4;  // RPC Barrel (RB1in, RB1out, RB2in, RB2out)
+  }
+  return 2;  // DT, CSC, RB3, RPC Endcap
+}
+
+// Get the physical channel from a stub (sector_wrapped or chamber_wrapped)
+int getPhysicalChannel(const MuonStubPtr& stub, int sector_wrapped, int chamber_wrapped) {
+  // Return whichever one is not -1
+  if (sector_wrapped != -1) {
+    return sector_wrapped;
+  } else if (chamber_wrapped != -1) {
+    return chamber_wrapped;
+  }
+  return -1;
+}
+
+// Calculate outputSlot for a stub
+// Returns -1 if calculation fails (stub should be skipped)
+int calculateOutputSlot(unsigned int iProcessor,
+                       unsigned int iRegion, 
+                       unsigned int iLayer,
+                       unsigned int inputNumber,
+                       int sector_wrapped,
+                       int chamber_wrapped,
+                       const OMTFConfiguration* omtfConfig,
+                       std::map<std::tuple<unsigned int, unsigned int, int>, int>& batchIndexMap) {
+  // Get connection info: pair<iFirstInput, nInputs>
+  auto& connections = omtfConfig->getConnections();
+  if (iProcessor >= connections.size() || 
+      iRegion >= connections[iProcessor].size() || 
+      iLayer >= connections[iProcessor][iRegion].size()) {
+    return -1;  // Out of bounds
+  }
+  
+  auto& conn = connections[iProcessor][iRegion][iLayer];
+  unsigned int firstInput = conn.first;
+  unsigned int nInputs = conn.second;
+  
+  // For DT/RPCb, use sector_wrapped as the physical channel
+  // For CSC/RPCe, use chamber_wrapped as the physical channel
+  // This ensures bending layers (which share the same sector/chamber) get the same slot
+  int physChannel = (sector_wrapped != -1) ? sector_wrapped : chamber_wrapped;
+  if (physChannel == -1) {
+    std::cout << "DEBUG outputSlot=-1: NO physChannel (both sector_wrapped and chamber_wrapped are -1) "
+              << "iProc=" << iProcessor << " iReg=" << iRegion << " iLay=" << iLayer << std::endl;
+    return -1;  // No valid physical channel
+  }
+  
+  // Calculate selected channels using Python algorithm
+  unsigned int inputsPerSector = getInputsPerSector(iLayer);
+  unsigned int firstChannel = firstInput / inputsPerSector;
+  unsigned int lastInput = firstInput + nInputs - 1;
+  unsigned int lastChannel = lastInput / inputsPerSector;
+  
+  // Build set of selected channels
+  std::vector<unsigned int> selectedChannels;
+  for (unsigned int ch = firstChannel; ch <= lastChannel; ch++) {
+    selectedChannels.push_back(ch);
+  }
+  
+  // Find channel index (ci) - position of physChannel in selectedChannels
+  int channelIndex = -1;
+  for (size_t i = 0; i < selectedChannels.size(); i++) {
+    if (selectedChannels[i] == static_cast<unsigned int>(physChannel)) {
+      channelIndex = static_cast<int>(i);
+      break;
+    }
+  }
+  
+  if (channelIndex == -1) {
+    std::cout << "DEBUG outputSlot=-1: physChannel=" << physChannel 
+              << " NOT in selectedChannels [";
+    for (size_t i = 0; i < selectedChannels.size(); i++) {
+      std::cout << selectedChannels[i];
+      if (i < selectedChannels.size()-1) std::cout << ",";
+    }
+    std::cout << "] iProc=" << iProcessor << " iReg=" << iRegion << " iLay=" << iLayer
+              << " firstIn=" << firstInput << " nIn=" << nInputs << std::endl;
+    return -1;  // Physical channel not in selected channels
+  }
+  
+  // Get or increment batch index (bi)
+  auto key = std::make_tuple(iRegion, iLayer, physChannel);
+  int batchIndex = batchIndexMap[key]++;
+  
+  // Calculate outputSlot = ci * BATCH + bi
+  unsigned int batchSize = getBatchSize(iLayer);
+  int outputSlot = channelIndex * batchSize + batchIndex;
+  
+  // Verify bounds: maximum is for RPC Barrel which has most channels/depth
+  // Maximum outputSlot should be less than nInputs (which is the total capacity for this region/layer)
+  if (outputSlot >= static_cast<int>(nInputs)) {
+    std::cout << "DEBUG outputSlot=-1 BOUNDS: slot=" << outputSlot 
+              << " >= nIn=" << nInputs
+              << " iProc=" << iProcessor << " iReg=" << iRegion << " iLay=" << iLayer
+              << " physCh=" << physChannel << " ci=" << channelIndex
+              << " bi=" << batchIndex << " BATCH=" << batchSize << std::endl;
+    return -1;  // Out of bounds
+  }
+  
+  return outputSlot;
+}
+
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 //const std::vector<OMTFProcessor::resultsMap> &
@@ -728,11 +869,17 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
   // Key format: "sector_X_layer_Y" or "chamber_X_layer_Y" where X is wrapped value and Y is logicLayer
   std::map<std::string, int> refHitWrappedOrder;
   
+  // Track batch index for outputSlot calculation
+  // Key: tuple<iRegion, iLayer, physicalChannel>, Value: batch index counter
+  std::map<std::tuple<unsigned int, unsigned int, int>, int> batchIndexMap;
+  
   // New: Collect reference hits data for HLS export BEFORE the main processing loops
   // This creates one row per reference hit with all layer data combined
   for (unsigned int iRefHit = 0; iRefHit < refHitDefs.size(); iRefHit++) {
     // Reset stub_order counter for each reference hit
     refHitWrappedOrder.clear();
+    // Reset batch index map for each reference hit
+    batchIndexMap.clear();
     
     const RefHitDef& aRefHitDef = *(refHitDefs[iRefHit]);
     unsigned int iRegion = aRefHitDef.iRegion;
@@ -941,6 +1088,15 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
           std::string stubKey = "wrapped_" + std::to_string(wrappedValue) + "_layer_" + std::to_string(iLayer);
           int stub_order = refHitWrappedOrder[stubKey]++;
           stubTree.add("<xmlattr>.stub_order", stub_order);
+          
+          // Calculate and add outputSlot
+          // Use inputNumber directly - it already accounts for the layer configuration
+          // For bending layers, the stub comes from the connected layer and inputNumber
+          // is calculated relative to that layer's iFirstInput
+          int outputSlot = calculateOutputSlot(iProcessor, iRegion, iLayer, inputNumber,
+                                               stubSectorWrapped, stubChamberWrapped,
+                                               this->myOmtfConfig, batchIndexMap);
+          stubTree.add("<xmlattr>.outputSlot", outputSlot);
         }
       }
     }
@@ -1024,13 +1180,36 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
                 calcTree.add("<xmlattr>.targetStubEta", targetStub->etaHw);
                 calcTree.add("<xmlattr>.targetStubR", targetStub->r);
 
-                if (iLayer == 1 || iLayer == 3 || iLayer == 5) {
+                // Calculate and add extrapolation factor
+                int reflLayerIndex = refStub->logicLayer == 0 ? 0 : 1;
+                int extrFactor = 0;
+                
+                if (iLayer == 0 || iLayer == 2 || iLayer == 4) { // non-bending layers
+                  if (useStubQualInExtr)
+                    extrFactor = extrapolFactors[reflLayerIndex][iLayer][targetStub->qualityHw];
+                  else
+                    extrFactor = extrapolFactors[reflLayerIndex][iLayer][0];
+                  calcTree.add("<xmlattr>.extrFactor", extrFactor);
+                } else if (iLayer == 1 || iLayer == 3 || iLayer == 5) { // bending layers
                   int scaleFactor = this->myOmtfConfig->omtfPhiUnit() * this->myOmtfConfig->dtPhiBUnitsRad() * 512;
                   int deltaPhi_raw = targetStub->phiHw - refStub->phiHw;
                   int deltaPhi_scaled = (deltaPhi_raw * scaleFactor) / 512;
                   calcTree.add("<xmlattr>.scaleFactor", scaleFactor);
                   calcTree.add("<xmlattr>.deltaPhi_raw", deltaPhi_raw);
                   calcTree.add("<xmlattr>.deltaPhi_scaled", deltaPhi_scaled);
+                  // For bending layers, extrFactor is not used (calculation is direct)
+                  calcTree.add("<xmlattr>.extrFactor", 0); // N/A for bending layers
+                } else if (iLayer >= 10 && iLayer <= 14) {
+                  extrFactor = extrapolFactors[reflLayerIndex][iLayer][0];
+                  calcTree.add("<xmlattr>.extrFactor", extrFactor);
+                } else if ((iLayer >= 6 && iLayer <= 9) || (iLayer >= 15 && iLayer <= 17)) {
+                  if (useEndcapStubsRInExtr) {
+                    extrFactor = extrapolFactors[reflLayerIndex][iLayer][abs(targetStub->r)];
+                  } else {
+                    // Use eta as key when useEndcapStubsRInExtr is false (matches XML KeyType="eta")
+                    extrFactor = extrapolFactors[reflLayerIndex][iLayer][abs(targetStub->etaHw)];
+                  }
+                  calcTree.add("<xmlattr>.extrFactor", extrFactor);
                 }
 
                 calcTree.add("<xmlattr>.phiExtr", extrapolatedPhi[iStub]);

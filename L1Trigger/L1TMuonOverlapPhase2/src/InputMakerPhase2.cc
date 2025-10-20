@@ -69,6 +69,10 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
   }
 
   for (auto& thetaDigi : (*(dtThDigis->getContainer()))) {
+    // Skip station 4 digis (MB4) - not supported in OMTF
+    if (thetaDigi.stNum() == 4)
+      continue;
+
     if (thetaDigi.bxNum() - 20 >= bxFrom && thetaDigi.bxNum() - 20 <= bxTo) {
       if (!mergePhiAndTheta) {
         addDTetaStubs(muonStubsInLayers, thetaDigi, iProcessor, procTyp);

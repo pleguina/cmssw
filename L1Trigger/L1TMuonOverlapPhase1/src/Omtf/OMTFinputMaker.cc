@@ -108,9 +108,9 @@ void CscDigiToStubsConverterOmtf::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers,
   
   // Debug: Check CSC stub etaHw assignment
   CSCDetId cscId(rawid);
-  std::cout << "DEBUG: CSC stub created - rawid=" << rawid << " station=" << cscId.station() 
-            << " ring=" << cscId.ring() << " keyWG=" << digi.getKeyWG() << " -> etaHw=" << stub.etaHw << std::endl;
-  edm::LogVerbatim("OMTFReconstruction") << "CSC stub created: station=" << cscId.station() << " ring=" << cscId.ring() << " keyWG=" << digi.getKeyWG() << " -> etaHw=" << stub.etaHw;
+  /* std::cout << "DEBUG: CSC stub created - rawid=" << rawid << " station=" << cscId.station() 
+            << " ring=" << cscId.ring() << " keyWG=" << digi.getKeyWG() << " -> etaHw=" << stub.etaHw << std::endl; */
+  //edm::LogVerbatim("OMTFReconstruction") << "CSC stub created: station=" << cscId.station() << " ring=" << cscId.ring() << " keyWG=" << digi.getKeyWG() << " -> etaHw=" << stub.etaHw;
   
   stub.r = round(r);
   stub.phiBHw = digi.getPattern();  //TODO change to phiB when implemented
