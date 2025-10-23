@@ -13,6 +13,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/StubResult.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternResult.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/FinalMuon.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
@@ -63,9 +64,7 @@ public:
       edm::LogInfo("DetailedDebugExporter") << "Target event ID=" << currentEventNumber_
                                             << " detected - capturing detailed debug info";
       debugTree_ = boost::property_tree::ptree();
-      debugTree_.add("<xmlattr>.eventID", currentEventNumber_);
-      debugTree_.add("<xmlattr>.run", iEvent.id().run());
-      debugTree_.add("<xmlattr>.lumi", iEvent.id().luminosityBlock());
+      // Don't add attributes here - will be added in writeDebugXML with proper structure
     }
   }
 
@@ -78,6 +77,28 @@ public:
     }
   }
 
+  // Capture restricted stubs for each refHit
+  void observeRestrictedStubs(unsigned int iProcessor,
+                             unsigned int iRefHit,
+                             unsigned int iRefLayer,
+                             const MuonStubPtrs2D& restrictedStubs,
+                             const std::vector<std::pair<unsigned int, std::vector<int>>>& extrapolatedPhis,
+                             const MuonStubPtr& refStub) {
+    if (!isTargetEvent_)
+      return;
+
+    // Build hierarchical path for this refHit
+    std::ostringstream refHitKey;
+    refHitKey << "proc" << iProcessor << "_refHit" << iRefHit;
+
+    // Store restricted stubs for this refHit (will be added to XML later)
+    restrictedStubsPerRefHit_[refHitKey.str()] = std::make_tuple(iRefLayer, restrictedStubs, extrapolatedPhis, refStub);
+    
+    std::cout << "DetailedDebugExporter: Stored restricted stubs for " << refHitKey.str() 
+              << " iRefLayer=" << iRefLayer 
+              << " nLayers=" << restrictedStubs.size() << std::endl;
+  }
+
   // Capture process1Layer1RefLayer results
   void observeStubResult(unsigned int iProcessor,
                          unsigned int iRefHit,
@@ -88,7 +109,8 @@ public:
                          const StubResult& stubResult,
                          const MuonStubPtrs1D& layerStubs,
                          const std::vector<int>& extrapolatedPhi,
-                         const MuonStubPtr& refStub) {
+                         const MuonStubPtr& refStub,
+                         const GoldenPatternBase* goldenPattern) {
     if (!isTargetEvent_)
       return;
 
@@ -101,7 +123,7 @@ public:
     // Add pattern info (only once per pattern)
     if (layerResults_[pathKey.str()].empty()) {
       boost::property_tree::ptree& processorNode = getOrCreateNode("processor", iProcessor);
-      boost::property_tree::ptree& refHitNode = getOrCreateNode(processorNode, "refHit", iRefHit);
+      boost::property_tree::ptree& refHitNode = getOrCreateNode(processorNode, "referenceHit", iRefHit);
       boost::property_tree::ptree& patternNode = getOrCreateNode(refHitNode, "pattern", patternNumber);
 
       patternNode.add("<xmlattr>.patternNumber", patternNumber);
@@ -113,11 +135,11 @@ public:
       // Add reference stub info
       if (refStub) {
         boost::property_tree::ptree refStubNode;
-        refStubNode.add("<xmlattr>.phiHw", refStub->phiHw);
-        refStubNode.add("<xmlattr>.etaHw", refStub->etaHw);
-        refStubNode.add("<xmlattr>.phiBHw", refStub->phiBHw);
-        refStubNode.add("<xmlattr>.quality", refStub->qualityHw);
-        refStubNode.add("<xmlattr>.logicLayer", refStub->logicLayer);
+        refStubNode.add("<xmlattr>.refPhi", refStub->phiHw);
+        refStubNode.add("<xmlattr>.refEta", refStub->etaHw);
+        refStubNode.add("<xmlattr>.refPhiB", refStub->phiBHw);
+        refStubNode.add("<xmlattr>.refQuality", refStub->qualityHw);
+        refStubNode.add("<xmlattr>.refLogicLayer", refStub->logicLayer);
         refStubNode.add("<xmlattr>.detId", refStub->detId);
         patternNode.add_child("refStub", refStubNode);
       }
@@ -129,6 +151,20 @@ public:
     stubResultNode.add("<xmlattr>.pdfVal", stubResult.getPdfVal());
     stubResultNode.add("<xmlattr>.pdfBin", stubResult.getPdfBin());
     stubResultNode.add("<xmlattr>.deltaPhi", stubResult.getDeltaPhi());
+    
+    // Add phiDistMin (raw distance before pdfMiddle offset)
+    // pdfMiddle = 1 << (nPdfAddrBits - 1) = 64 for nPdfAddrBits=7
+    int pdfMiddle = 1 << (omtfConfig_->nPdfAddrBits() - 1);
+    int phiDistMin = stubResult.getPdfBin() - pdfMiddle;
+    stubResultNode.add("<xmlattr>.phiDistMin", phiDistMin);
+
+    // Add meanDistPhi and shift from the golden pattern
+    if (goldenPattern && refStub) {
+      int meanDistPhi = goldenPattern->meanDistPhiValue(iLayer, iRefLayer, refStub->phiBHw);
+      int shift = goldenPattern->getDistPhiBitShift(iLayer, iRefLayer);
+      stubResultNode.add("<xmlattr>.meanDistPhi", meanDistPhi);
+      stubResultNode.add("<xmlattr>.shift", shift);
+    }
 
     // Add stub info if present
     if (stubResult.getMuonStub()) {
@@ -237,6 +273,79 @@ private:
   }
 
   void writeDebugXML() {
+    // First, add restricted stubs to refHit nodes
+    for (const auto& entry : restrictedStubsPerRefHit_) {
+      // Parse the key: procX_refHitY
+      std::string key = entry.first;
+      size_t procPos = key.find("proc");
+      size_t refHitPos = key.find("_refHit");
+
+      if (procPos == std::string::npos || refHitPos == std::string::npos)
+        continue;
+
+      unsigned int iProc = std::stoi(key.substr(procPos + 4, refHitPos - (procPos + 4)));
+      unsigned int iRefHit = std::stoi(key.substr(refHitPos + 7));
+
+      const auto& data = entry.second;
+      unsigned int iRefLayer = std::get<0>(data);
+      const auto& restrictedStubs = std::get<1>(data);
+      const auto& extrapolatedPhis = std::get<2>(data);
+      const auto& refStub = std::get<3>(data);
+
+      boost::property_tree::ptree& procNode = getOrCreateNode("processor", iProc);
+      boost::property_tree::ptree& refHitNode = getOrCreateNode(procNode, "referenceHit", iRefHit);
+
+      // Add reference stub attributes directly to referenceHit tag
+      refHitNode.add("<xmlattr>.iRefLayer", iRefLayer);
+      if (refStub) {
+        refHitNode.add("<xmlattr>.refPhi", refStub->phiHw);
+        refHitNode.add("<xmlattr>.refEta", refStub->etaHw);
+        refHitNode.add("<xmlattr>.refPhiB", refStub->phiBHw);
+        refHitNode.add("<xmlattr>.refQuality", refStub->qualityHw);
+        refHitNode.add("<xmlattr>.refLogicLayer", refStub->logicLayer);
+      }
+
+      // Add restricted stubs section
+      boost::property_tree::ptree restrictedStubsNode;
+
+      // Add stubs from all layers
+      for (unsigned int iLayer = 0; iLayer < restrictedStubs.size(); ++iLayer) {
+        const auto& layerStubs = restrictedStubs[iLayer];
+        
+        // Find extrapolated phi for this layer
+        std::vector<int> layerExtrapolatedPhi;
+        for (const auto& pair : extrapolatedPhis) {
+          if (pair.first == iLayer) {
+            layerExtrapolatedPhi = pair.second;
+            break;
+          }
+        }
+
+        for (size_t iStub = 0; iStub < layerStubs.size(); ++iStub) {
+          const auto& stub = layerStubs[iStub];
+          if (stub) {
+            boost::property_tree::ptree stubNode;
+            stubNode.add("<xmlattr>.iLayer", iLayer);
+            stubNode.add("<xmlattr>.inputNumber", iStub);
+            stubNode.add("<xmlattr>.phi", stub->phiHw);
+            stubNode.add("<xmlattr>.phiB", stub->phiBHw);
+            stubNode.add("<xmlattr>.eta", stub->etaHw);
+            stubNode.add("<xmlattr>.quality", stub->qualityHw);
+            stubNode.add("<xmlattr>.logicLayer", stub->logicLayer);
+            stubNode.add("<xmlattr>.detId", stub->detId);
+            
+            if (iStub < layerExtrapolatedPhi.size()) {
+              stubNode.add("<xmlattr>.extrapolatedPhi", layerExtrapolatedPhi[iStub]);
+            }
+            
+            restrictedStubsNode.add_child("stub", stubNode);
+          }
+        }
+      }
+
+      refHitNode.add_child("restrictedStubs", restrictedStubsNode);
+    }
+
     // Merge layer results into debug tree
     for (const auto& entry : layerResults_) {
       // Parse the key: procX_refHitY_patternZ
@@ -253,7 +362,7 @@ private:
       unsigned int iPattern = std::stoi(key.substr(patternPos + 8));
 
       boost::property_tree::ptree& procNode = getOrCreateNode("processor", iProc);
-      boost::property_tree::ptree& refHitNode = getOrCreateNode(procNode, "refHit", iRefHit);
+      boost::property_tree::ptree& refHitNode = getOrCreateNode(procNode, "referenceHit", iRefHit);
       boost::property_tree::ptree& patternNode = getOrCreateNode(refHitNode, "pattern", iPattern);
 
       // Add all layer results to this pattern
@@ -267,13 +376,72 @@ private:
     filename << outputDir_;
     if (outputDir_.back() != '/')
       filename << "/";
-    filename << "DetailedDebug_EventID" << currentEventNumber_ << ".xml";
+    filename << "DetailedSingleEv_" << currentEventNumber_ << ".xml";
 
+    // Create XML structure matching TestEvents.xml:
+    // <OMTF version="0x0000">
+    //   <Event iEvent="X">
+    //     <bx iBx="0">
+    //       <Processor board="OMTFpX" iProcessor="X" position="+/-1">
+    //         ... processor data ...
+    
+    // Wrap each processor in its own Processor node with bx
     boost::property_tree::ptree eventTree;
-    eventTree.add_child("Event", debugTree_);
-
+    eventTree.add("<xmlattr>.iEvent", currentEventNumber_);
+    
+    // For detailed debug, assume bx=0 (central BX)
+    boost::property_tree::ptree bxTree;
+    bxTree.add("<xmlattr>.iBx", 0);
+    
+    // Move all processor nodes into Processor tags with proper attributes
+    for (auto& procNode : debugTree_) {
+      if (procNode.first == "processor") {
+        unsigned int iProc = procNode.second.get<unsigned int>("<xmlattr>.index");
+        
+        boost::property_tree::ptree processorTree;
+        std::ostringstream boardName;
+        boardName << "OMTFp" << iProc;
+        processorTree.add("<xmlattr>.board", boardName.str());
+        processorTree.add("<xmlattr>.iProcessor", iProc);
+        processorTree.add("<xmlattr>.position", "+1");  // Default to positive, adjust if needed
+        
+        // Create referenceHits wrapper
+        boost::property_tree::ptree referenceHitsTree;
+        
+        // Move all children from the processor node
+        for (auto& child : procNode.second) {
+          if (child.first != "<xmlattr>") {
+            // Wrap referenceHit elements in referenceHits container
+            if (child.first == "referenceHit") {
+              referenceHitsTree.add_child("referenceHit", child.second);
+            } else {
+              processorTree.add_child(child.first, child.second);
+            }
+          }
+        }
+        
+        // Add the referenceHits wrapper if it has children
+        if (!referenceHitsTree.empty()) {
+          processorTree.add_child("referenceHits", referenceHitsTree);
+        }
+        
+        bxTree.add_child("Processor", processorTree);
+      }
+    }
+    
+    eventTree.add_child("bx", bxTree);
+    
+    // Create OMTF element with Event child
+    boost::property_tree::ptree omtfElement;
+    omtfElement.add("<xmlattr>.version", "0x0000");
+    omtfElement.add_child("Event", eventTree);
+    
+    // Create root tree with OMTF as child
+    boost::property_tree::ptree rootTree;
+    rootTree.add_child("OMTF", omtfElement);
+    
     auto settings = boost::property_tree::xml_writer_make_settings<std::string>('\t', 1);
-    boost::property_tree::write_xml(filename.str(), eventTree, std::locale(), settings);
+    boost::property_tree::write_xml(filename.str(), rootTree, std::locale(), settings);
 
     edm::LogInfo("DetailedDebugExporter") << "Detailed debug XML written to: " << filename.str();
   }
@@ -286,6 +454,9 @@ private:
 
   boost::property_tree::ptree debugTree_;
   std::map<std::string, boost::property_tree::ptree> layerResults_;  // Temporary storage for layer results
+  
+  // Storage for restricted stubs per refHit: key="procX_refHitY", value=tuple(iRefLayer, stubs, extrapolatedPhis, refStub)
+  std::map<std::string, std::tuple<unsigned int, MuonStubPtrs2D, std::vector<std::pair<unsigned int, std::vector<int>>>, MuonStubPtr>> restrictedStubsPerRefHit_;
 };
 
 #endif /* L1T_OmtfP1_DETAILEDDEBUGEXPORTER_H_ */

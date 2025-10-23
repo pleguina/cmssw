@@ -938,6 +938,19 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       allLayerHwNumbers.emplace_back(iLayer, hwNumbers);
     }
     
+    // Notify DetailedDebugExporter about restricted stubs for this refHit
+    for (auto& obs : observers) {
+      if (auto* detailedDebug = dynamic_cast<DetailedDebugExporter*>(obs.get())) {
+        // Collect all layers into a 2D structure for the observer
+        MuonStubPtrs2D restrictedStubs2D(this->myOmtfConfig->nLayers());
+        for (const auto& layerPair : allLayerStubs) {
+          restrictedStubs2D[layerPair.first] = layerPair.second;
+        }
+        detailedDebug->observeRestrictedStubs(iProcessor, iRefHit, aRefHitDef.iRefLayer, 
+                                               restrictedStubs2D, allLayerExtrapolatedPhi, refStub);
+      }
+    }
+    
     // === ADD REFERENCE HIT DATA TO XML ===
     auto& refHitTree = refHitsDataTree.add_child("referenceHit", boost::property_tree::ptree());
     refHitTree.add("<xmlattr>.iRefHit", iRefHit);
@@ -1244,7 +1257,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
           if (auto* detailedDebug = dynamic_cast<DetailedDebugExporter*>(observer.get())) {
             detailedDebug->observeStubResult(iProcessor, iRefHit, aRefHitDef.iRefLayer, iLayer,
                                              itGP->key().theNumber, itGP->key(),
-                                             stubResult, restrictedLayerStubs, extrapolatedPhi, refStub);
+                                             stubResult, restrictedLayerStubs, extrapolatedPhi, refStub, itGP.get());
           }
         }
 
