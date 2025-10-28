@@ -16,6 +16,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/FinalMuon.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OmtfName.h"
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -41,13 +42,33 @@ public:
   ~DetailedDebugExporter() override = default;
 
   // Required pure virtual methods from base class
+  void observeProcesorBegin(unsigned int iProcessor, l1t::tftype mtfType) override {
+    if (!isTargetEvent_)
+      return;
+    
+    // Store current processor info to use in subsequent observe calls
+    currentProcessor_ = iProcessor;
+    currentMtfType_ = mtfType;
+    
+    // Mark this processor as active (will filter out empty ones later)
+    std::string procKey = getProcessorKey(iProcessor, mtfType);
+    activeProcessors_.insert(procKey);
+  }
+
   void observeProcesorEmulation(unsigned int iProcessor,
                                 l1t::tftype mtfType,
                                 const std::shared_ptr<OMTFinput>& input,
                                 const AlgoMuons& algoCandidates,
                                 const AlgoMuons& gbCandidates,
                                 const FinalMuons& finalMuons) override {
-    // Not used for detailed debug
+    if (!isTargetEvent_)
+      return;
+    
+    // Mark processor as having final muons only if it produced results
+    std::string procKey = getProcessorKey(iProcessor, mtfType);
+    if (!finalMuons.empty()) {
+      processorsWithFinalMuons_.insert(procKey);
+    }
   }
 
   void endJob() override {
@@ -88,8 +109,9 @@ public:
       return;
 
     // Build hierarchical path for this refHit
+    // Use getProcessorKey to include pos/neg distinction
     std::ostringstream refHitKey;
-    refHitKey << "proc" << iProcessor << "_refHit" << iRefHit;
+    refHitKey << getProcessorKey(iProcessor, currentMtfType_) << "_refHit" << iRefHit;
 
     // Store restricted stubs for this refHit (will be added to XML later)
     restrictedStubsPerRefHit_[refHitKey.str()] = std::make_tuple(iRefLayer, restrictedStubs, extrapolatedPhis, refStub);
@@ -114,35 +136,30 @@ public:
     if (!isTargetEvent_)
       return;
 
+    // Use HW pattern number to match XMLEventWriter output
+    unsigned int hwPatternNumber = patternKey.getHwPatternNumber();
+
     // Build hierarchical path: processor -> refHit -> pattern -> layer
+    // Use getProcessorKey to include pos/neg distinction
     std::ostringstream pathKey;
-    pathKey << "proc" << iProcessor << "_refHit" << iRefHit << "_pattern" << patternNumber;
+    pathKey << getProcessorKey(iProcessor, currentMtfType_) << "_refHit" << iRefHit << "_pattern" << hwPatternNumber;
 
     boost::property_tree::ptree stubResultNode;
 
     // Add pattern info (only once per pattern)
     if (layerResults_[pathKey.str()].empty()) {
-      boost::property_tree::ptree& processorNode = getOrCreateNode("processor", iProcessor);
+      std::string procKey = getProcessorKey(iProcessor, currentMtfType_);
+      boost::property_tree::ptree& processorNode = getOrCreateNode("processor", procKey);
       boost::property_tree::ptree& refHitNode = getOrCreateNode(processorNode, "referenceHit", iRefHit);
-      boost::property_tree::ptree& patternNode = getOrCreateNode(refHitNode, "pattern", patternNumber);
+      boost::property_tree::ptree& patternNode = getOrCreateNode(refHitNode, "pattern", hwPatternNumber);
 
-      patternNode.add("<xmlattr>.patternNumber", patternNumber);
+      patternNode.add("<xmlattr>.patternNumber", hwPatternNumber);
       patternNode.add("<xmlattr>.pt", patternKey.thePt);
       patternNode.add("<xmlattr>.charge", patternKey.theCharge);
       patternNode.add("<xmlattr>.etaCode", patternKey.theEtaCode);
       patternNode.add("<xmlattr>.iRefLayer", iRefLayer);
-
-      // Add reference stub info
-      if (refStub) {
-        boost::property_tree::ptree refStubNode;
-        refStubNode.add("<xmlattr>.refPhi", refStub->phiHw);
-        refStubNode.add("<xmlattr>.refEta", refStub->etaHw);
-        refStubNode.add("<xmlattr>.refPhiB", refStub->phiBHw);
-        refStubNode.add("<xmlattr>.refQuality", refStub->qualityHw);
-        refStubNode.add("<xmlattr>.refLogicLayer", refStub->logicLayer);
-        refStubNode.add("<xmlattr>.detId", refStub->detId);
-        patternNode.add_child("refStub", refStubNode);
-      }
+      
+      // Note: refStub is now added at referenceHit level in writeDebugXML, not per pattern
     }
 
     // Add layer result
@@ -158,9 +175,10 @@ public:
     int phiDistMin = stubResult.getPdfBin() - pdfMiddle;
     stubResultNode.add("<xmlattr>.phiDistMin", phiDistMin);
 
-    // Add meanDistPhi and shift from the golden pattern
-    if (goldenPattern && refStub) {
-      int meanDistPhi = goldenPattern->meanDistPhiValue(iLayer, iRefLayer, refStub->phiBHw);
+    // Add meanDistPhi and shift from the golden pattern (always, even for invalid hits)
+    if (goldenPattern) {
+      int phiBHw = refStub ? refStub->phiBHw : 0;
+      int meanDistPhi = goldenPattern->meanDistPhiValue(iLayer, iRefLayer, phiBHw);
       int shift = goldenPattern->getDistPhiBitShift(iLayer, iRefLayer);
       stubResultNode.add("<xmlattr>.meanDistPhi", meanDistPhi);
       stubResultNode.add("<xmlattr>.shift", shift);
@@ -200,10 +218,16 @@ public:
     if (!isTargetEvent_)
       return;
 
-    boost::property_tree::ptree& processorNode = getOrCreateNode("processor", iProcessor);
-    boost::property_tree::ptree finaliseNode;
+    // Use HW pattern number to match XMLEventWriter output
+    unsigned int hwPatternNumber = patternKey.getHwPatternNumber();
 
-    finaliseNode.add("<xmlattr>.patternNumber", patternNumber);
+    // Store finalise results temporarily - will be written with winner info in writeDebugXML
+    // Use unique key including mtfType to distinguish omtf_pos from omtf_neg
+    std::ostringstream key;
+    key << getProcessorKey(iProcessor, currentMtfType_) << "_pattern" << hwPatternNumber;
+    
+    boost::property_tree::ptree finaliseNode;
+    finaliseNode.add("<xmlattr>.patternNumber", hwPatternNumber);
     finaliseNode.add("<xmlattr>.pt", patternKey.thePt);
     finaliseNode.add("<xmlattr>.charge", patternKey.theCharge);
     finaliseNode.add("<xmlattr>.etaCode", patternKey.theEtaCode);
@@ -225,11 +249,39 @@ public:
         resultNode.add("<xmlattr>.gpProbability1", gpResult.getGpProbability1());
         resultNode.add("<xmlattr>.gpProbability2", gpResult.getGpProbability2());
 
+        // Will add winner attribute later in writeDebugXML when we have the winner info
         finaliseNode.add_child("gpResult", resultNode);
       }
     }
 
-    processorNode.add_child("finaliseResult", finaliseNode);
+    // Store in temporary map - will be added to tree in writeDebugXML with winner flag
+    finaliseResults_[key.str()] = std::make_tuple(iProcessor, currentMtfType_, finaliseNode);
+  }
+
+  // Capture sorted candidates (winners) to mark which pattern won for each refHit
+  void observeSortedCandidates(unsigned int iProcessor,
+                               l1t::tftype mtfType,
+                               const AlgoMuons& algoCandidates) override {
+    if (!isTargetEvent_)
+      return;
+
+    // Store winner information: for each refHit, remember which pattern won
+    // algoCandidates has one AlgoMuon per refHit (the winner)
+    for (const auto& algoMuon : algoCandidates) {
+      if (algoMuon && algoMuon->isValid()) {
+        unsigned int iRefHit = algoMuon->getRefHitNumber();
+        // Use HW pattern number to match XMLEventWriter output
+        unsigned int winningPattern = algoMuon->getHwPatternNumConstr();
+        
+        // Store winner info: key = "procX_pos/neg_refHitY", value = patternNumber
+        std::ostringstream key;
+        key << getProcessorKey(iProcessor, mtfType) << "_refHit" << iRefHit;
+        winnerPatterns_[key.str()] = winningPattern;
+
+        std::cout << "DetailedDebugExporter: Winner for " << key.str() 
+                  << " is pattern " << winningPattern << std::endl;
+      }
+    }
   }
 
 private:
@@ -272,10 +324,28 @@ private:
     return parent.add_child(nodeType, newNode);
   }
 
+  // Overload for string-based keys (e.g., "proc0_pos")
+  boost::property_tree::ptree& getOrCreateNode(const std::string& nodeType, const std::string& key) {
+    // Check if node already exists
+    for (auto& child : debugTree_) {
+      if (child.first == nodeType) {
+        auto keyAttr = child.second.get_optional<std::string>("<xmlattr>.key");
+        if (keyAttr && *keyAttr == key) {
+          return child.second;
+        }
+      }
+    }
+
+    // Create new node with key attribute
+    boost::property_tree::ptree newNode;
+    newNode.add("<xmlattr>.key", key);
+    return debugTree_.add_child(nodeType, newNode);
+  }
+
   void writeDebugXML() {
-    // First, add restricted stubs to refHit nodes
+    // First, add restricted stubs to refHit nodes (only for processors with final muons)
     for (const auto& entry : restrictedStubsPerRefHit_) {
-      // Parse the key: procX_refHitY
+      // Parse the key: procX_pos/neg_refHitY
       std::string key = entry.first;
       size_t procPos = key.find("proc");
       size_t refHitPos = key.find("_refHit");
@@ -283,7 +353,13 @@ private:
       if (procPos == std::string::npos || refHitPos == std::string::npos)
         continue;
 
-      unsigned int iProc = std::stoi(key.substr(procPos + 4, refHitPos - (procPos + 4)));
+      // Extract the full processor key including pos/neg suffix (e.g., "proc0_pos" or "proc0_neg")
+      std::string procKey = key.substr(procPos, refHitPos - procPos);
+      
+      // Skip processors that didn't produce final muons
+      if (processorsWithFinalMuons_.find(procKey) == processorsWithFinalMuons_.end())
+        continue;
+      
       unsigned int iRefHit = std::stoi(key.substr(refHitPos + 7));
 
       const auto& data = entry.second;
@@ -292,7 +368,7 @@ private:
       const auto& extrapolatedPhis = std::get<2>(data);
       const auto& refStub = std::get<3>(data);
 
-      boost::property_tree::ptree& procNode = getOrCreateNode("processor", iProc);
+      boost::property_tree::ptree& procNode = getOrCreateNode("processor", procKey);
       boost::property_tree::ptree& refHitNode = getOrCreateNode(procNode, "referenceHit", iRefHit);
 
       // Add reference stub attributes directly to referenceHit tag
@@ -346,9 +422,60 @@ private:
       refHitNode.add_child("restrictedStubs", restrictedStubsNode);
     }
 
-    // Merge layer results into debug tree
+    // Add finaliseResults with winner flags
+    for (const auto& entry : finaliseResults_) {
+      // Extract from tuple: iProcessor, mtfType, finaliseNode
+      unsigned int iProc = std::get<0>(entry.second);
+      l1t::tftype mtfType = std::get<1>(entry.second);
+      boost::property_tree::ptree finaliseNode = std::get<2>(entry.second);
+      unsigned int patternNumber = finaliseNode.get<unsigned int>("<xmlattr>.patternNumber");
+
+      // Get unique processor key
+      std::string procKey = getProcessorKey(iProc, mtfType);
+
+      // For each gpResult in this finaliseNode, add winner attribute
+      boost::property_tree::ptree finaliseNodeWithWinners;
+      // Copy attributes
+      for (const auto& attr : finaliseNode.get_child("<xmlattr>")) {
+        finaliseNodeWithWinners.add("<xmlattr>." + attr.first, attr.second.data());
+      }
+
+      // Process each gpResult and add winner flag
+      for (auto& gpResultChild : finaliseNode) {
+        if (gpResultChild.first == "gpResult") {
+          boost::property_tree::ptree gpResultNode = gpResultChild.second;
+          unsigned int iRefHit = gpResultNode.get<unsigned int>("<xmlattr>.refHit");
+
+          // Check if this pattern is the winner for this refHit
+          std::ostringstream winnerKey;
+          winnerKey << procKey << "_refHit" << iRefHit;
+          bool isWinner = false;
+          auto winnerIt = winnerPatterns_.find(winnerKey.str());
+          if (winnerIt != winnerPatterns_.end() && winnerIt->second == patternNumber) {
+            isWinner = true;
+          }
+
+          // Add winner attribute at the beginning
+          boost::property_tree::ptree gpResultNodeWithWinner;
+          gpResultNodeWithWinner.add("<xmlattr>.winner", isWinner ? 1 : 0);
+          
+          // Copy all existing attributes
+          for (const auto& attr : gpResultNode.get_child("<xmlattr>")) {
+            gpResultNodeWithWinner.add("<xmlattr>." + attr.first, attr.second.data());
+          }
+
+          finaliseNodeWithWinners.add_child("gpResult", gpResultNodeWithWinner);
+        }
+      }
+
+      // Create unique processor node including mtfType in the node name
+      boost::property_tree::ptree& procNode = getOrCreateNode("processor", procKey);
+      procNode.add_child("finaliseResult", finaliseNodeWithWinners);
+    }
+
+    // Merge layer results into debug tree (only for processors with final muons)
     for (const auto& entry : layerResults_) {
-      // Parse the key: procX_refHitY_patternZ
+      // Parse the key: procX_pos/neg_refHitY_patternZ
       std::string key = entry.first;
       size_t procPos = key.find("proc");
       size_t refHitPos = key.find("_refHit");
@@ -357,11 +484,17 @@ private:
       if (procPos == std::string::npos || refHitPos == std::string::npos || patternPos == std::string::npos)
         continue;
 
-      unsigned int iProc = std::stoi(key.substr(procPos + 4, refHitPos - (procPos + 4)));
+      // Extract the full processor key including pos/neg suffix (e.g., "proc0_pos" or "proc0_neg")
+      std::string procKey = key.substr(procPos, refHitPos - procPos);
+      
+      // Skip processors that didn't produce final muons
+      if (processorsWithFinalMuons_.find(procKey) == processorsWithFinalMuons_.end())
+        continue;
+      
       unsigned int iRefHit = std::stoi(key.substr(refHitPos + 7, patternPos - (refHitPos + 7)));
       unsigned int iPattern = std::stoi(key.substr(patternPos + 8));
 
-      boost::property_tree::ptree& procNode = getOrCreateNode("processor", iProc);
+      boost::property_tree::ptree& procNode = getOrCreateNode("processor", procKey);
       boost::property_tree::ptree& refHitNode = getOrCreateNode(procNode, "referenceHit", iRefHit);
       boost::property_tree::ptree& patternNode = getOrCreateNode(refHitNode, "pattern", iPattern);
 
@@ -394,16 +527,46 @@ private:
     bxTree.add("<xmlattr>.iBx", 0);
     
     // Move all processor nodes into Processor tags with proper attributes
+    // Only write processors that produced final muons (like XMLEventWriter does)
     for (auto& procNode : debugTree_) {
       if (procNode.first == "processor") {
-        unsigned int iProc = procNode.second.get<unsigned int>("<xmlattr>.index");
+        // Try to get the key attribute (new format: "proc0_pos" or "proc0_neg")
+        auto keyAttr = procNode.second.get_optional<std::string>("<xmlattr>.key");
+        
+        // Skip processors that didn't produce final muons
+        if (keyAttr && processorsWithFinalMuons_.find(*keyAttr) == processorsWithFinalMuons_.end()) {
+          continue;
+        }
+        
+        unsigned int iProc = 0;
+        l1t::tftype mtfType = l1t::tftype::omtf_pos;
+        
+        if (keyAttr) {
+          // Parse key like "proc0_pos" or "proc0_neg"
+          std::string key = *keyAttr;
+          size_t underscorePos = key.find('_');
+          if (underscorePos != std::string::npos) {
+            iProc = std::stoi(key.substr(4, underscorePos - 4)); // Skip "proc"
+            std::string side = key.substr(underscorePos + 1);
+            if (side == "neg") {
+              mtfType = l1t::tftype::omtf_neg;
+            }
+          }
+        } else {
+          // Fallback to old index-based format
+          iProc = procNode.second.get<unsigned int>("<xmlattr>.index");
+        }
+        
+        // Use OmtfName class to get correct board naming (OMTFp1-6 / OMTFn1-6, not 0-5)
+        int endcap = (mtfType == l1t::omtf_neg) ? -1 : ((mtfType == l1t::omtf_pos) ? +1 : 0);
+        OmtfName board(iProc, endcap, omtfConfig_);
         
         boost::property_tree::ptree processorTree;
-        std::ostringstream boardName;
-        boardName << "OMTFp" << iProc;
-        processorTree.add("<xmlattr>.board", boardName.str());
+        processorTree.add("<xmlattr>.board", board.name());
         processorTree.add("<xmlattr>.iProcessor", iProc);
-        processorTree.add("<xmlattr>.position", "+1");  // Default to positive, adjust if needed
+        std::ostringstream posStr;
+        posStr << (board.position() == 1 ? "+" : "") << board.position();
+        processorTree.add("<xmlattr>.position", posStr.str());
         
         // Create referenceHits wrapper
         boost::property_tree::ptree referenceHitsTree;
@@ -451,12 +614,33 @@ private:
   std::string outputDir_;
   int currentEventNumber_;  // Current event ID from file
   bool isTargetEvent_;
+  
+  // Current processor context (set by observeProcesorBegin)
+  unsigned int currentProcessor_ = 0;
+  l1t::tftype currentMtfType_ = l1t::tftype::omtf_pos;
 
   boost::property_tree::ptree debugTree_;
   std::map<std::string, boost::property_tree::ptree> layerResults_;  // Temporary storage for layer results
   
   // Storage for restricted stubs per refHit: key="procX_refHitY", value=tuple(iRefLayer, stubs, extrapolatedPhis, refStub)
   std::map<std::string, std::tuple<unsigned int, MuonStubPtrs2D, std::vector<std::pair<unsigned int, std::vector<int>>>, MuonStubPtr>> restrictedStubsPerRefHit_;
+  
+  // Storage for winner patterns: key="procX_refHitY", value=patternNumber
+  std::map<std::string, unsigned int> winnerPatterns_;
+  
+  // Storage for finalise results: key="procX_patternY", value=pair(iProcessor, mtfType, finaliseNode)
+  std::map<std::string, std::tuple<unsigned int, l1t::tftype, boost::property_tree::ptree>> finaliseResults_;
+  
+  // Track which processors were called and which produced final muons
+  std::set<std::string> activeProcessors_;
+  std::set<std::string> processorsWithFinalMuons_;
+  
+  // Helper to create unique processor key including mtfType
+  std::string getProcessorKey(unsigned int iProcessor, l1t::tftype mtfType) const {
+    std::ostringstream key;
+    key << "proc" << iProcessor << "_" << (mtfType == l1t::tftype::omtf_pos ? "pos" : "neg");
+    return key.str();
+  }
 };
 
 #endif /* L1T_OmtfP1_DETAILEDDEBUGEXPORTER_H_ */

@@ -369,18 +369,23 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
           unsigned int chamberWrapped = calculateCSCChamberWrapped(csc, iProcessor, procTyp, omtfConfigHw);
           cscDigi.add("<xmlattr>.chamber_wrapped", chamberWrapped);
         }
-        
-        // === ADD GOLDEN STUB DATA ===
-        // Check if a CSC stub was added to muonStubsInLayers
-        const OMTFConfiguration* omtfConfig = dynamic_cast<const OMTFConfiguration*>(config);
-        if (omtfConfig) {
-          unsigned int hwNumber = omtfConfig->getLayerNumber(rawid);
-          if (omtfConfig->getHwToLogicLayer().find(hwNumber) != omtfConfig->getHwToLogicLayer().end()) {
-            unsigned int iLayer = omtfConfig->getHwToLogicLayer().at(hwNumber);
-            if (iLayer < muonStubsInLayers.size()) {
-              unsigned int iInput = OMTFinputMaker::getInputNumber(omtfConfig, rawid, iProcessor, procTyp);
-              if (iInput < muonStubsInLayers[iLayer].size() && muonStubsInLayers[iLayer][iInput]) {
-                auto& stub = muonStubsInLayers[iLayer][iInput];
+      }
+    }
+    
+    // === ADD GOLDEN STUB DATA (ONCE PER CHAMBER, OUTSIDE DIGI LOOP) ===
+    // Check if CSC stubs were added to muonStubsInLayers for this chamber
+    // NOTE: We need to search through all inputs for this layer, not just calculate one inputNumber
+    // from rawid, because multiple digis from the same chamber can map to different inputNumbers
+    const OMTFConfiguration* omtfConfig = dynamic_cast<const OMTFConfiguration*>(config);
+    if (omtfConfig) {
+      unsigned int hwNumber = omtfConfig->getLayerNumber(rawid);
+      if (omtfConfig->getHwToLogicLayer().find(hwNumber) != omtfConfig->getHwToLogicLayer().end()) {
+        unsigned int iLayer = omtfConfig->getHwToLogicLayer().at(hwNumber);
+        if (iLayer < muonStubsInLayers.size()) {
+          // Search through all inputs in this layer to find stubs from this chamber (rawid)
+          for (unsigned int iInput = 0; iInput < muonStubsInLayers[iLayer].size(); ++iInput) {
+          if (muonStubsInLayers[iLayer][iInput] && muonStubsInLayers[iLayer][iInput]->detId == static_cast<int>(rawid)) {
+            auto& stub = muonStubsInLayers[iLayer][iInput];
                 
                 // Add golden stub data to separate XML tree
                 auto& cscStub = cscStubsTree.add_child("CSCstub", boost::property_tree::ptree());
@@ -435,12 +440,11 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                   }
                 }
               }
+              }  // End of for loop through all inputs
             }
           }
         }
-      }
-    }
-  }
+      }  // End chamber loop (for (; chamber != chend; ++chamber))
 
   // === ADD DATA TO XMLIOCACHE ===
   // Add CSC digis to cache
@@ -562,17 +566,21 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
 
     for (auto& cluster : clusters) {
       addRPCstub(muonStubsInLayers, roll, cluster, iProcessor, procTyp);
-      
-      // === ADD GOLDEN STUB DATA FOR RPC ===
-      // Check if an RPC stub was added to muonStubsInLayers
-      const OMTFConfiguration* omtfConfig = dynamic_cast<const OMTFConfiguration*>(config);
+    }
+    
+    // === ADD GOLDEN STUB DATA FOR RPC (ONCE PER ROLL, OUTSIDE CLUSTER LOOP) ===
+    // Check if RPC stubs were added to muonStubsInLayers for this roll
+    // NOTE: We need to search through all inputs for this layer, not just calculate one inputNumber
+    // from roll.rawId(), because multiple clusters from the same roll can map to different inputNumbers
+    const OMTFConfiguration* omtfConfig = dynamic_cast<const OMTFConfiguration*>(config);
       if (omtfConfig) {
         unsigned int hwNumber = omtfConfig->getLayerNumber(roll.rawId());
         if (omtfConfig->getHwToLogicLayer().find(hwNumber) != omtfConfig->getHwToLogicLayer().end()) {
           unsigned int iLayer = omtfConfig->getHwToLogicLayer().at(hwNumber);
           if (iLayer < muonStubsInLayers.size()) {
-            unsigned int iInput = OMTFinputMaker::getInputNumber(omtfConfig, roll.rawId(), iProcessor, procTyp);
-            if (iInput < muonStubsInLayers[iLayer].size() && muonStubsInLayers[iLayer][iInput]) {
+            // Search through all inputs in this layer to find stubs from this roll (rawId)
+            for (unsigned int iInput = 0; iInput < muonStubsInLayers[iLayer].size(); ++iInput) {
+            if (muonStubsInLayers[iLayer][iInput] && muonStubsInLayers[iLayer][iInput]->detId == static_cast<int>(roll.rawId())) {
               auto& stub = muonStubsInLayers[iLayer][iInput];
               
               // Determine if this is barrel (region=0) or endcap (region!=0)
@@ -690,11 +698,11 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                 }
               }
             }
+            }  // End of for loop through all inputs
           }
         }
       }
-    }
-  }
+  }  // End roll loop (for (auto rollDigis : rpcDigiCollection))
 
   //removing the RPC stubs that were mark as dropped in the RpcDigiToStubsConverterOmtf::addRPCstub
   //10 is the first RPC layer
