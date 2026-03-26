@@ -79,6 +79,13 @@ void DataROOTDumper2::initializeTTree() {
 
   rootTree->Branch("hits", &omtfEvent.hits);
 
+  // Extended per-stub branches (same ordering and length as 'hits')
+  rootTree->Branch("hits_phiBHw", &omtfEvent.hits_phiBHw);
+  rootTree->Branch("hits_phiHw",  &omtfEvent.hits_phiHw);
+  rootTree->Branch("hits_r",      &omtfEvent.hits_r);
+  rootTree->Branch("hits_type",   &omtfEvent.hits_type);
+  rootTree->Branch("hits_bx",     &omtfEvent.hits_bx);
+
   rootTree->Branch("deltaEta", &omtfEvent.deltaEta);
   rootTree->Branch("deltaPhi", &omtfEvent.deltaPhi);
 
@@ -294,6 +301,11 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
       omtfEvent.omtfRefHitNum = procMuon->getRefHitNumber();
 
       omtfEvent.hits.clear();
+      omtfEvent.hits_phiBHw.clear();
+      omtfEvent.hits_phiHw.clear();
+      omtfEvent.hits_r.clear();
+      omtfEvent.hits_type.clear();
+      omtfEvent.hits_bx.clear();
 
       //TODO choose, which gpResult should be dumped
       //auto& gpResult = procMuon->getGpResultConstr();
@@ -325,23 +337,28 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
 
           unsigned int refLayerLogicNum = omtfConfig->getRefToLogicNumber()[procMuon->getRefLayer()];
 
-          if (false) {  //choose what to dump in hit.phiDist: "hitPhi - phiRefHit" or stubResult.getDeltaPhi()
+          // Store raw phi displacement: hitPhi - refHitPhi (suitable for GNN edge features).
+          // For bending layers (DT phiB pseudo-layers), phiDist carries phiBHw instead —
+          // the bending angle is the only meaningful scalar on those layers.
+          {
             int hitPhi = stubResult.getMuonStub()->phiHw;
-            int phiRefHit = gpResult.getStubResults()[refLayerLogicNum].getMuonStub()->phiHw;
+            int phiRefHit = 0;
+            if (gpResult.getStubResults()[refLayerLogicNum].getMuonStub())
+              phiRefHit = gpResult.getStubResults()[refLayerLogicNum].getMuonStub()->phiHw;
             hit.phiDist = hitPhi - phiRefHit;
 
             if (omtfConfig->isBendingLayer(iLogicLayer)) {
               hit.phiDist = stubResult.getMuonStub()->phiBHw;
             }
-          } else {
-            //stubResult.getDeltaPhi() includes the extrapolated phi
-            hit.phiDist = stubResult.getDeltaPhi();
           }
 
           if (refLayerLogicNum == iLogicLayer)
             hit.deltaR = stubResult.getMuonStub()->r - 413;  //r of the ref hit - r of RB1in
           else
-            hit.deltaR = stubResult.getMuonStub()->r - gpResult.getStubResults()[refLayerLogicNum].getMuonStub()->r;
+            hit.deltaR = stubResult.getMuonStub()->r -
+                         (gpResult.getStubResults()[refLayerLogicNum].getMuonStub()
+                              ? gpResult.getStubResults()[refLayerLogicNum].getMuonStub()->r
+                              : 413);
 
           LogTrace("l1tOmtfEventPrint")
               << " muonPt " << omtfEvent.muonPt << " omtfPt " << omtfEvent.omtfPt << " RefLayer "
@@ -349,8 +366,6 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
               << " hit.phiDist " << hit.phiDist << " valid " << int(hit.valid) << " "  //<<" phiDist "<<phiDist
               << " hit.deltaR "
               << hit.deltaR
-              //<<" getDistPhiBitShift "<<procMuon->getGoldenPatern()->getDistPhiBitShift(iLogicLayer, procMuon->getRefLayer())
-              //<<" meanDistPhiValue   "<<procMuon->getGoldenPatern()->meanDistPhiValue(iLogicLayer, procMuon->getRefLayer())//<<(phiDist != hit.phiDist? "!!!!!!!<<<<<" : "")
               << endl;
 
           if (hit.phiDist > 504 || hit.phiDist < -512) {
@@ -359,12 +374,6 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
                 << (int)omtfEvent.omtfRefLayer << " layer " << int(hit.layer) << " hit.phiDist " << hit.phiDist
                 << " valid " << stubResult.getValid() << " !!!!!!!!!!!!!!!!!!!!!!!!" << endl;
           }
-
-          /*DetId detId(stubResult.getMuonStub()->detId);
-          if (detId.subdetId() == MuonSubdetId::CSC) {
-            CSCDetId cscId(detId);
-            hit.z = cscId.chamber() % 2;
-          }*/
 
           //hit.etaHw is char, so we must limit the value being assigned
           //it char range is ok with valueP1Scale
@@ -377,7 +386,19 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
             hit.etaHw = stubResult.getMuonStub()->etaHw;
 
           omtfEvent.hits.push_back(hit.rawData);
-          //edm::LogVerbatim("l1tOmtfEventPrint")<<" hit.layer "<<(int)hit.layer<<" hit.phiDist "<<hit.phiDist<<" hit.rawData "<<hit.rawData << std::endl;
+
+          // ---------- extended per-stub fields ----------
+          omtfEvent.hits_phiBHw.push_back(static_cast<short>(stubResult.getMuonStub()->phiBHw));
+          omtfEvent.hits_phiHw.push_back(static_cast<short>(stubResult.getMuonStub()->phiHw));
+          omtfEvent.hits_r.push_back(static_cast<short>(stubResult.getMuonStub()->r));
+          omtfEvent.hits_type.push_back(static_cast<signed char>(stubResult.getMuonStub()->type));
+          {
+            int bxVal = stubResult.getMuonStub()->bx;
+            if (bxVal > 127) bxVal = 127;
+            else if (bxVal < -127) bxVal = -127;
+            omtfEvent.hits_bx.push_back(static_cast<signed char>(bxVal));
+          }
+          // ----------------------------------------------
         }
       }
 

@@ -9,6 +9,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/CandidateSimMuonMatcher.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper2.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper2AllInput.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/EventCapture.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternGenerator.h"
 
@@ -275,14 +276,10 @@ void OMTFReconstruction::addObservers(
       }
 
     if (edmParameterSet.exists("dumpHitsToROOT") && edmParameterSet.getParameter<bool>("dumpHitsToROOT")) {
-      //std::string rootFileName = edmParameterSet.getParameter<std::string>("dumpHitsFileName");
-      if (candidateSimMuonMatcher == nullptr) {
-        edm::LogVerbatim("OMTFReconstruction")
-            << "dumpHitsToROOT needs candidateSimMuonMatcher, but it is null " << std::endl;
-        throw cms::Exception("dumpHitsToROOT needs candidateSimMuonMatcher, but it is null");
-      }
+      // DataROOTDumper2AllInput only logs raw input stubs; it does not use
+      // candidateSimMuonMatcher, so nullptr is fine here.
       observers.emplace_back(
-          std::make_unique<DataROOTDumper2>(edmParameterSet, omtfConfig.get(), candidateSimMuonMatcher));
+          std::make_unique<DataROOTDumper2AllInput>(edmParameterSet, omtfConfig.get(), candidateSimMuonMatcher));
     }
   }
 

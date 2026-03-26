@@ -18,6 +18,7 @@ simOmtfDigis = cms.EDProducer("L1TMuonOverlapPhase1TrackProducer",
   dropRPCPrimitives = cms.bool(False),
   dropDTPrimitives = cms.bool(False),
   dropCSCPrimitives = cms.bool(False),
+  dumpRPCDigis = cms.bool(False),
   processorType = cms.string("OMTFProcessor"),
 
   #ghostBusterType = cms.string("GhostBusterPreferRefDt"),

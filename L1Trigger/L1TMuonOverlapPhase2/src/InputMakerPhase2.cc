@@ -51,6 +51,9 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
 
       // Get hardware name for this DT chamber
       std::string hwName = getHwNameForDtChamber(detid);
+      
+      // Calculate sector_wrapped for this digi
+      int sector_wrapped = calculateDtSectorWrapped(detid.sector(), iProcessor);
 
       auto& dtP2PhiDigi = dtDigisTree.add_child("dtP2PhiDigi", boost::property_tree::ptree());
       dtP2PhiDigi.add("<xmlattr>.dtID", detid.rawId());
@@ -65,6 +68,7 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       dtP2PhiDigi.add("<xmlattr>.bx", digiIt.bxNum() - 20);  // ADD BX for CSV export
       dtP2PhiDigi.add("<xmlattr>.chamberOrder", chamberOrder);
       dtP2PhiDigi.add("<xmlattr>.hwName", hwName);  // ADD hwName attribute
+      dtP2PhiDigi.add("<xmlattr>.sector_wrapped", sector_wrapped);  // ADD sector_wrapped
     }
   }
 
@@ -84,6 +88,9 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
 
       // Get hardware name for this DT chamber
       std::string hwName = getHwNameForDtChamber(thetaDetid);
+      
+      // Calculate sector_wrapped for this digi
+      int sector_wrapped = calculateDtSectorWrapped(thetaDetid.sector(), iProcessor);
 
       auto& dtP2ThDigi = dtDigisTree.add_child("dtP2ThDigi", boost::property_tree::ptree());
       dtP2ThDigi.add("<xmlattr>.dtID", DTChamberId(thetaDigi.whNum(), thetaDigi.stNum(), thetaDigi.scNum() + 1).rawId());
@@ -97,6 +104,7 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       dtP2ThDigi.add("<xmlattr>.bx", thetaDigi.bxNum() - 20);  // ADD BX for CSV export
       dtP2ThDigi.add("<xmlattr>.chamberOrder", chamberOrder);
       dtP2ThDigi.add("<xmlattr>.hwName", hwName);  // ADD hwName attribute
+      dtP2ThDigi.add("<xmlattr>.sector_wrapped", sector_wrapped);  // ADD sector_wrapped
     }
   }
 

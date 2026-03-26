@@ -134,13 +134,13 @@ CandidateSimMuonMatcher::CandidateSimMuonMatcher(
   maxDelta_neg = (TH1F*)muonMatcherFile.Get("maxDelta_neg");
   medianDelta_neg = (TH1F*)muonMatcherFile.Get("medianDelta_neg");
 
-  //detaching the histograms from the file
-  minDelta_pos->SetDirectory(nullptr);
-  maxDelta_pos->SetDirectory(nullptr);
-  medianDelta_pos->SetDirectory(nullptr);
-  minDelta_neg->SetDirectory(nullptr);
-  maxDelta_neg->SetDirectory(nullptr);
-  medianDelta_neg->SetDirectory(nullptr);
+  // Detach from file only if the histogram was actually present (null-safe)
+  if (minDelta_pos)    minDelta_pos->SetDirectory(nullptr);
+  if (maxDelta_pos)    maxDelta_pos->SetDirectory(nullptr);
+  if (medianDelta_pos) medianDelta_pos->SetDirectory(nullptr);
+  if (minDelta_neg)    minDelta_neg->SetDirectory(nullptr);
+  if (maxDelta_neg)    maxDelta_neg->SetDirectory(nullptr);
+  if (medianDelta_neg) medianDelta_neg->SetDirectory(nullptr);
 }
 
 CandidateSimMuonMatcher::~CandidateSimMuonMatcher() {
@@ -155,7 +155,11 @@ CandidateSimMuonMatcher::~CandidateSimMuonMatcher() {
 void CandidateSimMuonMatcher::beginRun(const edm::EventSetup& eventSetup) {
   //TODO use edm::ESWatcher<MagneticField> magneticFieldRecordWatcher;
   magField = eventSetup.getHandle(magneticFieldEsToken);
-  propagator = eventSetup.getHandle(propagatorEsToken);
+  // Only load the propagator for modes that actually use it.
+  // simpleMatching and collectMuonCands work purely on gen-level kinematics.
+  if (matchingType == MatchingType::withPropagator || matchingType == MatchingType::simplePropagation) {
+    propagator = eventSetup.getHandle(propagatorEsToken);
+  }
 }
 
 void CandidateSimMuonMatcher::observeEventBegin(const edm::Event& event) { gbCandidates.clear(); }

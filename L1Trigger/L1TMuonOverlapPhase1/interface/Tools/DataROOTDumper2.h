@@ -69,8 +69,8 @@ public:
         char quality;
         char etaHw;
         char valid;
-        short deltaR;
-        short phiDist;
+        short deltaR;  // stub_r - refStub_r  [cm]
+        short phiDist; // stub_phi - refStub_phi  [HW units]; phiBHw for bending layers
       };
     };
 
@@ -78,6 +78,14 @@ public:
   };
 
   std::vector<unsigned long> hits;
+
+  // Extended per-hit branches — parallel to 'hits' (same index i → same stub)
+  // These carry the fields that do not fit in the 64-bit Hit union.
+  std::vector<short> hits_phiBHw;  // DT bending angle in HW units; 0 for non-DT layers
+  std::vector<short> hits_phiHw;   // absolute stub phi in HW units (before ref-subtraction)
+  std::vector<short> hits_r;       // absolute radial distance [cm]
+  std::vector<signed char> hits_type;  // MuonStub::Type enum cast to int8
+  std::vector<signed char> hits_bx;    // bunch crossing offset from BX=0
 };
 
 class DataROOTDumper2 : public EmulationObserverBase {
