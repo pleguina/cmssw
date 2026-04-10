@@ -24,11 +24,17 @@ OmtfEmulation::OmtfEmulation(const edm::ParameterSet& edmParameterSet,
 
 void OmtfEmulation::beginJob() {
   if (edmParameterSet.exists("usePhase2DTPrimitives") && edmParameterSet.getParameter<bool>("usePhase2DTPrimitives")) {
+    auto phase2AngleConv = std::make_unique<OmtfPhase2AngleConverter>();
+    if (edmParameterSet.exists("dtFixedPointEtaForFirmware") &&
+        edmParameterSet.getParameter<bool>("dtFixedPointEtaForFirmware")) {
+      phase2AngleConv->setDtFixedPointEtaForFirmware(true);
+      edm::LogImportant("OMTFReconstruction") << "OmtfEmulation: DT eta fixed-point firmware mode enabled" << std::endl;
+    }
     inputMaker = std::make_unique<InputMakerPhase2>(edmParameterSet,
                                                     muStubsInputTokens,
                                                     muStubsPhase2InputTokens,
                                                     omtfConfig.get(),
-                                                    std::make_unique<OmtfPhase2AngleConverter>());
+                                                    std::move(phase2AngleConv));
   } else {
     inputMaker = std::make_unique<OMTFinputMaker>(
         edmParameterSet, muStubsInputTokens, omtfConfig.get(), std::make_unique<OmtfAngleConverter>());

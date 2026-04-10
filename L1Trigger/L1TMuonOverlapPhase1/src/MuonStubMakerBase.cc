@@ -41,6 +41,17 @@ std::string getHwNameFromHwNumber(unsigned int hwNumber) {
   }
 }
 
+unsigned int getLayerBatchSize(unsigned int logicLayer) {
+  if (logicLayer >= 10 && logicLayer <= 13) {
+    return 4;
+  }
+  return 2;
+}
+
+unsigned int getInputBatch(unsigned int logicLayer, unsigned int inputNumber) {
+  return inputNumber % getLayerBatchSize(logicLayer);
+}
+
 // Helper function to calculate chamber_wrapped for CSC chambers
 // This follows the same logic as OMTFinputMaker::getInputNumber() but returns the chamber position
 unsigned int calculateCSCChamberWrapped(const CSCDetId& csc, unsigned int iProcessor, l1t::tftype procTyp, const OMTFConfiguration* omtfConfig) {
@@ -392,6 +403,7 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                 //cscStub.add("<xmlattr>.type", static_cast<int>(stub->type));
                 cscStub.add("<xmlattr>.logicLayer", stub->logicLayer);
                 cscStub.add("<xmlattr>.inputNumber", iInput);
+                cscStub.add("<xmlattr>.inputBatch", getInputBatch(stub->logicLayer, iInput));
                 cscStub.add("<xmlattr>.phiHw", stub->phiHw);
                 cscStub.add("<xmlattr>.etaHw", stub->etaHw);
                 cscStub.add("<xmlattr>.qualityHw", stub->qualityHw);
@@ -582,6 +594,10 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
             for (unsigned int iInput = 0; iInput < muonStubsInLayers[iLayer].size(); ++iInput) {
             if (muonStubsInLayers[iLayer][iInput] && muonStubsInLayers[iLayer][iInput]->detId == static_cast<int>(roll.rawId())) {
               auto& stub = muonStubsInLayers[iLayer][iInput];
+
+              if (stub->type == MuonStub::RPC_DROPPED) {
+                continue;
+              }
               
               // Determine if this is barrel (region=0) or endcap (region!=0)
               RPCDetId rpcId(roll.rawId());
@@ -594,6 +610,7 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
               // Determine RPC type from logicLayer: <10 => RPCb, >=10 => RPCe
               rpcStub.add("<xmlattr>.logicLayer", stub->logicLayer);
               rpcStub.add("<xmlattr>.inputNumber", iInput);
+              rpcStub.add("<xmlattr>.inputBatch", getInputBatch(stub->logicLayer, iInput));
               rpcStub.add("<xmlattr>.phiHw", stub->phiHw);
               rpcStub.add("<xmlattr>.etaHw", stub->etaHw);
               rpcStub.add("<xmlattr>.qualityHw", stub->qualityHw);

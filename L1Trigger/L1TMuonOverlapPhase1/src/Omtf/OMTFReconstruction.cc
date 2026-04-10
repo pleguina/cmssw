@@ -276,10 +276,8 @@ void OMTFReconstruction::addObservers(
       }
 
     if (edmParameterSet.exists("dumpHitsToROOT") && edmParameterSet.getParameter<bool>("dumpHitsToROOT")) {
-      // DataROOTDumper2AllInput only logs raw input stubs; it does not use
-      // candidateSimMuonMatcher, so nullptr is fine here.
       observers.emplace_back(
-          std::make_unique<DataROOTDumper2AllInput>(edmParameterSet, omtfConfig.get(), candidateSimMuonMatcher));
+          std::make_unique<DataROOTDumper2AllInput>(edmParameterSet, omtfConfig.get(), candidateSimMuonMatcher, muonGeometryTokens));
     }
   }
 

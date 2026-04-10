@@ -33,6 +33,14 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   debugOutputDir = cms.string("./"),
 
 
+  # When True, DT eta is computed as a fixed mid-chamber value matching RTL constants (firmware export).
+  # When False (default), the actual theta-digi LUT lookup is used (sample production).
+  dtFixedPointEtaForFirmware = cms.bool(False),
+
+  # When True, CSC phi uses Q2.8 fixed-point arithmetic matching the RTL CSC interface (firmware export).
+  # When False (default), the original floating-point product is used (sample production).
+  cscFixedPointPhiForFirmware = cms.bool(False),
+
   dropRPCPrimitives = cms.bool(False),                                    
   dropCSCPrimitives = cms.bool(False),
   

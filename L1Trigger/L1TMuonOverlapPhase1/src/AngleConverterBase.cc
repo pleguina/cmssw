@@ -137,7 +137,16 @@ int AngleConverterBase::getProcessorPhi(
         fixOff = fixCscOffsetGeom(offsetLoc);
     }
   }
-  int phi = fixOff + order * scale * halfStrip;
+  // CSC phi computation: use Q2.8 fixed-point (RTL-faithful) in firmware export mode,
+  // or original floating-point product for sample production.
+  int phi;
+  if (config->getCscFixedPointPhiForFirmware()) {
+    // Quantize scale to Q2.8 (8 fractional bits): phi = offset + sign * ((halfStrip * scaleQ28) >> 8)
+    int scaleQ28 = static_cast<int>(std::round(scale * 256.));
+    phi = fixOff + order * ((halfStrip * scaleQ28) >> 8);
+  } else {
+    phi = fixOff + order * scale * halfStrip;
+  }
   //the phi conversion is done like above - and not simply converting the layer->centerOfStrip(halfStrip/2 +1).phi() - to mimic this what is done by the firmware,
   //where phi of the stub is calculated with use of the offset and scale provided by an register
 
@@ -216,7 +225,15 @@ CscConversionInfo AngleConverterBase::getProcessorPhiWithInfo(
         fixOff = fixCscOffsetGeom(offsetLoc);
     }
   }
-  int phi = fixOff + order * scale * halfStrip;
+  // CSC phi computation: use Q2.8 fixed-point (RTL-faithful) in firmware export mode,
+  // or original floating-point product for sample production.
+  int phi;
+  if (config->getCscFixedPointPhiForFirmware()) {
+    int scaleQ28 = static_cast<int>(std::round(scale * 256.));
+    phi = fixOff + order * ((halfStrip * scaleQ28) >> 8);
+  } else {
+    phi = fixOff + order * scale * halfStrip;
+  }
 
   CscConversionInfo info;
   info.phi = config->foldPhi(phi);
