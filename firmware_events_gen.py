@@ -65,7 +65,7 @@ process.simOmtfPhase2Digis.csvOutputDir = cms.string("./csv_output")
 # debugEventNumber = the actual EVENT ID from the data file
 # To find event IDs, check TestEvents.xml after running once
 process.simOmtfPhase2Digis.dumpDetailedDebug = cms.bool(True)
-process.simOmtfPhase2Digis.debugEventNumber = cms.int32(55)  # Exact event ID to debug
+process.simOmtfPhase2Digis.debugEventNumber = cms.int32(75)  # Exact event ID to debug
 process.simOmtfPhase2Digis.debugOutputDir = cms.string("./")
 
 # === USE LOOKUP TABLE FOR ETA CALCULATION ===
