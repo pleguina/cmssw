@@ -56,6 +56,10 @@ process.load('L1Trigger.L1TMuonOverlapPhase2.simOmtfPhase2Digis_cfi')
 
 process.simOmtfPhase2Digis.dumpResultToXML = cms.bool(True)
 process.simOmtfPhase2Digis.eventCaptureDebug = cms.bool(True)
+# === SPLIT XML OUTPUT INTO MULTIPLE FILES ===
+# Set xmlEventsPerFile to N > 0 to split output into TestEvents_part000.xml, _part001.xml, ...
+# Set to 0 (or omit) for a single TestEvents.xml file
+process.simOmtfPhase2Digis.xmlEventsPerFile = cms.int32(0)  # e.g. 500 to get ~500 events per file
 # === ENABLE HLS CSV EXPORT ===
 process.simOmtfPhase2Digis.dumpDigisToCSV = cms.bool(False)
 process.simOmtfPhase2Digis.csvOutputDir = cms.string("./csv_output")
