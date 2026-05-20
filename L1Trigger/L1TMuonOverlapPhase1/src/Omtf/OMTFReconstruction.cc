@@ -216,9 +216,13 @@ void OMTFReconstruction::addObservers(
 
   //omtfConfig is created at constructor, and is not re-created at the the start of the run, so this is OK
   if (edmParameterSet.exists("dumpResultToXML")) {
-    if (edmParameterSet.getParameter<bool>("dumpResultToXML"))
+    if (edmParameterSet.getParameter<bool>("dumpResultToXML")) {
+      int xmlEventsPerFile = 0;
+      if (edmParameterSet.exists("xmlEventsPerFile"))
+        xmlEventsPerFile = edmParameterSet.getParameter<int>("xmlEventsPerFile");
       observers.emplace_back(std::make_unique<XMLEventWriter>(
-          omtfConfig.get(), edmParameterSet.getParameter<std::string>("XMLDumpFileName")));
+          omtfConfig.get(), edmParameterSet.getParameter<std::string>("XMLDumpFileName"), xmlEventsPerFile));
+    }
   }
 
   // === ADD HLS DIGI EXPORTER ===
