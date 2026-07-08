@@ -39,6 +39,7 @@
 #include "SimDataFormats/RPCDigiSimLink/interface/RPCDigiSimLink.h"
 #include "SimDataFormats/TrackerDigiSimLink/interface/StripDigiSimLink.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
+#include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 
@@ -99,12 +100,18 @@ private:
       const edm::Handle<MuonDigiCollection<DTLayerId, DTDigiSimLink>>& dtLinksH,
       const edm::Handle<edm::DetSetVector<RPCDigiSimLink>>& rpcLinksH,
       const edm::Handle<edm::DetSetVector<StripDigiSimLink>>& cscLinksH,
+      const edm::Handle<edm::PSimHitContainer>& dtSimHitsH,
+      const edm::Handle<edm::PSimHitContainer>& rpcSimHitsH,
+      const edm::Handle<edm::PSimHitContainer>& cscSimHitsH,
       const std::vector<int>& simTrackIdToGenIdx,   // simTrackId → genMuon 1-indexed (0=not a gen muon)
       unsigned int processorPhiZero,
       const std::vector<uint32_t>& stub_detId,
       const std::vector<short>& stub_phiHw,
       std::vector<signed char>& stub_trackId,
-      std::vector<uint8_t>& stub_ambiguous);
+      std::vector<uint8_t>& stub_ambiguous,
+      std::vector<float>& stub_tof,
+      std::vector<float>& stub_tofSpread,
+      std::vector<signed char>& stub_nSimHit);
 
   TTree* allInputTree = nullptr;
 
@@ -124,6 +131,9 @@ private:
   // SimTrack truth (only filled when doSimTruth_ == true)
   std::vector<signed char> reg_stub_trackId;   // 0 = noise, 1..K = gen-muon idx
   std::vector<uint8_t>     reg_stub_ambiguous; // 1 if dominant track < 50% digis
+  std::vector<float>       reg_stub_tof;       // mean SimHit TOF [ns], -999 when unavailable
+  std::vector<float>       reg_stub_tofSpread; // max-min SimHit TOF [ns], 0 when unavailable
+  std::vector<signed char> reg_stub_nSimHit;   // number of SimHits used for TOF (clamped to 127)
 
   // --- per-event cache ---
   // Filled per-processor in observeProcesorEmulation, flushed in observeEventEnd.
@@ -156,6 +166,9 @@ private:
   edm::InputTag dtSimLinkTag_;
   edm::InputTag rpcSimLinkTag_;
   edm::InputTag cscSimLinkTag_;
+  edm::InputTag dtSimHitTag_;
+  edm::InputTag rpcSimHitTag_;
+  edm::InputTag cscSimHitTag_;
   edm::InputTag simTrackTag_;
   edm::InputTag genParticleTag_;
 };

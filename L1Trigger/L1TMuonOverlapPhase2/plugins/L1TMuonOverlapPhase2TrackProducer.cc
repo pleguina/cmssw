@@ -7,6 +7,7 @@
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 #include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticleFwd.h"
+#include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 #include "SimDataFormats/RPCDigiSimLink/interface/RPCDigiSimLink.h"
 #include "SimDataFormats/TrackerDigiSimLink/interface/StripDigiSimLink.h"
 #include "SimDataFormats/DigiSimLinks/interface/DTDigiSimLink.h"
@@ -57,6 +58,20 @@ L1TMuonOverlapPhase2TrackProducer::L1TMuonOverlapPhase2TrackProducer(const edm::
 
   if (edmParameterSet.exists("genParticleTag"))
     mayConsume<reco::GenParticleCollection>(edmParameterSet.getParameter<edm::InputTag>("genParticleTag"));
+
+  if (edmParameterSet.exists("rpcSimHitsInputTag"))
+    mayConsume<edm::PSimHitContainer>(edmParameterSet.getParameter<edm::InputTag>("rpcSimHitsInputTag"));
+  if (edmParameterSet.exists("cscSimHitsInputTag"))
+    mayConsume<edm::PSimHitContainer>(edmParameterSet.getParameter<edm::InputTag>("cscSimHitsInputTag"));
+  if (edmParameterSet.exists("dtSimHitsInputTag"))
+    mayConsume<edm::PSimHitContainer>(edmParameterSet.getParameter<edm::InputTag>("dtSimHitsInputTag"));
+  // Keep fallback registrations for configs that provide digi-sim links but not explicit SimHit tags.
+  if (!edmParameterSet.exists("rpcSimHitsInputTag"))
+    mayConsume<edm::PSimHitContainer>(edm::InputTag("g4SimHits", "MuonRPCHits"));
+  if (!edmParameterSet.exists("cscSimHitsInputTag"))
+    mayConsume<edm::PSimHitContainer>(edm::InputTag("g4SimHits", "MuonCSCHits"));
+  if (!edmParameterSet.exists("dtSimHitsInputTag"))
+    mayConsume<edm::PSimHitContainer>(edm::InputTag("g4SimHits", "MuonDTHits"));
 
   if (edmParameterSet.exists("rpcDigiSimLinkInputTag"))
     mayConsume<edm::DetSetVector<RPCDigiSimLink> >(

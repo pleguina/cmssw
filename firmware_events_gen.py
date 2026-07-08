@@ -28,7 +28,7 @@ process.source = cms.Source('PoolSource',
   fileNames = cms.untracked.vstring('file:/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/OMTF/PrivateProductionForOMTFStudy/13_1_0_03_04_2024/SingleMu_ch0_OneOverPt_Run2029_13_1_0_03_04_2024/13_1_0_03_04_2024/240403_080928/0000/SingleMu_OneOverPt_1_100_m_1.root')                  
 )
 	                    
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000*10))
 
 # import of standard configurations - same as runMuonOverlap.py
 process.load('Configuration.StandardSequences.Services_cff')
@@ -59,7 +59,7 @@ process.simOmtfPhase2Digis.eventCaptureDebug = cms.bool(True)
 # === SPLIT XML OUTPUT INTO MULTIPLE FILES ===
 # Set xmlEventsPerFile to N > 0 to split output into TestEvents_part000.xml, _part001.xml, ...
 # Set to 0 (or omit) for a single TestEvents.xml file
-process.simOmtfPhase2Digis.xmlEventsPerFile = cms.int32(0)  # e.g. 500 to get ~500 events per file
+process.simOmtfPhase2Digis.xmlEventsPerFile = cms.int32(500)  # e.g. 500 to get ~500 events per file
 # === ENABLE HLS CSV EXPORT ===
 process.simOmtfPhase2Digis.dumpDigisToCSV = cms.bool(False)
 process.simOmtfPhase2Digis.csvOutputDir = cms.string("./csv_output")

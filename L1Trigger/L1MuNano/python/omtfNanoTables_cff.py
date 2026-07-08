@@ -76,6 +76,9 @@ genMuonNanoTable = cms.EDProducer(
         vx     = Var("vx",     float, precision=8, doc="production vertex x [cm]"),
         vy     = Var("vy",     float, precision=8, doc="production vertex y [cm]"),
         vz     = Var("vz",     float, precision=8, doc="production vertex z [cm]"),
+        dz     = Var("vz",     float, precision=8, doc="signed longitudinal displacement dz [cm] (relative to nominal IP)"),
+        beta   = Var("p()/energy()", float, precision=8, doc="generator beta = |p|/E"),
+        gamma  = Var("energy()/mass()", float, precision=8, doc="generator gamma = E/m"),
         lXY    = Var("sqrt(vertex().x()*vertex().x() + vertex().y()*vertex().y())",
                      float, precision=8, doc="transverse displacement lXY = sqrt(vx^2+vy^2) [cm]"),
         dXY    = Var("-vertex().x()*sin(phi()) + vertex().y()*cos(phi())",
@@ -122,6 +125,17 @@ genParticlePropagator = cms.EDProducer(
     ),
 )
 
+# ---------------------------------------------------------------------------
+# Generator-level provenance labels for GenMuon entries.
+# Produces ValueMap<int> keyed to genParticles:
+#   parentPdgId      — immediate mother PDG id
+#   isDecayInFlight  — 1 for pion/kaon DIF-like ancestry, else 0
+# ---------------------------------------------------------------------------
+genMuonProvenance = cms.EDProducer(
+    "GenMuonProvenanceProducer",
+    src = cms.InputTag("genParticles"),
+)
+
 # Attach propagated coordinates to the gen-muon table as external variables.
 # The ValueMap indices align with the full genParticles vector; NanoAOD applies
 # the table cut (abs(pdgId)==13 && status==1) automatically.
@@ -134,6 +148,10 @@ genMuonNanoTable.externalVariables = cms.PSet(
                     "float", doc="eta at 2nd muon station (MB2/ME2); -9 if outside acceptance", precision=8),
     phiSt2 = ExtVar(cms.InputTag("genParticlePropagator", "phiSt2"),
                     "float", doc="phi at 2nd muon station (MB2/ME2) [rad]; -9 if outside acceptance", precision=8),
+    parentPdgId = ExtVar(cms.InputTag("genMuonProvenance", "parentPdgId"),
+                         int, doc="immediate mother PDG id (0 if unavailable)"),
+    isDecayInFlight = ExtVar(cms.InputTag("genMuonProvenance", "isDecayInFlight"),
+                             int, doc="1 if first non-muon ancestor is pi/K (DIF-like), else 0"),
 )
 
 # ---------------------------------------------------------------------------
@@ -205,14 +223,98 @@ MuonStubKmtfTable = cms.EDProducer(
 )
 
 # ---------------------------------------------------------------------------
+# Raw trigger primitive tables — DT, CSC, RPC
+#
+# These use custom EDProducers defined in
+#   L1Trigger/L1MuNano/plugins/PrimitiveDigiToFlatTableProducers.cc
+#
+# Input tags mirror those consumed by simOmtfPhase2Digis (see
+#   L1Trigger/L1TMuonOverlapPhase2/python/simOmtfPhase2Digis_cfi.py).
+# ---------------------------------------------------------------------------
+
+# -- Run-3 DT phi primitives (L1MuDTChambPhContainer) ----------------------
+DTPhiDigiTable = cms.EDProducer(
+    "DTPhiDigiFlatTableProducer",
+    src  = cms.InputTag("simDtTriggerPrimitiveDigis"),
+    name = cms.string("DTPhiDigi"),
+    doc  = cms.string(
+        "Run-3 DT phi trigger primitives (L1MuDTChambPhContainer). "
+        "phi = radial angle, phiB = bending angle (displaced-muon discriminant)."
+    ),
+)
+
+# -- Phase-2 DT phi primitives (L1Phase2MuDTPhContainer) -------------------
+Ph2DTPhiDigiTable = cms.EDProducer(
+    "Ph2DTPhiDigiFlatTableProducer",
+    src  = cms.InputTag("dtTriggerPhase2PrimitiveDigis"),
+    name = cms.string("Ph2DTPhiDigi"),
+    doc  = cms.string(
+        "Phase-2 DT phi trigger primitives (L1Phase2MuDTPhContainer). "
+        "t0 and chi2 are key displaced-muon variables."
+    ),
+)
+
+# -- Phase-2 DT theta primitives (L1Phase2MuDTThContainer) -----------------
+Ph2DTThetaDigiTable = cms.EDProducer(
+    "Ph2DTThetaDigiFlatTableProducer",
+    src  = cms.InputTag("dtTriggerPhase2PrimitiveDigis"),
+    name = cms.string("Ph2DTThDigi"),
+    doc  = cms.string(
+        "Phase-2 DT theta trigger primitives (L1Phase2MuDTThContainer). "
+        "k = local theta slope (pointing displacement estimator)."
+    ),
+)
+
+# -- CSC correlated LCT digis (CSCCorrelatedLCTDigiCollection) -------------
+CSCLCTDigiTable = cms.EDProducer(
+    "CSCLCTDigiFlatTableProducer",
+    src  = cms.InputTag("simCscTriggerPrimitiveDigis", "MPCSORTED"),
+    name = cms.string("CSCLctDigi"),
+    doc  = cms.string(
+        "CSC correlated LCT trigger primitives after MPC sorting. "
+        "slope/bend encode local phi direction (CSC displaced proxy). "
+        "DetId fields: endcap, station, ring, chamber."
+    ),
+)
+
+# -- RPC digis (RPCDigiCollection) -----------------------------------------
+RPCDigiTable = cms.EDProducer(
+    "RPCDigiFlatTableProducer",
+    src         = cms.InputTag("simMuonRPCDigis"),
+    name        = cms.string("RPCDigi"),
+    doc         = cms.string(
+        "RPC strip digis. bx encodes timing (late BX -> displaced muon indicator). "
+        "DetId fields: region, ring, station, sector, layer, subsector, roll."
+    ),
+    maxBxRange  = cms.int32(2),   # keep only |bx| <= 2 to limit table size at PU200
+)
+
+# -- Event-level pileup summary (PileupSummaryInfo from addPileupInfo) -------
+PileupTable = cms.EDProducer(
+    "PileupInfoFlatTableProducer",
+    src  = cms.InputTag("addPileupInfo"),
+    name = cms.string("Pileup"),
+    doc  = cms.string(
+        "Event-level pileup summary. nPU/nTrueInt at BX=0 plus neighboring BX occupancy."
+    ),
+)
+
+# ---------------------------------------------------------------------------
 # CMS Task: producers to run together before the NanoAOD output step.
 # Attach to the process via process.schedule.associate(p2OmtfNanoTablesTask)
 # or via a dedicated cms.Path.
 # ---------------------------------------------------------------------------
 p2OmtfNanoTablesTask = cms.Task(
     genParticlePropagator,
+    genMuonProvenance,
     OMTFTrackTable,
     genMuonNanoTable,
     MuonStubTpsTable,
     MuonStubKmtfTable,
+    DTPhiDigiTable,
+    Ph2DTPhiDigiTable,
+    Ph2DTThetaDigiTable,
+    CSCLCTDigiTable,
+    RPCDigiTable,
+    PileupTable,
 )

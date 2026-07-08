@@ -32,6 +32,7 @@
 #include "TTree.h"
 
 #include <cmath>
+#include <limits>
 #include <map>
 #include <set>
 
@@ -50,6 +51,15 @@ DataROOTDumper2AllInput::DataROOTDumper2AllInput(const edm::ParameterSet& edmCfg
     dtSimLinkTag_  = edmCfg.getParameter<edm::InputTag>("dtDigiSimLinksInputTag");
     rpcSimLinkTag_ = edmCfg.getParameter<edm::InputTag>("rpcDigiSimLinkInputTag");
     cscSimLinkTag_ = edmCfg.getParameter<edm::InputTag>("cscStripDigiSimLinksInputTag");
+    dtSimHitTag_   = edmCfg.exists("dtSimHitsInputTag")
+               ? edmCfg.getParameter<edm::InputTag>("dtSimHitsInputTag")
+               : edm::InputTag("g4SimHits", "MuonDTHits");
+    rpcSimHitTag_  = edmCfg.exists("rpcSimHitsInputTag")
+               ? edmCfg.getParameter<edm::InputTag>("rpcSimHitsInputTag")
+               : edm::InputTag("g4SimHits", "MuonRPCHits");
+    cscSimHitTag_  = edmCfg.exists("cscSimHitsInputTag")
+               ? edmCfg.getParameter<edm::InputTag>("cscSimHitsInputTag")
+               : edm::InputTag("g4SimHits", "MuonCSCHits");
     simTrackTag_   = edmCfg.getParameter<edm::InputTag>("simTracksTag");
     genParticleTag_= edmCfg.getParameter<edm::InputTag>("genParticleTag");
 
@@ -97,6 +107,9 @@ void DataROOTDumper2AllInput::initializeAllInputTree() {
   // When doSimTruth_ == false they stay filled with zeros.
   allInputTree->Branch("reg_stub_trackId",   &reg_stub_trackId);
   allInputTree->Branch("reg_stub_ambiguous", &reg_stub_ambiguous);
+  allInputTree->Branch("reg_stub_tof",       &reg_stub_tof);
+  allInputTree->Branch("reg_stub_tofSpread", &reg_stub_tofSpread);
+  allInputTree->Branch("reg_stub_nSimHit",   &reg_stub_nSimHit);
 }
 
 // ---------------------------------------------------------------------------
@@ -236,6 +249,90 @@ namespace {
     }
   }
 
+  void collectRPCTof(uint32_t detIdRaw,
+                     double stubGlobalPhi,
+                     const edm::PSimHitContainer& rpcSimHits,
+                     const RPCGeometry& georpc,
+                     std::vector<float>& tofs) {
+    RPCDetId rpcDetId(detIdRaw);
+    const RPCRoll* roll = georpc.roll(rpcDetId);
+    if (!roll)
+      return;
+    for (const auto& simHit : rpcSimHits) {
+      if (simHit.detUnitId() != detIdRaw)
+        continue;
+      const int strip = roll->strip(simHit.localPosition());
+      if (strip < 1 || strip > roll->nstrips())
+        continue;
+      const double phi = roll->toGlobal(roll->centreOfStrip(strip)).phi();
+      if (std::abs(stubGlobalPhi - phi) < 0.02)
+        tofs.push_back(simHit.timeOfFlight());
+    }
+  }
+
+  void collectDTTof(uint32_t detIdRaw,
+                    double stubGlobalPhi,
+                    const edm::PSimHitContainer& dtSimHits,
+                    const DTGeometry& geodt,
+                    std::vector<float>& tofs) {
+    const DTChamber* chamber = geodt.chamber(DTLayerId(detIdRaw));
+    if (!chamber)
+      return;
+    for (const auto& simHit : dtSimHits) {
+      const DTLayer* layer = geodt.layer(DTLayerId(simHit.detUnitId()));
+      if (!layer)
+        continue;
+      if (layer->chamber()->id().rawId() != detIdRaw)
+        continue;
+      const auto globalPoint = layer->toGlobal(simHit.localPosition());
+      if (std::abs(stubGlobalPhi - globalPoint.phi()) < 0.03)
+        tofs.push_back(simHit.timeOfFlight());
+    }
+  }
+
+  void collectCSCTof(uint32_t detIdRaw,
+                     double stubGlobalPhi,
+                     const edm::PSimHitContainer& cscSimHits,
+                     const CSCGeometry& geocsc,
+                     std::vector<float>& tofs) {
+    const CSCChamber* chamber = geocsc.chamber(CSCDetId(detIdRaw));
+    if (!chamber)
+      return;
+    for (const auto& simHit : cscSimHits) {
+      const CSCLayer* layer = geocsc.layer(CSCDetId(simHit.detUnitId()));
+      if (!layer)
+        continue;
+      if (layer->chamber()->id().rawId() != detIdRaw)
+        continue;
+      const double strip = layer->geometry()->strip(simHit.localPosition());
+      const double phi = layer->centerOfStrip(std::round(strip)).phi().value();
+      if (std::abs(stubGlobalPhi - phi) < 0.03)
+        tofs.push_back(simHit.timeOfFlight());
+    }
+  }
+
+  void summarizeTof(const std::vector<float>& tofs, float& meanTof, float& spreadTof, signed char& nTof) {
+    if (tofs.empty()) {
+      meanTof = -999.f;
+      spreadTof = 0.f;
+      nTof = 0;
+      return;
+    }
+
+    float sum = 0.f;
+    float minTof = std::numeric_limits<float>::max();
+    float maxTof = std::numeric_limits<float>::lowest();
+    for (float t : tofs) {
+      sum += t;
+      if (t < minTof) minTof = t;
+      if (t > maxTof) maxTof = t;
+    }
+    meanTof = sum / static_cast<float>(tofs.size());
+    spreadTof = maxTof - minTof;
+    const size_t capped = std::min<size_t>(tofs.size(), 127);
+    nTof = static_cast<signed char>(capped);
+  }
+
 }  // anonymous namespace
 
 // ---------------------------------------------------------------------------
@@ -244,16 +341,25 @@ void DataROOTDumper2AllInput::assignSimTruth(
     const edm::Handle<MuonDigiCollection<DTLayerId, DTDigiSimLink>>& dtLinksH,
     const edm::Handle<edm::DetSetVector<RPCDigiSimLink>>& rpcLinksH,
     const edm::Handle<edm::DetSetVector<StripDigiSimLink>>& cscLinksH,
+  const edm::Handle<edm::PSimHitContainer>& dtSimHitsH,
+  const edm::Handle<edm::PSimHitContainer>& rpcSimHitsH,
+  const edm::Handle<edm::PSimHitContainer>& cscSimHitsH,
     const std::vector<int>& simTrackIdToGenIdx,
     unsigned int processorPhiZero,
     const std::vector<uint32_t>& stub_detId,
     const std::vector<short>& stub_phiHw,
     std::vector<signed char>& stub_trackId,
-    std::vector<uint8_t>& stub_ambiguous) {
+  std::vector<uint8_t>& stub_ambiguous,
+  std::vector<float>& stub_tof,
+  std::vector<float>& stub_tofSpread,
+  std::vector<signed char>& stub_nSimHit) {
 
   const unsigned int nStubs = stub_detId.size();
   stub_trackId.assign(nStubs, 0);
   stub_ambiguous.assign(nStubs, 0);
+  stub_tof.assign(nStubs, -999.f);
+  stub_tofSpread.assign(nStubs, 0.f);
+  stub_nSimHit.assign(nStubs, 0);
 
   for (unsigned int iStub = 0; iStub < nStubs; ++iStub) {
     uint32_t detIdRaw = stub_detId[iStub];
@@ -269,12 +375,27 @@ void DataROOTDumper2AllInput::assignSimTruth(
     switch (detId.subdetId()) {
       case MuonSubdetId::RPC:
         accumRPC(detIdRaw, globalPhi, *rpcLinksH, *georpc_, votes);
+        if (rpcSimHitsH.isValid()) {
+          std::vector<float> tofs;
+          collectRPCTof(detIdRaw, globalPhi, *rpcSimHitsH, *georpc_, tofs);
+          summarizeTof(tofs, stub_tof[iStub], stub_tofSpread[iStub], stub_nSimHit[iStub]);
+        }
         break;
       case MuonSubdetId::DT:
         accumDT(detIdRaw, globalPhi, *dtLinksH, *geodt_, votes);
+        if (dtSimHitsH.isValid()) {
+          std::vector<float> tofs;
+          collectDTTof(detIdRaw, globalPhi, *dtSimHitsH, *geodt_, tofs);
+          summarizeTof(tofs, stub_tof[iStub], stub_tofSpread[iStub], stub_nSimHit[iStub]);
+        }
         break;
       case MuonSubdetId::CSC:
         accumCSC(detIdRaw, globalPhi, *cscLinksH, *geocsc_, votes);
+        if (cscSimHitsH.isValid()) {
+          std::vector<float> tofs;
+          collectCSCTof(detIdRaw, globalPhi, *cscSimHitsH, *geocsc_, tofs);
+          summarizeTof(tofs, stub_tof[iStub], stub_tofSpread[iStub], stub_nSimHit[iStub]);
+        }
         break;
       default:
         break;
@@ -320,12 +441,18 @@ void DataROOTDumper2AllInput::observeEventEnd(
   edm::Handle<MuonDigiCollection<DTLayerId, DTDigiSimLink>> dtLinksH;
   edm::Handle<edm::DetSetVector<RPCDigiSimLink>>            rpcLinksH;
   edm::Handle<edm::DetSetVector<StripDigiSimLink>>          cscLinksH;
+  edm::Handle<edm::PSimHitContainer>                        dtSimHitsH;
+  edm::Handle<edm::PSimHitContainer>                        rpcSimHitsH;
+  edm::Handle<edm::PSimHitContainer>                        cscSimHitsH;
   bool simHandlesOk = false;
 
   if (doSimTruth_) {
     iEvent.getByLabel(dtSimLinkTag_,  dtLinksH);
     iEvent.getByLabel(rpcSimLinkTag_, rpcLinksH);
     iEvent.getByLabel(cscSimLinkTag_, cscLinksH);
+    iEvent.getByLabel(dtSimHitTag_,   dtSimHitsH);
+    iEvent.getByLabel(rpcSimHitTag_,  rpcSimHitsH);
+    iEvent.getByLabel(cscSimHitTag_,  cscSimHitsH);
     simHandlesOk = dtLinksH.isValid() && rpcLinksH.isValid() && cscLinksH.isValid();
 
     if (simHandlesOk) {
@@ -392,12 +519,17 @@ void DataROOTDumper2AllInput::observeEventEnd(
       unsigned int procPhiZero =
           static_cast<unsigned int>(OMTFinputMaker::getProcessorPhiZero(omtfConfig, region.iProcessor));
       assignSimTruth(iEvent, dtLinksH, rpcLinksH, cscLinksH,
+                     dtSimHitsH, rpcSimHitsH, cscSimHitsH,
                      simTrackIdToGenIdx, procPhiZero,
                      region.stub_detId, reg_stub_phiHw,
-                     reg_stub_trackId, reg_stub_ambiguous);
+                     reg_stub_trackId, reg_stub_ambiguous,
+                     reg_stub_tof, reg_stub_tofSpread, reg_stub_nSimHit);
     } else {
       reg_stub_trackId.assign(nStubs, 0);
       reg_stub_ambiguous.assign(nStubs, 0);
+      reg_stub_tof.assign(nStubs, -999.f);
+      reg_stub_tofSpread.assign(nStubs, 0.f);
+      reg_stub_nSimHit.assign(nStubs, 0);
     }
 
     allInputTree->Fill();
