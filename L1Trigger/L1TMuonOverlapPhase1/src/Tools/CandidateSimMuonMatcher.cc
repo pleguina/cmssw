@@ -25,6 +25,8 @@
 #include "TFile.h"
 #include "TH1D.h"
 
+#include <cmath>
+
 double hwGmtPhiToGlobalPhi(int phi) {
   double phiGmtUnit = 2. * M_PI / 576.;
   double globalPhi = phi * phiGmtUnit;
@@ -53,8 +55,23 @@ MatchingResult::MatchingResult(const SimTrack& simTrack, const SimVertex* simVer
   genCharge = simTrack.charge();
 
   const math::XYZTLorentzVectorD& vtxPos = this->simVertex->position();
-  muonDxy = (-vtxPos.X() * this->simTrack->momentum().py() + vtxPos.Y() * this->simTrack->momentum().px()) /
-            this->simTrack->momentum().pt();
+  // NOTE: dxy must be recovered from the *curved* helix, not a straight-line
+  // projection (-vx*py+vy*px)/pt (that formula is only accurate when the
+  // curvature radius >> displacement, i.e. high pT / small lXY). The vertex
+  // sits on the gyration circle at radius rg from a center offset by
+  // (dxy - rg) from the origin, so the true dxy is recovered by inverting
+  // that circle geometry instead (see EMTFTools/ParticleGuns/FlatRandomPtGunProducer2
+  // ::newVertexWithD0 for the corresponding forward calculation):
+  //   rg = -pT/(0.003*B*q), B = 3.811 T
+  //   center = (vx - rg*sin(phi), vy + rg*cos(phi))
+  //   dxy = rg + q*|center|
+  {
+    const double B = 3.811;  // Tesla
+    double rg = -genPt / (0.003 * B * genCharge);
+    double cx = vtxPos.X() - rg * std::sin(genPhi);
+    double cy = vtxPos.Y() + rg * std::cos(genPhi);
+    muonDxy = rg + genCharge * std::sqrt(cx * cx + cy * cy);
+  }
   muonRho = vtxPos.Rho();
 
   vertexEta = vtxPos.eta();
@@ -372,7 +389,16 @@ void CandidateSimMuonMatcher::observeEventEnd(const edm::Event& event,
     //trackingParticleIsMuonInBx0; if propagation is used, use trackingParticleIsMuonInOmtfBx0
     matchingResults =
         match(ghostBustedRegionalCands, ghostBustedProcMuons, trackingParticleHandle.product(), trackParticleFilter);
-  } else if (matchingType == MatchingType::collectMuonCands) {
+  } else {
+    //No gen-truth source configured at all (neither simTracksTag nor trackingParticleTag), e.g. pure
+    //background/noise samples such as MinBias/QCD/neutrino-gun productions. Rather than silently leaving
+    //matchingResults empty for the whole event (which makes OMTFHitsTree empty exactly where fake/ghost
+    //studies are needed), always fall back to collecting ALL ghost-busted OMTF candidates unmatched.
+    //The gen-muon match fields in DataROOTDumper2 are optional and default to their "no match" sentinel
+    //values (muonEvent=-1, muonPt=0, hasGenMatch=false) in this case.
+    //This subsumes the previous explicit "candidateSimMuonMatcherType=collectMuonCands" opt-in, which is
+    //still honored above (matchingType is set from that parameter), but is no longer required to get this
+    //behaviour: it is now the natural fallback whenever no truth collection is available.
     matchingResults = collectMuonCands(ghostBustedRegionalCands, ghostBustedProcMuons);
   }
 }
