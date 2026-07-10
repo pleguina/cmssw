@@ -31,6 +31,15 @@ public:
 
   //muonPt = 0 means that no muon was matched to the candidate
   short muonEvent = -1;
+
+  //Explicit "is this a gen-matched entry?" flag. All muon* / vertex* / deltaEta / deltaPhi fields above
+  //are optional gen-truth-match fields: when hasGenMatch == false they hold their "no match" sentinel
+  //values (muonEvent=-1, muonPt=0, etc.) and the row still corresponds to a real OMTF candidate (or, in
+  //samples with no truth source configured at all, to every OMTF candidate in the event). This makes
+  //fake/ghost studies possible on samples where, by construction, nothing is gen-matched (e.g. pure
+  //background/noise productions) since such candidates are no longer silently dropped.
+  bool hasGenMatch = false;
+
   float muonPt = 0, muonEta = 0, muonPhi = 0, muonPropEta = 0, muonPropPhi = 0;
   char muonCharge = 0;
   float muonDxy = 0;

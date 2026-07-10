@@ -45,12 +45,23 @@
 // CSC
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigiCollection.h"
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigi.h"
+#include "DataFormats/CSCDigi/interface/CSCConstants.h"
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
+#include "Geometry/CSCGeometry/interface/CSCGeometry.h"
+#include "Geometry/CSCGeometry/interface/CSCChamber.h"
+#include "Geometry/CSCGeometry/interface/CSCLayer.h"
+#include "Geometry/CSCGeometry/interface/CSCLayerGeometry.h"
 
 // RPC
 #include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 #include "DataFormats/RPCDigi/interface/RPCDigi.h"
 #include "DataFormats/MuonDetId/interface/RPCDetId.h"
+#include "Geometry/RPCGeometry/interface/RPCGeometry.h"
+#include "Geometry/RPCGeometry/interface/RPCRoll.h"
+
+// Muon geometry ES record (shared by CSC/RPC geometry lookups below)
+#include "Geometry/Records/interface/MuonGeometryRecord.h"
+#include "FWCore/Utilities/interface/ESGetToken.h"
 
 #include <algorithm>
 #include <cmath>
@@ -158,7 +169,12 @@ public:
     const unsigned int n = digis ? digis->size() : 0;
 
     std::vector<int16_t> vBx, vWheel, vSector, vStation, vSL;
-    std::vector<int16_t> vPhi, vPhiBend, vQuality, vIdx, vT0, vChi2, vRpcFlag;
+    // phi and chi2 are stored as int32: the packed phi word (PHIRES_CONV=131072 counts/rad, range
+    // up to +-65536 for the full +-0.5 rad segment window) and chi2 both overflow int16_t for
+    // segments away from the sector centre / high-chi2 fits, wrapping into bogus negative values.
+    // See ROOT_BRANCHES.md section 16.2b for the confirmed overflow measurement.
+    std::vector<int32_t> vPhi, vChi2;
+    std::vector<int16_t> vPhiBend, vQuality, vIdx, vT0, vRpcFlag;
     std::vector<uint8_t> vHasRpc, vIsHighQuality, vIsLate;
     vBx.reserve(n); vWheel.reserve(n); vSector.reserve(n);
     vStation.reserve(n); vSL.reserve(n);
@@ -173,12 +189,12 @@ public:
         vSector.push_back(d.scNum());
         vStation.push_back(d.stNum());
         vSL.push_back(d.slNum());
-        vPhi.push_back(d.phi());
+        vPhi.push_back(static_cast<int32_t>(d.phi()));
         vPhiBend.push_back(d.phiBend());
         vQuality.push_back(d.quality());
         vIdx.push_back(d.index());
         vT0.push_back(static_cast<int16_t>(d.t0()));
-        vChi2.push_back(static_cast<int16_t>(d.chi2()));
+        vChi2.push_back(static_cast<int32_t>(d.chi2()));
         vRpcFlag.push_back(d.rpcFlag());
         vHasRpc.push_back(d.rpcFlag() != 0);
         vIsHighQuality.push_back(d.quality() >= 4);
@@ -193,12 +209,12 @@ public:
     table->addColumn<int16_t>("sector",   vSector,   "DT sector (0..11)");
     table->addColumn<int16_t>("station",  vStation,  "DT station (1..4)");
     table->addColumn<int16_t>("sl",       vSL,       "superlayer number (1 or 3 for phi)");
-    table->addColumn<int16_t>("phi",      vPhi,      "phi angle [~1/2048 of pi/6 rad per unit]");
+    table->addColumn<int32_t>("phi",      vPhi,      "phi angle [1/131072 rad per unit; full int32, no overflow]");
     table->addColumn<int16_t>("phiBend",  vPhiBend,  "phi bending angle [local direction proxy]");
     table->addColumn<int16_t>("quality",  vQuality,  "segment quality code");
     table->addColumn<int16_t>("index",    vIdx,      "segment index within chamber");
     table->addColumn<int16_t>("t0",       vT0,       "segment t0 timing [ns-scale; displaced muon indicator]");
-    table->addColumn<int16_t>("chi2",     vChi2,     "segment fit chi2 [quality/noise rejection]");
+    table->addColumn<int32_t>("chi2",     vChi2,     "segment fit chi2 [quality/noise rejection; full int32, no overflow]");
     table->addColumn<int16_t>("rpcFlag",  vRpcFlag,  "RPC confirmation flag");
     table->addColumn<uint8_t>("hasRpc",   vHasRpc,   "1 when phase-2 DT segment carries RPC confirmation");
     table->addColumn<uint8_t>("isHighQuality", vIsHighQuality, "1 when DT segment quality >= 4");
@@ -301,6 +317,7 @@ class CSCLCTDigiFlatTableProducer : public edm::global::EDProducer<> {
 public:
   explicit CSCLCTDigiFlatTableProducer(const edm::ParameterSet& ps)
       : src_(mayConsume<CSCCorrelatedLCTDigiCollection>(ps.getParameter<edm::InputTag>("src"))),
+        cscGeometryToken_(esConsumes<CSCGeometry, MuonGeometryRecord>()),
         name_(ps.getParameter<std::string>("name")),
         doc_(ps.getParameter<std::string>("doc")) {
     produces<nanoaod::FlatTable>();
@@ -314,8 +331,9 @@ public:
     descriptions.addWithDefaultLabel(desc);
   }
 
-  void produce(edm::StreamID, edm::Event& ev, const edm::EventSetup&) const override {
+  void produce(edm::StreamID, edm::Event& ev, const edm::EventSetup& es) const override {
     const auto colHandle = ev.getHandle(src_);
+    const CSCGeometry& cscGeometry = es.getData(cscGeometryToken_);
 
     // Pre-count total digis across all DetSets
     unsigned int n = 0;
@@ -331,15 +349,19 @@ public:
     std::vector<int16_t> vKeywire, vStrip, vPattern, vRun3Pattern;
     std::vector<int16_t> vSlope, vBend, vQuality, vBx, vCscId, vValid;
     std::vector<uint8_t> vQuartStripBit, vEighthStripBit;
+    // Geometry-resolved coordinate (producer-side, from key wire group)
+    std::vector<float> vEta;
 
     vEndcap.reserve(n); vStation.reserve(n); vRing.reserve(n); vChamber.reserve(n);
     vKeywire.reserve(n); vStrip.reserve(n); vPattern.reserve(n); vRun3Pattern.reserve(n);
     vSlope.reserve(n); vBend.reserve(n); vQuality.reserve(n);
     vBx.reserve(n); vCscId.reserve(n); vValid.reserve(n);
     vQuartStripBit.reserve(n); vEighthStripBit.reserve(n);
+    vEta.reserve(n);
 
     for (const auto& detPair : *colHandle) {
       const CSCDetId id(detPair.first);
+      const CSCChamber* chamber = cscGeometry.chamber(id);
       for (auto lctIt = detPair.second.first; lctIt != detPair.second.second; ++lctIt) {
         const auto& lct = *lctIt;
         vEndcap.push_back(id.endcap());     // 1=+z, 2=-z
@@ -358,6 +380,19 @@ public:
         vValid.push_back(lct.isValid() ? 1 : 0);
         vQuartStripBit.push_back(lct.getQuartStripBit() ? 1 : 0);
         vEighthStripBit.push_back(lct.getEighthStripBit() ? 1 : 0);
+
+        // Geometry-resolved eta from the key wire group, using the same ALCT key layer
+        // and localCenterOfWireGroup()->toGlobal() transform used by OmtfAngleConverter::getGlobalEta().
+        float eta = 0.f;
+        if (chamber) {
+          const CSCLayer* keyLayer = chamber->layer(CSCConstants::KEY_ALCT_LAYER);
+          if (keyLayer) {
+            const LocalPoint lpWg = keyLayer->geometry()->localCenterOfWireGroup(lct.getKeyWG());
+            const GlobalPoint gpWg = keyLayer->surface().toGlobal(lpWg);
+            eta = gpWg.eta();
+          }
+        }
+        vEta.push_back(eta);
       }
     }
 
@@ -379,11 +414,14 @@ public:
     table->addColumn<int16_t>("bend",        vBend,        "local bend direction: 0=left, 1=right");
     table->addColumn<int16_t>("bx",          vBx,          "bunch crossing number");
     table->addColumn<int16_t>("cscId",       vCscId,       "CSC chamber ID within sector (1..9)");
+    table->addColumn<float>("eta", vEta, "geometry-resolved global eta from the key wire group "
+                                         "(ALCT key layer, localCenterOfWireGroup->toGlobal)", 12);
     ev.put(std::move(table));
   }
 
 private:
   const edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> src_;
+  const edm::ESGetToken<CSCGeometry, MuonGeometryRecord> cscGeometryToken_;
   const std::string name_;
   const std::string doc_;
 };
@@ -397,6 +435,7 @@ class RPCDigiFlatTableProducer : public edm::global::EDProducer<> {
 public:
   explicit RPCDigiFlatTableProducer(const edm::ParameterSet& ps)
       : src_(mayConsume<RPCDigiCollection>(ps.getParameter<edm::InputTag>("src"))),
+        rpcGeometryToken_(esConsumes<RPCGeometry, MuonGeometryRecord>()),
         name_(ps.getParameter<std::string>("name")),
         doc_(ps.getParameter<std::string>("doc")),
         maxBxRange_(ps.getParameter<int>("maxBxRange")) {
@@ -412,13 +451,14 @@ public:
     descriptions.addWithDefaultLabel(desc);
   }
 
-  void produce(edm::StreamID, edm::Event& ev, const edm::EventSetup&) const override {
+  void produce(edm::StreamID, edm::Event& ev, const edm::EventSetup& es) const override {
     const auto colHandle = ev.getHandle(src_);
     if (!colHandle.isValid()) {
       ev.put(std::make_unique<nanoaod::FlatTable>(0, name_, false, false));
       return;
     }
     const auto& collection = *colHandle;
+    const RPCGeometry& rpcGeometry = es.getData(rpcGeometryToken_);
 
     // RPCDetId fields
     std::vector<int16_t> vRegion, vRing, vStation, vSector, vLayer, vSubsector, vRoll;
@@ -427,9 +467,12 @@ public:
     // Derived RPC cluster observables
     std::vector<int16_t> vClusterSize, vClusterStripSpan, vRollBxSpan;
     std::vector<uint8_t> vIsIsolated;
+    // Geometry-resolved coordinates (producer-side, from strip -> roll geometry)
+    std::vector<float> vEta, vPhi;
 
     for (const auto& detPair : collection) {
       const RPCDetId id(detPair.first);
+      const RPCRoll* roll = rpcGeometry.roll(id);
       struct DigiRow {
         int16_t strip;
         int16_t bx;
@@ -504,6 +547,16 @@ public:
         vClusterStripSpan.push_back(clusterStripSpan[i]);
         vIsIsolated.push_back(clusterSize[i] == 1 ? 1 : 0);
         vRollBxSpan.push_back(rollBxSpan);
+
+        // Geometry-resolved eta/phi from the strip center, via RPCRoll::centreOfStrip->toGlobal.
+        float eta = 0.f, phi = 0.f;
+        if (roll && rows[i].strip >= 1 && rows[i].strip <= roll->nstrips()) {
+          const GlobalPoint gp = roll->toGlobal(roll->centreOfStrip(rows[i].strip));
+          eta = gp.eta();
+          phi = gp.phi();
+        }
+        vEta.push_back(eta);
+        vPhi.push_back(phi);
       }
     }
 
@@ -523,11 +576,14 @@ public:
     table->addColumn<int16_t>("clusterStripSpan", vClusterStripSpan, "cluster strip span = maxStrip-minStrip at fixed DetId and BX");
     table->addColumn<uint8_t>("isIsolated", vIsIsolated, "1 for single-strip cluster at fixed DetId and BX");
     table->addColumn<int16_t>("rollBxSpan", vRollBxSpan, "BX span in this roll after BX filtering (maxBX-minBX)");
+    table->addColumn<float>("eta", vEta, "geometry-resolved global eta from the strip center (RPCRoll::centreOfStrip->toGlobal)", 12);
+    table->addColumn<float>("phi", vPhi, "geometry-resolved global phi [rad] from the strip center (RPCRoll::centreOfStrip->toGlobal)", 12);
     ev.put(std::move(table));
   }
 
 private:
   const edm::EDGetTokenT<RPCDigiCollection> src_;
+  const edm::ESGetToken<RPCGeometry, MuonGeometryRecord> rpcGeometryToken_;
   const std::string name_;
   const std::string doc_;
   const int maxBxRange_;

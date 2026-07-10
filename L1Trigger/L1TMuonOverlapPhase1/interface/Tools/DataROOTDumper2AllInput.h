@@ -119,6 +119,7 @@ private:
   unsigned int   reg_eventNum   = 0;
   unsigned char  reg_iProcessor = 0;
   signed char    reg_mtfType    = 0;  // l1t::tftype cast to int8 (omtf_pos or omtf_neg)
+  signed char    reg_endcap     = 0;  // +1 = OMTF_POS, -1 = OMTF_NEG, 0 = unknown
 
   std::vector<signed char> reg_stub_layer;    // logic layer index [0, nLayers)
   std::vector<short>       reg_stub_phiHw;    // absolute phi in HW units
@@ -140,6 +141,7 @@ private:
   struct CachedRegion {
     unsigned char iProcessor = 0;
     signed char   mtfType    = 0;
+    signed char   endcap     = 0;  // +1 = OMTF_POS, -1 = OMTF_NEG, 0 = unknown
     std::vector<signed char> stub_layer;
     std::vector<short>       stub_phiHw;
     std::vector<short>       stub_phiBHw;

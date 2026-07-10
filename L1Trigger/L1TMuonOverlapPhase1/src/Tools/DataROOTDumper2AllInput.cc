@@ -93,6 +93,7 @@ void DataROOTDumper2AllInput::initializeAllInputTree() {
   allInputTree->Branch("reg_eventNum",    &reg_eventNum,  "reg_eventNum/i");
   allInputTree->Branch("reg_iProcessor",  &reg_iProcessor, "reg_iProcessor/b");
   allInputTree->Branch("reg_mtfType",     &reg_mtfType, "reg_mtfType/B");
+  allInputTree->Branch("reg_endcap",      &reg_endcap,  "reg_endcap/B");
 
   allInputTree->Branch("reg_stub_layer",   &reg_stub_layer);
   allInputTree->Branch("reg_stub_phiHw",   &reg_stub_phiHw);
@@ -122,6 +123,7 @@ void DataROOTDumper2AllInput::observeProcesorEmulation(unsigned int iProcessor,
   CachedRegion region;
   region.iProcessor = static_cast<unsigned char>(iProcessor);
   region.mtfType    = static_cast<signed char>(mtfType);
+  region.endcap     = (mtfType == l1t::omtf_neg) ? -1 : ((mtfType == l1t::omtf_pos) ? 1 : 0);
 
   // getMuonStubs() returns MuonStubPtrs2D = vector<vector<MuonStubPtr>>
   // indexed [iLayer][iStub]. Iterate all layers and all stubs.
@@ -503,6 +505,7 @@ void DataROOTDumper2AllInput::observeEventEnd(
     reg_eventNum   = eventNum;
     reg_iProcessor = region.iProcessor;
     reg_mtfType    = region.mtfType;
+    reg_endcap     = region.endcap;
 
     reg_stub_layer   = std::move(region.stub_layer);
     reg_stub_phiHw   = std::move(region.stub_phiHw);
