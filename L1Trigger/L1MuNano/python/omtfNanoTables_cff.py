@@ -81,8 +81,28 @@ genMuonNanoTable = cms.EDProducer(
         gamma  = Var("energy()/mass()", float, precision=8, doc="generator gamma = E/m"),
         lXY    = Var("sqrt(vertex().x()*vertex().x() + vertex().y()*vertex().y())",
                      float, precision=8, doc="transverse displacement lXY = sqrt(vx^2+vy^2) [cm]"),
-        dXY    = Var("-vertex().x()*sin(phi()) + vertex().y()*cos(phi())",
-                     float, precision=8, doc="signed transverse impact parameter dXY [cm]"),
+        # NOTE: dXY is the exact helix perigee impact parameter, NOT the naive
+        # straight-line projection (-vx*sin(phi)+vy*cos(phi)). The gun
+        # (EMTFTools/ParticleGuns/FlatRandomPtGunProducer2::newVertexWithD0) places
+        # the production vertex on the gyration circle at radius rg from a center
+        # offset by (dxy - rg) from the origin, so recovering the true dxy requires
+        # inverting that circle geometry rather than a straight-line formula. The
+        # straight-line approximation is only accurate when rg >> lXY (high pT /
+        # small displacement) and can be wrong by O(1) cm or more for low-pT,
+        # large-displacement muons (e.g. C25-C28 mild-displaced samples).
+        #   rg = -pT/(0.003*B*q)  [cm], B = 3.811 T (same convention as the gun)
+        #   center = (vx - rg*sin(phi), vy + rg*cos(phi))
+        #   dXY = rg + q*|center|
+        dXY    = Var(
+            "(-pt()/(0.003*3.811*charge()))"
+            " + charge()*sqrt("
+            "(vx()-(-pt()/(0.003*3.811*charge()))*sin(phi()))"
+            "*(vx()-(-pt()/(0.003*3.811*charge()))*sin(phi()))"
+            " + (vy()+(-pt()/(0.003*3.811*charge()))*cos(phi()))"
+            "*(vy()+(-pt()/(0.003*3.811*charge()))*cos(phi()))"
+            ")",
+            float, precision=8,
+            doc="signed transverse impact parameter dXY [cm] (exact helix perigee d0, curvature-corrected; see note above)"),
         status = Var("status",  int,              doc="generator status (1=stable)"),
     ),
 )
@@ -152,6 +172,10 @@ genMuonNanoTable.externalVariables = cms.PSet(
                          int, doc="immediate mother PDG id (0 if unavailable)"),
     isDecayInFlight = ExtVar(cms.InputTag("genMuonProvenance", "isDecayInFlight"),
                              int, doc="1 if first non-muon ancestor is pi/K (DIF-like), else 0"),
+    provenanceStatus = ExtVar(cms.InputTag("genMuonProvenance", "provenanceStatus"),
+                              int, doc="lXY-consistent provenance: 0=prompt (lXY<promptLxyCm), "
+                                       "1=decayInFlight (displaced, pi/K ancestor), "
+                                       "2=otherDisplaced (displaced, non-pi/K ancestor, e.g. heavy flavor/LLP)"),
 )
 
 # ---------------------------------------------------------------------------
@@ -174,7 +198,11 @@ genMuonNanoTable.externalVariables = cms.PSet(
 # ---------------------------------------------------------------------------
 _stubVars = cms.PSet(
     # ---- hardware integer quantities ----
-    coord1      = Var("coord1()",      "int16", doc="phi [30deg/2048 units]"),
+    # coord1 is stored as int32 (not int16): the KMTF (barrel) producer packs an 18-bit signed
+    # phi word (up to +-131071) which overflows int16 (+-32767) for sector>=1 (truncating the
+    # high 2 bits and making the raw integer non-decodable to global phi). See ROOT_BRANCHES.md
+    # section E. TPS (endcap) coord1 fits int16 cleanly but is widened too for a uniform schema.
+    coord1      = Var("coord1()",      "int", doc="phi [30deg/2048 units]; int32 (KMTF 18-bit word overflows int16)"),
     coord2      = Var("coord2()",      "int16", doc="phi bending angle (barrel only)"),
     eta1        = Var("eta1()",        "int16", doc="eta coord 1 [3.0/512 LSB]"),
     eta2        = Var("eta2()",        "int16", doc="eta coord 2 [3.0/512 LSB]"),
