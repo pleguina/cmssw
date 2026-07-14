@@ -22,15 +22,20 @@
 #include "TH2.h"
 
 #include <functional>
+#include <cstdint>
 
 class TTree;
 
 struct OmtfEvent {
 public:
+  uint32_t runNum = 0;
+  uint32_t lumiNum = 0;
   unsigned int eventNum = 0;
+  uint64_t eventNum64 = 0;
 
   //muonPt = 0 means that no muon was matched to the candidate
-  short muonEvent = -1;
+  int32_t muonEvent = -1;
+  int16_t muonBunchCrossing = 0;
 
   //Explicit "is this a gen-matched entry?" flag. All muon* / vertex* / deltaEta / deltaPhi fields above
   //are optional gen-truth-match fields: when hasGenMatch == false they hold their "no match" sentinel

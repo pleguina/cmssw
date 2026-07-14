@@ -42,8 +42,12 @@ void DataROOTDumper2::initializeTTree() {
 
   rootTree = fs->make<TTree>("OMTFHitsTree", "");
 
+  rootTree->Branch("runNum", &omtfEvent.runNum);
+  rootTree->Branch("lumiNum", &omtfEvent.lumiNum);
   rootTree->Branch("eventNum", &omtfEvent.eventNum);
+  rootTree->Branch("eventNum64", &omtfEvent.eventNum64);
   rootTree->Branch("muonEvent", &omtfEvent.muonEvent);
+  rootTree->Branch("muonBunchCrossing", &omtfEvent.muonBunchCrossing);
   rootTree->Branch("hasGenMatch", &omtfEvent.hasGenMatch);
 
   rootTree->Branch("muonPt", &omtfEvent.muonPt);
@@ -146,7 +150,10 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
   //so better would be to remove this condition, as it may be activated unintentionly
   for (auto& matchingResult : matchingResults) {
     omtfEvent = OmtfEvent();
+    omtfEvent.runNum = iEvent.id().run();
+    omtfEvent.lumiNum = iEvent.id().luminosityBlock();
     omtfEvent.eventNum = iEvent.id().event();
+    omtfEvent.eventNum64 = (static_cast<uint64_t>(omtfEvent.runNum) << 32) | static_cast<uint64_t>(omtfEvent.eventNum);
 
     if (matchingResult.trackingParticle) {
       auto trackingParticle = matchingResult.trackingParticle;
@@ -157,6 +164,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
         omtfEvent.muonEvent = -2;
       else
         omtfEvent.muonEvent = trackingParticle->eventId().event();
+      omtfEvent.muonBunchCrossing = static_cast<int16_t>(trackingParticle->eventId().bunchCrossing());
 
       omtfEvent.muonPt = trackingParticle->pt();
       omtfEvent.muonEta = trackingParticle->momentum().eta();
@@ -205,6 +213,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
         omtfEvent.muonEvent = -2;
       else
         omtfEvent.muonEvent = simTrack->eventId().event();
+      omtfEvent.muonBunchCrossing = static_cast<int16_t>(simTrack->eventId().bunchCrossing());
 
       omtfEvent.muonPt = simTrack->momentum().pt();
       omtfEvent.muonEta = simTrack->momentum().eta();
@@ -246,6 +255,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
     } else {
       omtfEvent.hasGenMatch = false;
       omtfEvent.muonEvent = -1;
+      omtfEvent.muonBunchCrossing = 0;
 
       omtfEvent.muonPt = 0;
 

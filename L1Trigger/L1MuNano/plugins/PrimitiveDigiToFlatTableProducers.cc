@@ -257,7 +257,8 @@ public:
     const unsigned int n = digis ? digis->size() : 0;
 
     std::vector<int16_t> vBx, vWheel, vSector, vStation;
-    std::vector<int16_t> vZ, vK, vQuality, vIdx, vT0, vChi2, vRpcFlag;
+    std::vector<int16_t> vZ, vK, vQuality, vIdx, vRpcFlag;
+    std::vector<int32_t> vT0, vChi2;
     std::vector<uint8_t> vHasRpc, vIsHighQuality, vIsLate;
     vBx.reserve(n); vWheel.reserve(n); vSector.reserve(n); vStation.reserve(n);
     vZ.reserve(n); vK.reserve(n); vQuality.reserve(n);
@@ -274,8 +275,8 @@ public:
         vK.push_back(static_cast<int16_t>(d.k()));
         vQuality.push_back(d.quality());
         vIdx.push_back(d.index());
-        vT0.push_back(static_cast<int16_t>(d.t0()));
-        vChi2.push_back(static_cast<int16_t>(d.chi2()));
+        vT0.push_back(static_cast<int32_t>(d.t0()));
+        vChi2.push_back(static_cast<int32_t>(d.chi2()));
         vRpcFlag.push_back(d.rpcFlag());
         vHasRpc.push_back(d.rpcFlag() != 0);
         vIsHighQuality.push_back(d.quality() >= 4);
@@ -293,8 +294,8 @@ public:
     table->addColumn<int16_t>("k",        vK,        "theta local slope dz/dl [pointing residual variable]");
     table->addColumn<int16_t>("quality",  vQuality,  "segment quality code");
     table->addColumn<int16_t>("index",    vIdx,      "segment index within chamber");
-    table->addColumn<int16_t>("t0",       vT0,       "theta segment t0 timing [displaced muon indicator]");
-    table->addColumn<int16_t>("chi2",     vChi2,     "theta segment fit chi2");
+    table->addColumn<int32_t>("t0",       vT0,       "theta segment t0 timing [displaced muon indicator; int32, no truncation]");
+    table->addColumn<int32_t>("chi2",     vChi2,     "theta segment fit chi2 [int32, no truncation]");
     table->addColumn<int16_t>("rpcFlag",  vRpcFlag,  "RPC confirmation flag");
     table->addColumn<uint8_t>("hasRpc",   vHasRpc,   "1 when phase-2 DT theta segment carries RPC confirmation");
     table->addColumn<uint8_t>("isHighQuality", vIsHighQuality, "1 when DT theta segment quality >= 4");

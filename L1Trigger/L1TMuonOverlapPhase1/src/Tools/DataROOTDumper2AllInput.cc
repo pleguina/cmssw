@@ -62,6 +62,8 @@ DataROOTDumper2AllInput::DataROOTDumper2AllInput(const edm::ParameterSet& edmCfg
                : edm::InputTag("g4SimHits", "MuonCSCHits");
     simTrackTag_   = edmCfg.getParameter<edm::InputTag>("simTracksTag");
     genParticleTag_= edmCfg.getParameter<edm::InputTag>("genParticleTag");
+    if (edmCfg.exists("trackingParticleTag"))
+      trackingParticleTag_ = edmCfg.getParameter<edm::InputTag>("trackingParticleTag");
 
     edm::LogVerbatim("l1tOmtfEventPrint") << "DataROOTDumper2AllInput: doSimTruth = true" << std::endl;
   }
@@ -90,6 +92,9 @@ void DataROOTDumper2AllInput::initializeAllInputTree() {
   allInputTree =
       fs->make<TTree>("OMTFAllInputTree", "All input stubs per processor region per event");
 
+  allInputTree->Branch("reg_runNum",      &reg_runNum,    "reg_runNum/i");
+  allInputTree->Branch("reg_lumiNum",     &reg_lumiNum,   "reg_lumiNum/i");
+  allInputTree->Branch("reg_eventNum64",  &reg_eventNum64, "reg_eventNum64/L");
   allInputTree->Branch("reg_eventNum",    &reg_eventNum,  "reg_eventNum/i");
   allInputTree->Branch("reg_iProcessor",  &reg_iProcessor, "reg_iProcessor/b");
   allInputTree->Branch("reg_mtfType",     &reg_mtfType, "reg_mtfType/B");
@@ -103,14 +108,34 @@ void DataROOTDumper2AllInput::initializeAllInputTree() {
   allInputTree->Branch("reg_stub_quality", &reg_stub_quality);
   allInputTree->Branch("reg_stub_type",    &reg_stub_type);
   allInputTree->Branch("reg_stub_bx",      &reg_stub_bx);
+  allInputTree->Branch("reg_stub_detId",   &reg_stub_detId);
 
   // SimTrack truth branches are always created so the tree schema is stable.
   // When doSimTruth_ == false they stay filled with zeros.
   allInputTree->Branch("reg_stub_trackId",   &reg_stub_trackId);
+  allInputTree->Branch("reg_stub_tpId",      &reg_stub_tpId);
   allInputTree->Branch("reg_stub_ambiguous", &reg_stub_ambiguous);
   allInputTree->Branch("reg_stub_tof",       &reg_stub_tof);
   allInputTree->Branch("reg_stub_tofSpread", &reg_stub_tofSpread);
   allInputTree->Branch("reg_stub_nSimHit",   &reg_stub_nSimHit);
+
+  allInputTree->Branch("TpMuon_pt",            &TpMuon_pt);
+  allInputTree->Branch("TpMuon_eta",           &TpMuon_eta);
+  allInputTree->Branch("TpMuon_phi",           &TpMuon_phi);
+  allInputTree->Branch("TpMuon_charge",        &TpMuon_charge);
+  allInputTree->Branch("TpMuon_dxy",           &TpMuon_dxy);
+  allInputTree->Branch("TpMuon_lxy",           &TpMuon_lxy);
+  allInputTree->Branch("TpMuon_vx",            &TpMuon_vx);
+  allInputTree->Branch("TpMuon_vy",            &TpMuon_vy);
+  allInputTree->Branch("TpMuon_dxyHelix",      &TpMuon_dxyHelix);
+  allInputTree->Branch("TpMuon_eventId",       &TpMuon_eventId);
+  allInputTree->Branch("TpMuon_bunchCrossing", &TpMuon_bunchCrossing);
+  allInputTree->Branch("TpMuon_isPileup",      &TpMuon_isPileup);
+  allInputTree->Branch("TpMuon_isInTime",      &TpMuon_isInTime);
+  allInputTree->Branch("TpMuon_originClass",   &TpMuon_originClass);
+
+  allInputTree->Branch("reg_pu_nTpMuonInTime", &reg_pu_nTpMuonInTime, "reg_pu_nTpMuonInTime/I");
+  allInputTree->Branch("reg_pu_nTpMuonOOT",    &reg_pu_nTpMuonOOT,    "reg_pu_nTpMuonOOT/I");
 }
 
 // ---------------------------------------------------------------------------
@@ -347,10 +372,12 @@ void DataROOTDumper2AllInput::assignSimTruth(
   const edm::Handle<edm::PSimHitContainer>& rpcSimHitsH,
   const edm::Handle<edm::PSimHitContainer>& cscSimHitsH,
     const std::vector<int>& simTrackIdToGenIdx,
+    const std::vector<int>& simTrackIdToTpIdx,
     unsigned int processorPhiZero,
     const std::vector<uint32_t>& stub_detId,
     const std::vector<short>& stub_phiHw,
     std::vector<signed char>& stub_trackId,
+  std::vector<short>& stub_tpId,
   std::vector<uint8_t>& stub_ambiguous,
   std::vector<float>& stub_tof,
   std::vector<float>& stub_tofSpread,
@@ -358,6 +385,7 @@ void DataROOTDumper2AllInput::assignSimTruth(
 
   const unsigned int nStubs = stub_detId.size();
   stub_trackId.assign(nStubs, 0);
+  stub_tpId.assign(nStubs, 0);
   stub_ambiguous.assign(nStubs, 0);
   stub_tof.assign(nStubs, -999.f);
   stub_tofSpread.assign(nStubs, 0.f);
@@ -423,7 +451,12 @@ void DataROOTDumper2AllInput::assignSimTruth(
     if (bestId < simTrackIdToGenIdx.size())
       genIdx = simTrackIdToGenIdx[bestId];
 
+    int tpIdx = 0;
+    if (bestId < simTrackIdToTpIdx.size())
+      tpIdx = simTrackIdToTpIdx[bestId];
+
     stub_trackId[iStub]   = static_cast<signed char>(genIdx);
+    stub_tpId[iStub]      = static_cast<short>(tpIdx);
     // ambiguous if best track covers less than half the matched digis
     stub_ambiguous[iStub] = (total > 0 && bestCnt * 2 < total) ? 1 : 0;
   }
@@ -434,11 +467,22 @@ void DataROOTDumper2AllInput::observeEventEnd(
     const edm::Event& iEvent,
     std::unique_ptr<l1t::RegionalMuonCandBxCollection>& finalCandidates) {
 
+  const unsigned int runNum = iEvent.id().run();
+  const unsigned int lumiNum = iEvent.id().luminosityBlock();
   const unsigned int eventNum = iEvent.id().event();
+  const unsigned long long eventNum64 =
+      (static_cast<unsigned long long>(runNum) << 32) | static_cast<unsigned long long>(eventNum);
+
+  reg_pu_nTpMuonInTime = 0;
+  reg_pu_nTpMuonOOT = 0;
 
   // --- Optionally build SimTrack → gen-muon index map ---
   // simTrackIdToGenIdx[trackId] = 1-indexed gen-muon index, or 0 if not a gen muon
   std::vector<int> simTrackIdToGenIdx;   // indexed by SimTrack::trackId()
+  // simTrackIdToTpIdx[trackId] = 1-indexed selected TP-muon index, or 0 if not selected
+  std::vector<int> simTrackIdToTpIdx;
+
+  std::vector<const TrackingParticle*> selectedTpMuons;
 
   edm::Handle<MuonDigiCollection<DTLayerId, DTDigiSimLink>> dtLinksH;
   edm::Handle<edm::DetSetVector<RPCDigiSimLink>>            rpcLinksH;
@@ -497,11 +541,143 @@ void DataROOTDumper2AllInput::observeEventEnd(
           }
         }
       }
+
+      // Build selected TP table and SimTrack.trackId() -> TpMuon index map.
+      if (!trackingParticleTag_.label().empty()) {
+        edm::Handle<TrackingParticleCollection> trackingParticlesH;
+        iEvent.getByLabel(trackingParticleTag_, trackingParticlesH);
+
+        if (trackingParticlesH.isValid()) {
+          uint32_t maxTpTrackId = 0;
+          for (const auto& tp : *trackingParticlesH) {
+            if (std::abs(tp.pdgId()) != 13)
+              continue;
+            if (tp.pt() <= 1.5)
+              continue;
+            if (std::abs(tp.momentum().eta()) >= 1.6)
+              continue;
+
+            selectedTpMuons.push_back(&tp);
+            for (const auto& g4Track : tp.g4Tracks()) {
+              if (g4Track.trackId() > maxTpTrackId)
+                maxTpTrackId = g4Track.trackId();
+            }
+          }
+
+          simTrackIdToTpIdx.assign(maxTpTrackId + 1, 0);
+
+          TpMuon_pt.clear();
+          TpMuon_eta.clear();
+          TpMuon_phi.clear();
+          TpMuon_charge.clear();
+          TpMuon_dxy.clear();
+          TpMuon_lxy.clear();
+          TpMuon_vx.clear();
+          TpMuon_vy.clear();
+          TpMuon_dxyHelix.clear();
+          TpMuon_eventId.clear();
+          TpMuon_bunchCrossing.clear();
+          TpMuon_isPileup.clear();
+          TpMuon_isInTime.clear();
+          TpMuon_originClass.clear();
+
+          int tpIdx = 0;
+          for (const auto* tp : selectedTpMuons) {
+            tpIdx++;
+
+            TpMuon_pt.push_back(tp->pt());
+            TpMuon_eta.push_back(tp->momentum().eta());
+            TpMuon_phi.push_back(tp->momentum().phi());
+            TpMuon_charge.push_back(static_cast<signed char>(tp->charge()));
+
+            float dxy = -999.f;
+            float lxy = -999.f;
+            float vx = -999.f;
+            float vy = -999.f;
+            if (tp->parentVertex().isNonnull()) {
+              dxy = tp->dxy();
+              lxy = tp->parentVertex()->position().Rho();
+              vx = tp->parentVertex()->position().x();
+              vy = tp->parentVertex()->position().y();
+            }
+            TpMuon_dxy.push_back(dxy);
+            TpMuon_lxy.push_back(lxy);
+            TpMuon_vx.push_back(vx);
+            TpMuon_vy.push_back(vy);
+
+            // Curvature-consistent (helix-based) impact parameter, same formula as
+            // CandidateSimMuonMatcher::MatchingResult's SimTrack-path constructor:
+            //   rg = -pT/(0.003*B*q), B = 3.811 T
+            //   center = (vx - rg*sin(phi), vy + rg*cos(phi))
+            //   dxyHelix = rg + q*|center|
+            float dxyHelix = -999.f;
+            if (tp->parentVertex().isNonnull() && tp->charge() != 0) {
+              const double B = 3.811;  // Tesla
+              const double genPt = tp->pt();
+              const double genPhi = tp->momentum().phi();
+              const double genCharge = tp->charge();
+              const double rg = -genPt / (0.003 * B * genCharge);
+              const double cx = static_cast<double>(vx) - rg * std::sin(genPhi);
+              const double cy = static_cast<double>(vy) + rg * std::cos(genPhi);
+              dxyHelix = static_cast<float>(rg + genCharge * std::sqrt(cx * cx + cy * cy));
+            }
+            TpMuon_dxyHelix.push_back(dxyHelix);
+
+            const int tpEventId = tp->eventId().event();
+            const int tpBx = tp->eventId().bunchCrossing();
+            const bool isPileup = (tpEventId != 0);
+            const bool isInTime = (tpBx == 0);
+            signed char originClass = 3;
+            if (!isPileup && isInTime)
+              originClass = 0;
+            else if (isPileup && isInTime)
+              originClass = 1;
+            else if (isPileup && !isInTime)
+              originClass = 2;
+
+            TpMuon_eventId.push_back(tpEventId);
+            TpMuon_bunchCrossing.push_back(static_cast<signed char>(tpBx));
+            TpMuon_isPileup.push_back(isPileup ? 1 : 0);
+            TpMuon_isInTime.push_back(isInTime ? 1 : 0);
+            TpMuon_originClass.push_back(originClass);
+            if (originClass == 1)
+              reg_pu_nTpMuonInTime++;
+            else if (originClass == 2)
+              reg_pu_nTpMuonOOT++;
+
+            for (const auto& g4Track : tp->g4Tracks()) {
+              uint32_t tid = g4Track.trackId();
+              if (tid < simTrackIdToTpIdx.size() && simTrackIdToTpIdx[tid] == 0)
+                simTrackIdToTpIdx[tid] = tpIdx;
+            }
+          }
+        }
+      }
     }
+  }
+
+  if (!simHandlesOk || selectedTpMuons.empty()) {
+    TpMuon_pt.clear();
+    TpMuon_eta.clear();
+    TpMuon_phi.clear();
+    TpMuon_charge.clear();
+    TpMuon_dxy.clear();
+    TpMuon_lxy.clear();
+    TpMuon_vx.clear();
+    TpMuon_vy.clear();
+    TpMuon_dxyHelix.clear();
+    TpMuon_eventId.clear();
+    TpMuon_bunchCrossing.clear();
+    TpMuon_isPileup.clear();
+    TpMuon_isInTime.clear();
+    TpMuon_originClass.clear();
   }
 
   // Flush the per-event cache into OMTFAllInputTree
   for (auto& region : cachedRegions) {
+    reg_runNum     = runNum;
+    reg_lumiNum    = lumiNum;
+    reg_eventNum64 = eventNum64;
     reg_eventNum   = eventNum;
     reg_iProcessor = region.iProcessor;
     reg_mtfType    = region.mtfType;
@@ -515,6 +691,7 @@ void DataROOTDumper2AllInput::observeEventEnd(
     reg_stub_quality = std::move(region.stub_quality);
     reg_stub_type    = std::move(region.stub_type);
     reg_stub_bx      = std::move(region.stub_bx);
+    reg_stub_detId   = std::move(region.stub_detId);
 
     const unsigned int nStubs = reg_stub_layer.size();
 
@@ -523,12 +700,13 @@ void DataROOTDumper2AllInput::observeEventEnd(
           static_cast<unsigned int>(OMTFinputMaker::getProcessorPhiZero(omtfConfig, region.iProcessor));
       assignSimTruth(iEvent, dtLinksH, rpcLinksH, cscLinksH,
                      dtSimHitsH, rpcSimHitsH, cscSimHitsH,
-                     simTrackIdToGenIdx, procPhiZero,
-                     region.stub_detId, reg_stub_phiHw,
-                     reg_stub_trackId, reg_stub_ambiguous,
+                     simTrackIdToGenIdx, simTrackIdToTpIdx, procPhiZero,
+                     reg_stub_detId, reg_stub_phiHw,
+                     reg_stub_trackId, reg_stub_tpId, reg_stub_ambiguous,
                      reg_stub_tof, reg_stub_tofSpread, reg_stub_nSimHit);
     } else {
       reg_stub_trackId.assign(nStubs, 0);
+      reg_stub_tpId.assign(nStubs, 0);
       reg_stub_ambiguous.assign(nStubs, 0);
       reg_stub_tof.assign(nStubs, -999.f);
       reg_stub_tofSpread.assign(nStubs, 0.f);
