@@ -470,8 +470,7 @@ void DataROOTDumper2AllInput::observeEventEnd(
   const unsigned int runNum = iEvent.id().run();
   const unsigned int lumiNum = iEvent.id().luminosityBlock();
   const unsigned int eventNum = iEvent.id().event();
-  const unsigned long long eventNum64 =
-      (static_cast<unsigned long long>(runNum) << 32) | static_cast<unsigned long long>(eventNum);
+  const unsigned long long eventNum64 = static_cast<unsigned long long>(iEvent.id().event());
 
   reg_pu_nTpMuonInTime = 0;
   reg_pu_nTpMuonOOT = 0;

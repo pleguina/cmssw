@@ -153,7 +153,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent,
     omtfEvent.runNum = iEvent.id().run();
     omtfEvent.lumiNum = iEvent.id().luminosityBlock();
     omtfEvent.eventNum = iEvent.id().event();
-    omtfEvent.eventNum64 = (static_cast<uint64_t>(omtfEvent.runNum) << 32) | static_cast<uint64_t>(omtfEvent.eventNum);
+    omtfEvent.eventNum64 = static_cast<uint64_t>(iEvent.id().event());
 
     if (matchingResult.trackingParticle) {
       auto trackingParticle = matchingResult.trackingParticle;
