@@ -786,7 +786,7 @@ void MuonStubMakerBase::initialize(const edm::ParameterSet& edmCfg,
       config->getRpcMaxClusterSize(), config->getRpcMaxClusterCnt(), config->getRpcDropAllClustersIfMoreThanMax());
   
   // Initialize RPC digi export control parameter
-  dumpRPCDigis = edmCfg.getParameter<bool>("dumpRPCDigis");
+  dumpRPCDigis = edmCfg.exists("dumpRPCDigis") ? edmCfg.getParameter<bool>("dumpRPCDigis") : false;
 }
 ///////////////////////////////////////
 ///////////////////////////////////////

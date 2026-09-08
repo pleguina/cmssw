@@ -23,6 +23,18 @@ int OmtfPhase2AngleConverter::getProcessorPhi(int phiZero, l1t::tftype part, int
 int OmtfPhase2AngleConverter::getGlobalEtaPhase2(const DTChamberId& dtChamberId,
                                                  const L1Phase2MuDTThContainer* dtThetaDigis,
                                                  int bxNum) const {
+  // In firmware export mode use fixed mid-chamber eta values that match the RTL constants.
+  // In sample production mode fall through to the theta-digi LUT lookup below.
+  if (dtFixedPointEtaForFirmware_) {
+    if (dtChamberId.station() == 1)
+      return 92;
+    else if (dtChamberId.station() == 2)
+      return 79;
+    else if (dtChamberId.station() == 3)
+      return 75;
+    return 95;
+  }
+
   const int dtThetaBins = 65536;  //65536. for [-6.3,6.3]
   const float kconv = 1 / (dtThetaBins / 2.);
 

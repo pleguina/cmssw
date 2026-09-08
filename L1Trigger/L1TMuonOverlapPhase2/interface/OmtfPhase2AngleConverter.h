@@ -15,6 +15,14 @@ public:
 
   //using different name of the method to avoid hiding OmtfAngleConverter methods getGlobalEta
   int getGlobalEtaPhase2(const DTChamberId& dtChamberId, const L1Phase2MuDTThContainer* dtThetaDigis, int bxNum) const;
+
+  /// When true, getGlobalEtaPhase2 returns fixed mid-chamber values (firmware export mode).
+  /// When false (default), the real theta-digi LUT lookup is used (sample production mode).
+  void setDtFixedPointEtaForFirmware(bool v) { dtFixedPointEtaForFirmware_ = v; }
+  bool getDtFixedPointEtaForFirmware() const { return dtFixedPointEtaForFirmware_; }
+
+private:
+  bool dtFixedPointEtaForFirmware_ = false;
 };
 
 #endif
