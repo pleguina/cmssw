@@ -26,7 +26,8 @@ public:
                  l1t::tftype mtfType,
                  int bx,
                  OMTFinputMaker* inputMaker,
-                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers);
+                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                 XmlIOCache& xmlCache);
 
   void assignQualityPhase2(AlgoMuons::value_type& algoMuon);
 

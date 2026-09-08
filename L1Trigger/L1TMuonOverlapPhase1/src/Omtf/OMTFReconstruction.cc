@@ -4,6 +4,8 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/ProcessorBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLConfigReader.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XMLEventWriter.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/HLSDigiExporter.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/DetailedDebugExporter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/CandidateSimMuonMatcher.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper2.h"
@@ -215,9 +217,46 @@ void OMTFReconstruction::addObservers(
 
   //omtfConfig is created at constructor, and is not re-created at the the start of the run, so this is OK
   if (edmParameterSet.exists("dumpResultToXML")) {
-    if (edmParameterSet.getParameter<bool>("dumpResultToXML"))
+    if (edmParameterSet.getParameter<bool>("dumpResultToXML")) {
+      int xmlEventsPerFile = 0;
+      if (edmParameterSet.exists("xmlEventsPerFile"))
+        xmlEventsPerFile = edmParameterSet.getParameter<int>("xmlEventsPerFile");
       observers.emplace_back(std::make_unique<XMLEventWriter>(
-          omtfConfig.get(), edmParameterSet.getParameter<std::string>("XMLDumpFileName")));
+          omtfConfig.get(), edmParameterSet.getParameter<std::string>("XMLDumpFileName"), xmlEventsPerFile));
+    }
+  }
+
+  // === ADD HLS DIGI EXPORTER ===
+  if (edmParameterSet.exists("dumpDigisToCSV")) {
+    if (edmParameterSet.getParameter<bool>("dumpDigisToCSV")) {
+      std::string csvOutputDir = "hls_test_input_digis";
+      if (edmParameterSet.exists("csvOutputDir"))
+        csvOutputDir = edmParameterSet.getParameter<std::string>("csvOutputDir");
+
+      observers.emplace_back(std::make_unique<HLSDigiExporter>(csvOutputDir));
+      edm::LogInfo("OMTFReconstruction") << "Added HLS Digi Exporter with output dir: " << csvOutputDir;
+    }
+  }
+
+  // === ADD DETAILED DEBUG EXPORTER ===
+  if (edmParameterSet.exists("dumpDetailedDebug")) {
+    if (edmParameterSet.getParameter<bool>("dumpDetailedDebug")) {
+      int debugEventNumber = -1;
+      if (edmParameterSet.exists("debugEventNumber"))
+        debugEventNumber = edmParameterSet.getParameter<int>("debugEventNumber");
+
+      std::string debugOutputDir = "./";
+      if (edmParameterSet.exists("debugOutputDir"))
+        debugOutputDir = edmParameterSet.getParameter<std::string>("debugOutputDir");
+
+      if (debugEventNumber >= 0) {
+        observers.emplace_back(std::make_unique<DetailedDebugExporter>(omtfConfig.get(), debugEventNumber, debugOutputDir));
+        edm::LogInfo("OMTFReconstruction") << "Added Detailed Debug Exporter for event " << debugEventNumber
+                                           << " with output dir: " << debugOutputDir;
+      } else {
+        edm::LogWarning("OMTFReconstruction") << "dumpDetailedDebug is true but debugEventNumber is not set or invalid";
+      }
+    }
   }
 
   CandidateSimMuonMatcher* candidateSimMuonMatcher = nullptr;
@@ -242,7 +281,6 @@ void OMTFReconstruction::addObservers(
       }
 
     if (edmParameterSet.exists("dumpHitsToROOT") && edmParameterSet.getParameter<bool>("dumpHitsToROOT")) {
-      //std::string rootFileName = edmParameterSet.getParameter<std::string>("dumpHitsFileName");
       if (candidateSimMuonMatcher == nullptr) {
         edm::LogVerbatim("OMTFReconstruction")
             << "dumpHitsToROOT needs candidateSimMuonMatcher, but it is null " << std::endl;
@@ -287,10 +325,13 @@ std::unique_ptr<l1t::RegionalMuonCandBxCollection> OMTFReconstruction::reconstru
 
   FinalMuons allFinalMuons;
 
+  // Create XmlIOCache for unified XML output
+  XmlIOCache xmlCache;
+
   ///The order is important: first put omtf_pos candidates, then omtf_neg.
   for (int bx = bxMin; bx <= bxMax; bx++) {
     for (unsigned int iProcessor = 0; iProcessor < omtfConfig->nProcessors(); ++iProcessor) {
-      FinalMuons finalMuons = omtfProc->run(iProcessor, l1t::tftype::omtf_pos, bx, inputMaker.get(), observers);
+      FinalMuons finalMuons = omtfProc->run(iProcessor, l1t::tftype::omtf_pos, bx, inputMaker.get(), observers, xmlCache);
 
       std::vector<l1t::RegionalMuonCand> candMuons =
           omtfProc->getRegionalMuonCands(iProcessor, l1t::tftype::omtf_pos, finalMuons);
@@ -304,7 +345,7 @@ std::unique_ptr<l1t::RegionalMuonCandBxCollection> OMTFReconstruction::reconstru
     }
 
     for (unsigned int iProcessor = 0; iProcessor < omtfConfig->nProcessors(); ++iProcessor) {
-      FinalMuons finalMuons = omtfProc->run(iProcessor, l1t::tftype::omtf_neg, bx, inputMaker.get(), observers);
+      FinalMuons finalMuons = omtfProc->run(iProcessor, l1t::tftype::omtf_neg, bx, inputMaker.get(), observers, xmlCache);
 
       std::vector<l1t::RegionalMuonCand> candMuons =
           omtfProc->getRegionalMuonCands(iProcessor, l1t::tftype::omtf_neg, finalMuons);

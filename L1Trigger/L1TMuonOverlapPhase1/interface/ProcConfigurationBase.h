@@ -99,6 +99,12 @@ public:
     return this->fixCscGeometryOffset = fixCscGeometryOffset;
   }
 
+  /// When true, CSC phi is computed with Q2.8 fixed-point arithmetic matching the RTL
+  /// (firmware export mode). When false (default), the original floating-point product
+  /// is used, which is correct for sample production.
+  virtual bool getCscFixedPointPhiForFirmware() const { return cscFixedPointPhiForFirmware; }
+  virtual void setCscFixedPointPhiForFirmware(bool v) { cscFixedPointPhiForFirmware = v; }
+
   enum class StubEtaEncoding {
     //in the firmware the eta is encoded as fired bits in the 9bit word, this is DT phase-1 encoding.
     //In the emulator in most of the places eta value is used, but with the DT-like bining, i.e. only certain values are valid, see OMTFConfiguration::eta2Bits()
@@ -141,6 +147,8 @@ private:
   double dtPhiBUnitsRad_ = 512;  //[unit/rad] for DT segment phiB, it is at the level of the algorithm, not inputs
 
   bool fixCscGeometryOffset = false;
+
+  bool cscFixedPointPhiForFirmware = false;
 
   StubEtaEncoding stubEtaEncoding = StubEtaEncoding::bits;
 };

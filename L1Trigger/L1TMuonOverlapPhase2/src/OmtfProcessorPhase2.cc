@@ -283,7 +283,8 @@ FinalMuons OmtfProcessorPhase2::run(unsigned int iProcessor,
                                     l1t::tftype mtfType,
                                     int bx,
                                     OMTFinputMaker* inputMaker,
-                                    std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+                                    std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                                    XmlIOCache& xmlCache) {
   //uncomment if you want to check execution time of each method
   //boost::timer::auto_cpu_timer t("%ws wall, %us user in getProcessorCandidates\n");
 
@@ -292,7 +293,7 @@ FinalMuons OmtfProcessorPhase2::run(unsigned int iProcessor,
 
   //input is shared_ptr because the observers may need them after the run() method execution is finished
   std::shared_ptr<OMTFinput> input = std::make_shared<OMTFinput>(omtfConfig);
-  inputMaker->buildInputForProcessor(input->getMuonStubs(), iProcessor, mtfType, bx, bx, observers);
+  inputMaker->buildInputForProcessor(input->getMuonStubs(), iProcessor, mtfType, bx, bx, observers, xmlCache);
 
   //TODO make a method cleanStubs in OMTFinput
   if (omtfConfig->cleanStubs()) {
@@ -312,7 +313,7 @@ FinalMuons OmtfProcessorPhase2::run(unsigned int iProcessor,
   }
 
   //LogTrace("l1tOmtfEventPrint")<<"buildInputForProce "; t.report();
-  omtfProc->processInput(iProcessor, mtfType, *input, observers);
+  omtfProc->processInput(iProcessor, mtfType, *input, observers, xmlCache);
 
   //LogTrace("l1tOmtfEventPrint")<<"processInput       "; t.report();
   AlgoMuons algoCandidates = omtfProc->sortResults(iProcessor, mtfType);

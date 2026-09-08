@@ -14,6 +14,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XmlIOCache.h"
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 
@@ -24,7 +25,8 @@ public:
   virtual void processInput(unsigned int iProcessor,
                             l1t::tftype mtfType,
                             const OMTFinput& aInput,
-                            std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) = 0;
+                            std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                            XmlIOCache& xmlCache) = 0;
 
   ///allows to use other IGhostBuster implementation than the default one
   virtual void setGhostBuster(IGhostBuster* ghostBuster) = 0;
@@ -43,7 +45,8 @@ public:
                          l1t::tftype mtfType,
                          int bx,
                          OMTFinputMaker* inputMaker,
-                         std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) = 0;
+                         std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                         XmlIOCache& xmlCache) = 0;
 
   virtual void printInfo() const = 0;
 };

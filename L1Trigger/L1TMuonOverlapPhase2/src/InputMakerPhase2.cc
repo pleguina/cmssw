@@ -24,7 +24,8 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                                              l1t::tftype procTyp,
                                              int bxFrom,
                                              int bxTo,
-                                             std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+                                             std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                                             XmlIOCache& xmlCache) {
   boost::property_tree::ptree procDataTree;
 
   std::map<std::string, boost::property_tree::ptree> chamberTrees;

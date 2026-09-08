@@ -3,6 +3,7 @@
 
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigiCollection.h"
+#include "DataFormats/MuonDetId/interface/CSCDetId.h"
 #include "DataFormats/GEMDigi/interface/GEMPadDigiCollection.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhContainer.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
@@ -12,8 +13,10 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Utilities/interface/EDGetToken.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/CscConversionInfo.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/RpcClusterization.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/XmlIOCache.h"
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -31,6 +34,7 @@ struct MuStubsInputTokens {
   edm::EDGetTokenT<RPCDigiCollection> inputTokenRPC;
 };
 
+
 class DigiToStubsConverterBase {
 public:
   virtual ~DigiToStubsConverterBase() {}
@@ -42,7 +46,8 @@ public:
                          l1t::tftype procTyp,
                          int bxFrom,
                          int bxTo,
-                         std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) = 0;
+                         std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                         XmlIOCache& xmlCache) = 0;
 };
 
 class DtDigiToStubsConverter : public DigiToStubsConverterBase {
@@ -62,7 +67,8 @@ public:
                  l1t::tftype procTyp,
                  int bxFrom,
                  int bxTo,
-                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                 XmlIOCache& xmlCache) override;
 
   //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
   virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
@@ -107,7 +113,8 @@ public:
                  l1t::tftype procTyp,
                  int bxFrom,
                  int bxTo,
-                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                 XmlIOCache& xmlCache) override;
 
   //can add both phi and eta stubs
   virtual void addCSCstubs(MuonStubPtrs2D& muonStubsInLayers,
@@ -117,6 +124,15 @@ public:
                            l1t::tftype procTyp) = 0;
 
   virtual bool acceptDigi(const CSCDetId& cscDetId, unsigned int iProcessor, l1t::tftype procType) { return true; }
+
+  // Virtual method to get CSC conversion parameters for XML export
+  virtual CscConversionInfo getCscConversionInfo(unsigned int rawid,
+                                                 const CSCCorrelatedLCTDigi& digi,
+                                                 unsigned int iProcessor,
+                                                 l1t::tftype procTyp) { 
+    CscConversionInfo info; // Return default (empty) info if not implemented
+    return info;
+  }
 
 protected:
   const ProcConfigurationBase* config;
@@ -131,8 +147,9 @@ class RpcDigiToStubsConverter : public DigiToStubsConverterBase {
 public:
   RpcDigiToStubsConverter(const ProcConfigurationBase* config,
                           edm::EDGetTokenT<RPCDigiCollection> inputTokenRpc,
-                          const RpcClusterization* rpcClusterization)
-      : config(config), inputTokenRpc(inputTokenRpc), rpcClusterization(rpcClusterization) {}
+                          const RpcClusterization* rpcClusterization,
+                          bool dumpRPCDigis = true)
+      : config(config), inputTokenRpc(inputTokenRpc), rpcClusterization(rpcClusterization), dumpRPCDigis(dumpRPCDigis) {}
 
   ~RpcDigiToStubsConverter() override {}
 
@@ -145,7 +162,8 @@ public:
                  l1t::tftype procTyp,
                  int bxFrom,
                  int bxTo,
-                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                 XmlIOCache& xmlCache) override;
 
   virtual void addRPCstub(MuonStubPtrs2D& muonStubsInLayers,
                           const RPCDetId& roll,
@@ -164,10 +182,20 @@ protected:
   edm::Handle<RPCDigiCollection> rpcDigis;
 
   const RpcClusterization* rpcClusterization;
+  bool dumpRPCDigis;
 };
 
 //forward declaration - MuonGeometryTokens is defined and used in the OmtfAngleConverter
 struct MuonGeometryTokens;
+class OMTFConfiguration;
+
+// Helper functions for hardware compatibility fields
+std::string getHwNameFromHwNumber(unsigned int hwNumber);
+unsigned int calculateDTSectorWrapped(const DTChamberId& dtId, unsigned int iProcessor, const OMTFConfiguration* omtfConfig);
+unsigned int calculateCSCChamberWrapped(const CSCDetId& cscId, unsigned int iProcessor, l1t::tftype procTyp, const OMTFConfiguration* omtfConfig);
+unsigned int calculateRPCSectorWrapped(const RPCDetId& rpc, unsigned int iProcessor, const OMTFConfiguration* omtfConfig);
+unsigned int calculateRPCEndcapChamberWrapped(const RPCDetId& rpc, unsigned int iProcessor, const OMTFConfiguration* omtfConfig);
+int calculateLogicRegion(int phiHw, unsigned int iRefLayer, unsigned int iInput, const OMTFConfiguration* omtfConfig);
 
 class MuonStubMakerBase {
 public:
@@ -187,7 +215,34 @@ public:
                               l1t::tftype procTyp,
                               int bxFrom,
                               int bxTo,
-                              std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers);
+                              std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                              XmlIOCache& xmlCache);
+  
+  /// Method to add reference stub from external classes (like InputMakerPhase2)
+  void addReferenceStub(const std::string& detectorType, unsigned int processor, unsigned int refLayerNumber, 
+                        unsigned int logicLayer, int phiHw, int phiBHw, int etaHw, unsigned int qualityHw, 
+                        unsigned int detId, const std::string& hwName, unsigned int endcap, 
+                        unsigned int station, unsigned int ring, unsigned int chamber, 
+                        unsigned int chamber_wrapped, unsigned int logicRegion);
+                        
+  /// Method to flush accumulated reference stubs to observers
+  void flushReferenceStubs(std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers);
+  
+  /// Static methods for global reference stub management accessible by all converter classes
+  static void addGlobalReferenceStub(const std::string& detectorType, unsigned int processor, unsigned int refLayerNumber, 
+                                     unsigned int logicLayer, int phiHw, int phiBHw, int etaHw, unsigned int qualityHw, 
+                                     unsigned int detId, const std::string& hwName, int endcap, 
+                                     unsigned int station, 
+                                     int cscRing, int cscChamber, int cscChamberWrapped,
+                                     int dtSector, int dtSectorWrapped,
+                                     int logicRegion);
+  static void clearGlobalReferenceStubs();
+  static const boost::property_tree::ptree& getGlobalReferenceStubs();
+  
+  boost::property_tree::ptree globalReferenceStubsTree; // Accumulate all reference stubs
+
+private:
+  static boost::property_tree::ptree globalReferenceStubsTreeStatic; // Static global reference stubs
 
 protected:
   const ProcConfigurationBase* config = nullptr;
@@ -195,6 +250,8 @@ protected:
   std::vector<std::unique_ptr<DigiToStubsConverterBase> > digiToStubsConverters;
 
   RpcClusterization rpcClusterization;
+
+  bool dumpRPCDigis = true;  // Control RPC digi export to XML/CSV
 };
 
 #endif

@@ -59,12 +59,15 @@ OmtfEmulation::OmtfOutputCollections OmtfEmulation::run(const edm::Event& iEvent
 
   FinalMuons allFinalMuons;
 
+  // Create XmlIOCache for unified XML output
+  XmlIOCache xmlCache;
+
   ///The order is important: first put omtf_pos candidates, then omtf_neg.
   for (int bx = bxMin; bx <= bxMax; bx++) {
     for (unsigned int iSide = 0; iSide < 2; ++iSide) {
       l1t::tftype mtfType = (iSide == 0) ? l1t::tftype::omtf_pos : l1t::tftype::omtf_neg;
       for (unsigned int iProcessor = 0; iProcessor < omtfConfig->nProcessors(); ++iProcessor) {
-        FinalMuons finalMuons = omtfProcPhase2.run(iProcessor, mtfType, bx, inputMaker.get(), observers);
+        FinalMuons finalMuons = omtfProcPhase2.run(iProcessor, mtfType, bx, inputMaker.get(), observers, xmlCache);
 
         l1t::SAMuonCollection constrSAMuons = omtfProcPhase2.getSAMuons(iProcessor, mtfType, finalMuons, true);
         for (auto& saMuon : constrSAMuons) {

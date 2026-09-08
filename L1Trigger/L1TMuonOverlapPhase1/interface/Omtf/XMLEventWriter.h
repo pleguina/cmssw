@@ -21,7 +21,9 @@
 
 class XMLEventWriter : public IOMTFEmulationObserver {
 public:
-  XMLEventWriter(const OMTFConfiguration* aOMTFConfig, std::string fName);
+  // eventsPerFile > 0 enables splitting: each batch of eventsPerFile events is
+  // written to a separate file named <base>_part000<ext>, <base>_part001<ext>, ...
+  XMLEventWriter(const OMTFConfiguration* aOMTFConfig, std::string fName, int eventsPerFile = 0);
 
   ~XMLEventWriter() override;
 
@@ -45,6 +47,9 @@ public:
   void endJob() override;
 
 private:
+  void initTree();         // (re-)initialise tree with OMTF version attribute
+  void flushCurrentTreeToFile();  // write current tree to a part file and reset
+
   const OMTFConfiguration* omtfConfig;
 
   boost::property_tree::ptree tree;
@@ -58,6 +63,10 @@ private:
   unsigned int eventNum = 0;
 
   unsigned int eventId = 0;
+
+  int eventsPerFile = 0;       // 0 = no splitting
+
+  unsigned int fileIndex = 0;  // current part-file index
 };
 
 #endif /* L1T_OmtfP1_XMLEVENTWRITER_H_ */

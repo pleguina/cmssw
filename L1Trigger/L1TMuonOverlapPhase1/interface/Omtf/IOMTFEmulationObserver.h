@@ -21,6 +21,12 @@
 #include <memory>
 #include <vector>
 
+// Forward declarations
+class RefHitDef;
+class StubResult;
+class Key;
+class GoldenPatternResult;
+
 namespace edm {
   class Event;
 } /* namespace edm */
@@ -46,6 +52,24 @@ public:
   virtual void observeEventBegin(const edm::Event& iEvent) {}
 
   virtual void observeEventEnd(const edm::Event& iEvent, FinalMuons& finalMuons) {};
+
+  virtual void observeGoldenPatternResults(unsigned int iProcessor,
+                                          unsigned int iRefHit,
+                                          const RefHitDef& refHitDef,
+                                          unsigned int iGP,
+                                          unsigned int iLayer,
+                                          const StubResult& stubResult,
+                                          int phiDistMin) {}
+
+  virtual void observeGoldenPatternFinalResults(unsigned int iProcessor,
+                                               unsigned int iGP,
+                                               const Key& gpKey,
+                                               unsigned int iRefHit,
+                                               const GoldenPatternResult& gpResult) {}
+
+  virtual void observeSortedCandidates(unsigned int iProcessor,
+                                      l1t::tftype mtfType,
+                                      const AlgoMuons& algoCandidates) {}
 
   virtual void endJob() = 0;
 };

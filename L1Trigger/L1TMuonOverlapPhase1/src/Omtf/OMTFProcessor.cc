@@ -7,15 +7,22 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFProcessor.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubsInput.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubMakerBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GhostBuster.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GhostBusterPreferRefDt.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/GoldenPatternWithStat.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/IOMTFEmulationObserver.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinput.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFSorter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/StubResult.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/HLSDigiExporter.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/DetailedDebugExporter.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "DataFormats/MuonDetId/interface/DTChamberId.h"
+#include "DataFormats/MuonDetId/interface/CSCDetId.h"
+#include "DataFormats/MuonDetId/interface/RPCDetId.h"
 
 #include <bitset>
 #include <cmath>
@@ -596,12 +603,41 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
 
   int extrFactor = 0;
 
-  if (targetLayer == 0 || targetLayer == 2 || targetLayer == 4) {
+  // ==========================================================================
+  // DEBUG: Print configuration ONCE
+  // ==========================================================================
+  static bool config_printed = false;
+  if (!config_printed) {
+    std::cout << "\n========================================================================\n";
+    std::cout << "  FIXED-POINT EXTRAPOLATION CONFIG (for HLS compatibility)\n";
+    std::cout << "========================================================================\n";
+    std::cout << "nProcessors    : " << omtfConfig->nProcessors() << "\n";
+    std::cout << "nLayers        : " << omtfConfig->nLayers() << "\n";
+    std::cout << "nPhiBins       : " << omtfConfig->nPhiBins() << " (GP_N_OF_PHI_BINS)\n";
+    std::cout << "omtfPhiUnit()  : " << std::setprecision(12) << omtfConfig->omtfPhiUnit() << "\n";
+    std::cout << "dtPhiBUnitsRad(): " << std::setprecision(12) << omtfConfig->dtPhiBUnitsRad() << "\n";
+
+    double omtfPhiUnit_val = omtfConfig->omtfPhiUnit();
+    double dtPhiBUnitsRad_val = omtfConfig->dtPhiBUnitsRad();
+    double scaleFactor_fp = omtfPhiUnit_val * dtPhiBUnitsRad_val * 512.0;
+    int scaleFactor_int = (int)scaleFactor_fp;
+
+    std::cout << "\nScaleFactor (for layers 1,3,5):\n";
+    std::cout << "  Floating-point: " << std::setprecision(12) << scaleFactor_fp << "\n";
+    std::cout << "  Integer (cast): " << scaleFactor_int << "\n";
+    std::cout << "  Expected Phase-1: ~305,  Phase-2: ~610\n";
+    std::cout << "extrapolMultiplier: " << extrapolMultiplier << "\n";
+    std::cout << "========================================================================\n\n";
+    config_printed = true;
+  }
+  // ==========================================================================
+
+  if (targetLayer == 0 || targetLayer == 2 || targetLayer == 4) { //non-bending layers
     if (useStubQualInExtr)
       extrFactor = extrapolFactors[reflLayerIndex][targetLayer][targetStubQuality];
     else
       extrFactor = extrapolFactors[reflLayerIndex][targetLayer][0];
-  } else if (targetLayer == 1 || targetLayer == 3 || targetLayer == 5) {
+  } else if (targetLayer == 1 || targetLayer == 3 || targetLayer == 5) { //bending layers
     int deltaPhi = targetStubPhi - refPhi;  //here targetStubPhi is phi, not phiB
 
     int scaleFactor = this->myOmtfConfig->omtfPhiUnit() * this->myOmtfConfig->dtPhiBUnitsRad() * 512;
@@ -621,8 +657,15 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
       //TODO change to targetStubR when it is implemented in the FW
       //extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubEta)];
       extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubR)];
+      LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " CSC/RPC lookup with R: reflLayerIndex="
+                                    << reflLayerIndex << " targetLayer=" << targetLayer << " R=" << abs(targetStubR)
+                                    << " extrFactor=" << extrFactor << std::endl;
     } else {
-      extrFactor = extrapolFactors[reflLayerIndex][targetLayer][0];
+      // Use eta as key when useEndcapStubsRInExtr is false (matches XML KeyType="eta")
+      extrFactor = extrapolFactors[reflLayerIndex][targetLayer][abs(targetStubEta)];
+      LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ << " CSC/RPC lookup with ETA: reflLayerIndex=" 
+                                    << reflLayerIndex << " targetLayer=" << targetLayer << " eta=" << abs(targetStubEta)
+                                    << " extrFactor=" << extrFactor << std::endl;
     }
   }
 
@@ -676,6 +719,140 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiB(const MuonStubPtr& refSt
                                                                        targetStub->r,
                                                                        omtfConfig);
 }
+
+///////////////////////////////////////////////
+// Helper functions for outputSlot calculation
+///////////////////////////////////////////////
+
+// Get the number of inputs per sector for a given layer
+// Returns 2 for DT/CSC/RB3/RPCe, 4 for RB1/RB2
+unsigned int getInputsPerSector(unsigned int layer) {
+  // Layers 0-5: DT -> 2 inputs per sector
+  // Layers 6-9: CSC -> 2 inputs per sector  
+  // Layers 10-11: RB1in, RB1out -> 4 inputs per sector
+  // Layers 12-13: RB2in, RB2out -> 4 inputs per sector
+  // Layer 14: RB3 -> 2 inputs per sector
+  // Layers 15-17: RPCe -> 2 inputs per sector
+  
+  if (layer >= 10 && layer <= 13) {
+    return 4;  // RB1 and RB2
+  }
+  return 2;  // DT, CSC, RB3, RPCe
+}
+
+// Get the batch size (depth per channel) for a given layer
+// Returns 2 for DT/CSC/RB3/RPCe, 4 for RPC Barrel (RB1/RB2)
+unsigned int getBatchSize(unsigned int layer) {
+  // Layers 0-5: DT -> batch size 2
+  // Layers 6-9: CSC -> batch size 2
+  // Layers 10-13: RPC Barrel (RB1, RB2) -> batch size 4
+  // Layer 14: RB3 -> batch size 2
+  // Layers 15-17: RPC Endcap -> batch size 2
+  
+  if (layer >= 10 && layer <= 13) {
+    return 4;  // RPC Barrel (RB1in, RB1out, RB2in, RB2out)
+  }
+  return 2;  // DT, CSC, RB3, RPC Endcap
+}
+
+// Get the physical channel from a stub (sector_wrapped or chamber_wrapped)
+int getPhysicalChannel(const MuonStubPtr& stub, int sector_wrapped, int chamber_wrapped) {
+  // Return whichever one is not -1
+  if (sector_wrapped != -1) {
+    return sector_wrapped;
+  } else if (chamber_wrapped != -1) {
+    return chamber_wrapped;
+  }
+  return -1;
+}
+
+// Calculate outputSlot for a stub
+// Returns -1 if calculation fails (stub should be skipped)
+int calculateOutputSlot(unsigned int iProcessor,
+                       unsigned int iRegion, 
+                       unsigned int iLayer,
+                       unsigned int inputNumber,
+                       int sector_wrapped,
+                       int chamber_wrapped,
+                       const OMTFConfiguration* omtfConfig,
+                       std::map<std::tuple<unsigned int, unsigned int, int>, int>& batchIndexMap) {
+  // Get connection info: pair<iFirstInput, nInputs>
+  auto& connections = omtfConfig->getConnections();
+  if (iProcessor >= connections.size() || 
+      iRegion >= connections[iProcessor].size() || 
+      iLayer >= connections[iProcessor][iRegion].size()) {
+    return -1;  // Out of bounds
+  }
+  
+  auto& conn = connections[iProcessor][iRegion][iLayer];
+  unsigned int firstInput = conn.first;
+  unsigned int nInputs = conn.second;
+  
+  // For DT/RPCb, use sector_wrapped as the physical channel
+  // For CSC/RPCe, use chamber_wrapped as the physical channel
+  // This ensures bending layers (which share the same sector/chamber) get the same slot
+  int physChannel = (sector_wrapped != -1) ? sector_wrapped : chamber_wrapped;
+  if (physChannel == -1) {
+    std::cout << "DEBUG outputSlot=-1: NO physChannel (both sector_wrapped and chamber_wrapped are -1) "
+              << "iProc=" << iProcessor << " iReg=" << iRegion << " iLay=" << iLayer << std::endl;
+    return -1;  // No valid physical channel
+  }
+  
+  // Calculate selected channels using Python algorithm
+  unsigned int inputsPerSector = getInputsPerSector(iLayer);
+  unsigned int firstChannel = firstInput / inputsPerSector;
+  unsigned int lastInput = firstInput + nInputs - 1;
+  unsigned int lastChannel = lastInput / inputsPerSector;
+  
+  // Build set of selected channels
+  std::vector<unsigned int> selectedChannels;
+  for (unsigned int ch = firstChannel; ch <= lastChannel; ch++) {
+    selectedChannels.push_back(ch);
+  }
+  
+  // Find channel index (ci) - position of physChannel in selectedChannels
+  int channelIndex = -1;
+  for (size_t i = 0; i < selectedChannels.size(); i++) {
+    if (selectedChannels[i] == static_cast<unsigned int>(physChannel)) {
+      channelIndex = static_cast<int>(i);
+      break;
+    }
+  }
+  
+  if (channelIndex == -1) {
+    std::cout << "DEBUG outputSlot=-1: physChannel=" << physChannel 
+              << " NOT in selectedChannels [";
+    for (size_t i = 0; i < selectedChannels.size(); i++) {
+      std::cout << selectedChannels[i];
+      if (i < selectedChannels.size()-1) std::cout << ",";
+    }
+    std::cout << "] iProc=" << iProcessor << " iReg=" << iRegion << " iLay=" << iLayer
+              << " firstIn=" << firstInput << " nIn=" << nInputs << std::endl;
+    return -1;  // Physical channel not in selected channels
+  }
+  
+  // Get or increment batch index (bi)
+  auto key = std::make_tuple(iRegion, iLayer, physChannel);
+  int batchIndex = batchIndexMap[key]++;
+  
+  // Calculate outputSlot = ci * BATCH + bi
+  unsigned int batchSize = getBatchSize(iLayer);
+  int outputSlot = channelIndex * batchSize + batchIndex;
+  
+  // Verify bounds: maximum is for RPC Barrel which has most channels/depth
+  // Maximum outputSlot should be less than nInputs (which is the total capacity for this region/layer)
+  if (outputSlot >= static_cast<int>(nInputs)) {
+    std::cout << "DEBUG outputSlot=-1 BOUNDS: slot=" << outputSlot 
+              << " >= nIn=" << nInputs
+              << " iProc=" << iProcessor << " iReg=" << iRegion << " iLay=" << iLayer
+              << " physCh=" << physChannel << " ci=" << channelIndex
+              << " bi=" << batchIndex << " BATCH=" << batchSize << std::endl;
+    return -1;  // Out of bounds
+  }
+  
+  return outputSlot;
+}
+
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 //const std::vector<OMTFProcessor::resultsMap> &
@@ -683,7 +860,8 @@ template <class GoldenPatternType>
 void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
                                                     l1t::tftype mtfType,
                                                     const OMTFinput& aInput,
-                                                    std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+                                                    std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                                                    XmlIOCache& xmlCache) {
   unsigned int procIndx = this->myOmtfConfig->getProcIndx(iProcessor, mtfType);
   for (auto& itGP : this->theGPs) {
     for (auto& result : itGP->getResults()[procIndx]) {
@@ -716,7 +894,284 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
   }
 
   boost::property_tree::ptree procDataTree;
+  boost::property_tree::ptree refHitsDataTree; // Separate tree for reference hits data
   LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << " " << __LINE__ << std::endl;
+  
+  // Track ordering for reference hits per chamber/sector (based on wrapped value)
+  // Key format: "sector_X_layer_Y" or "chamber_X_layer_Y" where X is wrapped value and Y is logicLayer
+  std::map<std::string, int> refHitWrappedOrder;
+  
+  // Track batch index for outputSlot calculation
+  // Key: tuple<iRegion, iLayer, physicalChannel>, Value: batch index counter
+  std::map<std::tuple<unsigned int, unsigned int, int>, int> batchIndexMap;
+  
+  // New: Collect reference hits data for HLS export BEFORE the main processing loops
+  // This creates one row per reference hit with all layer data combined
+  for (unsigned int iRefHit = 0; iRefHit < refHitDefs.size(); iRefHit++) {
+    // Reset stub_order counter for each reference hit
+    refHitWrappedOrder.clear();
+    // Reset batch index map for each reference hit
+    batchIndexMap.clear();
+    
+    const RefHitDef& aRefHitDef = *(refHitDefs[iRefHit]);
+    unsigned int iRegion = aRefHitDef.iRegion;
+    
+    // Get reference stub for extrapolation calculations
+    unsigned int refLayerLogicNum = this->myOmtfConfig->getRefToLogicNumber()[aRefHitDef.iRefLayer];
+    const MuonStubPtr refStub = aInput.getMuonStub(refLayerLogicNum, aRefHitDef.iInput);
+
+    // Mark this stub as a reference in the XmlIOCache
+    if (refStub) {
+      xmlCache.markReference(iProcessor, omtf::makeStubKey(*refStub));
+    }
+    
+    // Collect restricted stubs from all layers for this reference hit
+    std::vector<std::pair<unsigned int, MuonStubPtrs1D>> allLayerStubs;
+    std::vector<std::pair<unsigned int, std::vector<int>>> allLayerExtrapolatedPhi;
+    std::vector<std::pair<unsigned int, std::vector<unsigned int>>> allLayerHwNumbers; // Hardware layer numbers
+    
+    for (unsigned int iLayer = 0; iLayer < this->myOmtfConfig->nLayers(); ++iLayer) {
+      MuonStubPtrs1D restrictedLayerStubs = this->restrictInput(iProcessor, iRegion, iLayer, aInput);
+      
+      // Calculate extrapolated phi for each restricted stub in this layer
+      std::vector<int> extrapolatedPhi(restrictedLayerStubs.size(), 0);
+      
+      // Get hardware layer numbers for each stub in this layer
+      std::vector<unsigned int> hwNumbers;
+      for (auto& stub : restrictedLayerStubs) {
+        if (stub) {
+          // Use the current iLayer to get the hwNumber, not the stub's original logicLayer
+          // This is important because DT stubs can be used in multiple layers
+          auto& logicToHwMap = this->myOmtfConfig->getLogicToHwLayer();
+          auto hwIt = logicToHwMap.find(iLayer);
+          unsigned int hwNumber = (hwIt != logicToHwMap.end()) ? hwIt->second : 0;
+          hwNumbers.push_back(hwNumber);
+        } else {
+          hwNumbers.push_back(0); // Default for null stubs
+        }
+      }
+      
+      //TODO make sure the that the iRefLayer numbers used here corresponds to this in the hwToLogicLayer_0x000X.xml
+      if ((this->myOmtfConfig->usePhiBExtrapolationMB1() && aRefHitDef.iRefLayer == 0) ||
+          (this->myOmtfConfig->usePhiBExtrapolationMB2() && aRefHitDef.iRefLayer == 2)) {
+        if ((iLayer != refLayerLogicNum) && (iLayer != refLayerLogicNum + 1)) {
+          unsigned int iStub = 0;
+          for (auto& targetStub : restrictedLayerStubs) {
+            if (targetStub) {
+              extrapolatedPhi[iStub] = extrapolateDtPhiB(refStub, targetStub, iLayer, this->myOmtfConfig);
+            }
+            iStub++;
+          }
+        }
+      }
+      
+      allLayerStubs.emplace_back(iLayer, restrictedLayerStubs);
+      allLayerExtrapolatedPhi.emplace_back(iLayer, extrapolatedPhi);
+      allLayerHwNumbers.emplace_back(iLayer, hwNumbers);
+    }
+    
+    // Notify DetailedDebugExporter about restricted stubs for this refHit
+    for (auto& obs : observers) {
+      if (auto* detailedDebug = dynamic_cast<DetailedDebugExporter*>(obs.get())) {
+        // Collect all layers into a 2D structure for the observer
+        MuonStubPtrs2D restrictedStubs2D(this->myOmtfConfig->nLayers());
+        for (const auto& layerPair : allLayerStubs) {
+          restrictedStubs2D[layerPair.first] = layerPair.second;
+        }
+        detailedDebug->observeRestrictedStubs(iProcessor, iRefHit, aRefHitDef.iRefLayer, 
+                                               restrictedStubs2D, allLayerExtrapolatedPhi, refStub);
+      }
+    }
+    
+    // === ADD REFERENCE HIT DATA TO XML ===
+    auto& refHitTree = refHitsDataTree.add_child("referenceHit", boost::property_tree::ptree());
+    refHitTree.add("<xmlattr>.iRefHit", iRefHit);
+    refHitTree.add("<xmlattr>.iRefLayer", aRefHitDef.iRefLayer);
+    refHitTree.add("<xmlattr>.iRegion", iRegion);
+    refHitTree.add("<xmlattr>.iInput", aRefHitDef.iInput);
+    
+    // Add reference stub data
+    if (refStub) {
+      refHitTree.add("<xmlattr>.refPhi", refStub->phiHw);
+      refHitTree.add("<xmlattr>.refPhiB", refStub->phiBHw);
+      refHitTree.add("<xmlattr>.refEta", refStub->etaHw);
+      refHitTree.add("<xmlattr>.refQuality", refStub->qualityHw);
+      refHitTree.add("<xmlattr>.refLogicLayer", refStub->logicLayer);
+      
+      // Add sector_wrapped and chamber_wrapped based on detector type using helper functions
+      int sectorWrapped = -1;
+      int chamberWrapped = -1;
+      
+      if (refStub->type == MuonStub::DT_PHI || refStub->type == MuonStub::DT_THETA || 
+          refStub->type == MuonStub::DT_PHI_ETA || refStub->type == MuonStub::DT_HIT) {
+        // DT stub: use helper function
+        DTChamberId dtId(refStub->detId);
+        sectorWrapped = calculateDTSectorWrapped(dtId, iProcessor, this->myOmtfConfig);
+        chamberWrapped = -1;  // Not applicable for DT
+      } 
+      else if (refStub->type == MuonStub::CSC_PHI || refStub->type == MuonStub::CSC_ETA || 
+               refStub->type == MuonStub::CSC_PHI_ETA) {
+        // CSC stub: use helper function
+        CSCDetId cscId(refStub->detId);
+        chamberWrapped = calculateCSCChamberWrapped(cscId, iProcessor, mtfType, this->myOmtfConfig);
+        sectorWrapped = -1;  // Not applicable for CSC
+      }
+      else if (refStub->type == MuonStub::RPC) {
+        // RPC stub: use appropriate helper function based on barrel vs endcap
+        RPCDetId rpcId(refStub->detId);
+        
+        if (rpcId.region() == 0) {
+          // Barrel RPC: use sector_wrapped helper
+          sectorWrapped = calculateRPCSectorWrapped(rpcId, iProcessor, this->myOmtfConfig);
+          chamberWrapped = -1;  // Not applicable for barrel RPC
+        } else {
+          // Endcap RPC: use chamber_wrapped helper
+          chamberWrapped = calculateRPCEndcapChamberWrapped(rpcId, iProcessor, this->myOmtfConfig);
+          sectorWrapped = -1;  // Not applicable for endcap RPC
+        }
+      }
+      
+      // Add the calculated wrapped values to the XML
+      refHitTree.add("<xmlattr>.sector_wrapped", sectorWrapped);
+      refHitTree.add("<xmlattr>.chamber_wrapped", chamberWrapped);
+      
+      // Add order within the same chamber/sector AND refLogicLayer (based on wrapped value + layer)
+      std::string wrappedKey;
+      if (sectorWrapped != -1) {
+        wrappedKey = "sector_" + std::to_string(sectorWrapped) + "_layer_" + std::to_string(aRefHitDef.iRefLayer);
+      } else if (chamberWrapped != -1) {
+        wrappedKey = "chamber_" + std::to_string(chamberWrapped) + "_layer_" + std::to_string(aRefHitDef.iRefLayer);
+      }
+      
+      int refHitOrder = 0;
+      if (!wrappedKey.empty()) {
+        refHitOrder = refHitWrappedOrder[wrappedKey]++;
+      }
+      refHitTree.add("<xmlattr>.refHit_order", refHitOrder);
+    }
+    
+    // Add all layer data for this reference hit (only non-empty stubs)
+    // Put stubs directly under referenceHit without layer wrapper
+    for (unsigned int layerIdx = 0; layerIdx < allLayerStubs.size(); layerIdx++) {
+      unsigned int iLayer = allLayerStubs[layerIdx].first;
+      const auto& layerStubs = allLayerStubs[layerIdx].second;
+      const auto& layerExtrapolatedPhi = allLayerExtrapolatedPhi[layerIdx].second;
+      const auto& layerHwNumbers = allLayerHwNumbers[layerIdx].second;
+      
+      // Add each non-empty stub directly under referenceHit
+      for (unsigned int iStub = 0; iStub < layerStubs.size(); iStub++) {
+        const auto& stub = layerStubs[iStub];
+        if (stub) { // Only add non-empty stubs
+          auto& stubTree = refHitTree.add_child("stub", boost::property_tree::ptree());
+          //stubTree.add("<xmlattr>.iStub", iStub);
+          stubTree.add("<xmlattr>.iLayer", iLayer);
+          
+          // Calculate inputNumber from iStub using connections config
+          // restrictInput only keeps stubs in range [iStart, iEnd], so:
+          // inputNumber = iStart + iStub
+          unsigned int iStart = this->myOmtfConfig->getConnections()[iProcessor][iRegion][iLayer].first;
+          unsigned int inputNumber = iStart + iStub;
+          stubTree.add("<xmlattr>.inputNumber", inputNumber);
+          
+          // For bending layers, phi should be the phiBHw from the previous layer's stub
+          // (restrictInput returns the previous layer's stub for bending layers)
+          int phiValue = this->myOmtfConfig->isBendingLayer(iLayer) ? stub->phiBHw : stub->phiHw;
+          stubTree.add("<xmlattr>.phi", phiValue);
+          stubTree.add("<xmlattr>.phiB", stub->phiBHw);
+          stubTree.add("<xmlattr>.eta", stub->etaHw);
+          stubTree.add("<xmlattr>.quality", stub->qualityHw);
+          stubTree.add("<xmlattr>.r", stub->r);
+          stubTree.add("<xmlattr>.logicLayer", stub->logicLayer);
+          stubTree.add("<xmlattr>.hwNumber", layerHwNumbers[iStub]);
+          stubTree.add("<xmlattr>.extrapolatedPhi", layerExtrapolatedPhi[iStub]);
+          stubTree.add("<xmlattr>.timing", stub->timing);
+          stubTree.add("<xmlattr>.bx", stub->bx);
+          stubTree.add("<xmlattr>.detId", stub->detId);
+          stubTree.add("<xmlattr>.type", static_cast<int>(stub->type));
+          
+          // Add hwName using the hwNumber from layerHwNumbers
+          std::string hwName = getHwNameFromHwNumber(layerHwNumbers[iStub]);
+          if (!hwName.empty()) {
+            stubTree.add("<xmlattr>.hwName", hwName);
+          }
+          
+          // Calculate and add sector_wrapped and chamber_wrapped based on stub type
+          int stubSectorWrapped = -1;
+          int stubChamberWrapped = -1;
+          
+          if (stub->type == MuonStub::DT_PHI_ETA || stub->type == MuonStub::DT_HIT) {
+            // DT stub: use sector_wrapped
+            DTChamberId dtId(stub->detId);
+            stubSectorWrapped = calculateDTSectorWrapped(dtId, iProcessor, this->myOmtfConfig);
+            stubChamberWrapped = -1;
+          } else if (stub->type == MuonStub::CSC_PHI_ETA) {
+            // CSC stub: use chamber_wrapped
+            CSCDetId cscId(stub->detId);
+            stubChamberWrapped = calculateCSCChamberWrapped(cscId, iProcessor, this->myOmtfConfig->nProcessors() == 3 ? l1t::tftype::omtf_pos : l1t::tftype::omtf_neg, this->myOmtfConfig);
+            stubSectorWrapped = -1;
+          } else if (stub->type == MuonStub::RPC) {
+            // RPC stub: depends on region (barrel uses sector_wrapped, endcap uses chamber_wrapped)
+            RPCDetId rpcId(stub->detId);
+            if (rpcId.region() == 0) {
+              // Barrel RPC: use sector_wrapped
+              stubSectorWrapped = calculateRPCSectorWrapped(rpcId, iProcessor, this->myOmtfConfig);
+              stubChamberWrapped = -1;
+            } else {
+              // Endcap RPC: use chamber_wrapped
+              stubChamberWrapped = calculateRPCEndcapChamberWrapped(rpcId, iProcessor, this->myOmtfConfig);
+              stubSectorWrapped = -1;
+            }
+          }
+          
+          // Add the wrapped fields to XML
+          stubTree.add("<xmlattr>.sector_wrapped", stubSectorWrapped);
+          stubTree.add("<xmlattr>.chamber_wrapped", stubChamberWrapped);
+          
+          // Add stub_order based on (wrapped_value, logicLayer) combination
+          // This matches the logic in InputMakerPhase2.cc for standalone stubs
+          int wrappedValue = (stubSectorWrapped != -1) ? stubSectorWrapped : stubChamberWrapped;
+          std::string stubKey = "wrapped_" + std::to_string(wrappedValue) + "_layer_" + std::to_string(iLayer);
+          int stub_order = refHitWrappedOrder[stubKey]++;
+          stubTree.add("<xmlattr>.stub_order", stub_order);
+          
+          // Calculate and add outputSlot
+          // Use inputNumber directly - it already accounts for the layer configuration
+          // For bending layers, the stub comes from the connected layer and inputNumber
+          // is calculated relative to that layer's iFirstInput
+          int outputSlot = calculateOutputSlot(iProcessor, iRegion, iLayer, inputNumber,
+                                               stubSectorWrapped, stubChamberWrapped,
+                                               this->myOmtfConfig, batchIndexMap);
+          stubTree.add("<xmlattr>.outputSlot", outputSlot);
+        }
+      }
+    }
+    
+    // Notify observers with complete reference hit data (all layers combined + extrapolated phi + hw numbers)
+    for (auto& obs : observers) {
+      if (auto* hlsExporter = dynamic_cast<HLSDigiExporter*>(obs.get())) {
+        hlsExporter->observeRefHitProcessing(iProcessor, iRefHit, aRefHitDef, allLayerStubs, allLayerExtrapolatedPhi, allLayerHwNumbers);
+      }
+    }
+
+    // === ADD REFERENCE HIT TO XMLIOCACHE ===
+    omtf::ReferenceHitRecord rhRec;
+    rhRec.attrs = refHitTree;
+
+    // Build RestrictedStubRecords from the refHitTree's stub children
+    for (const auto& child : refHitTree) {
+      if (child.first == "stub") {
+        omtf::RestrictedStubRecord rsRec;
+        rsRec.attrs = child.second;
+        // Extract extrapolatedPhi from attributes
+        rsRec.extrapolatedPhi = child.second.get<int>("<xmlattr>.extrapolatedPhi");
+        rhRec.restrictedStubs.push_back(rsRec);
+      }
+    }
+
+    // Note: extrapCalcs will be populated during the second loop below for layers 0 and 2
+    xmlCache.addReferenceHit(iProcessor, rhRec);
+  }
+  
   for (unsigned int iLayer = 0; iLayer < this->myOmtfConfig->nLayers(); ++iLayer) {
     //debug
     /*for(auto& h : layerHits) {
@@ -757,19 +1212,54 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
                   << " value " << extrapolatedPhi[iStub] << std::endl;
 
               if (this->myOmtfConfig->getDumpResultToXML()) {
-                auto& extrapolatedPhiTree = procDataTree.add_child("extrapolatedPhi", boost::property_tree::ptree());
-                extrapolatedPhiTree.add("<xmlattr>.refLayer", refLayerLogicNum);
-                extrapolatedPhiTree.add("<xmlattr>.layer", iLayer);
-                extrapolatedPhiTree.add("<xmlattr>.refPhiBHw", refStub->phiBHw);
-                extrapolatedPhiTree.add("<xmlattr>.iStub", iStub);
-                extrapolatedPhiTree.add("<xmlattr>.qualityHw", targetStub->qualityHw);
-                extrapolatedPhiTree.add("<xmlattr>.etaHw", targetStub->etaHw);
-                extrapolatedPhiTree.add("<xmlattr>.phiExtr", extrapolatedPhi[iStub]);
+                // === ADD TO XMLIOCACHE FOR LAYERS 0 AND 2 ===
+                // Build calc record and add to the reference hit's extrapCalcs
+                boost::property_tree::ptree calcTree;
+                calcTree.add("<xmlattr>.targetLayer", iLayer);
+                calcTree.add("<xmlattr>.method", "fixed"); // phiB extrapolation uses fixed-point
+                calcTree.add("<xmlattr>.refLogicLayer", refStub->logicLayer);
+                calcTree.add("<xmlattr>.refPhi", refStub->phiHw);
+                calcTree.add("<xmlattr>.refPhiB", refStub->phiBHw);
+                calcTree.add("<xmlattr>.targetStubPhi", targetStub->phiHw);
+                calcTree.add("<xmlattr>.targetStubQuality", targetStub->qualityHw);
+                calcTree.add("<xmlattr>.targetStubEta", targetStub->etaHw);
+                calcTree.add("<xmlattr>.targetStubR", targetStub->r);
 
-                if (this->myOmtfConfig->isBendingLayer(iLayer))
-                  extrapolatedPhiTree.add("<xmlattr>.dist_phi", targetStub->phiBHw - extrapolatedPhi[iStub]);
-                else
-                  extrapolatedPhiTree.add("<xmlattr>.dist_phi", targetStub->phiHw - extrapolatedPhi[iStub]);
+                // Calculate and add extrapolation factor
+                int reflLayerIndex = refStub->logicLayer == 0 ? 0 : 1;
+                int extrFactor = 0;
+                
+                if (iLayer == 0 || iLayer == 2 || iLayer == 4) { // non-bending layers
+                  if (useStubQualInExtr)
+                    extrFactor = extrapolFactors[reflLayerIndex][iLayer][targetStub->qualityHw];
+                  else
+                    extrFactor = extrapolFactors[reflLayerIndex][iLayer][0];
+                  calcTree.add("<xmlattr>.extrFactor", extrFactor);
+                } else if (iLayer == 1 || iLayer == 3 || iLayer == 5) { // bending layers
+                  int scaleFactor = this->myOmtfConfig->omtfPhiUnit() * this->myOmtfConfig->dtPhiBUnitsRad() * 512;
+                  int deltaPhi_raw = targetStub->phiHw - refStub->phiHw;
+                  int deltaPhi_scaled = (deltaPhi_raw * scaleFactor) / 512;
+                  calcTree.add("<xmlattr>.scaleFactor", scaleFactor);
+                  calcTree.add("<xmlattr>.deltaPhi_raw", deltaPhi_raw);
+                  calcTree.add("<xmlattr>.deltaPhi_scaled", deltaPhi_scaled);
+                  // For bending layers, extrFactor is not used (calculation is direct)
+                  calcTree.add("<xmlattr>.extrFactor", 0); // N/A for bending layers
+                } else if (iLayer >= 10 && iLayer <= 14) {
+                  extrFactor = extrapolFactors[reflLayerIndex][iLayer][0];
+                  calcTree.add("<xmlattr>.extrFactor", extrFactor);
+                } else if ((iLayer >= 6 && iLayer <= 9) || (iLayer >= 15 && iLayer <= 17)) {
+                  if (useEndcapStubsRInExtr) {
+                    extrFactor = extrapolFactors[reflLayerIndex][iLayer][abs(targetStub->r)];
+                  } else {
+                    // Use eta as key when useEndcapStubsRInExtr is false (matches XML KeyType="eta")
+                    extrFactor = extrapolFactors[reflLayerIndex][iLayer][abs(targetStub->etaHw)];
+                  }
+                  calcTree.add("<xmlattr>.extrFactor", extrFactor);
+                }
+
+                calcTree.add("<xmlattr>.phiExtr", extrapolatedPhi[iStub]);
+
+                xmlCache.addExtrapolationCalc(iProcessor, iRefHit, calcTree);
               }
             }
             iStub++;
@@ -788,6 +1278,20 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
                                      <<" layerResult: valid"<<stubResult.getValid()
                                      <<" pdfVal "<<stubResult.getPdfVal()
                                      <<std::endl;*/
+
+        // Collect GP processing results for CSV export and detailed debug
+        for (auto& observer : observers) {
+          observer->observeGoldenPatternResults(iProcessor, iRefHit, aRefHitDef,
+                                                itGP->key().theNumber, iLayer,
+                                                stubResult, stubResult.getPdfBin());
+
+          // Detailed debug export - capture all StubResult data
+          if (auto* detailedDebug = dynamic_cast<DetailedDebugExporter*>(observer.get())) {
+            detailedDebug->observeStubResult(iProcessor, iRefHit, aRefHitDef.iRefLayer, iLayer,
+                                             itGP->key().theNumber, itGP->key(),
+                                             stubResult, restrictedLayerStubs, extrapolatedPhi, refStub, itGP.get());
+          }
+        }
 
         itGP->getResults()[procIndx][iRefHit].setStubResult(iLayer, stubResult);
       }
@@ -834,6 +1338,7 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
   //////////////////////////////////////
   //////////////////////////////////////
   {
+    unsigned int iGPIndex = 0;
     for (auto& itGP : this->theGPs) {
       itGP->finalise(procIndx);
       //debug
@@ -842,11 +1347,101 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
           LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<":"<<"__LINE__"<<itGP->getResults()[procIndx][iRefHit]<<std::endl;
         }
       }*/
+
+      // Collect GP final results for CSV export and detailed debug
+      auto gpResults = itGP->getResults()[procIndx];
+      for (unsigned int iRefHit = 0; iRefHit < gpResults.size(); iRefHit++) {
+        for (auto& observer : observers) {
+          observer->observeGoldenPatternFinalResults(iProcessor, iGPIndex, itGP->key(), iRefHit, gpResults[iRefHit]);
+        }
+      }
+
+      // Detailed debug export - capture finalise results (algoMuons)
+      for (auto& observer : observers) {
+        if (auto* detailedDebug = dynamic_cast<DetailedDebugExporter*>(observer.get())) {
+          detailedDebug->observeFinaliseResults(iProcessor, itGP->key().theNumber, itGP->key(), gpResults);
+        }
+      }
+      
+      iGPIndex++;
     }
   }
 
-  for (auto& obs : observers)
-    obs->addProcesorData("extrapolation", procDataTree);
+  // === EMIT UNIFIED XML FROM XMLIOCACHE ===
+  auto bucket = xmlCache.get(iProcessor);
+  if (bucket) {
+    // Build <inputDigis> tree
+    boost::property_tree::ptree inputDigisTree;
+    for (const auto& digiRec : bucket->digis) {
+      boost::property_tree::ptree digiNode;
+      // Add type as FIRST attribute
+      digiNode.add("<xmlattr>.type", digiRec.type);
+      // Copy remaining attributes
+      for (const auto& attr : digiRec.attrs.get_child("<xmlattr>")) {
+        digiNode.add("<xmlattr>." + attr.first, attr.second.data());
+      }
+      inputDigisTree.add_child("digi", digiNode);
+    }
+
+    // Build <inputStubs> tree
+    boost::property_tree::ptree inputStubsTree;
+    for (const auto& stubRec : bucket->stubs) {
+      boost::property_tree::ptree stubNode;
+      // Add type as FIRST attribute
+      stubNode.add("<xmlattr>.type", stubRec.type);
+      // Add isReference as SECOND attribute
+      bool isRef = (bucket->referenceKeys.find(stubRec.key) != bucket->referenceKeys.end());
+      stubNode.add("<xmlattr>.isReference", isRef);
+      // Copy remaining attributes
+      for (const auto& attr : stubRec.attrs.get_child("<xmlattr>")) {
+        stubNode.add("<xmlattr>." + attr.first, attr.second.data());
+      }
+
+      inputStubsTree.add_child("stub", stubNode);
+    }
+
+    // Build <referenceHits> tree
+    boost::property_tree::ptree referenceHitsTree;
+    for (const auto& rh : bucket->refHits) {
+      boost::property_tree::ptree rhNode;
+
+      // Copy refHit attributes (excluding the stub children which we'll rebuild)
+      if (rh.attrs.find("<xmlattr>") != rh.attrs.not_found()) {
+        for (const auto& attr : rh.attrs.get_child("<xmlattr>")) {
+          rhNode.add("<xmlattr>." + attr.first, attr.second.data());
+        }
+      }
+
+      // Add <extrapolatedPhiCalcs> (currently empty in this implementation, would be populated from procDataTree)
+      // TODO: Populate this from the extrapolation loop if needed for detailed calculations
+      if (!rh.extrapCalcs.empty()) {
+        boost::property_tree::ptree calcsNode;
+        for (const auto& calc : rh.extrapCalcs) {
+          calcsNode.add_child("calc", calc);
+        }
+        rhNode.add_child("extrapolatedPhiCalcs", calcsNode);
+      }
+
+      // Add <restrictedStubs>
+      boost::property_tree::ptree restrictedStubsNode;
+      for (const auto& rs : rh.restrictedStubs) {
+        restrictedStubsNode.add_child("stub", rs.attrs);
+      }
+      rhNode.add_child("restrictedStubs", restrictedStubsNode);
+
+      referenceHitsTree.add_child("referenceHit", rhNode);
+    }
+
+    // Emit unified XML to observers
+    for (auto& obs : observers) {
+      obs->addProcesorData("inputDigis", inputDigisTree);
+      obs->addProcesorData("inputStubs", inputStubsTree);
+      obs->addProcesorData("referenceHits", referenceHitsTree);
+
+      // Keep extrapolation tree for backwards compatibility
+      //obs->addProcesorData("extrapolation", procDataTree);
+    }
+  }
 
   return;
 }
@@ -858,16 +1453,20 @@ FinalMuons OMTFProcessor<GoldenPatternType>::run(unsigned int iProcessor,
                                                  l1t::tftype mtfType,
                                                  int bx,
                                                  OMTFinputMaker* inputMaker,
-                                                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) {
+                                                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                                                 XmlIOCache& xmlCache) {
   //uncomment if you want to check execution time of each method
   //boost::timer::auto_cpu_timer t("%ws wall, %us user in getProcessorCandidates\n");
+
+  // Clear cache for this processor before processing
+  xmlCache.clearProcessor(iProcessor);
 
   for (auto& obs : observers)
     obs->observeProcesorBegin(iProcessor, mtfType);
 
   //input is shared_ptr because the observers may need them after the run() method execution is finished
   std::shared_ptr<OMTFinput> input = std::make_shared<OMTFinput>(this->myOmtfConfig);
-  inputMaker->buildInputForProcessor(input->getMuonStubs(), iProcessor, mtfType, bx, bx, observers);
+  inputMaker->buildInputForProcessor(input->getMuonStubs(), iProcessor, mtfType, bx, bx, observers, xmlCache);
 
   if (this->myOmtfConfig->cleanStubs()) {
     //this has sense for the pattern generation from the tracks with the secondaries
@@ -886,10 +1485,16 @@ FinalMuons OMTFProcessor<GoldenPatternType>::run(unsigned int iProcessor,
   }
 
   //LogTrace("l1tOmtfEventPrint")<<"buildInputForProce "; t.report();
-  processInput(iProcessor, mtfType, *(input.get()), observers);
+  processInput(iProcessor, mtfType, *(input.get()), observers, xmlCache);
 
   //LogTrace("l1tOmtfEventPrint")<<"processInput       "; t.report();
   AlgoMuons algoCandidates = sortResults(iProcessor, mtfType);
+
+  // Collect sorted candidate results for CSV export
+  for (auto& observer : observers) {
+    observer->observeSortedCandidates(iProcessor, mtfType, algoCandidates);
+  }
+
 
   //LogTrace("l1tOmtfEventPrint")<<"sortResults        "; t.report();
   // perform GB

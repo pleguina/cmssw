@@ -18,22 +18,42 @@
 
 #include <bitset>
 
-XMLEventWriter::XMLEventWriter(const OMTFConfiguration* aOMTFConfig, std::string fName)
-    : omtfConfig(aOMTFConfig), fName(fName) {
-  //std::string fName = "OMTF";
+XMLEventWriter::XMLEventWriter(const OMTFConfiguration* aOMTFConfig, std::string fName, int eventsPerFile)
+    : omtfConfig(aOMTFConfig), fName(fName), eventsPerFile(eventsPerFile) {
   eventNum = 0;
-
-  unsigned int version = aOMTFConfig->patternsVersion();
-  const unsigned int mask16bits = 0xFFFF;
-
-  version &= mask16bits;
-
-  std::ostringstream stringStr;
-  stringStr.str("");
-  stringStr << "0x" << std::hex << std::setfill('0') << std::setw(4) << version;
-
-  tree.put("OMTF.<xmlattr>.version", stringStr.str());
+  initTree();
 };
+
+void XMLEventWriter::initTree() {
+  tree.clear();
+  unsigned int version = omtfConfig->patternsVersion();
+  const unsigned int mask16bits = 0xFFFF;
+  version &= mask16bits;
+  std::ostringstream stringStr;
+  stringStr << "0x" << std::hex << std::setfill('0') << std::setw(4) << version;
+  tree.put("OMTF.<xmlattr>.version", stringStr.str());
+}
+
+void XMLEventWriter::flushCurrentTreeToFile() {
+  // Build part filename: <base>_part000<ext>
+  std::string baseName = fName;
+  std::string ext;
+  auto dotPos = fName.rfind('.');
+  if (dotPos != std::string::npos) {
+    baseName = fName.substr(0, dotPos);
+    ext = fName.substr(dotPos);
+  }
+  std::ostringstream ss;
+  ss << baseName << "_part" << std::setfill('0') << std::setw(3) << fileIndex << ext;
+  std::string partFileName = ss.str();
+
+  edm::LogInfo("l1tOmtfEventPrint") << "XMLEventWriter: writing part file " << partFileName;
+  boost::property_tree::write_xml(
+      partFileName, tree, std::locale(), boost::property_tree::xml_parser::xml_writer_make_settings<std::string>(' ', 2));
+
+  fileIndex++;
+  initTree();  // reset tree for next batch
+}
 
 XMLEventWriter::~XMLEventWriter() {}
 
@@ -62,6 +82,8 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
   if (finalMuons.empty())
     return;
 
+  // Layer/Hit generation removed per user request
+  /*
   for (unsigned int iLayer = 0; iLayer < omtfConfig->nLayers(); ++iLayer) {
     boost::property_tree::ptree layerTree;
 
@@ -91,6 +113,7 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
       procTree.add_child("Layer", layerTree);
     }
   }
+  */
 
   for (auto& algoCand : algoCandidates) {
     ///Dump only regions, where a candidate was found
@@ -205,11 +228,31 @@ void XMLEventWriter::observeEventBegin(const edm::Event& iEvent) {
   eventTree->add("<xmlattr>.iBx", 2 * eventId);
 }
 
-void XMLEventWriter::observeEventEnd(const edm::Event& iEvent, FinalMuons& finalMuons) {}
+void XMLEventWriter::observeEventEnd(const edm::Event& iEvent, FinalMuons& finalMuons) {
+  if (eventsPerFile > 0 && eventNum > 0 && (eventNum % (unsigned int)eventsPerFile) == 0) {
+    flushCurrentTreeToFile();
+  }
+}
 
 void XMLEventWriter::endJob() {
   edm::LogInfo("l1tOmtfEventPrint") << "XMLEventWriter::endJob() - writing the data to the xml - starting";
+
+  std::string outputName = fName;
+  if (eventsPerFile > 0) {
+    // Write the final (possibly partial) batch with a part index as well
+    std::string baseName = fName;
+    std::string ext;
+    auto dotPos = fName.rfind('.');
+    if (dotPos != std::string::npos) {
+      baseName = fName.substr(0, dotPos);
+      ext = fName.substr(dotPos);
+    }
+    std::ostringstream ss;
+    ss << baseName << "_part" << std::setfill('0') << std::setw(3) << fileIndex << ext;
+    outputName = ss.str();
+  }
+
   boost::property_tree::write_xml(
-      fName, tree, std::locale(), boost::property_tree::xml_parser::xml_writer_make_settings<std::string>(' ', 2));
+      outputName, tree, std::locale(), boost::property_tree::xml_parser::xml_writer_make_settings<std::string>(' ', 2));
   edm::LogInfo("l1tOmtfEventPrint") << "XMLEventWriter::endJob() - writing the data to the xml - done";
 }

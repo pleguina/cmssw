@@ -41,7 +41,8 @@ public:
                  l1t::tftype procTyp,
                  int bxFrom,
                  int bxTo,
-                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers) override;
+                 std::vector<std::unique_ptr<IOMTFEmulationObserver> >& observers,
+                 XmlIOCache& xmlCache) override;
 
   //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
   virtual void addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,

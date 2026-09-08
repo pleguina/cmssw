@@ -9,6 +9,7 @@
 #define L1T_OmtfP1_OMTFANGLECONVERTER_H_
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/CscConversionInfo.h"
 
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
@@ -53,6 +54,9 @@ public:
   virtual int getProcessorPhi(int phiZero, l1t::tftype part, int dtScNum, int dtPhi) const;
 
   virtual int getProcessorPhi(
+      int phiZero, l1t::tftype part, const CSCDetId& csc, const CSCCorrelatedLCTDigi& digi, unsigned int iInput) const;
+
+  virtual CscConversionInfo getProcessorPhiWithInfo(
       int phiZero, l1t::tftype part, const CSCDetId& csc, const CSCCorrelatedLCTDigi& digi, unsigned int iInput) const;
 
   virtual int getProcessorPhi(int phiZero,

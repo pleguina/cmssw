@@ -212,6 +212,9 @@ int OmtfAngleConverter::getProcessorPhi(
   //the phi conversion is done like above - and not simply converting the layer->centerOfStrip(halfStrip/2 +1).phi() - to mimic this what is done by the firmware,
   //where phi of the stub is calculated with use of the offset and scale provided by an register
 
+  // Q2.8 fixed-point (RTL-faithful) variant, used by getProcessorPhiWithInfo() below when
+  // getCscFixedPointPhiForFirmware() is set (firmware export mode).
+
   /*//debug
   auto localPoint = layer->toLocal(layer->centerOfStrip(halfStrip));
   LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << 147 << " csc: " <<csc.rawId()<<" "<< csc<<" layer "<<layer->id()<<" "<<layer->id().rawId()
@@ -230,6 +233,71 @@ int OmtfAngleConverter::getProcessorPhi(
        << std::endl;*/
 
   return config->foldPhi(phi);
+}
+
+///////////////////////////////////////
+///////////////////////////////////////
+CscConversionInfo OmtfAngleConverter::getProcessorPhiWithInfo(
+    int phiZero, l1t::tftype part, const CSCDetId& csc, const CSCCorrelatedLCTDigi& digi, unsigned int iInput) const {
+  const double hsPhiPitch = 2 * M_PI / nPhiBins;
+
+  int halfStrip = digi.getStrip();  // returns halfStrip 0..159
+
+  const CSCChamber* chamber = _geocsc->chamber(csc);
+
+  if (csc.station() == 1 && csc.ring() == 1 && halfStrip > 128) {
+    CSCDetId cscME11 = CSCDetId(csc.endcap(), csc.station(), 4, csc.chamber());  //changing ring  to 4
+    chamber = _geocsc->chamber(cscME11);
+  }
+
+  const CSCChamberSpecs* cspec = chamber->specs();
+  const CSCLayer* layer = chamber->layer(3);
+  int order = (layer->centerOfStrip(2).phi() - layer->centerOfStrip(1).phi() > 0) ? 1 : -1;
+  double stripPhiPitch = cspec->stripPhiPitch();
+  double scale = std::abs(stripPhiPitch / hsPhiPitch / 2.);
+  if (std::abs(scale - 1.) < 0.0002)
+    scale = 1.;
+
+  double phiHalfStrip0 = layer->centerOfStrip(1).phi() - order * stripPhiPitch / 4.;
+
+  int offsetLoc = lround((phiHalfStrip0) / hsPhiPitch - phiZero);
+  offsetLoc = config->foldPhi(offsetLoc);
+
+  if (csc.station() == 1 && csc.ring() == 1 && halfStrip > 128) {  //ME1/1/
+    halfStrip -= 128;
+  }
+
+  int fixOff = offsetLoc;
+
+  if (config->getFixCscGeometryOffset()) {
+    if (config->nProcessors() == 6)          //phase1
+      fixOff = fixCscOffsetGeom(offsetLoc);  //TODO does not work in when phiZero is always 0. Fix this
+    else if (config->nProcessors() == 3) {   //phase2
+      if (iInput >= 14)
+        fixOff = fixCscOffsetGeom(offsetLoc - 900) + 900;
+      else
+        fixOff = fixCscOffsetGeom(offsetLoc);
+    }
+  }
+
+  // CSC phi computation: use Q2.8 fixed-point (RTL-faithful) in firmware export mode,
+  // or original floating-point product for sample production.
+  int phi;
+  if (config->getCscFixedPointPhiForFirmware()) {
+    int scaleQ28 = static_cast<int>(std::round(scale * 256.));
+    phi = fixOff + order * ((halfStrip * scaleQ28) >> 8);
+  } else {
+    phi = fixOff + order * scale * halfStrip;
+  }
+
+  CscConversionInfo info;
+  info.phi = config->foldPhi(phi);
+  info.offset = fixOff;
+  info.scale = scale;
+  info.order = order;
+  info.halfStrip = halfStrip;
+
+  return info;
 }
 
 ///////////////////////////////////////

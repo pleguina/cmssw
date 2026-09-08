@@ -58,6 +58,31 @@ public:
 
   int detId = 0;
 
+  // Raw, pre-processor-local disambiguator captured directly from the source
+  // digi/cluster BEFORE any processor-specific windowing/formatting (phiHw,
+  // input) is applied. Unlike 'input' (a processor-local channel index) and
+  // 'phiHw' (processor-local phi, see getProcessorPhi), this value is the same
+  // for the same physical primitive regardless of which processor(s) consume
+  // it (e.g. in the geometrical overlap region between two adjacent OMTF
+  // processors). Populated in OMTFinputMaker.cc:
+  //   DT:  raw local phi count digi.phi() (chamber-frame, pre-conversion)
+  //   CSC: pack(keyWG, halfStrip) from the raw LCT digi
+  //   RPC: pack(firstStrip, lastStrip) from the raw cluster
+  // Used as the "sourceIndex" component of the stable per-primitive ID
+  // (see DataROOTDumper2AllInput::makePrimitiveId, primitiveIdVersion=2).
+  int sourceIndex = 0;
+
+  // Stable per-primitive ID (primitiveIdVersion=2, see interface/OmtfPrimitiveId.h),
+  // computed once in OMTFinputMaker::addStub() after all fields above (type, detId,
+  // bx, sourceIndex) are populated. Processor-invariant: the same physical primitive
+  // carries the same primitiveId regardless of which processor(s) consume it.
+  unsigned long long primitiveId = 0;
+
+  // CSC conversion parameters (only valid for CSC stubs)
+  int cscOffset = 0;     // fixOff from angle conversion
+  double cscScale = 0;   // scale from angle conversion
+  int cscOrder = 0;      // order from angle conversion
+
   friend std::ostream& operator<<(std::ostream& out, const MuonStub& stub);
 };
 
