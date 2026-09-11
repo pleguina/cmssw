@@ -241,20 +241,43 @@ void OMTFReconstruction::addObservers(
   // === ADD DETAILED DEBUG EXPORTER ===
   if (edmParameterSet.exists("dumpDetailedDebug")) {
     if (edmParameterSet.getParameter<bool>("dumpDetailedDebug")) {
-      int debugEventNumber = -1;
-      if (edmParameterSet.exists("debugEventNumber"))
-        debugEventNumber = edmParameterSet.getParameter<int>("debugEventNumber");
-
       std::string debugOutputDir = "./";
       if (edmParameterSet.exists("debugOutputDir"))
         debugOutputDir = edmParameterSet.getParameter<std::string>("debugOutputDir");
 
-      if (debugEventNumber >= 0) {
-        observers.emplace_back(std::make_unique<DetailedDebugExporter>(omtfConfig.get(), debugEventNumber, debugOutputDir));
-        edm::LogInfo("OMTFReconstruction") << "Added Detailed Debug Exporter for event " << debugEventNumber
-                                           << " with output dir: " << debugOutputDir;
+      // Firmware verify-suite automation (2026-09-11): debugEventNumbers
+      // (a vint32) adds one independent DetailedDebugExporter per requested
+      // event number, alongside the original single-int debugEventNumber,
+      // so a curated set of per-event "detailed" debug XMLs (the ones the
+      // firmware's pdf_lookup/phi_dist_processor/best_candidate testbenches
+      // need, since bulk multi-event XML dumps with this same per-layer/
+      // per-pattern detail would be impractically large) can be produced in
+      // ONE cmsRun pass over the input sample instead of one full rerun per
+      // event. Each DetailedDebugExporter instance is fully self-contained
+      // (no shared/static state -- verified directly in
+      // DetailedDebugExporter.h), so adding several to the same observers
+      // vector is safe.
+      std::vector<int> debugEventNumbers;
+      if (edmParameterSet.exists("debugEventNumbers"))
+        debugEventNumbers = edmParameterSet.getParameter<std::vector<int>>("debugEventNumbers");
+
+      int debugEventNumber = -1;
+      if (edmParameterSet.exists("debugEventNumber"))
+        debugEventNumber = edmParameterSet.getParameter<int>("debugEventNumber");
+      if (debugEventNumber >= 0)
+        debugEventNumbers.push_back(debugEventNumber);
+
+      if (!debugEventNumbers.empty()) {
+        for (int evNum : debugEventNumbers) {
+          if (evNum < 0)
+            continue;
+          observers.emplace_back(std::make_unique<DetailedDebugExporter>(omtfConfig.get(), evNum, debugOutputDir));
+          edm::LogInfo("OMTFReconstruction") << "Added Detailed Debug Exporter for event " << evNum
+                                             << " with output dir: " << debugOutputDir;
+        }
       } else {
-        edm::LogWarning("OMTFReconstruction") << "dumpDetailedDebug is true but debugEventNumber is not set or invalid";
+        edm::LogWarning("OMTFReconstruction")
+            << "dumpDetailedDebug is true but neither debugEventNumber nor debugEventNumbers is set";
       }
     }
   }
