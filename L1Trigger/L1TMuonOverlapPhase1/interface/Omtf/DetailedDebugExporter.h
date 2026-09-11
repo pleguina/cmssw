@@ -63,11 +63,34 @@ public:
                                 const FinalMuons& finalMuons) override {
     if (!isTargetEvent_)
       return;
-    
+
     // Mark processor as having final muons only if it produced results
     std::string procKey = getProcessorKey(iProcessor, mtfType);
     if (!finalMuons.empty()) {
       processorsWithFinalMuons_.insert(procKey);
+    }
+
+    // WP-new (2026-09-11): OmtfProcessorPhase2::run() never calls
+    // observeSortedCandidates() (that hook only fires from the legacy
+    // Phase1 OMTFProcessor.cc path) -- confirmed directly, zero references
+    // to it anywhere in OmtfProcessorPhase2.cc. Under the real Phase2
+    // profile this exporter is used with, winnerPatterns_ stayed
+    // permanently empty and every exported gpResult's winner attribute
+    // defaulted to false. observeProcesorEmulation() IS the real Phase2
+    // hook, called once per processor per event with algoCandidates -- the
+    // exact same per-refHit pre-ghost-bust winner list
+    // observeSortedCandidates() expects (both use the shared AlgoMuons
+    // type) -- so populate winnerPatterns_ from it here, mirroring
+    // observeSortedCandidates()'s own logic exactly.
+    for (const auto& algoMuon : algoCandidates) {
+      if (algoMuon && algoMuon->isValid()) {
+        unsigned int iRefHit = algoMuon->getRefHitNumber();
+        unsigned int winningPattern = algoMuon->getHwPatternNumConstr();
+
+        std::ostringstream key;
+        key << getProcessorKey(iProcessor, mtfType) << "_refHit" << iRefHit;
+        winnerPatterns_[key.str()] = winningPattern;
+      }
     }
   }
 
