@@ -1341,6 +1341,15 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
     unsigned int iGPIndex = 0;
     for (auto& itGP : this->theGPs) {
       itGP->finalise(procIndx);
+      if (itGP->key().theNumber == 3 || itGP->key().theNumber == 1) {
+        for (unsigned int iRefHit = 0; iRefHit < itGP->getResults()[procIndx].size(); ++iRefHit) {
+          auto& r = itGP->getResults()[procIndx][iRefHit];
+          if (r.isValid() || r.getPdfSum() != 0)
+            std::cout << "DBG693FIN " << itGP->key() << " iRefHit " << iRefHit
+                       << " pdfSum " << r.getPdfSum() << " firedLayerCnt " << r.getFiredLayerCnt()
+                       << " valid " << r.isValid() << std::endl;
+        }
+      }
       //debug
       /*for(unsigned int iRefHit = 0; iRefHit < itGP->getResults()[procIndx].size(); ++iRefHit) {
         if(itGP->getResults()[procIndx][iRefHit].isValid()) {

@@ -21,3 +21,8 @@ __init__.py
 
 #ignore mac specific file
 .DS_Store
+
+# local generated event datasets / job scripts (not CMSSW source)
+/scaled_gen/
+# local OMTF config data used for WP8/WP13 dev (large XML/root, not committed)
+/L1Trigger/L1TMuon/data/omtf_config/

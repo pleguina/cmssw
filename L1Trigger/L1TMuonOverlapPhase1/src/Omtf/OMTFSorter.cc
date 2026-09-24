@@ -7,6 +7,8 @@
 #include <iostream>
 #include <algorithm>
 #include <bitset>
+#include <sstream>
+#include <vector>
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -20,6 +22,9 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(
 
   GoldenPatternType* bestGpUnconstr = nullptr;
 
+  bool dbg1078_marker = false;
+  std::vector<std::string> dbg1078_buffer;
+
   for (auto& itGP : gPatterns) {
     if (!itGP->getResults()[procIndx][iRefHit].isValid())
       continue;
@@ -30,6 +35,21 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(
     ///Accept only candidates with >2 hits
     if (itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() < 3)  //TODO - move 3 to the configuration??
       continue;
+
+    if (procIndx == 5) {
+      std::ostringstream oss;
+      oss << "DBG1078 CAND procIndx=" << procIndx << " iRefHit=" << iRefHit
+          << " theNumber=" << itGP->key().number() << " charge=" << itGP->key().theCharge
+          << " pt=" << itGP->key().thePt
+          << " pdfSum=" << itGP->getResults()[procIndx][iRefHit].getPdfSum()
+          << " firedCnt=" << (int)itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt();
+      dbg1078_buffer.push_back(oss.str());
+    }
+
+    if (itGP->key().thePt == 401 && itGP->key().theCharge == 1 &&
+        itGP->getResults()[procIndx][iRefHit].getPdfSum() == 972) {
+      dbg1078_marker = true;
+    }
 
     if (bestGP == nullptr) {
       bestGP = itGP.get();
@@ -59,6 +79,23 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(
       }
     }
   }
+
+  if (dbg1078_marker && procIndx == 5) {
+    for (auto& line : dbg1078_buffer) {
+      std::cout << line << std::endl;
+    }
+  }
+
+  if (dbg1078_marker) {
+    std::cout << "DBG1078 FINAL procIndx=" << procIndx << " iRefHit=" << iRefHit
+              << " winner theNumber=" << (bestGP ? std::to_string(bestGP->key().number()) : std::string("none"))
+              << " charge=" << (bestGP ? std::to_string(bestGP->key().theCharge) : std::string("none"))
+              << " pt=" << (bestGP ? std::to_string(bestGP->key().thePt) : std::string("none"))
+              << " pdfSum="
+              << (bestGP ? std::to_string(bestGP->getResults()[procIndx][iRefHit].getPdfSum()) : std::string("none"))
+              << std::endl;
+  }
+
   if (bestGP) {
     //this is needed to obtain the same results as in the firmware. for the actual performance it should not matter
     if (bestGP->getResults()[procIndx][iRefHit].getPdfSum() == 0)

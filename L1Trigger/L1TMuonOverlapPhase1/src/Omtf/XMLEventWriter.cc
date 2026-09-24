@@ -191,6 +191,51 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
     }
   }
 
+  // WP1A Phase C (2026-09-14): GhostBuster output -- algoCandidates above is
+  // GhostBuster's real INPUT (pattern-match results, one per fired refHit,
+  // pre-ghost-killing); gbCandidates is its real OUTPUT (survivors after
+  // GhostBuster::select()/killGhosts(), same AlgoMuon type, same real
+  // fields) and had no XML representation at all before this -- the "OMTF
+  // GhostBuster in/out" row action-plan section 5.4 flagged as "new".
+  // Same exact field set as AlgoMuon above (kept duplicated, not factored
+  // into a shared helper, matching this codebase's own established
+  // barrel/endcap-style duplication pattern) so a real ghost_buster HLS
+  // module trace can be compared directly against this real ground truth.
+  for (auto& gbCand : gbCandidates) {
+    if (gbCand->isValid()) {
+      auto& gbMuonTree = procTree.add("GbMuon", "");
+      gbMuonTree.add("<xmlattr>.charge", gbCand->getChargeConstr());
+      gbMuonTree.add("<xmlattr>.disc", gbCand->getDisc());
+      gbMuonTree.add("<xmlattr>.pdfSumConstr", gbCand->getGpResultConstr().getPdfSum());
+      gbMuonTree.add("<xmlattr>.pdfSumUnconstr", gbCand->getGpResultUnconstr().getPdfSumUnconstr());
+      gbMuonTree.add("<xmlattr>.etaCode", gbCand->getEtaHw());
+      gbMuonTree.add("<xmlattr>.iRefHit", gbCand->getRefHitNumber());
+      gbMuonTree.add("<xmlattr>.iRefLayer", gbCand->getRefLayer());
+
+      gbMuonTree.add("<xmlattr>.layersConstr", std::bitset<18>(gbCand->getGpResultConstr().getFiredLayerBits()));
+      gbMuonTree.add("<xmlattr>.layersUnconstr",
+                     std::bitset<18>(gbCand->getGpResultUnconstr().getFiredLayerBits()));
+
+      gbMuonTree.add("<xmlattr>.nHits", gbCand->getQ());
+
+      gbMuonTree.add("<xmlattr>.firedCntConstr", gbCand->getGpResultConstr().getFiredLayerCnt());
+      gbMuonTree.add("<xmlattr>.firedCntUnconstr", gbCand->getGpResultUnconstr().getFiredLayerCnt());
+
+      gbMuonTree.add("<xmlattr>.patNumConstr", gbCand->getHwPatternNumConstr());
+      gbMuonTree.add("<xmlattr>.patNumUnconstr", gbCand->getHwPatternNumUnconstr());
+
+      gbMuonTree.add("<xmlattr>.phiCode", gbCand->getPhi());
+
+      gbMuonTree.add("<xmlattr>.phiConstr", gbCand->getGpResultConstr().getPhi());
+      gbMuonTree.add("<xmlattr>.phiUnConstr", gbCand->getGpResultUnconstr().getPhi());
+
+      gbMuonTree.add("<xmlattr>.phiRHit", gbCand->getPhiRHit());
+
+      gbMuonTree.add("<xmlattr>.ptCodeConstr", gbCand->getPtConstr());
+      gbMuonTree.add("<xmlattr>.ptCodeUnconstr", gbCand->getPtUnconstr());
+    }
+  }
+
   for (auto& finalMuon : finalMuons) {
     auto& candMuonTree = procTree.add("CandMuon", "");
     candMuonTree.add("<xmlattr>.hwEta", finalMuon->getEtaGmt());
@@ -211,6 +256,66 @@ void XMLEventWriter::observeProcesorEmulation(unsigned int iProcessor,
       stringStr << "OMTF_POS";
 
     candMuonTree.add("<xmlattr>.trackFinderType", stringStr.str());
+  }
+
+  // WP1A Phase C (2026-09-14): SAMuon-equivalent export -- replicates
+  // OmtfProcessorPhase2::getSAMuons()'s real selection/fallback logic
+  // exactly (same iProcessor/mtfType/finalMuons granularity that function
+  // is itself called at in OmtfEmulation::run()), producing the same two
+  // aligned constrained/unconstrained collections real GMT-facing SAMuon
+  // objects would form -- something CandMuon's single list doesn't
+  // capture (CandMuon predates the Phase-2 constrained/unconstrained
+  // SAMuon split and has no equivalent of getSAMuons()'s "backfill the
+  // unconstrained collection with the constrained candidate when no real
+  // unconstrained measurement exists, so both collections stay the same
+  // size" rule).
+  //
+  // IMPORTANT, confirmed by reading getSAMuons()/SAMuon.h directly, not
+  // assumed: hwD0/hwZ0/hwBeta/word() are NOT real per-candidate
+  // measurements in CMSSW_20_0_0 today.
+  //  - z0 is unconditionally 0 (no computation exists anywhere).
+  //  - d0 is a fixed placeholder CMSSW's own comment states outright:
+  //    "Set d0 to the default values of zero (0) and a large number (50)
+  //    ... until the d0 measurement is implemented" -- 0 for constrained,
+  //    50/Phase2L1GMT::LSBSAd0 (=13 in hw units, LSBSAd0=3.84) for
+  //    unconstrained, replicated exactly below (not re-derived).
+  //  - word() (the real packed 64-bit GMT word) is dead code in
+  //    OmtfProcessorPhase2.cc -- the whole packing block and its
+  //    setWord() call are commented out.
+  //  - hwBeta has no setter called anywhere in getSAMuons(); the SAMuon
+  //    constructor used here doesn't even take it.
+  // So this export deliberately does NOT include hwD0/hwZ0/hwBeta/word --
+  // exporting a fixed constant or an always-zero field as a "golden
+  // reference" would misrepresent CMSSW's own not-yet-implemented state as
+  // if it were real ground truth. pt/eta/phi/charge/quality ARE real
+  // (same fields CandMuon already carries); what's genuinely new here is
+  // WHICH candidates appear in each collection and with what pt.
+  for (auto& finalMuon : finalMuons) {
+    int ptConstr = finalMuon->getPtGmt();
+    if (ptConstr > 0) {
+      auto& saMuonTree = procTree.add("SAMuonConstr", "");
+      saMuonTree.add("<xmlattr>.hwPt", ptConstr);
+      saMuonTree.add("<xmlattr>.hwEta", finalMuon->getEtaGmt());
+      saMuonTree.add("<xmlattr>.hwPhi", finalMuon->getPhiGmt());
+      saMuonTree.add("<xmlattr>.hwSign", finalMuon->getSign());
+      saMuonTree.add("<xmlattr>.hwQual", finalMuon->getQuality());
+    }
+
+    int ptUnconstr = finalMuon->getPtUnconstrGmt();
+    if (ptUnconstr == 0) {
+      // real getSAMuons() fallback: no unconstrained measurement -> use
+      // the constrained candidate instead, so both real SAMuon
+      // collections stay the same size (their own comment's own words).
+      ptUnconstr = ptConstr;
+    }
+    if (ptUnconstr > 0) {
+      auto& saMuonTree = procTree.add("SAMuonUnconstr", "");
+      saMuonTree.add("<xmlattr>.hwPt", ptUnconstr);
+      saMuonTree.add("<xmlattr>.hwEta", finalMuon->getEtaGmt());
+      saMuonTree.add("<xmlattr>.hwPhi", finalMuon->getPhiGmt());
+      saMuonTree.add("<xmlattr>.hwSign", finalMuon->getSign());
+      saMuonTree.add("<xmlattr>.hwQual", finalMuon->getQuality());
+    }
   }
 
   if (!procTree.empty())

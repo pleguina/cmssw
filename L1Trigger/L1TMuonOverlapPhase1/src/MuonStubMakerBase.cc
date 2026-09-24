@@ -497,6 +497,14 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
   //LogTrace("l1tOmtfEventPrint") << __FUNCTION__ << ":" << __LINE__ <<" RPC HITS, processor : " << iProcessor<<" "<<std::endl;
 
   boost::property_tree::ptree rpcDigisTree;
+  // omtf-firmware WP13 (2026-09-13): real per-cluster export, additive and
+  // gated the same way as rpcDigisTree below (dumpRPCDigis) -- rpc_omtf_
+  // interface's real input is a CLUSTER (strip=firstStrip, cluster_size=
+  // cluster.size(), per addRPCstub()'s own real stub.qualityHw=cluster.
+  // size() a few lines below), not a raw pre-clustering digi, so the
+  // existing rpcDigisTree export alone can't reconstruct real firmware
+  // input frames.
+  boost::property_tree::ptree rpcClustersTree;
   boost::property_tree::ptree rpcStubsTree;
   // Use global reference stubs tree instead of local one
   
@@ -578,6 +586,35 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     std::vector<RpcCluster> clusters = rpcClusterization->getClusters(roll, digisCopy);
 
     for (auto& cluster : clusters) {
+      // omtf-firmware WP13 (2026-09-13): export the real cluster BEFORE
+      // calling addRPCstub (which may mutate muonStubsInLayers/mark stubs
+      // dropped, but never touches cluster itself) -- same fields
+      // addRPCstub uses to build the real stub.phiHw/etaHw/qualityHw a few
+      // lines below in that function, so this cross-checks directly
+      // against the already-existing, already-verified <inputStubs>
+      // type="RPCb"/"RPCe" ground truth.
+      auto& rpcCluster = rpcClustersTree.add_child("rpcCluster", boost::property_tree::ptree());
+      rpcCluster.add("<xmlattr>.rpcID", roll.rawId());
+      rpcCluster.add("<xmlattr>.region", roll.region());
+      rpcCluster.add("<xmlattr>.ring", roll.ring());
+      rpcCluster.add("<xmlattr>.station", roll.station());
+      rpcCluster.add("<xmlattr>.sector", roll.sector());
+      rpcCluster.add("<xmlattr>.subsector", roll.subsector());
+      rpcCluster.add("<xmlattr>.roll", roll.roll());
+      // omtf-firmware WP13 barrel follow-up (2026-09-14): layer() is 0 for
+      // every real endcap roll (not meaningful there -- ring is always 3
+      // for the endcap layers OMTF reads) but real and needed for barrel
+      // (1=in, 2=out for RB1/RB2; always 1 for RB3) to pick the right of
+      // the 5 real barrel logic layers. Additive: existing endcap-only
+      // consumers of this element are unaffected.
+      rpcCluster.add("<xmlattr>.layer", roll.layer());
+      rpcCluster.add("<xmlattr>.processor", iProcessor);
+      rpcCluster.add("<xmlattr>.firstStrip", cluster.firstStrip);
+      rpcCluster.add("<xmlattr>.lastStrip", cluster.lastStrip);
+      rpcCluster.add("<xmlattr>.clusterSize", cluster.size());
+      rpcCluster.add("<xmlattr>.bx", cluster.bx);
+      rpcCluster.add("<xmlattr>.timing", cluster.timing);
+
       addRPCstub(muonStubsInLayers, roll, cluster, iProcessor, procTyp);
     }
     
@@ -741,6 +778,11 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
   if (dumpRPCDigis) {
     for (const auto& digiNode : rpcDigisTree) {
       xmlCache.addDigi(iProcessor, "RPC", digiNode.second);
+    }
+    // omtf-firmware WP13 (2026-09-13): real clusters, gated the same way
+    // as the raw digis above -- see rpcClustersTree's own comment.
+    for (const auto& clusterNode : rpcClustersTree) {
+      xmlCache.addDigi(iProcessor, "RPCCluster", clusterNode.second);
     }
   }
 
