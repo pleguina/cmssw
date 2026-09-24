@@ -2,13 +2,9 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("RpcBarrelKeyToRDump")
 
-# Matches docs/wp8_p1scale_swnew_run/firmware_events_gen_cmssw20_swnew_p1scale.py's
-# own geometry/GlobalTag EXACTLY (not the endcap dumpRpcKeyToR.py's D121/
-# 131X pair) -- a real cross-check against that committed golden dataset
-# (see reference_manifest.yaml's WP13 barrel entry) found a small,
-# reproducible eta/phi discrepancy traced directly to this geometry-tag
-# mismatch, not a bug in the LUT/index logic; re-dumping with the matching
-# tag removes it.
+# Must match firmware_events_gen_cmssw20_swnew_p1scale.py's geometry/
+# GlobalTag (not endcap dumpRpcKeyToR.py's D121/131X pair) -- a mismatch
+# here was previously traced to a small eta/phi discrepancy, not a LUT bug.
 process.load('Configuration.Geometry.GeometryExtendedRun4D110Reco_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag

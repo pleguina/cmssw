@@ -432,10 +432,8 @@ private:
             stubNode.add("<xmlattr>.quality", stub->qualityHw);
             stubNode.add("<xmlattr>.logicLayer", stub->logicLayer);
             stubNode.add("<xmlattr>.detId", stub->detId);
-            // WP-new (2026-09-11): real radius, needed by firmware's
-            // R-keyed CSC/RPC-endcap extrapolation path
-            // (kUseEndcapRExtrapolation) -- this dump previously omitted
-            // it entirely, forcing that path to always read r=0.
+            // Needed by the R-keyed CSC/RPC-endcap extrapolation path
+            // (kUseEndcapRExtrapolation); was missing, so it always read r=0.
             stubNode.add("<xmlattr>.r", stub->r);
             
             if (iStub < layerExtrapolatedPhi.size()) {
