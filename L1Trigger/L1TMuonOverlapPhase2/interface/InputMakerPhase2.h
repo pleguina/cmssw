@@ -66,10 +66,14 @@ public:
                              l1t::tftype procTyp) = 0;
 
   //dtPairPolicy mode: one phi-theta pair per slot; the eta comes from the pair's own theta
-  virtual void addDTpair(MuonStubPtrs2D& muonStubsInLayers,
+  //returns true and fills outStub if a stub was added
+  virtual bool addDTpair(MuonStubPtrs2D& muonStubsInLayers,
                          const L1Phase2MuDTExtPhiThetaPair& pair,
                          unsigned int iProcessor,
-                         l1t::tftype procTyp) {}
+                         l1t::tftype procTyp,
+                         MuonStub* outStub = nullptr) {
+    return false;
+  }
 
   virtual bool acceptDigi(const DTChamberId& dTChamberId, unsigned int iProcessor, l1t::tftype procType) {
     return true;
@@ -100,11 +104,13 @@ public:
                                    edm::EDGetTokenT<L1Phase2MuDTExtPhiThetaPairContainer> inputTokenDtPairs = {},
                                    bool dtPairPolicy = false,
                                    bool dtPairEtaWindowCheck = true,
-                                   bool dtPairFixedEta = false)
+                                   bool dtPairFixedEta = false,
+                                   bool dtPairWordPrecision = false)
       : DtPhase2DigiToStubsConverter(config, inputTokenDtPh, inputTokenDtTh, inputTokenDtPairs, dtPairPolicy),
         angleConverter(angleConverter),
         dtPairEtaWindowCheck(dtPairEtaWindowCheck),
-        dtPairFixedEta(dtPairFixedEta) {}
+        dtPairFixedEta(dtPairFixedEta),
+        dtPairWordPrecision(dtPairWordPrecision) {}
 
   ~DtPhase2DigiToStubsConverterOmtf() override = default;
 
@@ -120,24 +126,28 @@ public:
                      unsigned int iProcessor,
                      l1t::tftype procTyp) override;
 
-  void addDTpair(MuonStubPtrs2D& muonStubsInLayers,
+  bool addDTpair(MuonStubPtrs2D& muonStubsInLayers,
                  const L1Phase2MuDTExtPhiThetaPair& pair,
                  unsigned int iProcessor,
-                 l1t::tftype procTyp) override;
+                 l1t::tftype procTyp,
+                 MuonStub* outStub = nullptr) override;
 
   bool acceptDigi(const DTChamberId& dTChamberId, unsigned int iProcessor, l1t::tftype procType) override;
 
 private:
   //common part of addDTphiDigi and addDTpair
-  void addPhiStub(MuonStubPtrs2D& muonStubsInLayers,
+  bool addPhiStub(MuonStubPtrs2D& muonStubsInLayers,
                   const L1Phase2MuDTPhDigi& digi,
                   int etaHw,
                   unsigned int iProcessor,
-                  l1t::tftype procTyp);
+                  l1t::tftype procTyp,
+                  bool wordPrecision = false,
+                  MuonStub* outStub = nullptr);
 
   const OmtfPhase2AngleConverter* angleConverter;
   bool dtPairEtaWindowCheck = true;
   bool dtPairFixedEta = false;
+  bool dtPairWordPrecision = false;
 };
 
 class InputMakerPhase2 : public OMTFinputMaker {

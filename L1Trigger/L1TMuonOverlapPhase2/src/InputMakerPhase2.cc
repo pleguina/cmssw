@@ -61,8 +61,10 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       if (bx - config->dtBxShift() < bxFrom || bx - config->dtBxShift() > bxTo)
         continue;
 
+      MuonStub addedStub;
+      bool stubAdded = false;
       if (hasPhi)  //a theta without phi is only dumped, the OMTF algorithm uses the phi stubs
-        addDTpair(muonStubsInLayers, pair, iProcessor, procTyp);
+        stubAdded = addDTpair(muonStubsInLayers, pair, iProcessor, procTyp, &addedStub);
 
       std::ostringstream chamberName;
       chamberName << "DT_Wh" << wh << "_St_" << st << "_Se_" << sc + 1;
@@ -76,6 +78,14 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       dtP2PairDigi.add("<xmlattr>.pairQuality", pair.quality());
       dtP2PairDigi.add("<xmlattr>.hasPhi", hasPhi);
       dtP2PairDigi.add("<xmlattr>.hasTheta", hasTheta);
+      //the stub the emulator made from this pair (the expected output of the firmware DT pair interface)
+      dtP2PairDigi.add("<xmlattr>.stubValid", stubAdded);
+      if (stubAdded) {
+        dtP2PairDigi.add("<xmlattr>.stubPhi", addedStub.phiHw);
+        dtP2PairDigi.add("<xmlattr>.stubPhiB", addedStub.phiBHw);
+        dtP2PairDigi.add("<xmlattr>.stubQuality", addedStub.qualityHw);
+        dtP2PairDigi.add("<xmlattr>.stubEta", addedStub.etaHw);
+      }
       if (hasPhi) {
         dtP2PairDigi.add("<xmlattr>.slNum", phi.slNum());
         dtP2PairDigi.add("<xmlattr>.quality", phi.quality());
@@ -177,21 +187,24 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   addPhiStub(muonStubsInLayers, digi, etaHw, iProcessor, procTyp);
 }
 
-void DtPhase2DigiToStubsConverterOmtf::addDTpair(MuonStubPtrs2D& muonStubsInLayers,
+bool DtPhase2DigiToStubsConverterOmtf::addDTpair(MuonStubPtrs2D& muonStubsInLayers,
                                                  const L1Phase2MuDTExtPhiThetaPair& pair,
                                                  unsigned int iProcessor,
-                                                 l1t::tftype procTyp) {
+                                                 l1t::tftype procTyp,
+                                                 MuonStub* outStub) {
   const auto& digi = pair.phiDigi();
   DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum() + 1);
   int etaHw = angleConverter->getEtaFromThetaDigi(detid, pair.thetaDigi(), dtPairEtaWindowCheck, dtPairFixedEta);
-  addPhiStub(muonStubsInLayers, digi, etaHw, iProcessor, procTyp);
+  return addPhiStub(muonStubsInLayers, digi, etaHw, iProcessor, procTyp, dtPairWordPrecision, outStub);
 }
 
-void DtPhase2DigiToStubsConverterOmtf::addPhiStub(MuonStubPtrs2D& muonStubsInLayers,
+bool DtPhase2DigiToStubsConverterOmtf::addPhiStub(MuonStubPtrs2D& muonStubsInLayers,
                                                   const L1Phase2MuDTPhDigi& digi,
                                                   int etaHw,
                                                   unsigned int iProcessor,
-                                                  l1t::tftype procTyp) {
+                                                  l1t::tftype procTyp,
+                                                  bool wordPrecision,
+                                                  MuonStub* outStub) {
   DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum() + 1);
 
   MuonStub stub;
@@ -211,13 +224,17 @@ void DtPhase2DigiToStubsConverterOmtf::addPhiStub(MuonStubPtrs2D& muonStubsInLay
       stub.qualityHw = 0;
   }
 
+  //BMT->OMTF stub word: the word has no superlayer, so the uncorrelated 4-hit qualities map to one value
+  if (wordPrecision && digi.quality() >= 3 && digi.quality() < 6)
+    stub.qualityHw = 3;
+
   if (stub.qualityHw < config->getMinDtPhiQuality())
-    return;
+    return false;
 
   unsigned int hwNumber = config->getLayerNumber(detid.rawId());
   auto iter = config->getHwToLogicLayer().find(hwNumber);
   if (iter == config->getHwToLogicLayer().end())
-    return;
+    return false;
 
   unsigned int iLayer = iter->second;
   unsigned int iInput = OMTFinputMaker::getInputNumber(config, detid.rawId(), iProcessor, procTyp);
@@ -225,8 +242,10 @@ void DtPhase2DigiToStubsConverterOmtf::addPhiStub(MuonStubPtrs2D& muonStubsInLay
 
   stub.type = MuonStub::DT_PHI_ETA;
 
+  //the stub word carries phi with 13 bits, i.e. the 17-bit DT phi without its 4 lowest bits
+  int dtPhi = wordPrecision ? ((digi.phi() >> 4) * 16) : digi.phi();
   stub.phiHw = angleConverter->getProcessorPhi(
-      OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, digi.scNum(), digi.phi());
+      OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, digi.scNum(), dtPhi);
 
   stub.etaHw = etaHw;
 
@@ -262,6 +281,9 @@ void DtPhase2DigiToStubsConverterOmtf::addPhiStub(MuonStubPtrs2D& muonStubsInLay
                                 << stub.etaHw << " phiB " << stub.phiBHw << " bx " << stub.bx << " quality "
                                 << stub.qualityHw << " logicLayer " << stub.logicLayer << std::endl;
   OMTFinputMaker::addStub(config, muonStubsInLayers, iLayer, iInput, stub);
+  if (outStub)
+    *outStub = stub;
+  return true;
 }
 
 void DtPhase2DigiToStubsConverterOmtf::addDTetaStubs(MuonStubPtrs2D& muonStubsInLayers,
@@ -298,6 +320,8 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
     bool dtPairPolicy = edmParameterSet.exists("dtPairPolicy") && edmParameterSet.getParameter<bool>("dtPairPolicy");
     bool dtPairEtaWindowCheck =
         !edmParameterSet.exists("dtPairEtaWindowCheck") || edmParameterSet.getParameter<bool>("dtPairEtaWindowCheck");
+    bool dtPairWordPrecision =
+        edmParameterSet.exists("dtPairWordPrecision") && edmParameterSet.getParameter<bool>("dtPairWordPrecision");
     bool dtPairFixedEta = edmParameterSet.exists("dtPairFixedEta") && edmParameterSet.getParameter<bool>("dtPairFixedEta");
     if (dtPairPolicy)
       edm::LogImportant("OMTFReconstruction") << " dtPairPolicy: DT stubs and eta from phi-theta pairs" << std::endl;
@@ -310,6 +334,7 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
         muStubsPhase2InputTokens.inputTokenDtPairs,
         dtPairPolicy,
         dtPairEtaWindowCheck,
-        dtPairFixedEta));
+        dtPairFixedEta,
+        dtPairWordPrecision));
   }
 }

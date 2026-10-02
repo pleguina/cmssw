@@ -18,6 +18,9 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   #with dtPairPolicy: if True every stub gets the fixed firmware eta (92/79/75), as dtFixedPointEtaForFirmware does
   #for the standard path - lets the pair interface be compared 1:1 with the standard one
   dtPairFixedEta = cms.bool(False),
+  #with dtPairPolicy: if True the stubs carry only what the BMT->OMTF 64-bit stub word can: phi without its 4
+  #lowest bits (13 bit), no superlayer (uncorrelated 4-hit qualities map to one value). Lets the firmware match bit-exactly
+  dtPairWordPrecision = cms.bool(False),
   dtPairEtaWindowCheck = cms.bool(True), #outside of the MB1-3 eta windows use the mid-chamber eta, as the standard path
 
   ##  XML / PATTERNS file:
