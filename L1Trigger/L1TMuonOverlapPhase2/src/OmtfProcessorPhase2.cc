@@ -288,6 +288,10 @@ FinalMuons OmtfProcessorPhase2::run(unsigned int iProcessor,
   //uncomment if you want to check execution time of each method
   //boost::timer::auto_cpu_timer t("%ws wall, %us user in getProcessorCandidates\n");
 
+  // The cache is keyed by iProcessor only, and the pos and neg sides reuse the same iProcessor values,
+  // so the previous run's digis/stubs must be dropped (as OMTFProcessor::run does).
+  xmlCache.clearProcessor(iProcessor);
+
   for (auto& obs : observers)
     obs->observeProcesorBegin(iProcessor, mtfType);
 

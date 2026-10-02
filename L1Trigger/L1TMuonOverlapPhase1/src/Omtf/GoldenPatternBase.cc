@@ -104,6 +104,17 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
     }
   }
 
+  if (iLayer == 1) {
+    std::cout << "DBGPTSCAN theNumber=" << theKey.theNumber << " iRefLayer " << iRefLayer
+               << " phiDistMin_shifted " << phiDistMin << " selectedStub "
+               << (selectedStub ? "yes" : "no") << std::endl;
+  }
+  if ((theKey.theNumber == 59 || theKey.theNumber == 60) && iLayer == 1) {
+    std::cout << "DBGPT5960 " << theKey << " iRefLayer " << iRefLayer << " iLayer " << iLayer
+               << " phiDistMin_shifted " << phiDistMin << " phiMean " << phiMean
+               << " selectedStub " << (selectedStub ? "yes" : "no") << std::endl;
+  }
+
   bool dbgOn = (theKey.theNumber == 3 || theKey.theNumber == 1);
 
   if (!selectedStub) {
