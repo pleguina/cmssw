@@ -10,6 +10,13 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   srcDTPhPhase2 = cms.InputTag('dtTriggerPhase2PrimitiveDigis'),
   srcDTThPhase2 = cms.InputTag('dtTriggerPhase2PrimitiveDigis'),
 
+  #BMT->OMTF stub word studies: if True the DT stubs are the phi-theta pairs of srcDTPairsPhase2 (needs
+  #dtTriggerPhase2PrimitiveDigis with df_extended=2 and DTTrigPhase2PairsProd in the path), and each stub's eta comes
+  #from its own paired theta. Default False = the standard phi + theta digis.
+  dtPairPolicy = cms.bool(False),
+  srcDTPairsPhase2 = cms.InputTag('dtTriggerPhase2PrimitivePairDigis'),
+  dtPairEtaWindowCheck = cms.bool(True), #outside of the MB1-3 eta windows use the mid-chamber eta, as the standard path
+
   ##  XML / PATTERNS file:
   #configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0209.xml"),
   configXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/hwToLogicLayer_0x0210.xml"),

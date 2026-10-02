@@ -11,11 +11,15 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OmtfName.h"
 
 #include <iostream>
+#include <map>
+#include <tuple>
 
 /////////////////////////////////////
 void DtPhase2DigiToStubsConverter::loadDigis(const edm::Event& event) {
   event.getByToken(inputTokenDtPh, dtPhDigis);
   event.getByToken(inputTokenDtTh, dtThDigis);
+  if (dtPairPolicy)
+    event.getByToken(inputTokenDtPairs, dtPairs);
   bunchCrossing = event.bunchCrossing();
 }
 
@@ -29,6 +33,73 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
   boost::property_tree::ptree procDataTree;
 
   std::map<std::string, boost::property_tree::ptree> chamberTrees;
+
+  if (dtPairPolicy) {
+    //slot = position of the pair among the pairs of the same chamber and bx, in the order of the pair collection
+    //(the order set by the producer, i.e. the order in which the BMT would send the stubs); empty slots are counted
+    std::map<std::tuple<int, int, int, int>, int> slotCounters;
+
+    for (const auto& pair : dtPairs->getContainer()) {
+      const auto& phi = pair.phiDigi();
+      const auto& th = pair.thetaDigi();
+      constexpr int emptyDigiBx = -100;
+      bool hasPhi = phi.bxNum() != emptyDigiBx;
+      bool hasTheta = th.bxNum() != emptyDigiBx;
+      if (!hasPhi && !hasTheta)
+        continue;
+
+      int wh = hasPhi ? phi.whNum() : th.whNum();
+      int sc = hasPhi ? phi.scNum() : th.scNum();
+      int st = hasPhi ? phi.stNum() : th.stNum();
+      int bx = hasPhi ? phi.bxNum() : th.bxNum();
+
+      int slot = slotCounters[std::make_tuple(wh, sc, st, bx)]++;
+
+      DTChamberId detid(wh, st, sc + 1);
+      if (!acceptDigi(detid, iProcessor, procTyp))
+        continue;
+      if (bx - config->dtBxShift() < bxFrom || bx - config->dtBxShift() > bxTo)
+        continue;
+
+      if (hasPhi)  //a theta without phi is only dumped, the OMTF algorithm uses the phi stubs
+        addDTpair(muonStubsInLayers, pair, iProcessor, procTyp);
+
+      std::ostringstream chamberName;
+      chamberName << "DT_Wh" << wh << "_St_" << st << "_Se_" << sc + 1;
+      auto& dtChamberTree = chamberTrees[chamberName.str()];
+      auto& dtP2PairDigi = dtChamberTree.add_child("dtP2PairDigi", boost::property_tree::ptree());
+      dtP2PairDigi.add("<xmlattr>.whNum", wh);
+      dtP2PairDigi.add("<xmlattr>.scNum", sc);
+      dtP2PairDigi.add("<xmlattr>.stNum", st);
+      dtP2PairDigi.add("<xmlattr>.bx", bx);
+      dtP2PairDigi.add("<xmlattr>.slot", slot);
+      dtP2PairDigi.add("<xmlattr>.pairQuality", pair.quality());
+      dtP2PairDigi.add("<xmlattr>.hasPhi", hasPhi);
+      dtP2PairDigi.add("<xmlattr>.hasTheta", hasTheta);
+      if (hasPhi) {
+        dtP2PairDigi.add("<xmlattr>.slNum", phi.slNum());
+        dtP2PairDigi.add("<xmlattr>.quality", phi.quality());
+        dtP2PairDigi.add("<xmlattr>.rpcFlag", phi.rpcFlag());
+        dtP2PairDigi.add("<xmlattr>.phi", phi.phi());
+        dtP2PairDigi.add("<xmlattr>.phiBend", phi.phiBend());
+        dtP2PairDigi.add("<xmlattr>.t0", phi.t0());
+      }
+      if (hasTheta) {
+        dtP2PairDigi.add("<xmlattr>.thQuality", th.quality());
+        dtP2PairDigi.add("<xmlattr>.k", th.k());
+        dtP2PairDigi.add("<xmlattr>.z", th.z());
+        dtP2PairDigi.add("<xmlattr>.thT0", th.t0());
+      }
+    }
+
+    for (auto& chamberTree : chamberTrees) {
+      chamberTree.second.add("<xmlattr>.name", chamberTree.first);
+      procDataTree.add_child("dtChamber", chamberTree.second);
+    }
+    for (auto& obs : observers)
+      obs->addProcesorData("dtData", procDataTree);
+    return;
+  }
 
   for (const auto& digiIt : *dtPhDigis->getContainer()) {
     DTChamberId detid(digiIt.whNum(), digiIt.stNum(), digiIt.scNum() + 1);
@@ -101,6 +172,27 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
                                                     unsigned int iProcessor,
                                                     l1t::tftype procTyp) {
   DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum() + 1);
+  //no config->dtBxShift() here, and also no shift inside getGlobalEtaPhase2
+  int etaHw = angleConverter->getGlobalEtaPhase2(detid, dtThDigis, digi.bxNum());
+  addPhiStub(muonStubsInLayers, digi, etaHw, iProcessor, procTyp);
+}
+
+void DtPhase2DigiToStubsConverterOmtf::addDTpair(MuonStubPtrs2D& muonStubsInLayers,
+                                                 const L1Phase2MuDTExtPhiThetaPair& pair,
+                                                 unsigned int iProcessor,
+                                                 l1t::tftype procTyp) {
+  const auto& digi = pair.phiDigi();
+  DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum() + 1);
+  int etaHw = angleConverter->getEtaFromThetaDigi(detid, pair.thetaDigi(), dtPairEtaWindowCheck);
+  addPhiStub(muonStubsInLayers, digi, etaHw, iProcessor, procTyp);
+}
+
+void DtPhase2DigiToStubsConverterOmtf::addPhiStub(MuonStubPtrs2D& muonStubsInLayers,
+                                                  const L1Phase2MuDTPhDigi& digi,
+                                                  int etaHw,
+                                                  unsigned int iProcessor,
+                                                  l1t::tftype procTyp) {
+  DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum() + 1);
 
   MuonStub stub;
 
@@ -136,8 +228,7 @@ void DtPhase2DigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInL
   stub.phiHw = angleConverter->getProcessorPhi(
       OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, digi.scNum(), digi.phi());
 
-  //no config->dtBxShift() here, and also no shift inside getGlobalEtaPhase2
-  stub.etaHw = angleConverter->getGlobalEtaPhase2(detid, dtThDigis, digi.bxNum());
+  stub.etaHw = etaHw;
 
   if (iLayer == 0)
     stub.r = 431;  //round(431.175);  //MB1
@@ -203,10 +294,20 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
     //if the Phase2DTPrimitives are used, then the phase1 DT primitives should be dropped
     edm::LogImportant("OMTFReconstruction") << " using Phase2 DT trigger primitives" << std::endl;
 
+    //dtPairPolicy: use the phi-theta pairs (DTTrigPhase2PairsProd) instead of separate phi and theta digis
+    bool dtPairPolicy = edmParameterSet.exists("dtPairPolicy") && edmParameterSet.getParameter<bool>("dtPairPolicy");
+    bool dtPairEtaWindowCheck =
+        !edmParameterSet.exists("dtPairEtaWindowCheck") || edmParameterSet.getParameter<bool>("dtPairEtaWindowCheck");
+    if (dtPairPolicy)
+      edm::LogImportant("OMTFReconstruction") << " dtPairPolicy: DT stubs and eta from phi-theta pairs" << std::endl;
+
     digiToStubsConverters.emplace_back(std::make_unique<DtPhase2DigiToStubsConverterOmtf>(
         config,
         dynamic_cast<OmtfPhase2AngleConverter*>(this->angleConverter.get()),
         muStubsPhase2InputTokens.inputTokenDtPh,
-        muStubsPhase2InputTokens.inputTokenDtTh));
+        muStubsPhase2InputTokens.inputTokenDtTh,
+        muStubsPhase2InputTokens.inputTokenDtPairs,
+        dtPairPolicy,
+        dtPairEtaWindowCheck));
   }
 }

@@ -84,3 +84,32 @@ int OmtfPhase2AngleConverter::getGlobalEtaPhase2(const DTChamberId& dtChamberId,
   }
   return 0;  //should not be reached
 }
+
+int OmtfPhase2AngleConverter::getMidChamberEta(const DTChamberId& dtChamberId) const {
+  if (dtChamberId.station() == 1)
+    return config->mb1W2Eta();
+  else if (dtChamberId.station() == 2)
+    return config->mb2W2Eta();
+  else if (dtChamberId.station() == 3)
+    return config->mb3W2Eta();
+  return 0;
+}
+
+int OmtfPhase2AngleConverter::getEtaFromThetaDigi(const DTChamberId& dtChamberId,
+                                                  const L1Phase2MuDTThDigi& thetaDigi,
+                                                  bool windowCheck) const {
+  constexpr int emptyDigiBx = -100;  //bxNum() of a default-constructed digi, i.e. phi stub without theta
+  if (thetaDigi.bxNum() == emptyDigiBx)
+    return getMidChamberEta(dtChamberId);
+
+  const float kconv = 1 / (65536 / 2.);
+  float k = thetaDigi.k() * kconv;
+  float eta = -1. * std::copysign(log(fabs(tan(atan(1 / k) / 2.))), thetaDigi.z());
+
+  if (windowCheck && ((dtChamberId.station() == 1 && (std::abs(eta) < 0.85 || std::abs(eta) > 1.20)) ||
+                      (dtChamberId.station() == 2 && (std::abs(eta) < 0.75 || std::abs(eta) > 1.04)) ||
+                      (dtChamberId.station() == 3 && (std::abs(eta) < 0.63 || std::abs(eta) > 0.92))))
+    return getMidChamberEta(dtChamberId);
+
+  return std::abs(config->etaToHwEta(eta));
+}

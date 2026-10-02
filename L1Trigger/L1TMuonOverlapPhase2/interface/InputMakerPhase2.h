@@ -11,6 +11,7 @@
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1Phase2MuDTPhContainer.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1Phase2MuDTThContainer.h"
+#include "DataFormats/L1DTTrackFinder/interface/L1Phase2MuDTExtPhiThetaPairContainer.h"
 #include "DataFormats/MuonDetId/interface/DTChamberId.h"
 #include "FWCore/Utilities/interface/EDGetToken.h"
 
@@ -23,14 +24,22 @@
 struct MuStubsPhase2InputTokens {
   edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDtPh;
   edm::EDGetTokenT<L1Phase2MuDTThContainer> inputTokenDtTh;
+  //only valid when dtPairPolicy is true
+  edm::EDGetTokenT<L1Phase2MuDTExtPhiThetaPairContainer> inputTokenDtPairs;
 };
 
 class DtPhase2DigiToStubsConverter : public DigiToStubsConverterBase {
 public:
   DtPhase2DigiToStubsConverter(const OMTFConfiguration* config,
                                edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDtPh,
-                               edm::EDGetTokenT<L1Phase2MuDTThContainer> inputTokenDtTh)
-      : config(config), inputTokenDtPh(inputTokenDtPh), inputTokenDtTh(inputTokenDtTh) {}
+                               edm::EDGetTokenT<L1Phase2MuDTThContainer> inputTokenDtTh,
+                               edm::EDGetTokenT<L1Phase2MuDTExtPhiThetaPairContainer> inputTokenDtPairs = {},
+                               bool dtPairPolicy = false)
+      : config(config),
+        dtPairPolicy(dtPairPolicy),
+        inputTokenDtPh(inputTokenDtPh),
+        inputTokenDtTh(inputTokenDtTh),
+        inputTokenDtPairs(inputTokenDtPairs) {}
 
   ~DtPhase2DigiToStubsConverter() override {}
 
@@ -56,6 +65,12 @@ public:
                              unsigned int iProcessor,
                              l1t::tftype procTyp) = 0;
 
+  //dtPairPolicy mode: one phi-theta pair per slot; the eta comes from the pair's own theta
+  virtual void addDTpair(MuonStubPtrs2D& muonStubsInLayers,
+                         const L1Phase2MuDTExtPhiThetaPair& pair,
+                         unsigned int iProcessor,
+                         l1t::tftype procTyp) {}
+
   virtual bool acceptDigi(const DTChamberId& dTChamberId, unsigned int iProcessor, l1t::tftype procType) {
     return true;
   }
@@ -63,12 +78,15 @@ public:
 protected:
   const OMTFConfiguration* config = nullptr;
   bool mergePhiAndTheta = true;
+  bool dtPairPolicy = false;
 
   edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDtPh;
   edm::EDGetTokenT<L1Phase2MuDTThContainer> inputTokenDtTh;
+  edm::EDGetTokenT<L1Phase2MuDTExtPhiThetaPairContainer> inputTokenDtPairs;
 
   edm::Handle<L1Phase2MuDTPhContainer> dtPhDigis;
   edm::Handle<L1Phase2MuDTThContainer> dtThDigis;
+  edm::Handle<L1Phase2MuDTExtPhiThetaPairContainer> dtPairs;
 
   int bunchCrossing = 0;
 };
@@ -78,8 +96,13 @@ public:
   DtPhase2DigiToStubsConverterOmtf(const OMTFConfiguration* config,
                                    const OmtfPhase2AngleConverter* angleConverter,
                                    edm::EDGetTokenT<L1Phase2MuDTPhContainer> inputTokenDtPh,
-                                   edm::EDGetTokenT<L1Phase2MuDTThContainer> inputTokenDtTh)
-      : DtPhase2DigiToStubsConverter(config, inputTokenDtPh, inputTokenDtTh), angleConverter(angleConverter) {}
+                                   edm::EDGetTokenT<L1Phase2MuDTThContainer> inputTokenDtTh,
+                                   edm::EDGetTokenT<L1Phase2MuDTExtPhiThetaPairContainer> inputTokenDtPairs = {},
+                                   bool dtPairPolicy = false,
+                                   bool dtPairEtaWindowCheck = true)
+      : DtPhase2DigiToStubsConverter(config, inputTokenDtPh, inputTokenDtTh, inputTokenDtPairs, dtPairPolicy),
+        angleConverter(angleConverter),
+        dtPairEtaWindowCheck(dtPairEtaWindowCheck) {}
 
   ~DtPhase2DigiToStubsConverterOmtf() override = default;
 
@@ -95,10 +118,23 @@ public:
                      unsigned int iProcessor,
                      l1t::tftype procTyp) override;
 
+  void addDTpair(MuonStubPtrs2D& muonStubsInLayers,
+                 const L1Phase2MuDTExtPhiThetaPair& pair,
+                 unsigned int iProcessor,
+                 l1t::tftype procTyp) override;
+
   bool acceptDigi(const DTChamberId& dTChamberId, unsigned int iProcessor, l1t::tftype procType) override;
 
 private:
+  //common part of addDTphiDigi and addDTpair
+  void addPhiStub(MuonStubPtrs2D& muonStubsInLayers,
+                  const L1Phase2MuDTPhDigi& digi,
+                  int etaHw,
+                  unsigned int iProcessor,
+                  l1t::tftype procTyp);
+
   const OmtfPhase2AngleConverter* angleConverter;
+  bool dtPairEtaWindowCheck = true;
 };
 
 class InputMakerPhase2 : public OMTFinputMaker {
