@@ -99,10 +99,12 @@ public:
                                    edm::EDGetTokenT<L1Phase2MuDTThContainer> inputTokenDtTh,
                                    edm::EDGetTokenT<L1Phase2MuDTExtPhiThetaPairContainer> inputTokenDtPairs = {},
                                    bool dtPairPolicy = false,
-                                   bool dtPairEtaWindowCheck = true)
+                                   bool dtPairEtaWindowCheck = true,
+                                   bool dtPairFixedEta = false)
       : DtPhase2DigiToStubsConverter(config, inputTokenDtPh, inputTokenDtTh, inputTokenDtPairs, dtPairPolicy),
         angleConverter(angleConverter),
-        dtPairEtaWindowCheck(dtPairEtaWindowCheck) {}
+        dtPairEtaWindowCheck(dtPairEtaWindowCheck),
+        dtPairFixedEta(dtPairFixedEta) {}
 
   ~DtPhase2DigiToStubsConverterOmtf() override = default;
 
@@ -135,6 +137,7 @@ private:
 
   const OmtfPhase2AngleConverter* angleConverter;
   bool dtPairEtaWindowCheck = true;
+  bool dtPairFixedEta = false;
 };
 
 class InputMakerPhase2 : public OMTFinputMaker {

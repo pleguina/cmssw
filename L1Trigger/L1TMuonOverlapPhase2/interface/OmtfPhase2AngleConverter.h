@@ -20,7 +20,12 @@ public:
   /// Eta (OMTF hw units) taken from the single theta digi paired with a phi stub (dtPairPolicy mode).
   /// An empty theta (bxNum() == -100) or, if windowCheck is true, an eta outside the station window
   /// gives the mid-chamber eta.
-  int getEtaFromThetaDigi(const DTChamberId& dtChamberId, const L1Phase2MuDTThDigi& thetaDigi, bool windowCheck) const;
+  /// If fixedEta is true the fixed firmware mid-chamber values (92/79/75) are returned, as in
+  /// dtFixedPointEtaForFirmware mode, whatever the theta digi.
+  int getEtaFromThetaDigi(const DTChamberId& dtChamberId,
+                          const L1Phase2MuDTThDigi& thetaDigi,
+                          bool windowCheck,
+                          bool fixedEta = false) const;
 
   int getMidChamberEta(const DTChamberId& dtChamberId) const;
 

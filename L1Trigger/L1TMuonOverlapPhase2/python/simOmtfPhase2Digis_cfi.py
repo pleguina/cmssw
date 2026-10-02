@@ -15,6 +15,9 @@ simOmtfPhase2Digis = cms.EDProducer("L1TMuonOverlapPhase2TrackProducer",
   #from its own paired theta. Default False = the standard phi + theta digis.
   dtPairPolicy = cms.bool(False),
   srcDTPairsPhase2 = cms.InputTag('dtTriggerPhase2PrimitivePairDigis'),
+  #with dtPairPolicy: if True every stub gets the fixed firmware eta (92/79/75), as dtFixedPointEtaForFirmware does
+  #for the standard path - lets the pair interface be compared 1:1 with the standard one
+  dtPairFixedEta = cms.bool(False),
   dtPairEtaWindowCheck = cms.bool(True), #outside of the MB1-3 eta windows use the mid-chamber eta, as the standard path
 
   ##  XML / PATTERNS file:

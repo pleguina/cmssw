@@ -183,7 +183,7 @@ void DtPhase2DigiToStubsConverterOmtf::addDTpair(MuonStubPtrs2D& muonStubsInLaye
                                                  l1t::tftype procTyp) {
   const auto& digi = pair.phiDigi();
   DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum() + 1);
-  int etaHw = angleConverter->getEtaFromThetaDigi(detid, pair.thetaDigi(), dtPairEtaWindowCheck);
+  int etaHw = angleConverter->getEtaFromThetaDigi(detid, pair.thetaDigi(), dtPairEtaWindowCheck, dtPairFixedEta);
   addPhiStub(muonStubsInLayers, digi, etaHw, iProcessor, procTyp);
 }
 
@@ -298,6 +298,7 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
     bool dtPairPolicy = edmParameterSet.exists("dtPairPolicy") && edmParameterSet.getParameter<bool>("dtPairPolicy");
     bool dtPairEtaWindowCheck =
         !edmParameterSet.exists("dtPairEtaWindowCheck") || edmParameterSet.getParameter<bool>("dtPairEtaWindowCheck");
+    bool dtPairFixedEta = edmParameterSet.exists("dtPairFixedEta") && edmParameterSet.getParameter<bool>("dtPairFixedEta");
     if (dtPairPolicy)
       edm::LogImportant("OMTFReconstruction") << " dtPairPolicy: DT stubs and eta from phi-theta pairs" << std::endl;
 
@@ -308,6 +309,7 @@ InputMakerPhase2::InputMakerPhase2(const edm::ParameterSet& edmParameterSet,
         muStubsPhase2InputTokens.inputTokenDtTh,
         muStubsPhase2InputTokens.inputTokenDtPairs,
         dtPairPolicy,
-        dtPairEtaWindowCheck));
+        dtPairEtaWindowCheck,
+        dtPairFixedEta));
   }
 }

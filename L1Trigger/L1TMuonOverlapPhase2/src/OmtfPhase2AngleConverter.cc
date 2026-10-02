@@ -97,7 +97,20 @@ int OmtfPhase2AngleConverter::getMidChamberEta(const DTChamberId& dtChamberId) c
 
 int OmtfPhase2AngleConverter::getEtaFromThetaDigi(const DTChamberId& dtChamberId,
                                                   const L1Phase2MuDTThDigi& thetaDigi,
-                                                  bool windowCheck) const {
+                                                  bool windowCheck,
+                                                  bool fixedEta) const {
+  if (fixedEta) {
+    switch (dtChamberId.station()) {
+      case 1:
+        return 92;
+      case 2:
+        return 79;
+      case 3:
+        return 75;
+      default:
+        return 95;
+    }
+  }
   constexpr int emptyDigiBx = -100;  //bxNum() of a default-constructed digi, i.e. phi stub without theta
   if (thetaDigi.bxNum() == emptyDigiBx)
     return getMidChamberEta(dtChamberId);
