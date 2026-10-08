@@ -175,12 +175,12 @@ public:
     // See ROOT_BRANCHES.md section 16.2b for the confirmed overflow measurement.
     std::vector<int32_t> vPhi, vChi2;
     std::vector<int16_t> vPhiBend, vQuality, vIdx, vT0, vRpcFlag;
-    std::vector<uint8_t> vHasRpc, vIsHighQuality, vIsLate;
+    std::vector<uint8_t> vHasRpc, vIsHighQuality, vT0Valid;
     vBx.reserve(n); vWheel.reserve(n); vSector.reserve(n);
     vStation.reserve(n); vSL.reserve(n);
     vPhi.reserve(n); vPhiBend.reserve(n); vQuality.reserve(n);
     vIdx.reserve(n); vT0.reserve(n); vChi2.reserve(n); vRpcFlag.reserve(n);
-    vHasRpc.reserve(n); vIsHighQuality.reserve(n); vIsLate.reserve(n);
+    vHasRpc.reserve(n); vIsHighQuality.reserve(n); vT0Valid.reserve(n);
 
     if (digis) {
       for (const auto& d : *digis) {
@@ -198,7 +198,7 @@ public:
         vRpcFlag.push_back(d.rpcFlag());
         vHasRpc.push_back(d.rpcFlag() != 0);
         vIsHighQuality.push_back(d.quality() >= 4);
-        vIsLate.push_back(std::abs(static_cast<int>(d.t0())) > 0);
+        vT0Valid.push_back(std::abs(static_cast<int>(d.t0())) > 0);
       }
     }
 
@@ -218,7 +218,7 @@ public:
     table->addColumn<int16_t>("rpcFlag",  vRpcFlag,  "RPC confirmation flag");
     table->addColumn<uint8_t>("hasRpc",   vHasRpc,   "1 when phase-2 DT segment carries RPC confirmation");
     table->addColumn<uint8_t>("isHighQuality", vIsHighQuality, "1 when DT segment quality >= 4");
-    table->addColumn<uint8_t>("isLate",   vIsLate,   "1 when t0 is non-zero (timing-displaced signature)");
+    table->addColumn<uint8_t>("t0Valid",  vT0Valid,  "1 if a DT timing (t0) measurement is available for this hit (t0 != 0); does NOT imply the hit is late/displaced, only that a t0 was assigned");
     ev.put(std::move(table));
   }
 
@@ -259,11 +259,11 @@ public:
     std::vector<int16_t> vBx, vWheel, vSector, vStation;
     std::vector<int16_t> vZ, vK, vQuality, vIdx, vRpcFlag;
     std::vector<int32_t> vT0, vChi2;
-    std::vector<uint8_t> vHasRpc, vIsHighQuality, vIsLate;
+    std::vector<uint8_t> vHasRpc, vIsHighQuality, vT0Valid;
     vBx.reserve(n); vWheel.reserve(n); vSector.reserve(n); vStation.reserve(n);
     vZ.reserve(n); vK.reserve(n); vQuality.reserve(n);
     vIdx.reserve(n); vT0.reserve(n); vChi2.reserve(n); vRpcFlag.reserve(n);
-    vHasRpc.reserve(n); vIsHighQuality.reserve(n); vIsLate.reserve(n);
+    vHasRpc.reserve(n); vIsHighQuality.reserve(n); vT0Valid.reserve(n);
 
     if (digis) {
       for (const auto& d : *digis) {
@@ -280,7 +280,7 @@ public:
         vRpcFlag.push_back(d.rpcFlag());
         vHasRpc.push_back(d.rpcFlag() != 0);
         vIsHighQuality.push_back(d.quality() >= 4);
-        vIsLate.push_back(std::abs(static_cast<int>(d.t0())) > 0);
+        vT0Valid.push_back(std::abs(static_cast<int>(d.t0())) > 0);
       }
     }
 
@@ -299,7 +299,7 @@ public:
     table->addColumn<int16_t>("rpcFlag",  vRpcFlag,  "RPC confirmation flag");
     table->addColumn<uint8_t>("hasRpc",   vHasRpc,   "1 when phase-2 DT theta segment carries RPC confirmation");
     table->addColumn<uint8_t>("isHighQuality", vIsHighQuality, "1 when DT theta segment quality >= 4");
-    table->addColumn<uint8_t>("isLate",   vIsLate,   "1 when theta t0 is non-zero (timing-displaced signature)");
+    table->addColumn<uint8_t>("t0Valid",  vT0Valid,  "1 if a DT theta timing (t0) measurement is available for this hit (t0 != 0); does NOT imply the hit is late/displaced, only that a t0 was assigned");
     ev.put(std::move(table));
   }
 

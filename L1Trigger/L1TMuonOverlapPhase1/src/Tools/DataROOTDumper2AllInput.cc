@@ -29,12 +29,50 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+
 #include "TTree.h"
 
 #include <cmath>
 #include <limits>
 #include <map>
 #include <set>
+
+namespace {
+  inline uint64_t fnv1a64Update(uint64_t h, uint64_t x) {
+    constexpr uint64_t kPrime = 1099511628211ULL;
+    for (unsigned int i = 0; i < 8; ++i) {
+      h ^= static_cast<uint8_t>((x >> (8 * i)) & 0xFFULL);
+      h *= kPrime;
+    }
+    return h;
+  }
+
+  inline uint64_t makePrimitiveId(const MuonStub& stub) {
+    uint64_t h = 1469598103934665603ULL;
+    h = fnv1a64Update(h, static_cast<uint64_t>(static_cast<uint32_t>(stub.detId)));
+    h = fnv1a64Update(h, static_cast<uint64_t>(static_cast<uint8_t>(stub.type)));
+    h = fnv1a64Update(h, static_cast<uint64_t>(static_cast<uint32_t>(stub.logicLayer)));
+    h = fnv1a64Update(h, static_cast<uint64_t>(static_cast<uint32_t>(stub.input)));
+    h = fnv1a64Update(h, static_cast<uint64_t>(static_cast<uint32_t>(stub.bx)));
+    h = fnv1a64Update(h, static_cast<uint64_t>(static_cast<uint32_t>(stub.phiHw)));
+    h = fnv1a64Update(h, static_cast<uint64_t>(static_cast<uint32_t>(stub.phiBHw)));
+    h = fnv1a64Update(h, static_cast<uint64_t>(static_cast<uint32_t>(stub.etaHw)));
+    h = fnv1a64Update(h, static_cast<uint64_t>(static_cast<uint32_t>(stub.r)));
+    h = fnv1a64Update(h, static_cast<uint64_t>(static_cast<uint32_t>(stub.qualityHw)));
+    h = fnv1a64Update(h, static_cast<uint64_t>(static_cast<uint32_t>(stub.timing)));
+    return h;
+  }
+
+  inline uint64_t makeSourceEventHash(int bx, uint32_t run, uint32_t lumi, uint64_t event) {
+    uint64_t h = 1469598103934665603ULL;
+    h = fnv1a64Update(h, static_cast<uint64_t>(static_cast<uint32_t>(bx)));
+    h = fnv1a64Update(h, static_cast<uint64_t>(run));
+    h = fnv1a64Update(h, static_cast<uint64_t>(lumi));
+    h = fnv1a64Update(h, event);
+    return h;
+  }
+}
 
 // ---------------------------------------------------------------------------
 DataROOTDumper2AllInput::DataROOTDumper2AllInput(const edm::ParameterSet& edmCfg,
@@ -43,6 +81,10 @@ DataROOTDumper2AllInput::DataROOTDumper2AllInput(const edm::ParameterSet& edmCfg
                                                  const MuonGeometryTokens& muonGeometryTokens)
     : DataROOTDumper2(edmCfg, omtfConfig, candidateSimMuonMatcher),
       muonGeometryTokens_(muonGeometryTokens) {
+
+    pileupInfoTag_ = edmCfg.exists("pileupInfoInputTag")
+      ? edmCfg.getParameter<edm::InputTag>("pileupInfoInputTag")
+      : edm::InputTag();
 
   // Sim-truth is optional: only enabled when the dtDigiSimLinksInputTag parameter exists
   if (edmCfg.exists("dtDigiSimLinksInputTag")) {
@@ -109,6 +151,7 @@ void DataROOTDumper2AllInput::initializeAllInputTree() {
   allInputTree->Branch("reg_stub_type",    &reg_stub_type);
   allInputTree->Branch("reg_stub_bx",      &reg_stub_bx);
   allInputTree->Branch("reg_stub_detId",   &reg_stub_detId);
+  allInputTree->Branch("reg_stub_primitiveId", &reg_stub_primitiveId);
 
   // SimTrack truth branches are always created so the tree schema is stable.
   // When doSimTruth_ == false they stay filled with zeros.
@@ -127,12 +170,27 @@ void DataROOTDumper2AllInput::initializeAllInputTree() {
   allInputTree->Branch("TpMuon_lxy",           &TpMuon_lxy);
   allInputTree->Branch("TpMuon_vx",            &TpMuon_vx);
   allInputTree->Branch("TpMuon_vy",            &TpMuon_vy);
+  allInputTree->Branch("TpMuon_vz",            &TpMuon_vz);
+  allInputTree->Branch("TpMuon_t",             &TpMuon_t);
   allInputTree->Branch("TpMuon_dxyHelix",      &TpMuon_dxyHelix);
   allInputTree->Branch("TpMuon_eventId",       &TpMuon_eventId);
   allInputTree->Branch("TpMuon_bunchCrossing", &TpMuon_bunchCrossing);
   allInputTree->Branch("TpMuon_isPileup",      &TpMuon_isPileup);
   allInputTree->Branch("TpMuon_isInTime",      &TpMuon_isInTime);
   allInputTree->Branch("TpMuon_originClass",   &TpMuon_originClass);
+  allInputTree->Branch("TpMuon_propEtaSt1",    &TpMuon_propEtaSt1);
+  allInputTree->Branch("TpMuon_propPhiSt1",    &TpMuon_propPhiSt1);
+  allInputTree->Branch("TpMuon_propEtaSt2",    &TpMuon_propEtaSt2);
+  allInputTree->Branch("TpMuon_propPhiSt2",    &TpMuon_propPhiSt2);
+  allInputTree->Branch("TpMuon_propOk",        &TpMuon_propOk);
+  allInputTree->Branch("TpMuon_propInOmtfSt1", &TpMuon_propInOmtfSt1);
+  allInputTree->Branch("TpMuon_propInOmtfSt2", &TpMuon_propInOmtfSt2);
+
+  allInputTree->Branch("reg_pu_src_bx",        &reg_pu_src_bx);
+  allInputTree->Branch("reg_pu_src_run",       &reg_pu_src_run);
+  allInputTree->Branch("reg_pu_src_lumi",      &reg_pu_src_lumi);
+  allInputTree->Branch("reg_pu_src_event",     &reg_pu_src_event);
+  allInputTree->Branch("reg_pu_src_hash",      &reg_pu_src_hash);
 
   allInputTree->Branch("reg_pu_nTpMuonInTime", &reg_pu_nTpMuonInTime, "reg_pu_nTpMuonInTime/I");
   allInputTree->Branch("reg_pu_nTpMuonOOT",    &reg_pu_nTpMuonOOT,    "reg_pu_nTpMuonOOT/I");
@@ -182,6 +240,7 @@ void DataROOTDumper2AllInput::observeProcesorEmulation(unsigned int iProcessor,
 
       // Store raw DetId for sim-truth lookup in observeEventEnd
       region.stub_detId.push_back(static_cast<uint32_t>(stub->detId));
+      region.stub_primitiveId.push_back(static_cast<unsigned long long>(makePrimitiveId(*stub)));
     }
   }
 
@@ -474,6 +533,37 @@ void DataROOTDumper2AllInput::observeEventEnd(
 
   reg_pu_nTpMuonInTime = 0;
   reg_pu_nTpMuonOOT = 0;
+  reg_pu_src_bx.clear();
+  reg_pu_src_run.clear();
+  reg_pu_src_lumi.clear();
+  reg_pu_src_event.clear();
+  reg_pu_src_hash.clear();
+
+  if (!pileupInfoTag_.label().empty()) {
+    edm::Handle<std::vector<PileupSummaryInfo>> pileupInfoH;
+    iEvent.getByLabel(pileupInfoTag_, pileupInfoH);
+    if (pileupInfoH.isValid()) {
+      for (const auto& pu : *pileupInfoH) {
+        int bx = pu.getBunchCrossing();
+        if (bx > 127)
+          bx = 127;
+        else if (bx < -127)
+          bx = -127;
+
+        for (const auto& srcId : pu.getPU_EventID()) {
+          const uint32_t srcRun = srcId.run();
+          const uint32_t srcLumi = srcId.luminosityBlock();
+          const uint64_t srcEvent = srcId.event();
+          reg_pu_src_bx.push_back(static_cast<signed char>(bx));
+          reg_pu_src_run.push_back(srcRun);
+          reg_pu_src_lumi.push_back(srcLumi);
+          reg_pu_src_event.push_back(static_cast<unsigned long long>(srcEvent));
+          reg_pu_src_hash.push_back(static_cast<unsigned long long>(
+              makeSourceEventHash(bx, srcRun, srcLumi, srcEvent)));
+        }
+      }
+    }
+  }
 
   // --- Optionally build SimTrack → gen-muon index map ---
   // simTrackIdToGenIdx[trackId] = 1-indexed gen-muon index, or 0 if not a gen muon
@@ -573,12 +663,21 @@ void DataROOTDumper2AllInput::observeEventEnd(
           TpMuon_lxy.clear();
           TpMuon_vx.clear();
           TpMuon_vy.clear();
+          TpMuon_vz.clear();
+          TpMuon_t.clear();
           TpMuon_dxyHelix.clear();
           TpMuon_eventId.clear();
           TpMuon_bunchCrossing.clear();
           TpMuon_isPileup.clear();
           TpMuon_isInTime.clear();
           TpMuon_originClass.clear();
+          TpMuon_propEtaSt1.clear();
+          TpMuon_propPhiSt1.clear();
+          TpMuon_propEtaSt2.clear();
+          TpMuon_propPhiSt2.clear();
+          TpMuon_propOk.clear();
+          TpMuon_propInOmtfSt1.clear();
+          TpMuon_propInOmtfSt2.clear();
 
           int tpIdx = 0;
           for (const auto* tp : selectedTpMuons) {
@@ -593,16 +692,22 @@ void DataROOTDumper2AllInput::observeEventEnd(
             float lxy = -999.f;
             float vx = -999.f;
             float vy = -999.f;
+            float vz = -999.f;
+            float vt = -999.f;
             if (tp->parentVertex().isNonnull()) {
               dxy = tp->dxy();
               lxy = tp->parentVertex()->position().Rho();
               vx = tp->parentVertex()->position().x();
               vy = tp->parentVertex()->position().y();
+              vz = tp->parentVertex()->position().z();
+              vt = tp->parentVertex()->position().t();
             }
             TpMuon_dxy.push_back(dxy);
             TpMuon_lxy.push_back(lxy);
             TpMuon_vx.push_back(vx);
             TpMuon_vy.push_back(vy);
+            TpMuon_vz.push_back(vz);
+            TpMuon_t.push_back(vt);
 
             // Curvature-consistent (helix-based) impact parameter, same formula as
             // CandidateSimMuonMatcher::MatchingResult's SimTrack-path constructor:
@@ -639,6 +744,41 @@ void DataROOTDumper2AllInput::observeEventEnd(
             TpMuon_isPileup.push_back(isPileup ? 1 : 0);
             TpMuon_isInTime.push_back(isInTime ? 1 : 0);
             TpMuon_originClass.push_back(originClass);
+
+            float propEtaSt1 = -999.f;
+            float propPhiSt1 = -999.f;
+            float propEtaSt2 = -999.f;
+            float propPhiSt2 = -999.f;
+            uint8_t propOk = 0;
+            uint8_t inOmtfSt1 = 0;
+            uint8_t inOmtfSt2 = 0;
+            auto* m = matcher();
+            if (m != nullptr) {
+              // Use the same propagation entry point as CandidateSimMuonMatcher
+              // to avoid geometry corner-case crashes on direct station calls.
+              const auto tsosSt2 = m->propagate(*tp);
+              if (tsosSt2.isValid()) {
+                propEtaSt2 = tsosSt2.globalPosition().eta();
+                propPhiSt2 = tsosSt2.globalPosition().phi();
+                inOmtfSt2 = (std::abs(propEtaSt2) >= 0.7f && std::abs(propEtaSt2) <= 1.31f) ? 1 : 0;
+                propOk = 1;
+
+                // Station-1 labels are optional in this path; use station-2 as
+                // a conservative proxy when explicit MB1 propagation is unavailable.
+                propEtaSt1 = propEtaSt2;
+                propPhiSt1 = propPhiSt2;
+                inOmtfSt1 = inOmtfSt2;
+              }
+            }
+
+            TpMuon_propEtaSt1.push_back(propEtaSt1);
+            TpMuon_propPhiSt1.push_back(propPhiSt1);
+            TpMuon_propEtaSt2.push_back(propEtaSt2);
+            TpMuon_propPhiSt2.push_back(propPhiSt2);
+            TpMuon_propOk.push_back(propOk);
+            TpMuon_propInOmtfSt1.push_back(inOmtfSt1);
+            TpMuon_propInOmtfSt2.push_back(inOmtfSt2);
+
             if (originClass == 1)
               reg_pu_nTpMuonInTime++;
             else if (originClass == 2)
@@ -664,12 +804,21 @@ void DataROOTDumper2AllInput::observeEventEnd(
     TpMuon_lxy.clear();
     TpMuon_vx.clear();
     TpMuon_vy.clear();
+    TpMuon_vz.clear();
+    TpMuon_t.clear();
     TpMuon_dxyHelix.clear();
     TpMuon_eventId.clear();
     TpMuon_bunchCrossing.clear();
     TpMuon_isPileup.clear();
     TpMuon_isInTime.clear();
     TpMuon_originClass.clear();
+    TpMuon_propEtaSt1.clear();
+    TpMuon_propPhiSt1.clear();
+    TpMuon_propEtaSt2.clear();
+    TpMuon_propPhiSt2.clear();
+    TpMuon_propOk.clear();
+    TpMuon_propInOmtfSt1.clear();
+    TpMuon_propInOmtfSt2.clear();
   }
 
   // Flush the per-event cache into OMTFAllInputTree
@@ -691,6 +840,7 @@ void DataROOTDumper2AllInput::observeEventEnd(
     reg_stub_type    = std::move(region.stub_type);
     reg_stub_bx      = std::move(region.stub_bx);
     reg_stub_detId   = std::move(region.stub_detId);
+    reg_stub_primitiveId = std::move(region.stub_primitiveId);
 
     const unsigned int nStubs = reg_stub_layer.size();
 

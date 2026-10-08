@@ -122,6 +122,9 @@ public:
 
   void endJob() override;
 
+protected:
+  CandidateSimMuonMatcher* matcher() const { return candidateSimMuonMatcher; }
+
 private:
   void initializeTTree();
 

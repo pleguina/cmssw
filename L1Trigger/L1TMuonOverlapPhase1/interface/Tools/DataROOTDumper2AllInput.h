@@ -136,6 +136,7 @@ private:
   std::vector<signed char> reg_stub_type;     // MuonStub::Type cast to int8
   std::vector<signed char> reg_stub_bx;       // BX offset (clamped to [-127, 127])
   std::vector<uint32_t>    reg_stub_detId;    // stable source chamber/raw detId per stub
+  std::vector<unsigned long long> reg_stub_primitiveId; // stable synthetic per-primitive ID
   // SimTrack truth (only filled when doSimTruth_ == true)
   std::vector<signed char> reg_stub_trackId;   // 0 = noise, 1..K = gen-muon idx
   std::vector<short>       reg_stub_tpId;      // 0 = no selected TP muon, 1..M = TpMuon idx
@@ -158,6 +159,8 @@ private:
   // See DATASETS_INFO.txt "KNOWN CAVEAT: TpMuon_dxy is NOT the gun's true d0".
   std::vector<float>       TpMuon_vx;
   std::vector<float>       TpMuon_vy;
+  std::vector<float>       TpMuon_vz;
+  std::vector<float>       TpMuon_t;
   // Curvature-consistent (helix-based) impact parameter, computed the same way
   // as CandidateSimMuonMatcher::MatchingResult's SimTrack-path constructor
   // (rg from qinvpt/B, then d0 = rg + q*|center|), but applied to the
@@ -170,6 +173,21 @@ private:
   std::vector<uint8_t>     TpMuon_isPileup;
   std::vector<uint8_t>     TpMuon_isInTime;
   std::vector<signed char> TpMuon_originClass;  // 0=HS, 1=PU-in-time, 2=PU-out-of-time, 3=other
+  // Propagated TP direction labels at MB1 (station 1) and MB2 (station 2).
+  std::vector<float>       TpMuon_propEtaSt1;
+  std::vector<float>       TpMuon_propPhiSt1;
+  std::vector<float>       TpMuon_propEtaSt2;
+  std::vector<float>       TpMuon_propPhiSt2;
+  std::vector<uint8_t>     TpMuon_propOk;
+  std::vector<uint8_t>     TpMuon_propInOmtfSt1;
+  std::vector<uint8_t>     TpMuon_propInOmtfSt2;
+
+  // Pileup source-event provenance from addPileupInfo (if available).
+  std::vector<signed char>         reg_pu_src_bx;
+  std::vector<unsigned int>        reg_pu_src_run;
+  std::vector<unsigned int>        reg_pu_src_lumi;
+  std::vector<unsigned long long>  reg_pu_src_event;
+  std::vector<unsigned long long>  reg_pu_src_hash;
 
   int reg_pu_nTpMuonInTime = 0;
   int reg_pu_nTpMuonOOT = 0;
@@ -190,6 +208,7 @@ private:
     std::vector<signed char> stub_bx;
     // cached for sim-truth assignment in observeEventEnd
     std::vector<uint32_t>    stub_detId;
+    std::vector<unsigned long long> stub_primitiveId;
   };
 
   std::vector<CachedRegion> cachedRegions;  // up to ~12 entries per event
@@ -212,6 +231,7 @@ private:
   edm::InputTag simTrackTag_;
   edm::InputTag genParticleTag_;
   edm::InputTag trackingParticleTag_;
+  edm::InputTag pileupInfoTag_;
 };
 
 #endif /* L1T_OmtfP1_TOOLS_DATAROOTDUMPER2ALLINPUT_H_ */

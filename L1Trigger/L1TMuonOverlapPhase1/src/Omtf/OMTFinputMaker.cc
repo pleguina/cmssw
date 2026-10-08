@@ -1,6 +1,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFinputMaker.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/OmtfPrimitiveId.h"
 
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigi.h"
 #include "DataFormats/DetId/interface/DetId.h"
@@ -64,6 +65,10 @@ void DtDigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
   stub.logicLayer = iLayer;
   stub.detId = detid;
 
+  // Raw local phi count, pre-conversion (chamber frame): invariant regardless of
+  // which processor(s) consume this physical digi (see MuonStub::sourceIndex doc).
+  stub.sourceIndex = digi.phi();
+
   OMTFinputMaker::addStub(config, muonStubsInLayers, iLayer, iInput, stub);
 }
 
@@ -122,6 +127,10 @@ void CscDigiToStubsConverterOmtf::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers,
   //stub.etaType = ?? TODO
   stub.logicLayer = iLayer;
   stub.detId = rawid;
+
+  // Raw key-wiregroup + half-strip, pre-conversion: invariant regardless of
+  // which processor(s) consume this physical LCT (see MuonStub::sourceIndex doc).
+  stub.sourceIndex = (static_cast<int>(digi.getKeyWG()) << 16) ^ static_cast<int>(digi.getStrip());
 
   //TODO this cut is not yet implemented in the FW,
   //but it is worth to apply it at least for the pattern generation and NN training
@@ -223,6 +232,10 @@ void RpcDigiToStubsConverterOmtf::addRPCstub(MuonStubPtrs2D& muonStubsInLayers,
   //stub.etaType = ?? TODO
   stub.logicLayer = iLayer;
   stub.detId = rawid;
+
+  // Raw first/last strip of the cluster, pre-conversion: invariant regardless of
+  // which processor(s) consume this physical cluster (see MuonStub::sourceIndex doc).
+  stub.sourceIndex = (cluster.firstStrip << 16) ^ cluster.lastStrip;
 
   //This is very simple filtering of the clusters
   //Till Nov 2021: unfortunately performance of the firmware cannot be easily emulated from digi
@@ -659,5 +672,13 @@ void OMTFinputMaker::addStub(const OMTFConfiguration* config,
   //in this implementation only two first stubs are added for a given iInput
 
   stub.input = iInput;
+
+  // Compute the stable, processor-invariant primitiveId now that all its
+  // source-identity inputs (type/detId/bx/sourceIndex) are populated.
+  stub.primitiveId = omtf::makePrimitiveId(static_cast<signed char>(stub.type),
+                                           static_cast<uint32_t>(stub.detId),
+                                           stub.sourceIndex,
+                                           static_cast<signed char>(stub.bx));
+
   muonStubsInLayers.at(iLayer).at(iInput) = std::make_shared<MuonStub>(stub);
 }

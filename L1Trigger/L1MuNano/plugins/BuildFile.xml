@@ -8,4 +8,6 @@
 <use name="DataFormats/CSCDigi"/>
 <use name="DataFormats/RPCDigi"/>
 <use name="DataFormats/MuonDetId"/>
+<use name="SimDataFormats/TrackingAnalysis"/>
+<use name="hepmc"/>
 <flags EDM_PLUGIN="1"/>

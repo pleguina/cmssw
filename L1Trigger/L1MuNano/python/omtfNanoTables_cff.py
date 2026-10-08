@@ -154,6 +154,9 @@ genParticlePropagator = cms.EDProducer(
 genMuonProvenance = cms.EDProducer(
     "GenMuonProvenanceProducer",
     src = cms.InputTag("genParticles"),
+    # Enables GenMuon_tpMuonIdx (reciprocal of OMTFAllInputTree's TpMuon_genMuonIdx). Matches the
+    # TrackingParticle tag used by DataROOTDumper2AllInput.cc / CandidateSimMuonMatcher.
+    trackingParticles = cms.InputTag("mix", "MergedTrackTruth"),
 )
 
 # Attach propagated coordinates to the gen-muon table as external variables.
@@ -176,7 +179,12 @@ genMuonNanoTable.externalVariables = cms.PSet(
                               int, doc="lXY-consistent provenance: 0=prompt (lXY<promptLxyCm), "
                                        "1=decayInFlight (displaced, pi/K ancestor), "
                                        "2=otherDisplaced (displaced, non-pi/K ancestor, e.g. heavy flavor/LLP)"),
+    tpMuonIdx = ExtVar(cms.InputTag("genMuonProvenance", "tpMuonIdx"),
+                       int, doc="reciprocal index into the selected TpMuon table in OMTFAllInputTree "
+                                "(TpMuon_genMuonIdx is the inverse of this map); -1 if no matching "
+                                "selected TrackingParticle (|pdgId|==13, pt>1.5, |eta|<1.6)"),
 )
+
 
 # ---------------------------------------------------------------------------
 # GMT hybrid stub tables
