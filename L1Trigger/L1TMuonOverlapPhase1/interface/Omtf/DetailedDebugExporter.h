@@ -138,10 +138,6 @@ public:
 
     // Store restricted stubs for this refHit (will be added to XML later)
     restrictedStubsPerRefHit_[refHitKey.str()] = std::make_tuple(iRefLayer, restrictedStubs, extrapolatedPhis, refStub);
-    
-    std::cout << "DetailedDebugExporter: Stored restricted stubs for " << refHitKey.str() 
-              << " iRefLayer=" << iRefLayer 
-              << " nLayers=" << restrictedStubs.size() << std::endl;
   }
 
   // Capture process1Layer1RefLayer results
@@ -300,9 +296,6 @@ public:
         std::ostringstream key;
         key << getProcessorKey(iProcessor, mtfType) << "_refHit" << iRefHit;
         winnerPatterns_[key.str()] = winningPattern;
-
-        std::cout << "DetailedDebugExporter: Winner for " << key.str() 
-                  << " is pattern " << winningPattern << std::endl;
       }
     }
   }

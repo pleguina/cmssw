@@ -226,7 +226,6 @@ void OMTFReconstruction::addObservers(
     }
   }
 
-  // === ADD HLS DIGI EXPORTER ===
   if (edmParameterSet.exists("dumpDigisToCSV")) {
     if (edmParameterSet.getParameter<bool>("dumpDigisToCSV")) {
       std::string csvOutputDir = "hls_test_input_digis";
@@ -238,7 +237,6 @@ void OMTFReconstruction::addObservers(
     }
   }
 
-  // === ADD DETAILED DEBUG EXPORTER ===
   if (edmParameterSet.exists("dumpDetailedDebug")) {
     if (edmParameterSet.getParameter<bool>("dumpDetailedDebug")) {
       std::string debugOutputDir = "./";

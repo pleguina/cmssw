@@ -609,19 +609,13 @@ void HLSDigiExporter::exportSortedCandidateEntry(unsigned int iProcessor,
 }
 
 void HLSDigiExporter::exportStubs(const boost::property_tree::ptree& procDataTree) {
-  std::cout << "DEBUG: exportStubs called with " << procDataTree.size() << " entries" << std::endl;
-  
   try {
     for (const auto& child : procDataTree) {
-      std::cout << "DEBUG: Processing stub child: " << child.first << std::endl;
-      
       // Use the same logic as exportGoldenResults but for different stub types
       if (child.first == "CSCstub" || child.first == "RPCstub" || child.first == "DTstub") {
         const auto& stub = child.second;
         
         int etaHw = stub.get<int>("<xmlattr>.etaHw", 0);
-        std::cout << "DEBUG: Exporting " << child.first << " with etaHw=" << etaHw << std::endl;
-        
         stubsFile_ << currentEvent_ << ","
                    << currentRun_ << ","
                    << currentProcessor_ << ","

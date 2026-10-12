@@ -314,7 +314,6 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       if (digiBx >= bxFrom && digiBx <= bxTo) {
         addCSCstubs(muonStubsInLayers, rawid, *digi, iProcessor, procTyp);
 
-        // === ADD XML DATA COLLECTION FOR CSV EXPORT ===
         auto& cscDigi = cscDigisTree.add_child("cscDigi", boost::property_tree::ptree());
         // Detector ID fields
         cscDigi.add("<xmlattr>.detId", rawid);
@@ -359,7 +358,6 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
         cscDigi.add("<xmlattr>.clctPattern", digi->getCLCTPattern());
         cscDigi.add("<xmlattr>.stripType", digi->getStripType());
         cscDigi.add("<xmlattr>.bxData", digi->getBXData());
-        //cscDigi.add("<xmlattr>.type", digi->getType());
         
         // CSC angle conversion parameters
         CscConversionInfo convInfo = getCscConversionInfo(rawid, *digi, iProcessor, procTyp);
@@ -384,7 +382,6 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       }
     }
 
-    // === ADD GOLDEN STUB DATA (ONCE PER CHAMBER, OUTSIDE DIGI LOOP) ===
     // Check if CSC stubs were added to muonStubsInLayers for this chamber
     // NOTE: We need to search through all inputs for this layer, not just calculate one inputNumber
     // from rawid, because multiple digis from the same chamber can map to different inputNumbers
@@ -401,7 +398,6 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
                 
                 // Add golden stub data to separate XML tree
                 auto& cscStub = cscStubsTree.add_child("CSCstub", boost::property_tree::ptree());
-                //cscStub.add("<xmlattr>.type", static_cast<int>(stub->type));
                 cscStub.add("<xmlattr>.logicLayer", stub->logicLayer);
                 cscStub.add("<xmlattr>.inputNumber", iInput);
                 cscStub.add("<xmlattr>.inputBatch", getInputBatch(stub->logicLayer, iInput));
@@ -459,7 +455,6 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
         }
       }  // End chamber loop (for (; chamber != chend; ++chamber))
 
-  // === ADD DATA TO XMLIOCACHE ===
   // Add CSC digis to cache
   for (const auto& digiNode : cscDigisTree) {
     xmlCache.addDigi(iProcessor, "CSC", digiNode.second);
@@ -544,7 +539,6 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       if (pDigi->bx() >= bxFrom && pDigi->bx() <= bxTo) {
         digisCopy.push_back(*pDigi);
 
-        // === ADD XML DATA COLLECTION FOR CSV EXPORT ===
         auto& rpcDigi = rpcDigisTree.add_child("rpcDigi", boost::property_tree::ptree());
         // Detector ID fields
         rpcDigi.add("<xmlattr>.rpcID", roll.rawId());
@@ -605,7 +599,6 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
       addRPCstub(muonStubsInLayers, roll, cluster, iProcessor, procTyp);
     }
     
-    // === ADD GOLDEN STUB DATA FOR RPC (ONCE PER ROLL, OUTSIDE CLUSTER LOOP) ===
     // Check if RPC stubs were added to muonStubsInLayers for this roll
     // NOTE: We need to search through all inputs for this layer, not just calculate one inputNumber
     // from roll.rawId(), because multiple clusters from the same roll can map to different inputNumbers
@@ -760,7 +753,6 @@ void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     }
   }
 
-  // === ADD DATA TO XMLIOCACHE ===
   // Add RPC digis to cache
   if (dumpRPCDigis) {
     for (const auto& digiNode : rpcDigisTree) {

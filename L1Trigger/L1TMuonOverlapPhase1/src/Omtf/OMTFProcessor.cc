@@ -603,35 +603,6 @@ int OMTFProcessor<GoldenPatternType>::extrapolateDtPhiBFixedPoint(const int& ref
 
   int extrFactor = 0;
 
-  // ==========================================================================
-  // DEBUG: Print configuration ONCE
-  // ==========================================================================
-  static bool config_printed = false;
-  if (!config_printed) {
-    std::cout << "\n========================================================================\n";
-    std::cout << "  FIXED-POINT EXTRAPOLATION CONFIG (for HLS compatibility)\n";
-    std::cout << "========================================================================\n";
-    std::cout << "nProcessors    : " << omtfConfig->nProcessors() << "\n";
-    std::cout << "nLayers        : " << omtfConfig->nLayers() << "\n";
-    std::cout << "nPhiBins       : " << omtfConfig->nPhiBins() << " (GP_N_OF_PHI_BINS)\n";
-    std::cout << "omtfPhiUnit()  : " << std::setprecision(12) << omtfConfig->omtfPhiUnit() << "\n";
-    std::cout << "dtPhiBUnitsRad(): " << std::setprecision(12) << omtfConfig->dtPhiBUnitsRad() << "\n";
-
-    double omtfPhiUnit_val = omtfConfig->omtfPhiUnit();
-    double dtPhiBUnitsRad_val = omtfConfig->dtPhiBUnitsRad();
-    double scaleFactor_fp = omtfPhiUnit_val * dtPhiBUnitsRad_val * 512.0;
-    int scaleFactor_int = (int)scaleFactor_fp;
-
-    std::cout << "\nScaleFactor (for layers 1,3,5):\n";
-    std::cout << "  Floating-point: " << std::setprecision(12) << scaleFactor_fp << "\n";
-    std::cout << "  Integer (cast): " << scaleFactor_int << "\n";
-    std::cout << "  Expected Phase-1: ~305,  Phase-2: ~610\n";
-    std::cout << "extrapolMultiplier: " << extrapolMultiplier << "\n";
-    std::cout << "========================================================================\n\n";
-    config_printed = true;
-  }
-  // ==========================================================================
-
   if (targetLayer == 0 || targetLayer == 2 || targetLayer == 4) { //non-bending layers
     if (useStubQualInExtr)
       extrFactor = extrapolFactors[reflLayerIndex][targetLayer][targetStubQuality];
@@ -792,11 +763,8 @@ int calculateOutputSlot(unsigned int iProcessor,
   // For CSC/RPCe, use chamber_wrapped as the physical channel
   // This ensures bending layers (which share the same sector/chamber) get the same slot
   int physChannel = (sector_wrapped != -1) ? sector_wrapped : chamber_wrapped;
-  if (physChannel == -1) {
-    std::cout << "DEBUG outputSlot=-1: NO physChannel (both sector_wrapped and chamber_wrapped are -1) "
-              << "iProc=" << iProcessor << " iReg=" << iRegion << " iLay=" << iLayer << std::endl;
+  if (physChannel == -1)
     return -1;  // No valid physical channel
-  }
   
   // Calculate selected channels using Python algorithm
   unsigned int inputsPerSector = getInputsPerSector(iLayer);
@@ -819,17 +787,8 @@ int calculateOutputSlot(unsigned int iProcessor,
     }
   }
   
-  if (channelIndex == -1) {
-    std::cout << "DEBUG outputSlot=-1: physChannel=" << physChannel 
-              << " NOT in selectedChannels [";
-    for (size_t i = 0; i < selectedChannels.size(); i++) {
-      std::cout << selectedChannels[i];
-      if (i < selectedChannels.size()-1) std::cout << ",";
-    }
-    std::cout << "] iProc=" << iProcessor << " iReg=" << iRegion << " iLay=" << iLayer
-              << " firstIn=" << firstInput << " nIn=" << nInputs << std::endl;
+  if (channelIndex == -1)
     return -1;  // Physical channel not in selected channels
-  }
   
   // Get or increment batch index (bi)
   auto key = std::make_tuple(iRegion, iLayer, physChannel);
@@ -841,14 +800,8 @@ int calculateOutputSlot(unsigned int iProcessor,
   
   // Verify bounds: maximum is for RPC Barrel which has most channels/depth
   // Maximum outputSlot should be less than nInputs (which is the total capacity for this region/layer)
-  if (outputSlot >= static_cast<int>(nInputs)) {
-    std::cout << "DEBUG outputSlot=-1 BOUNDS: slot=" << outputSlot 
-              << " >= nIn=" << nInputs
-              << " iProc=" << iProcessor << " iReg=" << iRegion << " iLay=" << iLayer
-              << " physCh=" << physChannel << " ci=" << channelIndex
-              << " bi=" << batchIndex << " BATCH=" << batchSize << std::endl;
+  if (outputSlot >= static_cast<int>(nInputs))
     return -1;  // Out of bounds
-  }
   
   return outputSlot;
 }
@@ -983,7 +936,6 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       }
     }
     
-    // === ADD REFERENCE HIT DATA TO XML ===
     auto& refHitTree = refHitsDataTree.add_child("referenceHit", boost::property_tree::ptree());
     refHitTree.add("<xmlattr>.iRefHit", iRefHit);
     refHitTree.add("<xmlattr>.iRefLayer", aRefHitDef.iRefLayer);
@@ -1063,7 +1015,6 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
         const auto& stub = layerStubs[iStub];
         if (stub) { // Only add non-empty stubs
           auto& stubTree = refHitTree.add_child("stub", boost::property_tree::ptree());
-          //stubTree.add("<xmlattr>.iStub", iStub);
           stubTree.add("<xmlattr>.iLayer", iLayer);
           
           // Calculate inputNumber from iStub using connections config
@@ -1153,7 +1104,6 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       }
     }
 
-    // === ADD REFERENCE HIT TO XMLIOCACHE ===
     omtf::ReferenceHitRecord rhRec;
     rhRec.attrs = refHitTree;
 
@@ -1212,7 +1162,6 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
                   << " value " << extrapolatedPhi[iStub] << std::endl;
 
               if (this->myOmtfConfig->getDumpResultToXML()) {
-                // === ADD TO XMLIOCACHE FOR LAYERS 0 AND 2 ===
                 // Build calc record and add to the reference hit's extrapCalcs
                 boost::property_tree::ptree calcTree;
                 calcTree.add("<xmlattr>.targetLayer", iLayer);
@@ -1341,15 +1290,6 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
     unsigned int iGPIndex = 0;
     for (auto& itGP : this->theGPs) {
       itGP->finalise(procIndx);
-      if (itGP->key().theNumber == 3 || itGP->key().theNumber == 1) {
-        for (unsigned int iRefHit = 0; iRefHit < itGP->getResults()[procIndx].size(); ++iRefHit) {
-          auto& r = itGP->getResults()[procIndx][iRefHit];
-          if (r.isValid() || r.getPdfSum() != 0)
-            std::cout << "DBG693FIN " << itGP->key() << " iRefHit " << iRefHit
-                       << " pdfSum " << r.getPdfSum() << " firedLayerCnt " << r.getFiredLayerCnt()
-                       << " valid " << r.isValid() << std::endl;
-        }
-      }
       //debug
       /*for(unsigned int iRefHit = 0; iRefHit < itGP->getResults()[procIndx].size(); ++iRefHit) {
         if(itGP->getResults()[procIndx][iRefHit].isValid()) {
@@ -1376,7 +1316,6 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
     }
   }
 
-  // === EMIT UNIFIED XML FROM XMLIOCACHE ===
   auto bucket = xmlCache.get(iProcessor);
   if (bucket) {
     // Build <inputDigis> tree
@@ -1448,7 +1387,6 @@ void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcessor,
       obs->addProcesorData("referenceHits", referenceHitsTree);
 
       // Keep extrapolation tree for backwards compatibility
-      //obs->addProcesorData("extrapolation", procDataTree);
     }
   }
 
