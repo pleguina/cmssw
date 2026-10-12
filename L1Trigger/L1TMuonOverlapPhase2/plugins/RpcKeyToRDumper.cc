@@ -44,6 +44,7 @@
 
 #include <cmath>
 #include <fstream>
+#include <iomanip>
 #include <vector>
 
 // checkAndUpdateGeometry() unconditionally calls config->nPhiBins() before
@@ -65,7 +66,8 @@ public:
   double hwPtToGev(int) const override { return 0; }
   int ptGevToHw(double) const override { return 0; }
   int getProcScalePhi(double, double) const override { return 0; }
-  int etaToHwEta(double eta) const override { return (int)std::lround(std::abs(eta) / etaUnit_); }
+  // Same truncation as OMTFConfiguration::etaToHwEta (int cast; its lround variant is commented out there).
+  int etaToHwEta(double eta) const override { return (int)(std::abs(eta) / etaUnit_); }
   int mb1W2Eta() const override { return 0; }
   int mb2W2Eta() const override { return 0; }
   int mb3W2Eta() const override { return 0; }
@@ -92,7 +94,7 @@ public:
     angleConverter.checkAndUpdateGeometry(es, &config, tokens);
 
     std::ofstream out(outPath_);
-    out << "region,ring,station,sector,subsector,layer,roll,strip,etaHw,r,phiBin\n";
+    out << "region,ring,station,sector,subsector,layer,roll,strip,etaHw,r,phiBin,etaF,phiF\n";
 
     for (const RPCRoll* roll : rpcGeometry.rolls()) {
       if (!roll)
@@ -118,9 +120,16 @@ public:
         int phiBin = angleConverter.getProcessorPhi(
             /*phiZero=*/0, l1t::tftype::omtf_pos, id, (unsigned int)strip, (unsigned int)strip);
 
+        // Unrounded strip position, same global point getGlobalEtaRpc / getProcessorPhi use:
+        // eta, and phi in OMTF bins in [-nPhiBins/2, nPhiBins/2] (not rounded).
+        const GlobalPoint gp = roll->toGlobal(roll->centreOfStrip(strip));
+        const double etaF = std::abs(gp.eta());
+        const double phiRad = static_cast<double>(gp.phi());  // plain double: Geom::Phi would re-wrap the quotient
+        const double phiF = phiRad / (2 * M_PI / 5400.);
+
         out << id.region() << "," << id.ring() << "," << id.station() << "," << id.sector() << "," << id.subsector()
             << "," << id.layer() << "," << id.roll() << "," << strip << "," << etaHw << "," << r << "," << phiBin
-            << "\n";
+            << "," << std::setprecision(12) << etaF << "," << phiF << std::setprecision(6) << "\n";
       }
     }
     out.close();

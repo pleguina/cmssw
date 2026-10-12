@@ -15,7 +15,7 @@ process.maxEvents = cms.untracked.PSet(input=cms.untracked.int32(1))
 
 process.dumper = cms.EDAnalyzer(
     "RpcBarrelKeyToRDumper",
-    outPath=cms.string("rpc_barrel_key_to_r.csv"),
+    outPath=cms.string("rpc_barrel_key_to_r_v2.csv"),
 )
 
 process.p = cms.Path(process.dumper)
