@@ -29,10 +29,23 @@ class TTree;
 
 struct OmtfEvent {
 public:
+  uint32_t runNum = 0;
+  uint32_t lumiNum = 0;
   unsigned int eventNum = 0;
+  uint64_t eventNum64 = 0;
 
   //muonPt = 0 means that no muon was matched to the candidate
-  short muonEvent = -1;
+  int32_t muonEvent = -1;
+  int16_t muonBunchCrossing = 0;
+
+  //Explicit "is this a gen-matched entry?" flag. All muon* / vertex* / deltaEta / deltaPhi fields above
+  //are optional gen-truth-match fields: when hasGenMatch == false they hold their "no match" sentinel
+  //values (muonEvent=-1, muonPt=0, etc.) and the row still corresponds to a real OMTF candidate (or, in
+  //samples with no truth source configured at all, to every OMTF candidate in the event). This makes
+  //fake/ghost studies possible on samples where, by construction, nothing is gen-matched (e.g. pure
+  //background/noise productions) since such candidates are no longer silently dropped.
+  bool hasGenMatch = false;
+
   float muonPt = 0, muonEta = 0, muonPhi = 0, muonPropEta = 0, muonPropPhi = 0;
   char muonCharge = 0;
   float muonDxy = 0;
@@ -71,8 +84,8 @@ public:
         char quality;
         char etaHw;
         char valid;
-        short deltaR;
-        short phiDist;
+        short deltaR;  // stub_r - refStub_r  [cm]
+        short phiDist; // stub_phi - refStub_phi  [HW units]; phiBHw for bending layers
       };
     };
 
@@ -83,6 +96,14 @@ public:
   static_assert(sizeof(Hit) <= sizeof(unsigned long), "OmtfEvent::Hit must fit into unsigned long rawData");
 
   std::vector<unsigned long> hits;
+
+  // Extended per-hit branches — parallel to 'hits' (same index i → same stub)
+  // These carry the fields that do not fit in the 64-bit Hit union.
+  std::vector<short> hits_phiBHw;  // DT bending angle in HW units; 0 for non-DT layers
+  std::vector<short> hits_phiHw;   // absolute stub phi in HW units (before ref-subtraction)
+  std::vector<short> hits_r;       // absolute radial distance [cm]
+  std::vector<signed char> hits_type;  // MuonStub::Type enum cast to int8
+  std::vector<signed char> hits_bx;    // bunch crossing offset from BX=0
 };
 
 class DataROOTDumper2 : public EmulationObserverBase {
@@ -103,6 +124,9 @@ public:
   void observeEventEnd(const edm::Event& iEvent, FinalMuons& finalMuons) override;
 
   void endJob() override;
+
+protected:
+  CandidateSimMuonMatcher* matcher() const { return candidateSimMuonMatcher; }
 
 private:
   void initializeTTree();

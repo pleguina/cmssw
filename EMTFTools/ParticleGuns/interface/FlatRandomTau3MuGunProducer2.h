@@ -14,9 +14,7 @@ namespace CLHEP {
     class HepRandomEngine;
 }
 
-namespace edm {
-    class HepMCProduct;
-}
+#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 
 namespace edm {
     typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > XYZTLorentzVectorD;

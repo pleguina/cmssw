@@ -24,6 +24,9 @@
 
 #include "TFile.h"
 #include "TH1D.h"
+
+#include <cmath>
+
 /*
 double hwGmtPhiToGlobalPhi(int phi) {
   double phiGmtUnit = 2. * M_PI / 576.;
@@ -54,8 +57,23 @@ MatchingResult::MatchingResult(const SimTrack& simTrack, const SimVertex* simVer
 
   if (this->simVertex) {
     const math::XYZTLorentzVectorD& vtxPos = this->simVertex->position();
-    muonDxy = (-vtxPos.X() * this->simTrack->momentum().py() + vtxPos.Y() * this->simTrack->momentum().px()) /
-              this->simTrack->momentum().pt();
+    // NOTE: dxy must be recovered from the *curved* helix, not a straight-line
+    // projection (-vx*py+vy*px)/pt (that formula is only accurate when the
+    // curvature radius >> displacement, i.e. high pT / small lXY). The vertex
+    // sits on the gyration circle at radius rg from a center offset by
+    // (dxy - rg) from the origin, so the true dxy is recovered by inverting
+    // that circle geometry instead (see EMTFTools/ParticleGuns/FlatRandomPtGunProducer2
+    // ::newVertexWithD0 for the corresponding forward calculation):
+    //   rg = -pT/(0.003*B*q), B = 3.811 T
+    //   center = (vx - rg*sin(phi), vy + rg*cos(phi))
+    //   dxy = rg + q*|center|
+    {
+      const double B = 3.811;  // Tesla
+      double rg = -genPt / (0.003 * B * genCharge);
+      double cx = vtxPos.X() - rg * std::sin(genPhi);
+      double cy = vtxPos.Y() + rg * std::cos(genPhi);
+      muonDxy = rg + genCharge * std::sqrt(cx * cx + cy * cy);
+    }
     muonRho = vtxPos.Rho();
 
     vertexEta = vtxPos.eta();
@@ -224,7 +242,11 @@ CandidateSimMuonMatcher::~CandidateSimMuonMatcher() {
 void CandidateSimMuonMatcher::beginRun(const edm::EventSetup& eventSetup) {
   //TODO use edm::ESWatcher<MagneticField> magneticFieldRecordWatcher;
   magField = eventSetup.getHandle(magneticFieldEsToken);
-  propagator = eventSetup.getHandle(propagatorEsToken);
+  // Only load the propagator for modes that actually use it.
+  // simpleMatching and collectMuonCands work purely on gen-level kinematics.
+  if (matchingType == MatchingType::withPropagator || matchingType == MatchingType::simplePropagation) {
+    propagator = eventSetup.getHandle(propagatorEsToken);
+  }
 }
 
 void CandidateSimMuonMatcher::observeEventBegin(const edm::Event& event) { gbCandidates.clear(); }
@@ -429,7 +451,11 @@ void CandidateSimMuonMatcher::observeEventEnd(const edm::Event& event, FinalMuon
     std::function<bool(const TrackingParticle&)> trackParticleFilter = trackingParticleIsMuonInBx0Displ;
     //trackingParticleIsMuonInBx0; if propagation is used, use trackingParticleIsMuonInOmtfBx0
     matchingResults = match(finalMuons, trackingParticleHandle.product(), trackParticleFilter);
-  } else if (matchingType == MatchingType::collectMuonCands) {
+  } else {
+    //No gen-truth source configured (neither simTracksTag nor trackingParticleTag), e.g. MinBias/QCD/neutrino-gun
+    //samples: collect all ghost-busted OMTF candidates unmatched instead of leaving matchingResults empty.
+    //The gen-match fields in DataROOTDumper2 then keep their "no match" values (hasGenMatch=false).
+    //An explicit candidateSimMuonMatcherType=collectMuonCands lands here too.
     matchingResults = collectMuonCands(finalMuons);
   }
 }

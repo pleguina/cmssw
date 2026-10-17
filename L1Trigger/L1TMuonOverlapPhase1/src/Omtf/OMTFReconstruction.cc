@@ -8,7 +8,7 @@
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/DetailedDebugExporter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/ProcConfigurationBase.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/CandidateSimMuonMatcher.h"
-#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper2.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/DataROOTDumper2AllInput.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/EventCapture.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Tools/PatternGenerator.h"
 
@@ -308,7 +308,8 @@ void OMTFReconstruction::addObservers(
         throw cms::Exception("dumpHitsToROOT needs candidateSimMuonMatcher, but it is null");
       }
       observers.emplace_back(
-          std::make_unique<DataROOTDumper2>(edmParameterSet, omtfConfig.get(), candidateSimMuonMatcher));
+          std::make_unique<DataROOTDumper2AllInput>(
+              edmParameterSet, omtfConfig.get(), candidateSimMuonMatcher, muonGeometryTokens));
     }
   }
 

@@ -18,9 +18,7 @@ namespace CLHEP {
     class HepRandomEngine;
 }
 
-namespace edm {
-    class HepMCProduct;
-}
+#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 
 // Class
 class BaseEvtVtxGenerator2 : public edm::stream::EDProducer<> {

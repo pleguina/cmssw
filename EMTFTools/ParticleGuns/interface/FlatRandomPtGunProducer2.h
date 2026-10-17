@@ -12,9 +12,7 @@ namespace CLHEP {
     class HepRandomEngine;
 }
 
-namespace edm {
-    class HepMCProduct;
-}
+#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 
 namespace edm {
 
