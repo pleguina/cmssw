@@ -90,6 +90,30 @@ public:
 
   float deltaPhi = 0, deltaEta = 0;
 
+  //both pattern fits and the NN (prodv3 additions)
+  short omtfHwPtConstr = 0, omtfHwPtUnconstr = 0;  //OMTF hardware pT of the two pattern fits
+  float omtfPtNNConstr = 0;                         //0 when the NN pT assignment is not configured
+  char omtfChargeNNConstr = 0;
+  int omtfDxyNn = 0;
+  std::vector<float> omtfNnOutputs;  //all NN outputs (pt0, pt1, charge, p_displ...), empty without NN
+  int omtfPdfSumConstr = 0, omtfPdfSumUnconstr = 0;
+  unsigned char omtfFiredLayerCntConstr = 0, omtfFiredLayerCntUnconstr = 0;
+  unsigned int omtfFiredLayersConstr = 0, omtfFiredLayersUnconstr = 0;
+  unsigned short omtfPatternNumConstr = 0, omtfPatternNumUnconstr = 0;
+  bool omtfDisplacedOnly = false;  //no usable constrained fit, but an unconstrained pT (upstream displaced-only class)
+
+  //GMT-scale words of the FinalMuon, equal to hwPt/hwEta/hwPhi of the omtfC/omtfU NanoAOD tables,
+  //so that a row can be joined to its SAMuon; 0 for killed candidates (they have no SAMuon)
+  int omtfGmtPt = 0, omtfGmtPtUnconstr = 0, omtfGmtEta = 0, omtfGmtPhi = 0;
+
+  //per logic layer (index = layer, always 18 entries) for the constrained (C) and unconstrained (U) fits,
+  //also for the layers without a fired stub
+  std::vector<float> layerC_pdfVal, layerU_pdfVal;
+  std::vector<short> layerC_deltaPhi, layerU_deltaPhi;
+  std::vector<short> layerC_pdfBin, layerU_pdfBin;
+  std::vector<uint8_t> layerC_valid, layerU_valid;
+  std::vector<uint8_t> layer_hasStub;
+
   //float omtfPtCont = 0;
 
   struct Hit {

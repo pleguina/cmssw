@@ -91,6 +91,35 @@ void DataROOTDumper2::initializeTTree() {
 
   rootTree->Branch("killed", &omtfEvent.killed);
 
+  rootTree->Branch("omtfHwPtConstr", &omtfEvent.omtfHwPtConstr);
+  rootTree->Branch("omtfHwPtUnconstr", &omtfEvent.omtfHwPtUnconstr);
+  rootTree->Branch("omtfPtNNConstr", &omtfEvent.omtfPtNNConstr);
+  rootTree->Branch("omtfChargeNNConstr", &omtfEvent.omtfChargeNNConstr);
+  rootTree->Branch("omtfDxyNn", &omtfEvent.omtfDxyNn);
+  rootTree->Branch("omtfNnOutputs", &omtfEvent.omtfNnOutputs);
+  rootTree->Branch("omtfPdfSumConstr", &omtfEvent.omtfPdfSumConstr);
+  rootTree->Branch("omtfPdfSumUnconstr", &omtfEvent.omtfPdfSumUnconstr);
+  rootTree->Branch("omtfFiredLayerCntConstr", &omtfEvent.omtfFiredLayerCntConstr);
+  rootTree->Branch("omtfFiredLayerCntUnconstr", &omtfEvent.omtfFiredLayerCntUnconstr);
+  rootTree->Branch("omtfFiredLayersConstr", &omtfEvent.omtfFiredLayersConstr);
+  rootTree->Branch("omtfFiredLayersUnconstr", &omtfEvent.omtfFiredLayersUnconstr);
+  rootTree->Branch("omtfPatternNumConstr", &omtfEvent.omtfPatternNumConstr);
+  rootTree->Branch("omtfPatternNumUnconstr", &omtfEvent.omtfPatternNumUnconstr);
+  rootTree->Branch("omtfDisplacedOnly", &omtfEvent.omtfDisplacedOnly);
+  rootTree->Branch("omtfGmtPt", &omtfEvent.omtfGmtPt);
+  rootTree->Branch("omtfGmtPtUnconstr", &omtfEvent.omtfGmtPtUnconstr);
+  rootTree->Branch("omtfGmtEta", &omtfEvent.omtfGmtEta);
+  rootTree->Branch("omtfGmtPhi", &omtfEvent.omtfGmtPhi);
+  rootTree->Branch("layerC_pdfVal", &omtfEvent.layerC_pdfVal);
+  rootTree->Branch("layerU_pdfVal", &omtfEvent.layerU_pdfVal);
+  rootTree->Branch("layerC_deltaPhi", &omtfEvent.layerC_deltaPhi);
+  rootTree->Branch("layerU_deltaPhi", &omtfEvent.layerU_deltaPhi);
+  rootTree->Branch("layerC_pdfBin", &omtfEvent.layerC_pdfBin);
+  rootTree->Branch("layerU_pdfBin", &omtfEvent.layerU_pdfBin);
+  rootTree->Branch("layerC_valid", &omtfEvent.layerC_valid);
+  rootTree->Branch("layerU_valid", &omtfEvent.layerU_valid);
+  rootTree->Branch("layer_hasStub", &omtfEvent.layer_hasStub);
+
   rootTree->Branch("hits", &omtfEvent.hits);
 
   // Extended per-stub branches (same ordering and length as 'hits')
@@ -315,6 +344,57 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, FinalMuons& fina
       omtfEvent.omtfHwEta = muonCand->getAlgoMuon()->getEtaHw();
 
       omtfEvent.omtfFiredLayers = muonCand->getAlgoMuon()->getFiredLayerBits();
+
+      {
+        const auto& algoMuon = *(muonCand->getAlgoMuon());
+        const auto& gpC = algoMuon.getGpResultConstr();
+        const auto& gpU = algoMuon.getGpResultUnconstr();
+        omtfEvent.omtfHwPtConstr = algoMuon.getPtConstr();
+        omtfEvent.omtfHwPtUnconstr = algoMuon.getPtUnconstr();
+        omtfEvent.omtfPtNNConstr = algoMuon.getPtNNConstr();
+        omtfEvent.omtfChargeNNConstr = algoMuon.getChargeNNConstr();
+        omtfEvent.omtfDxyNn = algoMuon.getDxyNn();
+        omtfEvent.omtfNnOutputs.assign(algoMuon.getNnOutputs().begin(), algoMuon.getNnOutputs().end());
+        omtfEvent.omtfPdfSumConstr = gpC.getPdfSum();
+        omtfEvent.omtfPdfSumUnconstr = gpU.getPdfSumUnconstr();
+        omtfEvent.omtfFiredLayerCntConstr = gpC.getFiredLayerCnt();
+        omtfEvent.omtfFiredLayerCntUnconstr = gpU.getFiredLayerCnt();
+        omtfEvent.omtfFiredLayersConstr = gpC.getFiredLayerBits();
+        omtfEvent.omtfFiredLayersUnconstr = gpU.getFiredLayerBits();
+        omtfEvent.omtfPatternNumConstr = algoMuon.getPatternNumConstr();
+        omtfEvent.omtfPatternNumUnconstr = algoMuon.getPatternNumUnconstr();
+        //same condition as in OmtfProcessorPhase2::convertToGmtScalesPhase2
+        omtfEvent.omtfDisplacedOnly = (algoMuon.getPdfSumConstr() == 0 || algoMuon.getFiredLayerCntConstr() < 3) &&
+                                      algoMuon.getPtUnconstr() > 0;
+        omtfEvent.omtfGmtPt = muonCand->getPtGmt();
+        omtfEvent.omtfGmtPtUnconstr = muonCand->getPtUnconstrGmt();
+        omtfEvent.omtfGmtEta = muonCand->getEtaGmt();
+        omtfEvent.omtfGmtPhi = muonCand->getPhiGmt();
+
+        const unsigned int nLayers = gpC.getStubResults().size();
+        auto fillLayers = [nLayers](const GoldenPatternResult& gp,
+                                    std::vector<float>& pdfVal,
+                                    std::vector<short>& deltaPhi,
+                                    std::vector<short>& pdfBin,
+                                    std::vector<uint8_t>& valid) {
+          pdfVal.assign(nLayers, 0);
+          deltaPhi.assign(nLayers, 0);
+          pdfBin.assign(nLayers, 0);
+          valid.assign(nLayers, 0);
+          for (unsigned int iLayer = 0; iLayer < nLayers && iLayer < gp.getStubResults().size(); ++iLayer) {
+            const auto& stubResult = gp.getStubResults()[iLayer];
+            pdfVal[iLayer] = stubResult.getPdfVal();
+            deltaPhi[iLayer] = stubResult.getDeltaPhi();
+            pdfBin[iLayer] = stubResult.getPdfBin();
+            valid[iLayer] = stubResult.getValid();
+          }
+        };
+        fillLayers(gpC, omtfEvent.layerC_pdfVal, omtfEvent.layerC_deltaPhi, omtfEvent.layerC_pdfBin, omtfEvent.layerC_valid);
+        fillLayers(gpU, omtfEvent.layerU_pdfVal, omtfEvent.layerU_deltaPhi, omtfEvent.layerU_pdfBin, omtfEvent.layerU_valid);
+        omtfEvent.layer_hasStub.assign(nLayers, 0);
+        for (unsigned int iLayer = 0; iLayer < nLayers; ++iLayer)
+          omtfEvent.layer_hasStub[iLayer] = gpC.getStubResults()[iLayer].getMuonStub() != nullptr;
+      }
       omtfEvent.omtfRefLayer = muonCand->getAlgoMuon()->getRefLayer();
       omtfEvent.omtfRefHitNum = muonCand->getAlgoMuon()->getRefHitNumber();
 

@@ -279,6 +279,9 @@ void DataROOTDumper2AllInput::initializeSchemaMetadataTree() {
   std::string eventIdConvention = kEventIdConvention;
   std::string producerGitCommit = producerGitCommit_;
   std::string propagationMode = propagationMode_;  // frozen production mode (item 3, propagation smoke audit)
+  //the stub eta scale changed with the Phase-2 OMTF (0 = bits, 1 = valueP1Scale, 2 = valueP2Scale)
+  int stubEtaEncoding = static_cast<int>(omtfConfig->getStubEtaEncoding());
+  int dtBxShift = omtfConfig->dtBxShift();
 
   schemaMetadataTree->Branch("producerSchemaVersion", &producerSchemaVersion, "producerSchemaVersion/I");
   schemaMetadataTree->Branch("primitiveIdVersion", &primitiveIdVersion, "primitiveIdVersion/I");
@@ -290,6 +293,8 @@ void DataROOTDumper2AllInput::initializeSchemaMetadataTree() {
   schemaMetadataTree->Branch("dtT0ConventionVersion", &dtT0ConventionVersion, "dtT0ConventionVersion/I");
   schemaMetadataTree->Branch("eventIdConvention", &eventIdConvention);
   schemaMetadataTree->Branch("producerGitCommit", &producerGitCommit);
+  schemaMetadataTree->Branch("stubEtaEncoding", &stubEtaEncoding, "stubEtaEncoding/I");
+  schemaMetadataTree->Branch("dtBxShift", &dtBxShift, "dtBxShift/I");
   schemaMetadataTree->Fill();
 }
 

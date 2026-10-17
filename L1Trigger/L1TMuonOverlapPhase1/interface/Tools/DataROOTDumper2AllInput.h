@@ -141,7 +141,9 @@ private:
   // --- schema/version metadata (see item 13 of the displaced-lane v5.2 plan) ---
   // Written once as a single-entry tree (OMTFSchemaMetadata) in endJob().
   // Bump these constants whenever the corresponding algorithm/definition changes.
-  static constexpr int kProducerSchemaVersion = 2;     // overall OMTFAllInputTree/OMTFHitsTree schema
+  static constexpr int kProducerSchemaVersion = 3;     // overall OMTFAllInputTree/OMTFHitsTree schema
+                                                       // 3 = prodv3: CMSSW_20_0_X OMTF (SAMuon output), both-fit/NN/per-layer
+                                                       //     OMTFHitsTree branches, stubEtaEncoding/dtBxShift in the metadata
   static constexpr int kPrimitiveIdVersion = 2;        // 1 = old hash incl. processor-local input/phiHw (buggy); 2 = source-identity hash
   static constexpr int kTpSelectionVersion = 1;        // TpMuon selection: |pdgId|==13, pT>1.5 GeV, |eta|<1.6
   static constexpr int kTruthMatchingVersion = 2;      // 1 = trackId-only vote map; 2 = (trackId,eventId)-keyed vote map
