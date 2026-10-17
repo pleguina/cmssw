@@ -47,12 +47,13 @@ generator = cms.EDProducer("FlatRandomPtGunProducer2",
 )
 
 # Eta filter: keep only events where muon is strictly in OMTF overlap acceptance
-etaFilter = cms.EDFilter("MCSingleParticleFilter",
-    ParticleID  = cms.untracked.vint32(13, -13, 13, -13),
-    Status      = cms.untracked.vint32(1, 1, 1, 1),
-    MinPt       = cms.untracked.vdouble(0.0, 0.0, 0.0, 0.0),
-    MinEta      = cms.untracked.vdouble(0.82, 0.82, -1.24, -1.24),
-    MaxEta      = cms.untracked.vdouble(1.24, 1.24, -0.82, -0.82),
+etaFilter = cms.EDFilter("MCParticleModuloFilter",
+    moduleLabel = cms.InputTag("generator", "unsmeared"),
+    minEta      = cms.double(0.82),
+    maxEta      = cms.double(1.24),
+    absetaMode  = cms.bool(True),
+    status      = cms.int32(1),
+    particleID  = cms.vint32(13, -13),
 )
 
 ProductionFilterSequence = cms.Sequence(generator * etaFilter)
