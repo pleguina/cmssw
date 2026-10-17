@@ -411,6 +411,7 @@ bool trackingParticleIsMuonInOmtfEvent0(const TrackingParticle& trackingParticle
 
 void CandidateSimMuonMatcher::observeEventEnd(const edm::Event& event, FinalMuons& finalMuons) {
   LogTrace("l1tOmtfEventPrint") << "\nCandidateSimMuonMatcher::observeEventEnd" << std::endl;
+  matcherGhosts.clear();
   FinalMuons ghostBustedFinalMuons = CandidateSimMuonMatcher::ghostBust(finalMuons);
 
   matchingResults.clear();
@@ -508,7 +509,8 @@ FinalMuons CandidateSimMuonMatcher::ghostBust(const FinalMuons& finalMuons) {
     //not dropping candidates with quality 0 and 1
     if (!isKilled[i1]) {  //&& finalMuons[i1]->getQuality() > 1
       resultCands.push_back(finalMuons[i1]);
-    }
+    } else
+      matcherGhosts.push_back(finalMuons[i1]);
 
     //if (finalMuons[i1]->getPtGmt() > 0) checked earlier, so it is not needed here
     {  //PtGmt > 0 marks valid candidate both for phase1 and phase2. But it should not matter here, as all finalMuons are not empty

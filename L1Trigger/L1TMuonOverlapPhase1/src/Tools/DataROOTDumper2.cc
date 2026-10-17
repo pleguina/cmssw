@@ -90,6 +90,7 @@ void DataROOTDumper2::initializeTTree() {
   rootTree->Branch("omtfFiredLayers", &omtfEvent.omtfFiredLayers);  //<<<<<<<<<<<<<<<<<<<<<<!!!!TODOO
 
   rootTree->Branch("killed", &omtfEvent.killed);
+  rootTree->Branch("matcherGhost", &omtfEvent.matcherGhost);
 
   rootTree->Branch("omtfHwPtConstr", &omtfEvent.omtfHwPtConstr);
   rootTree->Branch("omtfHwPtUnconstr", &omtfEvent.omtfHwPtUnconstr);
@@ -178,6 +179,14 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, FinalMuons& fina
    */
 
   std::vector<MatchingResult> matchingResults = candidateSimMuonMatcher->getMatchingResults();
+  //the candidates removed by the matcher's own ghost busting still reach the GMT, so they are dumped too,
+  //as unmatched rows with matcherGhost = true
+  for (auto& ghost : candidateSimMuonMatcher->getMatcherGhosts()) {
+    MatchingResult ghostResult;
+    ghostResult.muonCand = ghost;
+    ghostResult.matcherGhost = true;
+    matchingResults.push_back(ghostResult);
+  }
   LogTrace("l1tOmtfEventPrint") << "\nDataROOTDumper2::observeEventEnd matchingResults.size() "
                                 << matchingResults.size() << std::endl;
 
@@ -531,6 +540,7 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, FinalMuons& fina
       //all candidates are dumped, whatever their quality and also the displaced-only ones (PtConstr == 0)
       omtfEvent.omtfQuality = matchingResult.muonCand->getQuality();
       omtfEvent.killed = false;
+      omtfEvent.matcherGhost = matchingResult.matcherGhost;
       omtfEvent.omtfProcessor = matchingResult.muonCand->getProcessor();
 
       omtfEvent.omtfEndcap = 0;

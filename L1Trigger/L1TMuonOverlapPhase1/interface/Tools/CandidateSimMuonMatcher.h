@@ -79,6 +79,10 @@ public:
   float vertexEta = 0;
   float vertexPhi = 0;
   float muonDxy = 0;
+
+  //true for a candidate removed by CandidateSimMuonMatcher::ghostBust (a duplicate of a candidate of a
+  //neighbouring processor); such results are only added by the dumper, they are never matched
+  bool matcherGhost = false;
   float muonRho = 0;
   int parentPdgId = 0;
 
@@ -165,6 +169,9 @@ public:
 
   std::vector<MatchingResult> getMatchingResults() { return matchingResults; }
 
+  //candidates removed by ghostBust in the last event (they still reach the GMT)
+  const FinalMuons& getMatcherGhosts() const { return matcherGhosts; }
+
   enum class MatchingType : short {
     noMatcher = -1,
     withPropagator = 0,
@@ -182,6 +189,7 @@ private:
 
   AlgoMuons gbCandidates;
   std::vector<MatchingResult> matchingResults;
+  FinalMuons matcherGhosts;
 
   const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord>& magneticFieldEsToken;
   const edm::ESGetToken<Propagator, TrackingComponentsRecord>& propagatorEsToken;

@@ -87,6 +87,7 @@ public:
   int candidateId = 0;
 
   bool killed = false;
+  bool matcherGhost = false;  //removed by CandidateSimMuonMatcher::ghostBust, but sent to the GMT
 
   float deltaPhi = 0, deltaEta = 0;
 
