@@ -77,6 +77,15 @@ void DataROOTDumper2::initializeTTree() {
   rootTree->Branch("omtfRefLayer", &omtfEvent.omtfRefLayer);
   rootTree->Branch("omtfRefHitNum", &omtfEvent.omtfRefHitNum);
   rootTree->Branch("omtfRefHitPhi", &omtfEvent.omtfRefHitPhi);
+  // Explicit leaflist ("/B") required here: ROOT's TTree::Branch(name, T*) template overload
+  // does not recognize plain "signed char" as a fundamental type (only "char"/Char_t triggers
+  // its built-in scalar dispatch), so without a leaflist it falls through to object/class-based
+  // branch creation and aborts with "Fatal Root Error: Illegal data type". "B" = 8-bit signed
+  // integer (Char_t), matching the same pattern already used for reg_mtfType/reg_endcap in
+  // DataROOTDumper2AllInput.cc.
+  rootTree->Branch("omtfEndcap", &omtfEvent.omtfEndcap, "omtfEndcap/B");
+  rootTree->Branch("omtfBx", &omtfEvent.omtfBx, "omtfBx/B");
+  rootTree->Branch("candidateId", &omtfEvent.candidateId);
 
   rootTree->Branch("omtfFiredLayers", &omtfEvent.omtfFiredLayers);  //<<<<<<<<<<<<<<<<<<<<<<!!!!TODOO
 
@@ -90,6 +99,12 @@ void DataROOTDumper2::initializeTTree() {
   rootTree->Branch("hits_r",      &omtfEvent.hits_r);
   rootTree->Branch("hits_type",   &omtfEvent.hits_type);
   rootTree->Branch("hits_bx",     &omtfEvent.hits_bx);
+  rootTree->Branch("hits_primitiveId", &omtfEvent.hits_primitiveId);
+  rootTree->Branch("hits_layer",       &omtfEvent.hits_layer);
+  rootTree->Branch("hits_quality",     &omtfEvent.hits_quality);
+  rootTree->Branch("hits_etaHw",       &omtfEvent.hits_etaHw);
+  rootTree->Branch("hits_valid",       &omtfEvent.hits_valid);
+  rootTree->Branch("hits_detId",       &omtfEvent.hits_detId);
 
   rootTree->Branch("deltaEta", &omtfEvent.deltaEta);
   rootTree->Branch("deltaPhi", &omtfEvent.deltaPhi);
@@ -136,6 +151,9 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, FinalMuons& fina
   std::vector<MatchingResult> matchingResults = candidateSimMuonMatcher->getMatchingResults();
   LogTrace("l1tOmtfEventPrint") << "\nDataROOTDumper2::observeEventEnd matchingResults.size() "
                                 << matchingResults.size() << std::endl;
+
+  // Reset candidateId assignment for this event (see OmtfEvent::candidateId doc).
+  nextCandidateIdForKey_.clear();
 
   //candidateSimMuonMatcher should use the  trackingParticles, because the simTracks are not stored for the pile-up events
 
@@ -306,6 +324,12 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, FinalMuons& fina
       omtfEvent.hits_r.clear();
       omtfEvent.hits_type.clear();
       omtfEvent.hits_bx.clear();
+      omtfEvent.hits_primitiveId.clear();
+      omtfEvent.hits_layer.clear();
+      omtfEvent.hits_quality.clear();
+      omtfEvent.hits_etaHw.clear();
+      omtfEvent.hits_valid.clear();
+      omtfEvent.hits_detId.clear();
 
       //TODO choose, which gpResult should be dumped
       //auto& gpResult = procMuon->getGpResultConstr();
@@ -399,6 +423,13 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, FinalMuons& fina
             else if (bxVal < -127) bxVal = -127;
             omtfEvent.hits_bx.push_back(static_cast<signed char>(bxVal));
           }
+          // Stable per-primitive identity, mirrors OMTFAllInputTree's reg_stub_* (item 2/3).
+          omtfEvent.hits_primitiveId.push_back(stubResult.getMuonStub()->primitiveId);
+          omtfEvent.hits_layer.push_back(static_cast<signed char>(iLogicLayer));
+          omtfEvent.hits_quality.push_back(static_cast<signed char>(stubResult.getMuonStub()->qualityHw));
+          omtfEvent.hits_etaHw.push_back(hit.etaHw);
+          omtfEvent.hits_valid.push_back(stubResult.getValid() ? 1 : 0);
+          omtfEvent.hits_detId.push_back(static_cast<uint32_t>(stubResult.getMuonStub()->detId));
           // ----------------------------------------------
         }
       }
@@ -422,9 +453,17 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, FinalMuons& fina
       omtfEvent.killed = false;
       omtfEvent.omtfProcessor = matchingResult.muonCand->getProcessor();
 
+      omtfEvent.omtfEndcap = 0;
       if (matchingResult.muonCand->trackFinderType() == l1t::omtf_neg) {
         omtfEvent.omtfProcessor *= -1;
+        omtfEvent.omtfEndcap = -1;
+      } else if (matchingResult.muonCand->trackFinderType() == l1t::omtf_pos) {
+        omtfEvent.omtfEndcap = 1;
       }
+      // This offline dumper only ever produces the BX=0 emulation window (see OmtfEvent::omtfBx doc).
+      omtfEvent.omtfBx = 0;
+      omtfEvent.candidateId = nextCandidateIdForKey_[std::make_tuple(
+          omtfEvent.omtfEndcap, omtfEvent.omtfProcessor, omtfEvent.omtfBx)]++;
 
       addOmtfCand(matchingResult.muonCand);
       rootTree->Fill();
@@ -449,6 +488,8 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, FinalMuons& fina
           omtfEvent.omtfQuality = 0;
           omtfEvent.killed = true;
           addOmtfCand(killedCand);
+          omtfEvent.candidateId = nextCandidateIdForKey_[std::make_tuple(
+              omtfEvent.omtfEndcap, omtfEvent.omtfProcessor, omtfEvent.omtfBx)]++;
           rootTree->Fill();
         }
       }
@@ -468,6 +509,10 @@ void DataROOTDumper2::observeEventEnd(const edm::Event& iEvent, FinalMuons& fina
       omtfEvent.omtfRefLayer = 0;
       omtfEvent.omtfRefHitNum = 0;
       omtfEvent.omtfProcessor = 10;
+      omtfEvent.omtfEndcap = 0;
+      omtfEvent.omtfBx = 0;
+      omtfEvent.candidateId = nextCandidateIdForKey_[std::make_tuple(
+          omtfEvent.omtfEndcap, omtfEvent.omtfProcessor, omtfEvent.omtfBx)]++;
 
       omtfEvent.omtfQuality = 0;
       omtfEvent.killed = false;

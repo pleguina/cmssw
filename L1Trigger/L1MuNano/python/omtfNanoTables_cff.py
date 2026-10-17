@@ -1,12 +1,12 @@
 # omtfNanoTables_cff.py
 #
 # NanoAOD-style FlatTable configurations for:
-#   - OMTF track candidates (BXVector<l1t::RegionalMuonCand>, BX=0 only)
+#   - OMTF and GMT standalone muons (l1t::SAMuon: omtfC, omtfU, gmtFwd*, gmtSA*, kmtfDisp)
 #   - Generator-level muons (reco::GenParticle, status==1, |pdgId|==13)
 #
-# Requires (compiled locally in L1Trigger/L1MuNano):
-#   SimpleOMTFTrackCandidateFlatTableProducer
-#     = BXVectorSimpleFlatTableProducer<l1t::RegionalMuonCand>
+# Requires (from DPGAnalysis/Phase2L1TNanoAOD):
+#   SimpleTriggerL1SAMuonFlatTableProducer
+#     = SimpleFlatTableProducer<l1t::SAMuon>
 #
 # Requires (from base PhysicsTools/NanoAOD):
 #   SimpleGenParticleFlatTableProducer
@@ -16,43 +16,52 @@ import FWCore.ParameterSet.Config as cms
 from PhysicsTools.NanoAOD.common_cff import Var, ExtVar
 
 # ---------------------------------------------------------------------------
-# OMTF track table
-# Input: BXVector<l1t::RegionalMuonCand> from simOmtfPhase2Digis:OMTF
-#        (process label "L1" from the GEN+SIM+DIGI+L1 step)
-# Only BX=0 is stored (minBX=maxBX=0).
-# All hardware-level quantities available on l1t::RegionalMuonCand.
+# OMTF and GMT standalone-muon tables (l1t::SAMuon)
+# Since CMSSW_20_0_0 L1TMuonOverlapPhase2TrackProducer no longer emits
+# BXVector<l1t::RegionalMuonCand> ("OMTF"); it emits two l1t::SAMuonCollection:
+#   constrCands   : prompt (vertex-constrained) pT
+#   unconstrCands : unconstrained (displaced) pT, d0 = placeholder (upstream TODO)
+# Both feed l1tFwdMuonsGmt (Phase2L1TGMTFwdMuonTranslator, OMTF+EMTF) and then
+# l1tSAMuonsGmt (what the menu sees). The tables below record every stage.
+# The old omtf_* branches (hwPtUnc, hwDXY, muIdx, processor) no longer exist.
+# There is no gen index in these tables: the truth source is OMTFHitsTree.
 # ---------------------------------------------------------------------------
-OMTFTrackTable = cms.EDProducer(
-    "SimpleOMTFTrackCandidateFlatTableProducer",
-    src               = cms.InputTag('simOmtfPhase2Digis', 'OMTF'),
-    minBX             = cms.int32(0),
-    maxBX             = cms.int32(0),
-    name              = cms.string("omtf"),
-    doc               = cms.string("OMTF track candidates at BX=0"),
-    cut               = cms.string(""),          # no pre-selection
-    extension         = cms.bool(False),
-    alwaysWriteBXValue = cms.bool(False),        # BX is always 0, save space
-    variables = cms.PSet(
-        # Charge sign: 0 = positive, 1 = negative
-        Q          = Var("hwSign()",            "int16", doc="charge sign (0=pos, 1=neg)"),
-        # Hardware pT in units of 0.5 GeV/c (LSB), range 0..511
-        hwPt       = Var("hwPt()",              "int16", doc="hardware pT [0.5 GeV/c LSB]"),
-        # Unconstrained pT (displaced muon estimator)
-        hwPtUnc    = Var("hwPtUnconstrained()", "int16", doc="hardware unconstrained pT"),
-        # Displacement DXY
-        hwDXY      = Var("hwDXY()",             "int16", doc="hardware DXY displacement"),
-        # Hardware eta: OMTF range roughly |hwEta| < 88 (ieta units, LSB=0.010875)
-        hwEta      = Var("hwEta()",             "int16", doc="hardware eta [LSB=0.010875]"),
-        # Hardware phi in global phi units
-        hwPhi      = Var("hwPhi()",             "int16", doc="hardware phi"),
-        # Quality word (0..15)
-        hwQual     = Var("hwQual()",            "int16", doc="hardware quality (0..15)"),
-        # Muon index within the processor (0..2 for OMTF)
-        muIdx      = Var("muIdx()",             "int16", doc="muon index in processor (0..2)"),
-        # Processor ID: 0..5 for OMTF (6 sectors per +/- side)
-        processor  = Var("processor()",         "int16", doc="processor ID (0..5 for OMTF)"),
-    ),
+from DPGAnalysis.Phase2L1TNanoAOD.l1tPh2Nanotables_cff import staMuTable as _staMuTable
+
+_saMuExtraVars = cms.PSet(
+    hwD0  = Var("hwD0()",  int, doc="hardware d0 [LSBSAd0]"),
+    hwZ0  = Var("hwZ0()",  int, doc="hardware z0 [LSBSAz0]"),
+    hwBeta = Var("hwBeta()", int, doc="hardware beta"),
+    tf    = Var("tfType()", int, doc="track finder type (l1t::tftype)"),
 )
+
+def _saMuTable(src, name, doc):
+    t = _staMuTable.clone(src=cms.InputTag(*src), name=cms.string(name), doc=cms.string(doc))
+    for k in _saMuExtraVars.parameterNames_():
+        setattr(t.variables, k, getattr(_saMuExtraVars, k))
+    return t
+
+# OMTF itself, before GMT
+omtfConstrTable   = _saMuTable(("simOmtfPhase2Digis", "constrCands"),   "omtfC",
+                               "OMTF constrained SAMuons (prompt pT)")
+omtfUnconstrTable = _saMuTable(("simOmtfPhase2Digis", "unconstrCands"), "omtfU",
+                               "OMTF unconstrained SAMuons (displaced pT, placeholder d0)")
+# GMT forward translator output (OMTF+EMTF, before the SA ghost cleaner)
+gmtFwdPromptTable = _saMuTable(("l1tFwdMuonsGmt", "prompt"),    "gmtFwd",
+                               "GMT forward-translator prompt SAMuons (OMTF+EMTF)")
+gmtFwdDispTable   = _saMuTable(("l1tFwdMuonsGmt", "displaced"), "gmtFwdDisp",
+                               "GMT forward-translator displaced SAMuons (OMTF+EMTF)")
+# GMT standalone output (what the menu sees)
+gmtSAPromptTable  = _saMuTable(("l1tSAMuonsGmt", "prompt"),     "gmtSA",
+                               "GMT standalone prompt SAMuons")
+gmtSADispTable    = _saMuTable(("l1tSAMuonsGmt", "displaced"),  "gmtSADisp",
+                               "GMT standalone displaced SAMuons")
+# KMTF displaced, for the barrel edge of the overlap
+kmtfDispTable     = _saMuTable(("l1tKMTFMuonsGmt", "displaced"), "kmtfDisp",
+                               "KMTF displaced SAMuons")
+
+saMuonTables = [omtfConstrTable, omtfUnconstrTable, gmtFwdPromptTable, gmtFwdDispTable,
+                gmtSAPromptTable, gmtSADispTable, kmtfDispTable]
 
 # ---------------------------------------------------------------------------
 # Generator-level muon table
@@ -343,7 +352,7 @@ PileupTable = cms.EDProducer(
 p2OmtfNanoTablesTask = cms.Task(
     genParticlePropagator,
     genMuonProvenance,
-    OMTFTrackTable,
+    *saMuonTables,
     genMuonNanoTable,
     MuonStubTpsTable,
     MuonStubKmtfTable,

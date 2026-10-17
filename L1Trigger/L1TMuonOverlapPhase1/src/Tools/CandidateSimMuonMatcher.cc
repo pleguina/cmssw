@@ -203,24 +203,26 @@ CandidateSimMuonMatcher::CandidateSimMuonMatcher(
     medianDelta_neg = dynamic_cast<TH1*>(muonMatcherFile.Get("medianDelta_neg"));
 
     LogTrace("l1tOmtfEventPrint") << " CandidateSimMuonMatcher: " << __LINE__ << std::endl;
+    //the histograms are used only by the propagation modes (simplePropagation, and withPropagator as a fallback);
+    //simpleMatching and collectMuonCands work without them, e.g. with an older file that does not have them
+    bool needHistograms =
+        (matchingType == MatchingType::simplePropagation || matchingType == MatchingType::withPropagator);
     if (!minDelta_pos || !maxDelta_pos || !medianDelta_pos || !minDelta_neg || !maxDelta_neg || !medianDelta_neg) {
       edm::LogWarning("l1tOmtfEventPrint")
           << "CandidateSimMuonMatcher: one or more histograms are missing in the file: " << muonMatcherFileName
           << std::endl;
-      throw cms::Exception("MissingHistogram")
-          << "CandidateSimMuonMatcher: one or more histograms are missing in the file: " << muonMatcherFileName
-          << std::endl;
+      if (needHistograms)
+        throw cms::Exception("MissingHistogram")
+            << "CandidateSimMuonMatcher: one or more histograms are missing in the file: " << muonMatcherFileName
+            << std::endl;
     }
 
     // Detach histograms from the file so they survive file close
     //it must be like that to assure the histograms leave outside this scope.
     //muonMatcherFile as pointer-field in the class somehow does not work.
-    minDelta_pos->SetDirectory(nullptr);
-    maxDelta_pos->SetDirectory(nullptr);
-    medianDelta_pos->SetDirectory(nullptr);
-    minDelta_neg->SetDirectory(nullptr);
-    maxDelta_neg->SetDirectory(nullptr);
-    medianDelta_neg->SetDirectory(nullptr);
+    for (TH1* hist : {minDelta_pos, maxDelta_pos, medianDelta_pos, minDelta_neg, maxDelta_neg, medianDelta_neg})
+      if (hist)
+        hist->SetDirectory(nullptr);
   }
 }
 

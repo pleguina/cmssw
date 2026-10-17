@@ -24,6 +24,8 @@
 #include <functional>
 #include <vector>
 #include <cstdint>
+#include <map>
+#include <tuple>
 
 class TTree;
 
@@ -69,6 +71,21 @@ public:
 
   unsigned int omtfFiredLayers = 0;
 
+  // Explicit endcap label for the OMTF candidate itself (independent of any gen/TP truth match
+  // above): +1 = OMTF_POS, -1 = OMTF_NEG, 0 = unknown/other track-finder type.
+  signed char omtfEndcap = 0;
+  // BX of the dumped OMTF candidate. This offline per-event dumper only ever emulates/dumps the
+  // BX=0 window (there is no multi-BX final-candidate loop here, unlike the online GMT output
+  // captured separately in the NanoAOD OMTF_* branches), so this is 0 by construction today. Kept
+  // as an explicit branch (rather than only documented) so downstream code does not have to
+  // assume it, and so a future multi-BX extension of this dumper is schema-compatible.
+  signed char omtfBx = 0;
+  // Unique identifier for this dumped OMTF candidate within (run,lumi,event64,omtfEndcap,
+  // omtfProcessor,omtfBx): 0,1,2... in the order candidates were produced for that key this
+  // event. Lets OMTFHitsTree rows for the same physical candidate be associated unambiguously
+  // (e.g. a killed candidate and its surviving neighbor) without relying on row adjacency.
+  int candidateId = 0;
+
   bool killed = false;
 
   float deltaPhi = 0, deltaEta = 0;
@@ -104,6 +121,16 @@ public:
   std::vector<short> hits_r;       // absolute radial distance [cm]
   std::vector<signed char> hits_type;  // MuonStub::Type enum cast to int8
   std::vector<signed char> hits_bx;    // bunch crossing offset from BX=0
+  // Parallel to 'hits'/'hits_type' above: stable per-primitive identity, mirroring
+  // OMTFAllInputTree's reg_stub_primitiveId/layer/quality/etaHw/detId (item 2/3), so a
+  // per-candidate stub in OMTFHitsTree can be joined back to its all-input row.
+  std::vector<unsigned long long> hits_primitiveId;
+  std::vector<signed char> hits_layer;   // logic layer index (redundant with packed Hit::layer,
+                                         // but int8 without the 4-bit truncation of the union)
+  std::vector<signed char> hits_quality; // qualityHw (redundant with packed Hit::quality, same reason)
+  std::vector<signed char> hits_etaHw;   // eta HW (redundant with packed Hit::etaHw, same reason)
+  std::vector<uint8_t>     hits_valid;   // 1 if this stub was actually used/valid in the gpResult
+  std::vector<uint32_t>    hits_detId;   // raw source chamber/roll DetId
 };
 
 class DataROOTDumper2 : public EmulationObserverBase {
@@ -136,6 +163,10 @@ private:
   TTree* rootTree = nullptr;
 
   OmtfEvent omtfEvent;
+
+  // candidateId assignment (see OmtfEvent::candidateId doc): reset at the start of every event,
+  // keyed by (endcap,processor,bx); value is the next id to hand out for that key this event.
+  std::map<std::tuple<signed char, char, signed char>, int> nextCandidateIdForKey_;
 
   unsigned int evntCnt = 0;
 

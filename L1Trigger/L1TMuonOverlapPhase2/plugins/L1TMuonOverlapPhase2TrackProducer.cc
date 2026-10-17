@@ -6,6 +6,15 @@
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 #include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticleFwd.h"
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+#include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
+#include "SimDataFormats/RPCDigiSimLink/interface/RPCDigiSimLink.h"
+#include "SimDataFormats/TrackerDigiSimLink/interface/StripDigiSimLink.h"
+#include "SimDataFormats/DigiSimLinks/interface/DTDigiSimLink.h"
+#include "DataFormats/MuonData/interface/MuonDigiCollection.h"
+#include "DataFormats/MuonDetId/interface/DTLayerId.h"
+#include "DataFormats/Common/interface/DetSetVector.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "FWCore/Framework/interface/EDConsumerBase.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ProductRegistryHelper.h"
@@ -51,6 +60,32 @@ L1TMuonOverlapPhase2TrackProducer::L1TMuonOverlapPhase2TrackProducer(const edm::
     mayConsume<edm::SimVertexContainer>(edmParameterSet.getParameter<edm::InputTag>("simVertexesTag"));
   if (edmParameterSet.exists("trackingParticleTag"))
     mayConsume<TrackingParticleCollection>(edmParameterSet.getParameter<edm::InputTag>("trackingParticleTag"));
+
+  //truth and pileup collections read by DataROOTDumper2AllInput
+  if (edmParameterSet.exists("genParticleTag"))
+    mayConsume<reco::GenParticleCollection>(edmParameterSet.getParameter<edm::InputTag>("genParticleTag"));
+  if (edmParameterSet.exists("pileupInfoInputTag"))
+    mayConsume<std::vector<PileupSummaryInfo>>(edmParameterSet.getParameter<edm::InputTag>("pileupInfoInputTag"));
+
+  //the dumper falls back to the g4SimHits muon hits when no explicit SimHit tag is given
+  mayConsume<edm::PSimHitContainer>(edmParameterSet.exists("rpcSimHitsInputTag")
+                                        ? edmParameterSet.getParameter<edm::InputTag>("rpcSimHitsInputTag")
+                                        : edm::InputTag("g4SimHits", "MuonRPCHits"));
+  mayConsume<edm::PSimHitContainer>(edmParameterSet.exists("cscSimHitsInputTag")
+                                        ? edmParameterSet.getParameter<edm::InputTag>("cscSimHitsInputTag")
+                                        : edm::InputTag("g4SimHits", "MuonCSCHits"));
+  mayConsume<edm::PSimHitContainer>(edmParameterSet.exists("dtSimHitsInputTag")
+                                        ? edmParameterSet.getParameter<edm::InputTag>("dtSimHitsInputTag")
+                                        : edm::InputTag("g4SimHits", "MuonDTHits"));
+
+  if (edmParameterSet.exists("rpcDigiSimLinkInputTag"))
+    mayConsume<edm::DetSetVector<RPCDigiSimLink>>(edmParameterSet.getParameter<edm::InputTag>("rpcDigiSimLinkInputTag"));
+  if (edmParameterSet.exists("cscStripDigiSimLinksInputTag"))
+    mayConsume<edm::DetSetVector<StripDigiSimLink>>(
+        edmParameterSet.getParameter<edm::InputTag>("cscStripDigiSimLinksInputTag"));
+  if (edmParameterSet.exists("dtDigiSimLinksInputTag"))
+    mayConsume<MuonDigiCollection<DTLayerId, DTDigiSimLink>>(
+        edmParameterSet.getParameter<edm::InputTag>("dtDigiSimLinksInputTag"));
 }
 
 /////////////////////////////////////////////////////
