@@ -7,6 +7,7 @@
 
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OmtfAngleConverter.h"
 #include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/OMTFConfiguration.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/Omtf/CscFirmwareEtaTables.h"
 
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
@@ -133,6 +134,23 @@ namespace {
     if ((detId.station() == 2 || detId.station() == 3) && detId.ring() == 2 && keyWG < 64)
       return r_s23r2[keyWG];
     return 0;
+  }
+
+  // CSC stub eta on the valueP1Scale scale as the firmware computes it (csc_interface etaKeyWG2CodeP1Scale):
+  // a table per ring, chamber parity and endcap. -1 for the rings and wire groups the firmware has no table for.
+  int cscKeyWGToEtaFirmware(const CSCDetId& detId, uint16_t keyWG) {
+    int ring = -1;
+    if (detId.station() == 1 && detId.ring() == 2)
+      ring = 0;
+    else if (detId.station() == 1 && detId.ring() == 3)
+      ring = 1;
+    else if (detId.station() == 2 && detId.ring() == 2)
+      ring = 2;
+    else if (detId.station() == 3 && detId.ring() == 2)
+      ring = 3;
+    if (ring < 0 || keyWG >= kCscFirmwareEtaWireGroups[ring])
+      return -1;
+    return kCscFirmwareEta[ring][detId.chamber() % 2 ? 0 : 1][detId.endcap() == 1 ? 0 : 1][keyWG];
   }
 
 }  //namespace
@@ -475,6 +493,12 @@ int OmtfAngleConverter::getGlobalEta(unsigned int rawid, const CSCCorrelatedLCTD
   if (config->getStubEtaEncoding() == ProcConfigurationBase::StubEtaEncoding::bits)
     return OMTFConfiguration::eta2Bits(abs(etaKeyWG2Code(id, keyWG)));
   else if (config->getStubEtaEncoding() >= ProcConfigurationBase::StubEtaEncoding::valueP1Scale) {
+    if (config->getCscFixedPointEtaForFirmware() &&
+        config->getStubEtaEncoding() == ProcConfigurationBase::StubEtaEncoding::valueP1Scale) {
+      const int etaFirmware = cscKeyWGToEtaFirmware(id, keyWG);
+      if (etaFirmware >= 0)
+        return etaFirmware;
+    }
     return config->etaToHwEta(abs(gpWg.eta()));
   } else {
     return 0;
