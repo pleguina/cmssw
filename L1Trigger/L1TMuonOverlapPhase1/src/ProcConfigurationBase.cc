@@ -94,4 +94,9 @@ void ProcConfigurationBase::configureFromEdmParameterSet(const edm::ParameterSet
     edm::LogVerbatim("OMTFReconstruction")
         << "cscFixedPointPhiForFirmware: " << cscFixedPointPhiForFirmware << std::endl;
   }
+
+  if (edmParameterSet.exists("cscFixedPointRForFirmware")) {
+    cscFixedPointRForFirmware = edmParameterSet.getParameter<bool>("cscFixedPointRForFirmware");
+    edm::LogVerbatim("OMTFReconstruction") << "cscFixedPointRForFirmware: " << cscFixedPointRForFirmware << std::endl;
+  }
 }

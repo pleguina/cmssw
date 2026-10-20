@@ -105,6 +105,12 @@ public:
   virtual bool getCscFixedPointPhiForFirmware() const { return cscFixedPointPhiForFirmware; }
   virtual void setCscFixedPointPhiForFirmware(bool v) { cscFixedPointPhiForFirmware = v; }
 
+  /// When true, the CSC stub r is taken from the per-ring key wire group tables of the firmware
+  /// (csc_interface keyWGToR) instead of the wire-group centre of each chamber's geometry, which
+  /// differs between the chambers of a ring by up to 1 mm. When false (default), the geometry is used.
+  virtual bool getCscFixedPointRForFirmware() const { return cscFixedPointRForFirmware; }
+  virtual void setCscFixedPointRForFirmware(bool v) { cscFixedPointRForFirmware = v; }
+
   enum class StubEtaEncoding {
     //in the firmware the eta is encoded as fired bits in the 9bit word, this is DT phase-1 encoding.
     //In the emulator in most of the places eta value is used, but with the DT-like bining, i.e. only certain values are valid, see OMTFConfiguration::eta2Bits()
@@ -149,6 +155,8 @@ private:
   bool fixCscGeometryOffset = false;
 
   bool cscFixedPointPhiForFirmware = false;
+
+  bool cscFixedPointRForFirmware = false;
 
   StubEtaEncoding stubEtaEncoding = StubEtaEncoding::bits;
 };

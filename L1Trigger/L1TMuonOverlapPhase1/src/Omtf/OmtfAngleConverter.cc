@@ -109,6 +109,32 @@ namespace {
     return etaCode;
   }
 
+  // CSC stub r [mm] per key wire group as the firmware computes it (csc_interface keyWGToR):
+  // one table per ring, the same for all the chambers of the ring; ME2/2 and ME3/2 share one.
+  // 0 for the rings and wire groups the firmware has no table for.
+  int cscKeyWGToRFirmware(const CSCDetId& detId, uint16_t keyWG) {
+    static const int r_s1r2[64] = {281, 282, 285, 287, 289, 291, 293, 296, 298, 300, 302, 304, 307,
+                                   309, 311, 313, 315, 318, 320, 323, 325, 328, 330, 333, 335, 339,
+                                   341, 343, 346, 348, 351, 353, 356, 358, 361, 364, 367, 370, 373,
+                                   376, 378, 381, 384, 387, 390, 393, 395, 398, 401, 405, 407, 410,
+                                   414, 417, 420, 423, 426, 430, 433, 437, 440, 444, 447, 450};
+    static const int r_s1r3[32] = {512, 514, 519, 524, 529, 534, 540, 545, 550, 555, 560,
+                                   565, 569, 575, 580, 585, 590, 595, 600, 605, 610, 615,
+                                   620, 626, 631, 636, 641, 647, 652, 657, 663, 668};
+    static const int r_s23r2[64] = {364, 366, 371, 376, 381, 386, 392, 397, 402, 407, 412, 417, 422,
+                                    427, 432, 437, 442, 448, 452, 457, 462, 467, 472, 478, 483, 488,
+                                    493, 498, 502, 508, 513, 518, 523, 528, 533, 538, 543, 548, 553,
+                                    558, 563, 569, 574, 579, 584, 589, 594, 599, 604, 609, 614, 619,
+                                    624, 630, 634, 639, 644, 649, 655, 660, 665, 670, 675, 680};
+    if (detId.station() == 1 && detId.ring() == 2 && keyWG < 64)
+      return r_s1r2[keyWG];
+    if (detId.station() == 1 && detId.ring() == 3 && keyWG < 32)
+      return r_s1r3[keyWG];
+    if ((detId.station() == 2 || detId.station() == 3) && detId.ring() == 2 && keyWG < 64)
+      return r_s23r2[keyWG];
+    return 0;
+  }
+
 }  //namespace
 
 OmtfAngleConverter::~OmtfAngleConverter() {}
@@ -438,10 +464,13 @@ int OmtfAngleConverter::getGlobalEta(unsigned int rawid, const CSCCorrelatedLCTD
   const GlobalPoint final_gp(
       GlobalPoint::Polar(coarse_gp.theta(), (coarse_gp.phi().value() + phi_offset), coarse_gp.mag()));
 
-  //TODO for phase 2, add firmware like, fixed point conversion from keyWG to eta and r
+  //TODO for phase 2, add firmware like, fixed point conversion from keyWG to eta
   const LocalPoint lpWg = layer_geom->localCenterOfWireGroup(keyWG);
   const GlobalPoint gpWg = layer->surface().toGlobal(lpWg);
-  r = round(gpWg.perp());
+  if (config->getCscFixedPointRForFirmware())
+    r = cscKeyWGToRFirmware(id, keyWG);
+  else
+    r = round(gpWg.perp());
 
   if (config->getStubEtaEncoding() == ProcConfigurationBase::StubEtaEncoding::bits)
     return OMTFConfiguration::eta2Bits(abs(etaKeyWG2Code(id, keyWG)));
