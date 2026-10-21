@@ -14,6 +14,82 @@
 #include <map>
 #include <tuple>
 
+namespace {
+  //one record per DT stub for the phi layer and one for its bending layer (logicLayer + 1, phiHw = phiB),
+  //keyed like the stub so that OMTFProcessor can mark the reference stubs; a phi-layer stub on a
+  //reference layer is also a ReferenceStub, as the CSC and RPC converters do
+  void addDtStubsToXmlCache(const MuonStubPtrs2D& muonStubsInLayers,
+                            unsigned int iProcessor,
+                            const OMTFConfiguration* config,
+                            XmlIOCache& xmlCache) {
+    std::map<std::pair<int, int>, int> stubOrder;
+    for (unsigned int iLayer = 0; iLayer < muonStubsInLayers.size(); ++iLayer) {
+      for (unsigned int iInput = 0; iInput < muonStubsInLayers[iLayer].size(); ++iInput) {
+        const auto& stub = muonStubsInLayers[iLayer][iInput];
+        if (!stub || (stub->type != MuonStub::DT_PHI_ETA && stub->type != MuonStub::DT_PHI))
+          continue;
+        DTChamberId detId(stub->detId);
+        int sectorWrapped = calculateDTSectorWrapped(detId, iProcessor, config);
+        for (int bending = 0; bending < 2; ++bending) {
+          int logicLayer = stub->logicLayer + bending;
+          auto hw = config->getLogicToHwLayer().find(logicLayer);
+          omtf::StubRecord srec;
+          srec.type = bending ? "DTb" : "DT";
+          srec.key = {static_cast<uint32_t>(stub->detId), logicLayer, static_cast<int>(iInput), stub->bx};
+          auto& attrs = srec.attrs;
+          attrs.add("<xmlattr>.logicLayer", logicLayer);
+          attrs.add("<xmlattr>.inputNumber", iInput);
+          attrs.add("<xmlattr>.phiHw", bending ? stub->phiBHw : stub->phiHw);
+          attrs.add("<xmlattr>.etaHw", stub->etaHw);
+          attrs.add("<xmlattr>.qualityHw", stub->qualityHw);
+          attrs.add("<xmlattr>.phiBHw", stub->phiBHw);
+          attrs.add("<xmlattr>.bx", stub->bx);
+          attrs.add("<xmlattr>.timing", stub->timing);
+          attrs.add("<xmlattr>.r", stub->r);
+          attrs.add("<xmlattr>.detId", stub->detId);
+          attrs.add("<xmlattr>.wheel", detId.wheel());
+          attrs.add("<xmlattr>.station", detId.station());
+          attrs.add("<xmlattr>.sector", detId.sector());
+          attrs.add("<xmlattr>.hwName",
+                    hw != config->getLogicToHwLayer().end() ? getHwNameFromHwNumber(hw->second) : std::string());
+          attrs.add("<xmlattr>.sector_wrapped", sectorWrapped);
+          attrs.add("<xmlattr>.chamber_wrapped", -1);
+          attrs.add("<xmlattr>.stub_order", stubOrder[{sectorWrapped, logicLayer}]++);
+          xmlCache.addStub(iProcessor, srec);
+
+          //OMTFinput::getRefHits uses a DT stub as reference hit only above this quality
+          if (bending || stub->qualityHw < config->getDtRefHitMinQuality())
+            continue;
+          const auto& refToLogicNumbers = config->getRefToLogicNumber();
+          for (unsigned int iRefLayer = 0; iRefLayer < refToLogicNumbers.size(); ++iRefLayer) {
+            if (refToLogicNumbers[iRefLayer] != logicLayer)
+              continue;
+            MuonStubMakerBase::addGlobalReferenceStub("DT",
+                                                      iProcessor,
+                                                      iRefLayer,
+                                                      logicLayer,
+                                                      stub->phiHw,
+                                                      stub->phiBHw,
+                                                      stub->etaHw,
+                                                      stub->qualityHw,
+                                                      stub->detId,
+                                                      attrs.get<std::string>("<xmlattr>.hwName"),
+                                                      0,
+                                                      detId.station(),
+                                                      -1,
+                                                      -1,
+                                                      -1,
+                                                      detId.sector(),
+                                                      sectorWrapped,
+                                                      calculateLogicRegion(stub->phiHw, iRefLayer, iInput, config));
+            break;
+          }
+        }
+      }
+    }
+  }
+}  // namespace
+
 /////////////////////////////////////
 void DtPhase2DigiToStubsConverter::loadDigis(const edm::Event& event) {
   event.getByToken(inputTokenDtPh, dtPhDigis);
@@ -108,6 +184,7 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
     }
     for (auto& obs : observers)
       obs->addProcesorData("dtData", procDataTree);
+    addDtStubsToXmlCache(muonStubsInLayers, iProcessor, config, xmlCache);
     return;
   }
 
@@ -173,6 +250,7 @@ void DtPhase2DigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers,
 
   for (auto& obs : observers)
     obs->addProcesorData("dtData", procDataTree);
+  addDtStubsToXmlCache(muonStubsInLayers, iProcessor, config, xmlCache);
 }
 
 //dtThDigis is provided as argument, because in the OMTF implementation the phi and eta digis are merged (even thought it is artificial)
